@@ -56,4 +56,14 @@ public class CompileOption {
         return compileOption;
     }
 
+    @Override
+    public String toString() {
+        return "CompileOption{" +
+                "sourceFile='" + sourceFile + '\'' +
+                ", outputType=" + outputType +
+                ", outputFile='" + outputFile + '\'' +
+                ", optimizeLevel=" + optimizeLevel +
+                '}';
+    }
+    
 }
