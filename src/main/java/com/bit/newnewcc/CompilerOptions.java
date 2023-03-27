@@ -3,7 +3,7 @@ package com.bit.newnewcc;
 /**
  * 编译器选项。
  */
-public class CompileOption {
+public class CompilerOptions {
     /**
      * 输出文件类型。
      */
@@ -14,7 +14,7 @@ public class CompileOption {
     /**
      * 优化等级。
      */
-    public enum OptimizeLevel {
+    public enum OptimizationLevel {
         /** 完全按照输入翻译。 */
         O0,
         /** 基本优化。 */
@@ -41,7 +41,7 @@ public class CompileOption {
     /**
      * 优化等级。
      */
-    public OptimizeLevel optimizeLevel = OptimizeLevel.O1;
+    public OptimizationLevel optimizationLevel = OptimizationLevel.O1;
 
     /**
      * 是否启用严格的编译过程检查。
@@ -58,8 +58,8 @@ public class CompileOption {
      * @param args 命令行参数
      * @return 命令行参数对应的编译器选项
      */
-    public static CompileOption fromCmdArguments(String[] args) {
-        var compileOption = new CompileOption();
+    public static CompilerOptions fromCmdArguments(String[] args) {
+        var compileOption = new CompilerOptions();
         for (int i = 0; i < args.length; i++) {
             if (args[i].charAt(0) == '-') {
                 switch (args[i].substring(1)) {
@@ -67,9 +67,9 @@ public class CompileOption {
                     case "S" -> compileOption.outputType = OutputType.ASM;
                     case "emit-llvm" -> compileOption.outputType = OutputType.LLVM_IR;
                     case "check-compile-process" -> compileOption.enableStrictCompileProcessCheck = true;
-                    case "O0" -> compileOption.optimizeLevel = OptimizeLevel.O0;
-                    case "O1" -> compileOption.optimizeLevel = OptimizeLevel.O1;
-                    case "O2" -> compileOption.optimizeLevel = OptimizeLevel.O2;
+                    case "O0" -> compileOption.optimizationLevel = OptimizationLevel.O0;
+                    case "O1" -> compileOption.optimizationLevel = OptimizationLevel.O1;
+                    case "O2" -> compileOption.optimizationLevel = OptimizationLevel.O2;
                 }
             } else {
                 // 如果有多个源文件，sourceFile应该改为数组
@@ -81,11 +81,11 @@ public class CompileOption {
 
     @Override
     public String toString() {
-        return "CompileOption{" +
+        return "CompilerOptions{" +
                 "sourceFile='" + sourceFile + '\'' +
                 ", outputType=" + outputType +
                 ", outputFile='" + outputFile + '\'' +
-                ", optimizeLevel=" + optimizeLevel +
+                ", optimizationLevel=" + optimizationLevel +
                 ", enableStrictCompileProcessCheck=" + enableStrictCompileProcessCheck +
                 '}';
     }
