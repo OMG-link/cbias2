@@ -4,7 +4,6 @@ package com.bit.newnewcc;
  * 实际运行编译流水线的对象
  */
 public class Driver {
-
     private final CompileOption compileOption;
 
     public Driver(CompileOption compileOption){
@@ -14,5 +13,4 @@ public class Driver {
     public void launch(){
 
     }
-
 }

@@ -4,11 +4,10 @@ package com.bit.newnewcc;
  * 编译器设置
  */
 public class CompileOption {
-
     /**
      * 输出文件的类型，包括：LLVM IR、ASM
      */
-    public enum OutputType{
+    public enum OutputType {
         LLVM_IR, ASM
     }
 
@@ -19,8 +18,8 @@ public class CompileOption {
      * - O1: 进行基本的优化 <br>
      * - O2: 进行高阶的优化 <br>
      */
-    public enum OptimizeLevel{
-        O0,O1,O2
+    public enum OptimizeLevel {
+        O0, O1, O2
     }
 
     /**
@@ -32,6 +31,7 @@ public class CompileOption {
      * 输出文件类型
      */
     public OutputType outputType = OutputType.ASM;
+
     /**
      * 输出文件名
      */
@@ -51,37 +51,24 @@ public class CompileOption {
 
     /**
      * 由命令行参数生成一个编译器设置
+     *
      * @param args 命令行参数
      * @return 命令行参数对应的编译器设置
      */
-    public static CompileOption fromCmdArguments(String[] args){
+    public static CompileOption fromCmdArguments(String[] args) {
         var compileOption = new CompileOption();
-        for (int i = 0; i < args.length; i++){
-            if(args[i].charAt(0) == '-'){
+        for (int i = 0; i < args.length; i++) {
+            if (args[i].charAt(0) == '-') {
                 switch (args[i].substring(1)) {
-                    case "o" -> {
-                        compileOption.outputFile = args[++i];
-                    }
-                    case "S" -> {
-                        compileOption.outputType = CompileOption.OutputType.ASM;
-                    }
-                    case "emit-llvm" -> {
-                        compileOption.outputType = CompileOption.OutputType.LLVM_IR;
-                    }
-                    case "check-compile-process"-> {
-                        compileOption.enableStrictCompileProcessCheck = true;
-                    }
-                    case "O0" -> {
-                        compileOption.optimizeLevel = CompileOption.OptimizeLevel.O0;
-                    }
-                    case "O1" -> {
-                        compileOption.optimizeLevel = CompileOption.OptimizeLevel.O1;
-                    }
-                    case "O2" -> {
-                        compileOption.optimizeLevel = CompileOption.OptimizeLevel.O2;
-                    }
+                    case "o" -> compileOption.outputFile = args[++i];
+                    case "S" -> compileOption.outputType = OutputType.ASM;
+                    case "emit-llvm" -> compileOption.outputType = OutputType.LLVM_IR;
+                    case "check-compile-process" -> compileOption.enableStrictCompileProcessCheck = true;
+                    case "O0" -> compileOption.optimizeLevel = OptimizeLevel.O0;
+                    case "O1" -> compileOption.optimizeLevel = OptimizeLevel.O1;
+                    case "O2" -> compileOption.optimizeLevel = OptimizeLevel.O2;
                 }
-            }else{
+            } else {
                 // 如果有多个源文件，sourceFile应该改为数组
                 compileOption.sourceFile = args[i];
             }
@@ -99,5 +86,4 @@ public class CompileOption {
                 ", enableStrictCompileProcessCheck=" + enableStrictCompileProcessCheck +
                 '}';
     }
-
 }
