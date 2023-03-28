@@ -11,6 +11,8 @@ RETURN: 'return';
 VOID: 'void';
 WHILE: 'while';
 
+ASSIGN: '=';
+
 ADD: '+';
 SUB: '-';
 MUL: '*';
@@ -38,27 +40,46 @@ RBRACE: '}';
 COMMA: ',';
 SEMI: ';';
 
-Identifier: Nondigit (Nondigit | Digit)*;
+Ident: Nondigit (Nondigit | Digit)*;
 
 fragment Nondigit: [a-zA-Z];
 
 fragment Digit: [0-9];
 
-IntegerConstant: DecimalConstant | OctalConstant | HexadecimalConstant;
+IntConst: DecConst | OctConst | HexConst;
 
-fragment DecimalConstant: NonzeroDigit Digit*;
-
-fragment OctalConstant: '0' OctalDigit*;
-
-fragment HexadecimalConstant: HexadecimalPrefix HexadecimalDigit+;
-
-fragment HexadecimalPrefix: '0' [xX];
-
-fragment HexadecimalDigit: [0-9a-fA-F];
+fragment DecConst: NonzeroDigit Digit*;
 
 fragment NonzeroDigit: [1-9];
 
-fragment OctalDigit: [0-7];
+fragment OctConst: '0' OctDigit*;
+
+fragment OctDigit: [0-7];
+
+fragment HexConst: HexPrefix HexDigit+;
+
+fragment HexPrefix: '0' [xX];
+
+fragment HexDigit: [0-9a-fA-F];
+
+FloatConst: DecFloatConst | HexFloatConst;
+
+fragment DecFloatConst: FractionalConst ExponentPart?
+	                  | Digit+ ExponentPart;
+
+fragment FractionalConst: Digit+? '.' Digit+
+	                    | Digit+ '.';
+
+fragment ExponentPart: [eE] Sign? Digit+;
+
+fragment Sign: [+-];
+
+fragment HexFloatConst: HexPrefix (HexFractionalConst | HexDigit+) BinaryExponentPart;
+
+fragment HexFractionalConst: HexDigit+? '.' HexDigit+
+	                       | HexDigit+ '.';
+
+fragment BinaryExponentPart: [pP] Sign? Digit+;
 
 Whitespace: [ \t]+ -> skip;
 
