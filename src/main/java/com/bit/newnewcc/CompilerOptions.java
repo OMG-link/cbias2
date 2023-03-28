@@ -59,24 +59,24 @@ public class CompilerOptions {
      * @return 命令行参数对应的编译器选项
      */
     public static CompilerOptions fromCmdArguments(String[] args) {
-        var compileOption = new CompilerOptions();
+        var compilerOptions = new CompilerOptions();
         for (int i = 0; i < args.length; i++) {
             if (args[i].charAt(0) == '-') {
                 switch (args[i].substring(1)) {
-                    case "o" -> compileOption.outputFile = args[++i];
-                    case "S" -> compileOption.outputType = OutputType.ASM;
-                    case "emit-llvm" -> compileOption.outputType = OutputType.LLVM_IR;
-                    case "check-compile-process" -> compileOption.enableStrictCompileProcessCheck = true;
-                    case "O0" -> compileOption.optimizationLevel = OptimizationLevel.O0;
-                    case "O1" -> compileOption.optimizationLevel = OptimizationLevel.O1;
-                    case "O2" -> compileOption.optimizationLevel = OptimizationLevel.O2;
+                    case "o" -> compilerOptions.outputFile = args[++i];
+                    case "S" -> compilerOptions.outputType = OutputType.ASM;
+                    case "emit-llvm" -> compilerOptions.outputType = OutputType.LLVM_IR;
+                    case "check-compile-process" -> compilerOptions.enableStrictCompileProcessCheck = true;
+                    case "O0" -> compilerOptions.optimizationLevel = OptimizationLevel.O0;
+                    case "O1" -> compilerOptions.optimizationLevel = OptimizationLevel.O1;
+                    case "O2" -> compilerOptions.optimizationLevel = OptimizationLevel.O2;
                 }
             } else {
                 // 如果有多个源文件，sourceFile应该改为数组
-                compileOption.sourceFile = args[i];
+                compilerOptions.sourceFile = args[i];
             }
         }
-        return compileOption;
+        return compilerOptions;
     }
 
     @Override
