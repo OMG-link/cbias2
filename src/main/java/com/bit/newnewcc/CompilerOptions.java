@@ -6,7 +6,7 @@ import lombok.Value;
 @Value
 @Builder
 public class CompilerOptions {
-    String[] sourceFileNames;
+    String[] inputFileNames;
     String outputFileName;
     int optimizationLevel;
 }

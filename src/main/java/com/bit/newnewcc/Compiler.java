@@ -20,7 +20,7 @@ public class Compiler {
         CommandLineParser parser = new DefaultParser();
         CommandLine cmd = parser.parse(options, args);
         CompilerOptions compilerOptions = CompilerOptions.builder()
-                .sourceFileNames(cmd.getArgs())
+                .inputFileNames(cmd.getArgs())
                 .outputFileName(cmd.getOptionValue(outputFileName, "a.out"))
                 .optimizationLevel(Integer.parseInt(cmd.getOptionValue(optimizationLevel, "0")))
                 .build();
