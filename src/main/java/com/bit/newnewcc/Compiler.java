@@ -15,15 +15,27 @@ public class Compiler {
                 .argName("level")
                 .desc("Use optimization level <level>")
                 .build();
+        Option emitAssembly = new Option("S", "Only run compilation steps");
+        Option emitLLVM = new Option(
+                null,
+                "emit-llvm",
+                false,
+                "Use the LLVM representation for assembler and object files"
+        );
         options.addOption(outputFileName);
         options.addOption(optimizationLevel);
+        options.addOption(emitAssembly);
+        options.addOption(emitLLVM);
         CommandLineParser parser = new DefaultParser();
         CommandLine cmd = parser.parse(options, args);
         CompilerOptions compilerOptions = CompilerOptions.builder()
                 .inputFileNames(cmd.getArgs())
                 .outputFileName(cmd.getOptionValue(outputFileName, "a.out"))
                 .optimizationLevel(Integer.parseInt(cmd.getOptionValue(optimizationLevel, "0")))
+                .emitAssembly(cmd.hasOption(emitAssembly))
+                .emitLLVM(cmd.hasOption(emitLLVM))
                 .build();
+        System.out.println(compilerOptions);
         Driver driver = new Driver(compilerOptions);
         driver.launch();
     }

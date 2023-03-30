@@ -9,4 +9,6 @@ public class CompilerOptions {
     String[] inputFileNames;
     String outputFileName;
     int optimizationLevel;
+    boolean emitAssembly;
+    boolean emitLLVM;
 }
