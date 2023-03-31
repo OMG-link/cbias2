@@ -17,6 +17,13 @@ public class IntegerCompareSgeInst extends IntegerCompareInst{
         super(operandType, operand1, operand2);
     }
 
+    /**
+     * @param operandType 待比较数据的类型，必须是IntegerType
+     */
+    public IntegerCompareSgeInst(IntegerType operandType) {
+        super(operandType);
+    }
+
     @Override
     protected String getCompareCondition() {
         return "sge";

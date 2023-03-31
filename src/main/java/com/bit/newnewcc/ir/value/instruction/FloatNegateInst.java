@@ -8,8 +8,15 @@ import com.bit.newnewcc.ir.value.Instruction;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * 浮点数取相反数指令
+ */
 public class FloatNegateInst extends Instruction {
     private final Operand operand1;
+
+    public FloatNegateInst(FloatType type){
+        this(type,null);
+    }
 
     public FloatNegateInst(FloatType type, Value operand1) {
         super(type);

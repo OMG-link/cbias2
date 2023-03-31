@@ -16,6 +16,18 @@ import java.util.List;
 public abstract class FloatCalculateInst extends Instruction {
     private final Operand operand1, operand2;
 
+    /**
+     * @param type 语句的返回类型，必须是FloatType
+     */
+    public FloatCalculateInst(FloatType type){
+        this(type,null,null);
+    }
+
+    /**
+     * @param type 语句的返回类型，必须是FloatType
+     * @param operand1 操作数1
+     * @param operand2 操作数2
+     */
     public FloatCalculateInst(FloatType type, Value operand1, Value operand2) {
         super(type);
         this.operand1 = new Operand(this,type,operand1);

@@ -18,6 +18,13 @@ public class FloatCompareOeqInst extends FloatCompareInst{
         super(operandType, operand1, operand2);
     }
 
+    /**
+     * @param operandType 待比较数据的类型，必须是FloatType
+     */
+    public FloatCompareOeqInst(FloatType operandType) {
+        super(operandType);
+    }
+
     @Override
     protected String getCompareCondition() {
         return "oeq";

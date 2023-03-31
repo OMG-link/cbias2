@@ -19,6 +19,13 @@ public abstract class FloatCompareInst extends Instruction {
 
     /**
      * @param operandType 待比较数据的类型，必须是FloatType
+     */
+    public FloatCompareInst(FloatType operandType){
+        this(operandType,null,null);
+    }
+
+    /**
+     * @param operandType 待比较数据的类型，必须是FloatType
      * @param operand1 操作数1
      * @param operand2 操作数2
      */

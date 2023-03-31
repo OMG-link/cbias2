@@ -17,6 +17,13 @@ public class FloatMultiplyInst extends FloatCalculateInst{
         super(type, operand1, operand2);
     }
 
+    /**
+     * @param type 语句的返回类型，必须是FloatType
+     */
+    public FloatMultiplyInst(FloatType type) {
+        super(type);
+    }
+
     @Override
     protected String getInstName() {
         return "fmul";

@@ -18,6 +18,13 @@ public abstract class IntegerCalculateInst extends Instruction {
 
     /**
      * @param type 语句的返回类型，必须是IntegerType
+     */
+    public IntegerCalculateInst(IntegerType type){
+        this(type,null,null);
+    }
+
+    /**
+     * @param type 语句的返回类型，必须是IntegerType
      * @param operand1 操作数1
      * @param operand2 操作数2
      */

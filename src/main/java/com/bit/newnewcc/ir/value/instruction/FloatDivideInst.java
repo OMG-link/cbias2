@@ -17,6 +17,13 @@ public class FloatDivideInst extends FloatCalculateInst{
         super(type, operand1, operand2);
     }
 
+    /**
+     * @param type 语句的返回类型，必须是FloatType
+     */
+    public FloatDivideInst(FloatType type) {
+        super(type);
+    }
+
     @Override
     protected String getInstName() {
         return "fdiv";

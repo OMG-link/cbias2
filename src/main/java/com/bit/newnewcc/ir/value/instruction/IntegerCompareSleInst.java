@@ -17,6 +17,13 @@ public class IntegerCompareSleInst extends IntegerCompareInst{
         super(operandType, operand1, operand2);
     }
 
+    /**
+     * @param operandType 待比较数据的类型，必须是IntegerType
+     */
+    public IntegerCompareSleInst(IntegerType operandType) {
+        super(operandType);
+    }
+
     @Override
     protected String getCompareCondition() {
         return "sle";

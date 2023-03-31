@@ -17,6 +17,13 @@ public class IntegerAddInst extends IntegerCalculateInst {
         super(type, operand1, operand2);
     }
 
+    /**
+     * @param type 语句的返回类型，必须是IntegerType
+     */
+    public IntegerAddInst(IntegerType type) {
+        super(type);
+    }
+
     @Override
     protected String getInstName() {
         return "add";
