@@ -2,6 +2,7 @@ package com.bit.newnewcc.ir.type;
 
 import com.bit.newnewcc.ir.Type;
 import com.bit.newnewcc.ir.exception.IllegalBitWidthException;
+import com.bit.newnewcc.ir.value.Constant;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -19,6 +20,14 @@ public class IntegerType extends Type {
     @Override
     protected String getTypeName_() {
         return String.format("i%d",bitWidth);
+    }
+
+    @Override
+    public Constant getDefaultInitialization() {
+        return switch (bitWidth){
+            case 32 -> ConstInt.get(0);
+            default -> throw new UnsupportedOperationException();
+        };
     }
 
     private static boolean isBitWidthLegal(int bitWidth){

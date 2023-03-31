@@ -1,6 +1,7 @@
 package com.bit.newnewcc.ir.type;
 
 import com.bit.newnewcc.ir.Type;
+import com.bit.newnewcc.ir.value.Constant;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -27,6 +28,11 @@ public class PointerType extends Type {
     @Override
     protected String getTypeName_() {
         return pointedType.getTypeName() + "*";
+    }
+
+    @Override
+    public Constant getDefaultInitialization() {
+        throw new UnsupportedOperationException();
     }
 
     // 此处使用Map而非Set，是因为需要保证getInstance返回的实例是唯一的

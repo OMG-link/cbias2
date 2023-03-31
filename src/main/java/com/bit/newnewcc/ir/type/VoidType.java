@@ -1,6 +1,7 @@
 package com.bit.newnewcc.ir.type;
 
 import com.bit.newnewcc.ir.Type;
+import com.bit.newnewcc.ir.value.Constant;
 
 /**
  * Void类型 <br>
@@ -26,5 +27,10 @@ public class VoidType extends Type {
             instance = new VoidType();
         }
         return instance;
+    }
+
+    @Override
+    public Constant getDefaultInitialization() {
+        throw new UnsupportedOperationException();
     }
 }

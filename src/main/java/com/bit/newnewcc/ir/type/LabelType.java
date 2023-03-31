@@ -1,6 +1,7 @@
 package com.bit.newnewcc.ir.type;
 
 import com.bit.newnewcc.ir.Type;
+import com.bit.newnewcc.ir.value.Constant;
 
 /**
  * Label类型 <br>
@@ -13,6 +14,11 @@ public class LabelType extends Type {
     @Override
     protected String getTypeName_() {
         return "label";
+    }
+
+    @Override
+    public Constant getDefaultInitialization() {
+        throw new UnsupportedOperationException();
     }
 
     private static LabelType instance = null;

@@ -1,6 +1,7 @@
 package com.bit.newnewcc.ir.type;
 
 import com.bit.newnewcc.ir.Type;
+import com.bit.newnewcc.ir.value.Constant;
 
 public class DummyType extends Type {
 
@@ -9,6 +10,11 @@ public class DummyType extends Type {
 
     @Override
     protected String getTypeName_() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Constant getDefaultInitialization() {
         throw new UnsupportedOperationException();
     }
 
