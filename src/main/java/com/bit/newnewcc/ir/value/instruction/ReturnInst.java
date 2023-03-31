@@ -1,8 +1,10 @@
 package com.bit.newnewcc.ir.value.instruction;
 
 import com.bit.newnewcc.ir.Operand;
+import com.bit.newnewcc.ir.Type;
 import com.bit.newnewcc.ir.Value;
 import com.bit.newnewcc.ir.type.IntegerType;
+import com.bit.newnewcc.ir.type.VoidType;
 import com.bit.newnewcc.ir.value.BasicBlock;
 
 import java.util.ArrayList;
@@ -16,18 +18,21 @@ public class ReturnInst extends TerminateInst{
     private final Operand returnValueOperand;
 
     /**
-     * 构建一个空的返回语句
+     * 构建一个未填入返回值的返回语句 <br>
+     * 若要构建返回void的语句，请使用new ReturnInst(VoidValue.getInstance()) <br>
+     * @param returnType 返回值类型
      */
-    public ReturnInst() {
-        this(null);
+    public ReturnInst(Type returnType) {
+        this.returnValueOperand = new Operand(this,returnType,null);
     }
 
     /**
-     * 构建一个返回语句
+     * 构建一个返回语句 <br>
+     * 若要构建返回void的语句，请传入VoidValue.getInstance() <br>
      * @param returnValue 返回值
      */
     public ReturnInst(Value returnValue) {
-        this.returnValueOperand = new Operand(this, null, returnValue);
+        this.returnValueOperand = new Operand(this, returnValue.getType(), returnValue);
     }
 
     public Value getReturnValue() {
@@ -41,7 +46,11 @@ public class ReturnInst extends TerminateInst{
     @Override
     public String toString() {
         var returnValue = returnValueOperand.getValue();
-        return String.format("ret %s %s", returnValue.getTypeName(), returnValue.getValueName());
+        if(returnValue.getType() instanceof VoidType){
+            return "ret void";
+        }else{
+            return String.format("ret %s %s", returnValue.getTypeName(), returnValue.getValueName());
+        }
     }
 
     @Override
