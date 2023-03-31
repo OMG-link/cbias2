@@ -33,7 +33,7 @@ public class FloatNegateInst extends Instruction {
 
     @Override
     public String toString() {
-        return String.format("fneg %s %s",this.getTypeName(),getOperand1().getValueName());
+        return String.format("%s = fneg %s %s",getValueName(),getTypeName(),getOperand1().getValueName());
     }
 
     @Override
