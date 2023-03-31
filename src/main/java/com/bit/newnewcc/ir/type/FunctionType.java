@@ -51,8 +51,8 @@ public class FunctionType extends Type {
         return builder.toString();
     }
 
-    /// 此处使用Map而非Set，是因为需要保证getInstance返回的实例是唯一的
-    /// 使用Set时，无法通过临时构建的实例找到缓存了的唯一返回实例
+    // 此处使用Map而非Set，是因为需要保证getInstance返回的实例是唯一的
+    // 使用Set时，无法通过临时构建的实例找到缓存了的唯一返回实例
     private static Map<FunctionType, FunctionType> instanceMap;
 
     public static FunctionType getInstance(Type returnType, List<Type> parameterTypes) {
