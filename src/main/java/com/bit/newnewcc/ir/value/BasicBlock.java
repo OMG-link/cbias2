@@ -7,6 +7,8 @@ import com.bit.newnewcc.ir.type.LabelType;
 import com.bit.newnewcc.ir.value.instruction.DummyInstruction;
 import com.bit.newnewcc.ir.value.instruction.JumpInst;
 
+import java.util.Iterator;
+
 /**
  * 基本块
  */
@@ -22,7 +24,8 @@ public class BasicBlock extends Value {
     }
 
     /// 基本块与指令的关系
-    public class InstructionList {
+    public class InstructionList implements Iterable<Instruction> {
+
         public static class Node {
             private Node prev, next;
             private final Instruction instruction;
@@ -37,6 +40,31 @@ public class BasicBlock extends Value {
                 return instruction.getBasicBlock();
             }
 
+        }
+
+        private class InstructionIterator implements Iterator<Instruction>{
+
+            private Node node;
+
+            private InstructionIterator(Node node){
+                this.node = node;
+            }
+
+            @Override
+            public boolean hasNext() {
+                return node.next!=tail;
+            }
+
+            @Override
+            public Instruction next() {
+                node = node.next;
+                return node.instruction;
+            }
+        }
+
+        @Override
+        public Iterator<Instruction> iterator() {
+            return new InstructionIterator(head);
         }
 
         /**
@@ -101,6 +129,10 @@ public class BasicBlock extends Value {
     }
 
     private final InstructionList instructionList = new InstructionList();
+
+    public InstructionList getInstructionList() {
+        return instructionList;
+    }
 
     /**
      * 在基本块的开头插入一条指令
