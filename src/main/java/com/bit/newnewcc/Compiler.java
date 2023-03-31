@@ -35,7 +35,6 @@ public class Compiler {
                 .emitAssembly(cmd.hasOption(emitAssembly))
                 .emitLLVM(cmd.hasOption(emitLLVM))
                 .build();
-        System.out.println(compilerOptions);
         Driver driver = new Driver(compilerOptions);
         driver.launch();
     }
