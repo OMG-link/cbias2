@@ -18,6 +18,10 @@ public class IntegerType extends Type {
         this.bitWidth = bitWidth;
     }
 
+    public int getBitWidth() {
+        return bitWidth;
+    }
+
     @Override
     protected String getTypeName_() {
         return String.format("i%d",bitWidth);
