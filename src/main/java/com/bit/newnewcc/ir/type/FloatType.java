@@ -3,6 +3,7 @@ package com.bit.newnewcc.ir.type;
 import com.bit.newnewcc.ir.Type;
 import com.bit.newnewcc.ir.exception.IllegalBitWidthException;
 import com.bit.newnewcc.ir.value.Constant;
+import com.bit.newnewcc.ir.value.constant.ConstFloat;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -29,7 +30,7 @@ public class FloatType extends Type {
     @Override
     public Constant getDefaultInitialization() {
         return switch (bitWidth){
-            case 32 -> ConstFloat.get(0.0);
+            case 32 -> ConstFloat.getInstance(0);
             default -> throw new UnsupportedOperationException();
         };
     }

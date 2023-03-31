@@ -3,6 +3,7 @@ package com.bit.newnewcc.ir.type;
 import com.bit.newnewcc.ir.Type;
 import com.bit.newnewcc.ir.exception.IllegalBitWidthException;
 import com.bit.newnewcc.ir.value.Constant;
+import com.bit.newnewcc.ir.value.constant.ConstInt;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -25,7 +26,7 @@ public class IntegerType extends Type {
     @Override
     public Constant getDefaultInitialization() {
         return switch (bitWidth){
-            case 32 -> ConstInt.get(0);
+            case 32 -> ConstInt.getInstance(0);
             default -> throw new UnsupportedOperationException();
         };
     }
