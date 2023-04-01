@@ -67,11 +67,11 @@ public class Operand {
             }
         }
         if(this.value!=null){
-            this.value.__removeUsedByRecord__(this);
+            this.value.__removeUsage__(this);
         }
         this.value = value;
         if(this.value!=null){
-            this.value.__addUsedByRecord__(this);
+            this.value.__addUsage__(this);
         }
     }
 

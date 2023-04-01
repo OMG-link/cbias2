@@ -2,10 +2,9 @@ package com.bit.newnewcc.ir.value;
 
 import com.bit.newnewcc.ir.Value;
 import com.bit.newnewcc.ir.exception.IllegalArgumentException;
-import com.bit.newnewcc.ir.exception.UseRelationCheckFailException;
+import com.bit.newnewcc.ir.exception.UsageRelationshipCheckFailedException;
 import com.bit.newnewcc.ir.type.LabelType;
 import com.bit.newnewcc.ir.value.instruction.DummyInstruction;
-import com.bit.newnewcc.ir.value.instruction.JumpInst;
 
 import java.util.Iterator;
 
@@ -122,7 +121,7 @@ public class BasicBlock extends Value {
 
         private static void assertNodeFree(Node node) {
             if (!(node.prev == null && node.next == null && node.list == null)) {
-                throw new UseRelationCheckFailException("This node has been inserted to some list, you must remove it before inserting to a new one");
+                throw new UsageRelationshipCheckFailedException("This node has been inserted to some list, you must remove it before inserting to a new one");
             }
         }
 
@@ -181,11 +180,11 @@ public class BasicBlock extends Value {
     public void __setFunction__(Function function, boolean shouldFixFunction) {
         // 检查所属函数是否被锁定，锁定则不能被修改
         if (this.isFunctionFixed) {
-            throw new UseRelationCheckFailException("Belonging of this basic block has been fixed.");
+            throw new UsageRelationshipCheckFailedException("Belonging of this basic block has been fixed.");
         }
         // 检查是否直接修改所属函数，必须先从其他函数中移除该基本块
         if (this.function != null && function != null) {
-            throw new UseRelationCheckFailException("A basic block is being added to another function without removing from the original function");
+            throw new UsageRelationshipCheckFailedException("A basic block is being added to another function without removing from the original function");
         }
         // 设置函数锁定
         if (shouldFixFunction) {

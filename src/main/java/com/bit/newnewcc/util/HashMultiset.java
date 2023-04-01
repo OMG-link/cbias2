@@ -1,4 +1,4 @@
-package com.bit.newnewcc.utils;
+package com.bit.newnewcc.util;
 
 import java.util.*;
 

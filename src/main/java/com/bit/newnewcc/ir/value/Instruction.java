@@ -3,7 +3,7 @@ package com.bit.newnewcc.ir.value;
 import com.bit.newnewcc.ir.Operand;
 import com.bit.newnewcc.ir.Type;
 import com.bit.newnewcc.ir.Value;
-import com.bit.newnewcc.ir.exception.UseRelationCheckFailException;
+import com.bit.newnewcc.ir.exception.UsageRelationshipCheckFailedException;
 
 import java.util.List;
 
@@ -60,12 +60,12 @@ public abstract class Instruction extends Value {
         return node;
     }
 
-    /// Compile process check
+    /// Compilation process check
 
     public void checkOperandValidity() {
         for (Operand operand : getOperandList()) {
             if (!operand.hasValueBound()) {
-                throw new UseRelationCheckFailException("No value was bound to this operand.");
+                throw new UsageRelationshipCheckFailedException("No value was bound to this operand.");
             }
         }
     }

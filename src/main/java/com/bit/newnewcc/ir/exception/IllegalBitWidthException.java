@@ -1,6 +1,6 @@
 package com.bit.newnewcc.ir.exception;
 
-public class IllegalBitWidthException extends CompileProcessCheckFailException{
+public class IllegalBitWidthException extends CompilationProcessCheckFailedException {
     public IllegalBitWidthException() {
     }
 

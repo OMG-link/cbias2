@@ -29,7 +29,7 @@ public class Module {
 
     public void addExternalFunction(ExternalFunction externalFunction) {
         if (externalFunction instanceof Function) {
-            throw new IllegalArgumentException("Cannot insert function as an external function.");
+            throw new IllegalArgumentException("Cannot insert a function as an external function.");
         }
         externalFunctions.add(externalFunction);
     }

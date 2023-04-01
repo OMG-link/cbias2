@@ -1,6 +1,6 @@
 package com.bit.newnewcc.ir.exception;
 
-public class IllegalArgumentException extends CompileProcessCheckFailException{
+public class IllegalArgumentException extends CompilationProcessCheckFailedException {
     public IllegalArgumentException() {
     }
 

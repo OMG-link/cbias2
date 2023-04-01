@@ -49,15 +49,15 @@ public abstract class Value {
     /**
      * 记录当前Value被哪些Operand所使用
      */
-    private final HashSet<Operand> usedByRecords = new HashSet<>();
+    private final HashSet<Operand> usages = new HashSet<>();
 
     /**
      * 添加一个当前Value被作为操作数的记录 <br>
      * <b style="color:red">【不要在Operand类以外的任何地方调用该函数！！！】</b> <br>
      * @param operand 操作数
      */
-    public void __addUsedByRecord__(Operand operand){
-        usedByRecords.add(operand);
+    public void __addUsage__(Operand operand){
+        usages.add(operand);
     }
 
     /**
@@ -65,18 +65,18 @@ public abstract class Value {
      * <b style="color:red">【不要在Operand类以外的任何地方调用该函数！！！】</b> <br>
      * @param operand 操作数
      */
-    public void __removeUsedByRecord__(Operand operand){
-        boolean isSucceed = usedByRecords.remove(operand);
+    public void __removeUsage__(Operand operand){
+        boolean isSucceed = usages.remove(operand);
         if(!isSucceed){
-            throw new NoSuchElementException("Trying to remove a used by record that does not exists.");
+            throw new NoSuchElementException("Trying to remove a usage that does not exist");
         }
     }
 
     /**
      * @return 使用当前Value的Operand的列表的副本
      */
-    public ArrayList<Operand> getUsedByRecords() {
-        return new ArrayList<>(usedByRecords);
+    public ArrayList<Operand> getUsages() {
+        return new ArrayList<>(usages);
     }
 
 }
