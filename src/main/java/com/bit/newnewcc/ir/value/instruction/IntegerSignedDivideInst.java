@@ -6,7 +6,7 @@ import com.bit.newnewcc.ir.type.IntegerType;
 /**
  * 有符号整数除法语句
  */
-public class IntegerSignedDivideInst extends IntegerCalculateInst {
+public class IntegerSignedDivideInst extends IntegerArithmeticInst {
 
     /**
      * @param type 语句的返回类型，必须是IntegerType
