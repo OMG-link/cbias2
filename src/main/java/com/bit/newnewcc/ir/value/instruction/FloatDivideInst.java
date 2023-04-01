@@ -6,7 +6,7 @@ import com.bit.newnewcc.ir.type.FloatType;
 /**
  * 浮点数除法语句
  */
-public class FloatDivideInst extends FloatCalculateInst{
+public class FloatDivideInst extends FloatArithmeticInst {
 
     /**
      * @param type 语句的返回类型，必须是FloatType

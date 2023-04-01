@@ -1,34 +1,33 @@
 package com.bit.newnewcc.ir.value.instruction;
 
 import com.bit.newnewcc.ir.Operand;
-import com.bit.newnewcc.ir.Type;
 import com.bit.newnewcc.ir.Value;
-import com.bit.newnewcc.ir.type.IntegerType;
+import com.bit.newnewcc.ir.type.FloatType;
 import com.bit.newnewcc.ir.value.Instruction;
 
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * 整数计算语句 <br>
- * 此类没有存在的必要，只是为了共享整数运算语句通用的代码 <br>
+ * 浮点数运算语句 <br>
+ * 此类没有存在的必要，只是为了共享浮点数运算语句通用的代码 <br>
  */
-public abstract class IntegerCalculateInst extends Instruction {
+public abstract class FloatArithmeticInst extends Instruction {
     private final Operand operand1, operand2;
 
     /**
-     * @param type 语句的返回类型，必须是IntegerType
+     * @param type 语句的返回类型，必须是FloatType
      */
-    public IntegerCalculateInst(IntegerType type){
+    public FloatArithmeticInst(FloatType type){
         this(type,null,null);
     }
 
     /**
-     * @param type 语句的返回类型，必须是IntegerType
+     * @param type 语句的返回类型，必须是FloatType
      * @param operand1 操作数1
      * @param operand2 操作数2
      */
-    public IntegerCalculateInst(IntegerType type, Value operand1, Value operand2) {
+    public FloatArithmeticInst(FloatType type, Value operand1, Value operand2) {
         super(type);
         this.operand1 = new Operand(this,type,operand1);
         this.operand2 = new Operand(this,type,operand2);
@@ -51,8 +50,8 @@ public abstract class IntegerCalculateInst extends Instruction {
     }
 
     @Override
-    public IntegerType getType() {
-        return (IntegerType) super.getType();
+    public FloatType getType() {
+        return (FloatType) super.getType();
     }
 
     protected abstract String getInstName();
@@ -76,5 +75,4 @@ public abstract class IntegerCalculateInst extends Instruction {
         list.add(operand2);
         return list;
     }
-
 }

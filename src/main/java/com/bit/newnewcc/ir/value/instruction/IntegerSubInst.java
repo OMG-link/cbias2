@@ -6,7 +6,7 @@ import com.bit.newnewcc.ir.type.IntegerType;
 /**
  * 整数减法语句
  */
-public class IntegerSubInst extends IntegerCalculateInst {
+public class IntegerSubInst extends IntegerArithmeticInst {
 
     /**
      * @param type 语句的返回类型，必须是IntegerType
