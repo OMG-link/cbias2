@@ -66,8 +66,8 @@ public abstract class Value {
      * @param operand 操作数
      */
     public void __removeUsage__(Operand operand){
-        boolean isSucceed = usages.remove(operand);
-        if(!isSucceed){
+        boolean success = usages.remove(operand);
+        if(!success){
             throw new NoSuchElementException("Trying to remove a usage that does not exist");
         }
     }
