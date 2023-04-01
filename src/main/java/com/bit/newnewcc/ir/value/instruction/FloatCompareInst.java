@@ -12,26 +12,38 @@ import java.util.List;
 
 /**
  * 浮点数比较语句 <br>
- * 此类没有存在的必要，只是为了共享浮点数比较语句通用的代码 <br>
  */
-public abstract class FloatCompareInst extends CompareInst {
+public class FloatCompareInst extends CompareInst {
+
+    public enum Condition {
+        OEQ, ONE, OLT, OLE, OGT, OGE
+    }
+
+    private final Condition condition;
 
     /**
      * @param operandType 待比较数据的类型，必须是FloatType
+     * @param condition   比较的方法
      */
-    public FloatCompareInst(FloatType operandType) {
-        this(operandType, null, null);
+    public FloatCompareInst(FloatType operandType, Condition condition) {
+        this(operandType, condition, null, null);
     }
 
     /**
      * @param operandType 待比较数据的类型，必须是FloatType
+     * @param condition   比较的方法
      * @param operand1    操作数1
      * @param operand2    操作数2
      */
-    public FloatCompareInst(FloatType operandType, Value operand1, Value operand2) {
+    public FloatCompareInst(FloatType operandType, Condition condition, Value operand1, Value operand2) {
         super(operandType);
+        this.condition = condition;
         setOperand1(operand1);
         setOperand2(operand2);
+    }
+
+    public Condition getCondition() {
+        return condition;
     }
 
     @Override
@@ -39,11 +51,16 @@ public abstract class FloatCompareInst extends CompareInst {
         return (IntegerType) super.getType();
     }
 
-    protected abstract String getCompareCondition();
-
     @Override
     protected String getInstName() {
-        return "fcmp " + getCompareCondition();
+        return "fcmp " + switch (condition) {
+            case OEQ -> "oeq";
+            case ONE -> "one";
+            case OLT -> "olt";
+            case OLE -> "ole";
+            case OGT -> "ogt";
+            case OGE -> "oge";
+        };
     }
 
 }
