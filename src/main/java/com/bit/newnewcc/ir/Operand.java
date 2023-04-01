@@ -15,7 +15,7 @@ public class Operand {
      * 操作数类型的限制 <br>
      * 值为null时表示不限制类型
      */
-    private final Type typeLimit;
+    private final Type type;
     /**
      * 操作数所使用的值
      */
@@ -24,12 +24,12 @@ public class Operand {
     /**
      * 构建一个操作数
      * @param instruction 操作数所属的指令
-     * @param typeLimit 操作数的类型限制，null表示无限制
+     * @param type 操作数的类型限制，null表示无限制
      * @param value 操作数的初始值，null表示不绑定初始值
      */
-    public Operand(Instruction instruction, Type typeLimit, Value value){
+    public Operand(Instruction instruction, Type type, Value value){
         this.instruction = instruction;
-        this.typeLimit = typeLimit;
+        this.type = type;
         this.value = null;
         this.setValue(value);
     }
@@ -62,8 +62,8 @@ public class Operand {
      */
     public void setValue(Value value) {
         if(value!=null){
-            if(typeLimit!=null&&value.getType()!=typeLimit){
-                throw new OperandTypeMismatchException(instruction,typeLimit,value.getType());
+            if(type !=null&&value.getType()!= type){
+                throw new OperandTypeMismatchException(instruction, type,value.getType());
             }
         }
         if(this.value!=null){
