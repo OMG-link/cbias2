@@ -1,6 +1,5 @@
 package com.bit.newnewcc.ir.value;
 
-import com.bit.newnewcc.ir.Operand;
 import com.bit.newnewcc.ir.Type;
 import com.bit.newnewcc.ir.Value;
 import com.bit.newnewcc.ir.exception.IllegalArgumentException;
@@ -11,7 +10,7 @@ import java.util.*;
 /**
  * 函数
  */
-public class Function extends ExternalFunction {
+public class Function extends AbstractFunction {
 
     private static class FormalParameter extends Value {
         public FormalParameter(Type type) {
