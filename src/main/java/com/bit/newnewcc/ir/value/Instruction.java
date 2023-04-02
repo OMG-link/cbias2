@@ -4,6 +4,7 @@ import com.bit.newnewcc.ir.Operand;
 import com.bit.newnewcc.ir.Type;
 import com.bit.newnewcc.ir.Value;
 import com.bit.newnewcc.ir.exception.UsageRelationshipCheckFailedException;
+import com.bit.newnewcc.util.NameAllocator;
 
 import java.util.List;
 
@@ -16,6 +17,37 @@ public abstract class Instruction extends Value {
         super(type);
         this.node = new BasicBlock.InstructionList.Node(this);
     }
+
+    /// Name
+
+    private String valueName;
+
+    @Override
+    public String getValueName() {
+        if(valueName==null){
+            var bb = getBasicBlock();
+            if(bb==null){
+                throw new UnsupportedOperationException("Cannot get the name of an instruction outside a basic block.");
+            }
+            var fun = bb.getFunction();
+            if(fun==null){
+                throw new UnsupportedOperationException("Cannot get the name of an instruction outside a function.");
+            }
+            valueName = NameAllocator.getLvName(fun);
+        }
+        return valueName;
+    }
+
+    @Override
+    public String getValueNameIR() {
+        return '%'+getValueName();
+    }
+
+    @Override
+    public void setValueName(String valueName) {
+        this.valueName = valueName;
+    }
+
 
     /// Operands
 

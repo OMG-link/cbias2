@@ -34,15 +34,27 @@ public abstract class Value {
         return type.getTypeName_();
     }
 
-    private String valueName = null;
+    /**
+     * 获取值的名字 <br>
+     * 此名字不可直接用作ir的名字，因为其不包含 '@','%' 等标记 <br>
+     * @return 值的名字
+     */
+    public abstract String getValueName();
 
-    public String getValueName() {
-        return valueName;
-    }
+    /**
+     * 获取值在IR中的名字 <br>
+     * 此名词通常带有 '@','%' 等前缀标记；对于常量，其返回值与getValueName相同 <br>
+     * @return 值在IR中的名字
+     */
+    public abstract String getValueNameIR();
 
-    public void setValueName(String valueName) {
-        this.valueName = valueName;
-    }
+    /**
+     * 设置值的名字 <br>
+     * 不要设置纯数字的名字，因为这可能会与自动生成的名字相冲突 <br>
+     * 当此函数未被调用时，getValueName将自动生成一个数字名 <br>
+     * @param valueName 值的名字
+     */
+    public abstract void setValueName(String valueName);
 
     /// 使用-被使用关系
 

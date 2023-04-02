@@ -5,6 +5,7 @@ import com.bit.newnewcc.ir.exception.IllegalArgumentException;
 import com.bit.newnewcc.ir.exception.UsageRelationshipCheckFailedException;
 import com.bit.newnewcc.ir.type.LabelType;
 import com.bit.newnewcc.ir.value.instruction.DummyInstruction;
+import com.bit.newnewcc.util.NameAllocator;
 
 import java.util.Iterator;
 
@@ -20,6 +21,31 @@ public class BasicBlock extends Value {
     @Override
     public LabelType getType() {
         return (LabelType) super.getType();
+    }
+
+    /// 名称
+
+    private String valueName;
+
+    @Override
+    public String getValueName() {
+        if(valueName==null){
+            if(function==null){
+                throw new UnsupportedOperationException("Cannot get the name of a basic block outside a function.");
+            }
+            valueName = NameAllocator.getLvName(function);
+        }
+        return valueName;
+    }
+
+    @Override
+    public String getValueNameIR() {
+        return '%'+getValueName();
+    }
+
+    @Override
+    public void setValueName(String valueName) {
+        this.valueName = valueName;
     }
 
     /// 基本块与指令的关系

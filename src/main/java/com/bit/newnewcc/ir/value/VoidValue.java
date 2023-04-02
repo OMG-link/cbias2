@@ -13,6 +13,21 @@ public class VoidValue extends Value {
         setValueName("");
     }
 
+    @Override
+    public String getValueName() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public String getValueNameIR() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void setValueName(String valueName) {
+        throw new UnsupportedOperationException();
+    }
+
     private static VoidValue voidValue = null;
 
     public static VoidValue getInstance() {

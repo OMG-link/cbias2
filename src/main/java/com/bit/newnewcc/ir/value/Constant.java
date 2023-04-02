@@ -13,6 +13,14 @@ public abstract class Constant extends Value {
         super(type);
     }
 
+    @Override
+    public String getValueNameIR() {
+        return getValueName();
+    }
 
-
+    @Override
+    public void setValueName(String valueName) {
+        // 常量拥有固定的名字，不能被外界设置
+        throw new UnsupportedOperationException();
+    }
 }

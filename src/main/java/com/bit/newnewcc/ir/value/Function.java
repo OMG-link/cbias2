@@ -4,6 +4,7 @@ import com.bit.newnewcc.ir.Type;
 import com.bit.newnewcc.ir.Value;
 import com.bit.newnewcc.ir.exception.IllegalArgumentException;
 import com.bit.newnewcc.ir.type.FunctionType;
+import com.bit.newnewcc.util.NameAllocator;
 
 import java.util.*;
 
@@ -12,9 +13,29 @@ import java.util.*;
  */
 public class Function extends AbstractFunction {
 
-    private static class FormalParameter extends Value {
+    private class FormalParameter extends Value {
         public FormalParameter(Type type) {
             super(type);
+        }
+
+        private String valueName;
+
+        @Override
+        public String getValueName() {
+            if(valueName==null){
+                valueName = NameAllocator.getLvName(Function.this);
+            }
+            return valueName;
+        }
+
+        @Override
+        public String getValueNameIR() {
+            return '%'+getValueName();
+        }
+
+        @Override
+        public void setValueName(String valueName) {
+            this.valueName = valueName;
         }
     }
 
@@ -31,6 +52,26 @@ public class Function extends AbstractFunction {
         this.basicBlocks = new HashSet<>();
         this.entryBasicBlock = new BasicBlock();
         this.addBasicBlock_(this.entryBasicBlock, true);
+    }
+
+    private String functionName;
+
+    @Override
+    public String getValueName() {
+        if(functionName==null){
+            functionName = NameAllocator.getGvName();
+        }
+        return functionName;
+    }
+
+    @Override
+    public String getValueNameIR() {
+        return '@'+functionName;
+    }
+
+    @Override
+    public void setValueName(String valueName) {
+        functionName = valueName;
     }
 
     /**
