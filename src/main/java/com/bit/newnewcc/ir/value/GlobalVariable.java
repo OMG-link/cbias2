@@ -55,7 +55,7 @@ public class GlobalVariable extends Value {
      * @return 全局变量的值的类型
      */
     public Type getStoredValueType() {
-        return getType().getPointedType();
+        return getType().getBaseType();
     }
 
     /**

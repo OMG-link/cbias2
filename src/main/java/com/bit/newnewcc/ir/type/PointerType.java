@@ -12,22 +12,22 @@ import java.util.Objects;
  */
 public class PointerType extends Type {
 
-    private final Type pointedType;
+    private final Type baseType;
 
     /**
-     * @param pointedType 被指向的类型
+     * @param baseType 被指向的类型
      */
-    private PointerType(Type pointedType) {
-        this.pointedType = pointedType;
+    private PointerType(Type baseType) {
+        this.baseType = baseType;
     }
 
-    public Type getPointedType() {
-        return pointedType;
+    public Type getBaseType() {
+        return baseType;
     }
 
     @Override
     protected String getTypeName_() {
-        return pointedType.getTypeName() + "*";
+        return baseType.getTypeName() + "*";
     }
 
     @Override
@@ -39,11 +39,11 @@ public class PointerType extends Type {
     // 使用Set时，无法通过临时构建的实例找到缓存了的唯一返回实例
     private static Map<PointerType, PointerType> instanceMap;
 
-    public static PointerType getInstance(Type pointedType) {
+    public static PointerType getInstance(Type baseType) {
         if(instanceMap==null){
             instanceMap = new HashMap<>();
         }
-        var keyType = new PointerType(pointedType);
+        var keyType = new PointerType(baseType);
         if(!instanceMap.containsKey(keyType)){
             instanceMap.put(keyType,keyType);
         }
@@ -56,12 +56,12 @@ public class PointerType extends Type {
         if (o == null || getClass() != o.getClass()) return false;
         PointerType that = (PointerType) o;
         // 所有类型都是单例的，这里直接用==比较地址，可以避免递归比较内部类型
-        return pointedType == that.pointedType;
+        return baseType == that.baseType;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(pointedType);
+        return Objects.hash(baseType);
     }
 
 }
