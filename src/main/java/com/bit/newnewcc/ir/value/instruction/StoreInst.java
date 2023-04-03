@@ -79,4 +79,14 @@ public class StoreInst extends MemoryInst {
         list.add(valueOperand);
         return list;
     }
+
+    @Override
+    public String toString() {
+        return String.format(
+                "store %s %s, ptr %s",
+                valueOperand.getValue().getTypeName(),
+                valueOperand.getValue().getValueNameIR(),
+                addressOperand.getValue().getValueNameIR()
+        );
+    }
 }
