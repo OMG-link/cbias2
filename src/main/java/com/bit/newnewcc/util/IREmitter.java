@@ -21,7 +21,7 @@ public class IREmitter {
         }
     }
 
-    private void emitFunction(Function function) throws IOException {
+    private void emitFunction(Function function) {
         builder.append(String.format(
                 "define dso_local %s %s",
                 function.getReturnType().getTypeName(),
@@ -75,7 +75,7 @@ public class IREmitter {
         ));
     }
 
-    private void emitModule(Module module) throws IOException {
+    private void emitModule(Module module) {
         for (ExternalFunction externalFunction : module.getExternalFunctions()) {
             emitExternalFunction(externalFunction);
         }
