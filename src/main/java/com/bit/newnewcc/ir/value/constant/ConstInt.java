@@ -34,4 +34,9 @@ public class ConstInt extends Constant {
         return instanceMap.get(value);
     }
 
+    @Override
+    public String getValueName() {
+        return String.valueOf(value);
+    }
+
 }

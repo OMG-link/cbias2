@@ -34,4 +34,8 @@ public class ConstFloat extends Constant {
         return instanceMap.get(value);
     }
 
+    @Override
+    public String getValueName() {
+        return "0x"+Long.toHexString(Double.doubleToLongBits(value));
+    }
 }
