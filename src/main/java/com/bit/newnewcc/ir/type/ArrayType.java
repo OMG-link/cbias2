@@ -2,7 +2,9 @@ package com.bit.newnewcc.ir.type;
 
 import com.bit.newnewcc.ir.Type;
 import com.bit.newnewcc.ir.value.Constant;
+import com.bit.newnewcc.ir.value.constant.ConstArray;
 
+import java.util.ArrayList;
 import java.util.Map;
 import java.util.Objects;
 
@@ -15,10 +17,14 @@ public class ArrayType extends Type {
         this.baseType = baseType;
     }
 
+    private ConstArray defaultInitialization;
+
     @Override
     public Constant getDefaultInitialization() {
-        //todo: zero_initializer
-        throw new UnsupportedOperationException();
+        if(defaultInitialization==null){
+            defaultInitialization = new ConstArray(baseType,length,new ArrayList<>());
+        }
+        return defaultInitialization;
     }
 
     @Override
