@@ -7,19 +7,22 @@ import com.bit.newnewcc.ir.value.Instruction;
  * 指令的操作数
  */
 public class Operand {
+
     /**
      * 使用该操作数的指令
      */
-    private final Instruction instruction;
+    protected final Instruction instruction;
+
     /**
      * 操作数类型的限制 <br>
      * 值为null时表示不限制类型
      */
-    private final Type type;
+    protected final Type type;
+
     /**
      * 操作数所使用的值
      */
-    private Value value;
+    protected Value value;
 
     /**
      * 构建一个操作数
