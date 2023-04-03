@@ -4,6 +4,7 @@ import com.bit.newnewcc.ir.Operand;
 import com.bit.newnewcc.ir.Type;
 import com.bit.newnewcc.ir.Value;
 import com.bit.newnewcc.ir.exception.IllegalArgumentException;
+import com.bit.newnewcc.ir.exception.IndexOutOfBoundsException;
 import com.bit.newnewcc.ir.type.FunctionType;
 import com.bit.newnewcc.ir.value.Function;
 import com.bit.newnewcc.ir.value.Instruction;
@@ -95,7 +96,7 @@ public class CallInst extends Instruction {
      */
     public Value getArgumentAt(int index) {
         if (index < 0 || index >= argumentOperands.size()) {
-            throw new IllegalArgumentException(String.format("Argument %d does not exist.", index));
+            throw new IndexOutOfBoundsException(index, 0, argumentOperands.size());
         }
         return argumentOperands.get(index).getValue();
     }
@@ -108,7 +109,7 @@ public class CallInst extends Instruction {
      */
     public void setArgumentAt(int index, Value value) {
         if (index < 0 || index >= argumentOperands.size()) {
-            throw new IllegalArgumentException(String.format("Argument %d does not exist.", index));
+            throw new IndexOutOfBoundsException(index, 0, argumentOperands.size());
         }
         argumentOperands.get(index).setValue(value);
     }
