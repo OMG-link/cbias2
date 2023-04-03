@@ -35,7 +35,10 @@ public class JumpInst extends TerminateInst{
 
     @Override
     public String toString() {
-        return String.format("br label %s",getExit().getValueName());
+        return String.format(
+                "br label %s",
+                getExit().getValueNameIR()
+        );
     }
 
     @Override

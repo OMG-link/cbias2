@@ -45,9 +45,9 @@ public class BitCastInst extends Instruction {
     public String toString() {
         return String.format(
                 "%s = bitcast %s %s to %s",
-                this.getValueName(),
+                this.getValueNameIR(),
                 getSourceOperand().getTypeName(),
-                getSourceOperand().getValueName(),
+                getSourceOperand().getValueNameIR(),
                 this.getTypeName()
         );
     }

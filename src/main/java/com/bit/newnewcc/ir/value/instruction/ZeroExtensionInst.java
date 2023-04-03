@@ -58,9 +58,9 @@ public class ZeroExtensionInst extends Instruction {
     public String toString() {
         return String.format(
                 "%s = zext %s %s to %s",
-                this.getValueName(),
+                this.getValueNameIR(),
                 getSourceOperand().getTypeName(),
-                getSourceOperand().getValueName(),
+                getSourceOperand().getValueNameIR(),
                 this.getTypeName()
         );
     }

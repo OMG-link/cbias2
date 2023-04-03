@@ -49,7 +49,11 @@ public class ReturnInst extends TerminateInst{
         if(returnValue.getType() instanceof VoidType){
             return "ret void";
         }else{
-            return String.format("ret %s %s", returnValue.getTypeName(), returnValue.getValueName());
+            return String.format(
+                    "ret %s %s",
+                    returnValue.getTypeName(),
+                    returnValue.getValueNameIR()
+            );
         }
     }
 

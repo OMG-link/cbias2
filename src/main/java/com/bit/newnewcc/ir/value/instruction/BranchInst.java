@@ -67,9 +67,9 @@ public class BranchInst extends TerminateInst{
     public String toString() {
         return String.format(
                 "br i1 %s, label %s, label %s",
-                getCondition().getValueName(),
-                getTrueExit().getValueName(),
-                getFalseExit().getValueName()
+                getCondition().getValueNameIR(),
+                getTrueExit().getValueNameIR(),
+                getFalseExit().getValueNameIR()
         );
     }
 

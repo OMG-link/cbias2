@@ -59,11 +59,11 @@ abstract public class BinaryInstruction extends Instruction {
     public String toString() {
         return String.format(
                 "%s = %s %s %s, %s",
-                this.getValueName(),
+                this.getValueNameIR(),
                 this.getInstName(),
-                this.getType(),
-                getOperand1().getValueName(),
-                getOperand2().getValueName()
+                this.getTypeName(),
+                getOperand1().getValueNameIR(),
+                getOperand2().getValueNameIR()
         );
     }
 

@@ -48,9 +48,9 @@ public class FloatToSignedIntegerInst extends Instruction {
     public String toString() {
         return String.format(
                 "%s = fptosi %s %s to %s",
-                this.getValueName(),
+                this.getValueNameIR(),
                 getSourceOperand().getTypeName(),
-                getSourceOperand().getValueName(),
+                getSourceOperand().getValueNameIR(),
                 this.getTypeName()
         );
     }
