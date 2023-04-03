@@ -114,4 +114,25 @@ public class CallInst extends Instruction {
         argumentOperands.get(index).setValue(value);
     }
 
+    @Override
+    public String toString() {
+        // e.g. %1 = call double @sum(i32 1, float 2.000000e+00)
+        var builder = new StringBuilder();
+        builder.append(String.format(
+                "%s = call %s %s",
+                this.getValueNameIR(),
+                this.getTypeName(),
+                getCallee().getValueNameIR()
+        ));
+        builder.append('(');
+        for(var i=0;i<argumentOperands.size();i++){
+            if(i!=0){
+                builder.append(", ");
+            }
+            var argument = argumentOperands.get(i).getValue();
+            builder.append(String.format("%s %s",argument.getTypeName(),argument.getValueNameIR()));
+        }
+        builder.append(')');
+        return builder.toString();
+    }
 }
