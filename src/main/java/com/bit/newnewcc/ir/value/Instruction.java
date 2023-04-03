@@ -48,6 +48,9 @@ public abstract class Instruction extends Value {
         this.valueName = valueName;
     }
 
+    @Override
+    public abstract String toString();
+
 
     /// Operands
 
