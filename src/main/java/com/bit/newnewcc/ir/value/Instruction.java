@@ -5,7 +5,7 @@ import com.bit.newnewcc.ir.Type;
 import com.bit.newnewcc.ir.Value;
 import com.bit.newnewcc.ir.exception.UsageRelationshipCheckFailedException;
 import com.bit.newnewcc.ir.util.InstructionList;
-import com.bit.newnewcc.util.NameAllocator;
+import com.bit.newnewcc.ir.util.NameAllocator;
 
 import java.util.List;
 

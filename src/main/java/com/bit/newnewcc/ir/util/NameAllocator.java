@@ -1,4 +1,4 @@
-package com.bit.newnewcc.util;
+package com.bit.newnewcc.ir.util;
 
 import com.bit.newnewcc.ir.value.Function;
 import lombok.NonNull;

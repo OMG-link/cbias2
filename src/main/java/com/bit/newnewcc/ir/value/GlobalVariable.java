@@ -3,7 +3,7 @@ package com.bit.newnewcc.ir.value;
 import com.bit.newnewcc.ir.Type;
 import com.bit.newnewcc.ir.Value;
 import com.bit.newnewcc.ir.type.PointerType;
-import com.bit.newnewcc.util.NameAllocator;
+import com.bit.newnewcc.ir.util.NameAllocator;
 
 /**
  * 全局变量 <br>

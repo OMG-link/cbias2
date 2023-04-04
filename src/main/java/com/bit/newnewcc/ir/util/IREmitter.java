@@ -1,11 +1,12 @@
-package com.bit.newnewcc.util;
+package com.bit.newnewcc.ir.util;
 
 import com.bit.newnewcc.ir.Module;
 import com.bit.newnewcc.ir.Type;
 import com.bit.newnewcc.ir.Value;
 import com.bit.newnewcc.ir.value.*;
 
-import java.io.*;
+import java.io.FileWriter;
+import java.io.IOException;
 
 public class IREmitter {
     private final StringBuilder builder = new StringBuilder();

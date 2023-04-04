@@ -5,10 +5,10 @@ import com.bit.newnewcc.ir.exception.IllegalArgumentException;
 import com.bit.newnewcc.ir.exception.UsageRelationshipCheckFailedException;
 import com.bit.newnewcc.ir.type.LabelType;
 import com.bit.newnewcc.ir.util.InstructionList;
+import com.bit.newnewcc.ir.util.NameAllocator;
 import com.bit.newnewcc.ir.value.instruction.AllocateInst;
 import com.bit.newnewcc.ir.value.instruction.PhiInst;
 import com.bit.newnewcc.ir.value.instruction.TerminateInst;
-import com.bit.newnewcc.util.NameAllocator;
 
 import java.util.Iterator;
 
