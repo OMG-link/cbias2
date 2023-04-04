@@ -29,8 +29,8 @@ public class BasicBlock extends Value {
 
     @Override
     public String getValueName() {
-        if(valueName==null){
-            if(function==null){
+        if (valueName == null) {
+            if (function == null) {
                 throw new UnsupportedOperationException("Cannot get the name of a basic block outside a function.");
             }
             valueName = NameAllocator.getLvName(function);
@@ -40,7 +40,7 @@ public class BasicBlock extends Value {
 
     @Override
     public String getValueNameIR() {
-        return '%'+getValueName();
+        return '%' + getValueName();
     }
 
     @Override
@@ -67,23 +67,31 @@ public class BasicBlock extends Value {
 
         }
 
-        private class InstructionIterator implements Iterator<Instruction>{
+        private class InstructionIterator implements Iterator<Instruction> {
 
             private Node node;
 
-            private InstructionIterator(Node node){
+            private InstructionIterator(Node node) {
                 this.node = node;
+                moveToNextValidNode();
+            }
+
+            private void moveToNextValidNode(){
+                do {
+                    node = node.next;
+                } while (node != null && node.instruction instanceof DummyInstruction);
             }
 
             @Override
             public boolean hasNext() {
-                return node.next!=tail;
+                return node != null;
             }
 
             @Override
             public Instruction next() {
-                node = node.next;
-                return node.instruction;
+                var result = node.instruction;
+                moveToNextValidNode();
+                return result;
             }
         }
 
@@ -122,7 +130,7 @@ public class BasicBlock extends Value {
         public static void insertAlphaBeforeBeta(Node alpha, Node beta) {
             assertNodeFree(alpha);
             alpha.prev = beta.prev;
-            if(beta.prev!=null) // 事实上为null的情况不会发生，因为设置了哨兵节点
+            if (beta.prev != null) // 事实上为null的情况不会发生，因为设置了哨兵节点
                 beta.prev.next = alpha;
             alpha.next = beta;
             beta.prev = alpha;
@@ -138,7 +146,7 @@ public class BasicBlock extends Value {
         public static void insertAlphaAfterBeta(Node alpha, Node beta) {
             assertNodeFree(alpha);
             alpha.next = beta.next;
-            if(beta.next!=null)
+            if (beta.next != null)
                 beta.next.prev = alpha;
             alpha.prev = beta;
             beta.next = alpha;
@@ -161,26 +169,29 @@ public class BasicBlock extends Value {
 
     /**
      * 在基本块的开头插入一条指令
+     *
      * @param instruction 待插入的指令
      */
-    public void insertInstructionAtStart(Instruction instruction){
+    public void insertInstructionAtStart(Instruction instruction) {
         instruction.insertAfter(instructionList.head.instruction);
     }
 
     /**
      * 在基本块的结尾插入一条指令
+     *
      * @param instruction 待插入的指令
      */
-    public void insertInstructionAtEnd(Instruction instruction){
+    public void insertInstructionAtEnd(Instruction instruction) {
         instruction.insertBefore(instructionList.tail.instruction);
     }
 
     /**
      * 在基本块的结尾插入一条指令
+     *
      * @param instruction 待插入的指令
      */
     // 为了使得使用处代码美观，提供了该函数的两种名称
-    public void appendInstruction(Instruction instruction){
+    public void appendInstruction(Instruction instruction) {
         insertInstructionAtEnd(instruction);
     }
 
