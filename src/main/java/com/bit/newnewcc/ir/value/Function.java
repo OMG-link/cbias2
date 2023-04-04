@@ -43,6 +43,11 @@ public class Function extends AbstractFunction {
     private final Set<BasicBlock> basicBlocks;
     private final BasicBlock entryBasicBlock;
 
+    /**
+     * 创建一个函数 <br>
+     * 新建的函数默认携带一个入口块，且该入口块是与函数绑定的，不可解绑。 <br>
+     * @param functionType 函数类型
+     */
     public Function(FunctionType functionType) {
         super(functionType);
         this.formalParameters = new ArrayList<>();
