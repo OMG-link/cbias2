@@ -4,6 +4,7 @@ import com.bit.newnewcc.ir.Operand;
 import com.bit.newnewcc.ir.Type;
 import com.bit.newnewcc.ir.Value;
 import com.bit.newnewcc.ir.exception.UsageRelationshipCheckFailedException;
+import com.bit.newnewcc.ir.util.InstructionList;
 import com.bit.newnewcc.util.NameAllocator;
 
 import java.util.List;
@@ -15,7 +16,7 @@ public abstract class Instruction extends Value {
      */
     protected Instruction(Type type) {
         super(type);
-        this.node = new BasicBlock.InstructionList.Node(this);
+        this.node = new InstructionList.Node(this);
     }
 
     /// Name
@@ -61,7 +62,7 @@ public abstract class Instruction extends Value {
 
     /// BasicBlock & InstructionList
 
-    private final BasicBlock.InstructionList.Node node;
+    private final InstructionList.Node node;
 
     public BasicBlock getBasicBlock() {
         return node.getBasicBlock();
@@ -73,7 +74,7 @@ public abstract class Instruction extends Value {
      * @param beta 乙节点
      */
     public void insertAfter(Instruction beta) {
-        BasicBlock.InstructionList.insertAlphaAfterBeta(this.node, beta.node);
+        InstructionList.insertAlphaAfterBeta(this.node, beta.node);
     }
 
     /**
@@ -82,7 +83,7 @@ public abstract class Instruction extends Value {
      * @param beta 乙节点
      */
     public void insertBefore(Instruction beta) {
-        BasicBlock.InstructionList.insertAlphaBeforeBeta(this.node, beta.node);
+        InstructionList.insertAlphaBeforeBeta(this.node, beta.node);
     }
 
     /**
@@ -91,7 +92,7 @@ public abstract class Instruction extends Value {
      *
      * @return 当前指令所处的链表节点
      */
-    public BasicBlock.InstructionList.Node __getInstructionListNode__() {
+    public InstructionList.Node __getInstructionListNode__() {
         return node;
     }
 
