@@ -4,7 +4,6 @@ import com.bit.newnewcc.ir.exception.IllegalArgumentException;
 import com.bit.newnewcc.ir.exception.UsageRelationshipCheckFailedException;
 import com.bit.newnewcc.ir.value.BasicBlock;
 import com.bit.newnewcc.ir.value.Instruction;
-import com.bit.newnewcc.ir.value.instruction.DummyInstruction;
 import com.bit.newnewcc.ir.value.instruction.TerminateInst;
 
 import java.util.Iterator;
@@ -117,7 +116,7 @@ public class InstructionList implements Iterable<Instruction> {
     }
 
     public TerminateInst getTerminateInstruction() {
-        if (terminateInstructionNode.instruction instanceof DummyInstruction) {
+        if (terminateInstructionNode.instruction == null) {
             return null;
         } else {
             return (TerminateInst) terminateInstructionNode.instruction;
