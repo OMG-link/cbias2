@@ -79,10 +79,18 @@ public abstract class Instruction extends Value {
     /**
      * 将当前节点插入到乙节点前方 <br>
      * 在插入前，需保证当前节点不属于任何链表 <br>
+     *
      * @param beta 乙节点
      */
     public void insertBefore(Instruction beta) {
         InstructionList.insertAlphaBeforeBeta(this.node, beta.node);
+    }
+
+    /**
+     * 将该语句从当前基本块中移除
+     */
+    public void removeFromBasicBlock() {
+        InstructionList.removeNodeFromList(node);
     }
 
     /**
