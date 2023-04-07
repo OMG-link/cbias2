@@ -27,8 +27,7 @@ public class InstructionList implements Iterable<Instruction> {
         }
 
         public BasicBlock getBasicBlock() {
-            assert instruction != null;
-            return instruction.getBasicBlock();
+            return list.getBasicBlock();
         }
 
     }
