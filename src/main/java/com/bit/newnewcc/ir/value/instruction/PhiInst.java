@@ -7,12 +7,8 @@ import com.bit.newnewcc.ir.exception.IllegalArgumentException;
 import com.bit.newnewcc.ir.type.LabelType;
 import com.bit.newnewcc.ir.value.BasicBlock;
 import com.bit.newnewcc.ir.value.Instruction;
-import lombok.NonNull;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.BiConsumer;
 
 /**
@@ -80,6 +76,10 @@ public class PhiInst extends Instruction {
         basicBlockOperand.setValue(null);
         valueOperand.setValue(null);
         entryMap.remove(basicBlockOperand);
+    }
+
+    public Set<BasicBlock> getEntrySet() {
+        return basicBlockOperandMap.keySet();
     }
 
     public void forEach(BiConsumer<BasicBlock, Value> consumer) {
