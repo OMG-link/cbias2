@@ -35,7 +35,7 @@ public class IrIntegrityVerifier {
     }
 
     private void verifyBasicBlock(BasicBlock basicBlock, boolean isFunctionEntry) {
-        basicBlock.getInstructionList().forEach(this::verifyInstruction);
+        basicBlock.getInstructions().forEachRemaining(this::verifyInstruction);
         basicBlock.getLeadingInstructions().forEachRemaining(instruction -> {
             if (instruction instanceof AllocateInst && !isFunctionEntry) {
                 throw new IntegrityVerifyFailedException("Alloca instruction must be placed in entry block.");
@@ -51,11 +51,11 @@ public class IrIntegrityVerifier {
         localValues = new HashSet<>(globalValues);
         localValues.addAll(function.getFormalParameters());
         for (BasicBlock basicBlock : function.getBasicBlocks()) {
-            for (Instruction instruction : basicBlock.getInstructionList()) {
+            basicBlock.getInstructions().forEachRemaining(instruction -> {
                 if (instruction.getType() != VoidType.getInstance()) {
                     localValues.add(instruction);
                 }
-            }
+            });
         }
         // Check use relationship
         function.getBasicBlocks().forEach(basicBlock ->

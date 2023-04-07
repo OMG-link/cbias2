@@ -10,8 +10,7 @@ import com.bit.newnewcc.ir.value.instruction.AllocateInst;
 import com.bit.newnewcc.ir.value.instruction.PhiInst;
 import com.bit.newnewcc.ir.value.instruction.TerminateInst;
 
-import java.util.Collection;
-import java.util.Iterator;
+import java.util.*;
 
 /**
  * 基本块
@@ -54,10 +53,6 @@ public class BasicBlock extends Value {
 
     private final InstructionList instructionList = new InstructionList(this);
 
-    public InstructionList getInstructionList() {
-        return instructionList;
-    }
-
     /**
      * 向基本块中加入一条指令 <br>
      * 对于一般的指令，其会被添加到主指令体的末尾 <br>
@@ -71,15 +66,24 @@ public class BasicBlock extends Value {
             instructionList.addLeadingInst(instruction);
             return;
         }
-        if (instruction instanceof TerminateInst) {
-            instructionList.setTerminateInstruction((TerminateInst) instruction);
+        if (instruction instanceof TerminateInst terminateInst) {
+            setTerminateInstruction(terminateInst);
             return;
         }
         instructionList.appendMainInstruction(instruction);
     }
 
+    public void setTerminateInstruction(TerminateInst terminateInstruction) {
+        if (getTerminateInstruction() != null) {
+            getTerminateInstruction().getExits().forEach(exit -> exit.removeEntryBlock(this));
+        }
+        instructionList.setTerminateInstruction(terminateInstruction);
+        getTerminateInstruction().getExits().forEach(exit -> exit.addEntryBlock(this));
+    }
+
     /**
      * 获取所有前导指令
+     *
      * @return 前导指令集合的迭代器
      */
     public Iterator<Instruction> getLeadingInstructions() {
@@ -114,6 +118,30 @@ public class BasicBlock extends Value {
 
     public Collection<BasicBlock> getExitBlocks() {
         return getTerminateInstruction().getExits();
+    }
+
+    /// 基本块入口维护
+
+    private final Set<BasicBlock> entryBlockSet = new HashSet<>();
+
+    private void addEntryBlock(BasicBlock basicBlock) {
+        entryBlockSet.add(basicBlock);
+    }
+
+    private void removeEntryBlock(BasicBlock basicBlock) {
+        if (!entryBlockSet.contains(basicBlock)) {
+            throw new IllegalArgumentException("Specified basic block is not an entry of this block.");
+        }
+        entryBlockSet.remove(basicBlock);
+    }
+
+    /**
+     * 获取该基本块的所有入口块
+     *
+     * @return 基本块的所有入口块的只读副本
+     */
+    public Collection<BasicBlock> getEntryBlocks() {
+        return Collections.unmodifiableCollection(entryBlockSet);
     }
 
     /// 基本块与函数的关系
