@@ -91,4 +91,15 @@ public abstract class Value {
         return new ArrayList<>(usages);
     }
 
+    /**
+     * 将该值的所有用法替换为传入值
+     *
+     * @param value 替代当前值的新值
+     */
+    public void replaceAllUsageTo(Value value) {
+        for (Operand operand : getUsages()) {
+            operand.setValue(value);
+        }
+    }
+
 }
