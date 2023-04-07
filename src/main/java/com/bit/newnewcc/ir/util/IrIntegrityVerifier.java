@@ -67,7 +67,7 @@ public class IrIntegrityVerifier {
             basicBlockEntries.put(basicBlock, new HashSet<>());
         }
         for (BasicBlock basicBlock : function.getBasicBlocks()) {
-            basicBlock.getTerminateInstruction().getExits().forEach(
+            basicBlock.getExitBlocks().forEach(
                     exitBlock -> basicBlockEntries.get(exitBlock).add(basicBlock)
             );
         }
