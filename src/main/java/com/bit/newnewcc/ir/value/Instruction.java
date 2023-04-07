@@ -3,7 +3,6 @@ package com.bit.newnewcc.ir.value;
 import com.bit.newnewcc.ir.Operand;
 import com.bit.newnewcc.ir.Type;
 import com.bit.newnewcc.ir.Value;
-import com.bit.newnewcc.ir.exception.UsageRelationshipCheckFailedException;
 import com.bit.newnewcc.ir.util.InstructionList;
 import com.bit.newnewcc.ir.util.NameAllocator;
 
@@ -94,16 +93,6 @@ public abstract class Instruction extends Value {
      */
     public InstructionList.Node __getInstructionListNode__() {
         return node;
-    }
-
-    /// Compilation process check
-
-    public void checkOperandValidity() {
-        for (Operand operand : getOperandList()) {
-            if (!operand.hasValueBound()) {
-                throw new UsageRelationshipCheckFailedException("No value was bound to this operand.");
-            }
-        }
     }
 
 
