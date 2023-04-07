@@ -35,8 +35,8 @@ public class IrIntegrityVerifier {
     }
 
     private void verifyBasicBlock(BasicBlock basicBlock, boolean isFunctionEntry) {
-        basicBlock.getInstructions().forEachRemaining(this::verifyInstruction);
-        basicBlock.getLeadingInstructions().forEachRemaining(instruction -> {
+        basicBlock.getInstructions().forEach(this::verifyInstruction);
+        basicBlock.getLeadingInstructions().forEach(instruction -> {
             if (instruction instanceof AllocateInst && !isFunctionEntry) {
                 throw new IntegrityVerifyFailedException("Alloca instruction must be placed in entry block.");
             }
@@ -51,11 +51,11 @@ public class IrIntegrityVerifier {
         localValues = new HashSet<>(globalValues);
         localValues.addAll(function.getFormalParameters());
         for (BasicBlock basicBlock : function.getBasicBlocks()) {
-            basicBlock.getInstructions().forEachRemaining(instruction -> {
+            for (Instruction instruction : basicBlock.getInstructions()) {
                 if (instruction.getType() != VoidType.getInstance()) {
                     localValues.add(instruction);
                 }
-            });
+            }
         }
         // Check use relationship
         function.getBasicBlocks().forEach(basicBlock ->
@@ -72,13 +72,13 @@ public class IrIntegrityVerifier {
             );
         }
         for (BasicBlock basicBlock : function.getBasicBlocks()) {
-            basicBlock.getLeadingInstructions().forEachRemaining(instruction -> {
+            for (Instruction instruction : basicBlock.getLeadingInstructions()) {
                 if (instruction instanceof PhiInst phiInst) {
                     if (!Objects.equals(phiInst.getEntrySet(), basicBlockEntries.get(basicBlock))) {
                         throw new IntegrityVerifyFailedException("Phi instruction's entry map does not match basic block entries.");
                     }
                 }
-            });
+            }
         }
     }
 

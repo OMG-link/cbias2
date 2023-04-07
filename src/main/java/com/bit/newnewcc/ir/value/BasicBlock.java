@@ -84,18 +84,23 @@ public class BasicBlock extends Value {
     /**
      * 获取所有前导指令
      *
-     * @return 前导指令集合的迭代器
+     * @return 前导指令集合
      */
-    public Iterator<Instruction> getLeadingInstructions() {
-        return instructionList.getLeadingInstructions();
+    public Collection<Instruction> getLeadingInstructions() {
+        var list = new ArrayList<Instruction>();
+        instructionList.getLeadingInstructions().forEachRemaining(list::add);
+        return Collections.unmodifiableCollection(list);
     }
 
     /**
      * 获取所有主体指令
-     * @return 主体指令集合的迭代器
+     *
+     * @return 主体指令集合
      */
-    public Iterator<Instruction> getMainInstructions() {
-        return instructionList.getMainInstructions();
+    public Collection<Instruction> getMainInstructions() {
+        var list = new ArrayList<Instruction>();
+        instructionList.getMainInstructions().forEachRemaining(list::add);
+        return Collections.unmodifiableCollection(list);
     }
 
     /**
@@ -112,8 +117,10 @@ public class BasicBlock extends Value {
      *
      * @return 所有指令的迭代器
      */
-    public Iterator<Instruction> getInstructions() {
-        return instructionList.iterator();
+    public Collection<Instruction> getInstructions() {
+        var list = new ArrayList<Instruction>();
+        instructionList.iterator().forEachRemaining(list::add);
+        return Collections.unmodifiableCollection(list);
     }
 
     public Collection<BasicBlock> getExitBlocks() {

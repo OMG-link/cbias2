@@ -17,7 +17,7 @@ public class IREmitter {
 
     private void emitBasicBlock(BasicBlock basicBlock) {
         builder.append(basicBlock.getValueName()).append(":\n");
-        basicBlock.getInstructions().forEachRemaining(this::emitInstruction);
+        basicBlock.getInstructions().forEach(this::emitInstruction);
     }
 
     private void emitFunction(Function function) {
