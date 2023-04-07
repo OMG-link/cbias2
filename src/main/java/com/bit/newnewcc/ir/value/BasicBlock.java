@@ -10,6 +10,7 @@ import com.bit.newnewcc.ir.value.instruction.AllocateInst;
 import com.bit.newnewcc.ir.value.instruction.PhiInst;
 import com.bit.newnewcc.ir.value.instruction.TerminateInst;
 
+import java.util.Collection;
 import java.util.Iterator;
 
 /**
@@ -104,10 +105,15 @@ public class BasicBlock extends Value {
 
     /**
      * 获取所有指令
+     *
      * @return 所有指令的迭代器
      */
     public Iterator<Instruction> getInstructions() {
         return instructionList.iterator();
+    }
+
+    public Collection<BasicBlock> getExitBlocks() {
+        return getTerminateInstruction().getExits();
     }
 
     /// 基本块与函数的关系
