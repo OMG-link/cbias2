@@ -18,15 +18,26 @@ public abstract class Instruction extends Value {
         this.node = new InstructionList.Node(this);
     }
 
+    /**
+     * 废弃该语句 <br>
+     * 此操作会将该语句从基本块中移除，清除所有操作数绑定 <br>
+     */
+    public void waste() {
+        if (getBasicBlock() != null) {
+            removeFromBasicBlock();
+        }
+        clearOperands();
+    }
+
     /// Name
 
     private String valueName;
 
     @Override
     public String getValueName() {
-        if(valueName==null){
+        if (valueName == null) {
             var bb = getBasicBlock();
-            if(bb==null){
+            if (bb == null) {
                 throw new UnsupportedOperationException("Cannot get the name of an instruction outside a basic block.");
             }
             var fun = bb.getFunction();
@@ -58,6 +69,15 @@ public abstract class Instruction extends Value {
      * @return 当前语句用到的操作数的列表
      */
     public abstract List<Operand> getOperandList();
+
+    /**
+     * 清除所有操作数
+     */
+    public void clearOperands() {
+        for (Operand operand : getOperandList()) {
+            operand.removeValue();
+        }
+    }
 
     /// BasicBlock & InstructionList
 
