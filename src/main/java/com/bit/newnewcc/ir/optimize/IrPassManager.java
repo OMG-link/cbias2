@@ -1,6 +1,7 @@
 package com.bit.newnewcc.ir.optimize;
 
 import com.bit.newnewcc.ir.Module;
+import com.bit.newnewcc.ir.optimize.pass.MemoryToRegister;
 
 public class IrPassManager {
     private final int optimizeLevel;
@@ -14,6 +15,7 @@ public class IrPassManager {
             case 0 -> {
             }
             case 1 -> {
+                MemoryToRegister.optimize(module);
             }
         }
     }
