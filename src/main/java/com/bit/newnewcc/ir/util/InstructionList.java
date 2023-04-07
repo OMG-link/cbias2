@@ -18,11 +18,16 @@ public class InstructionList implements Iterable<Instruction> {
 
         private InstructionList list;
 
+        private Node() {
+            this.instruction = null;
+        }
+
         public Node(Instruction instruction) {
             this.instruction = instruction;
         }
 
         public BasicBlock getBasicBlock() {
+            assert instruction != null;
             return instruction.getBasicBlock();
         }
 
@@ -43,7 +48,7 @@ public class InstructionList implements Iterable<Instruction> {
             do {
                 node = node.next;
                 if (node == ending) node = null;
-            } while (node != null && node.instruction instanceof DummyInstruction);
+            } while (node != null && node.instruction == null);
         }
 
         @Override
@@ -74,16 +79,11 @@ public class InstructionList implements Iterable<Instruction> {
 
     public InstructionList(BasicBlock basicBlock) {
         this.basicBlock = basicBlock;
-        var headInst = new DummyInstruction();
-        this.head = headInst.__getInstructionListNode__();
-        var leadingEndInst = new DummyInstruction();
-        this.leadingEnd = leadingEndInst.__getInstructionListNode__();
-        var mainEndInst = new DummyInstruction();
-        this.mainEnd = mainEndInst.__getInstructionListNode__();
-        var terminateInst = new DummyInstruction();
-        this.terminateInstNode = terminateInst.__getInstructionListNode__();
-        var tailInst = new DummyInstruction();
-        this.tail = tailInst.__getInstructionListNode__();
+        this.head = new Node();
+        this.leadingEnd = new Node();
+        this.mainEnd = new Node();
+        this.terminateInstNode = new Node();
+        this.tail = new Node();
         this.head.list = this;
         insertAlphaAfterBeta(leadingEnd, head);
         insertAlphaAfterBeta(mainEnd, leadingEnd);
