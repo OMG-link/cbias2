@@ -74,20 +74,20 @@ public class InstructionList implements Iterable<Instruction> {
      * 链表中用于定位的节点
      */
     private final Node head, leadingEnd, mainEnd, tail;
-    private Node terminateInstNode;
+    private Node terminateInstructionNode;
 
     public InstructionList(BasicBlock basicBlock) {
         this.basicBlock = basicBlock;
         this.head = new Node();
         this.leadingEnd = new Node();
         this.mainEnd = new Node();
-        this.terminateInstNode = new Node();
+        this.terminateInstructionNode = new Node();
         this.tail = new Node();
         this.head.list = this;
         insertAlphaAfterBeta(leadingEnd, head);
         insertAlphaAfterBeta(mainEnd, leadingEnd);
-        insertAlphaAfterBeta(terminateInstNode, mainEnd);
-        insertAlphaAfterBeta(tail, terminateInstNode);
+        insertAlphaAfterBeta(terminateInstructionNode, mainEnd);
+        insertAlphaAfterBeta(tail, terminateInstructionNode);
     }
 
     public BasicBlock getBasicBlock() {
@@ -102,7 +102,7 @@ public class InstructionList implements Iterable<Instruction> {
         return new InstructionIterator(head, leadingEnd);
     }
 
-    public void appendMainInst(Instruction instruction) {
+    public void appendMainInstruction(Instruction instruction) {
         instruction.insertBefore(mainEnd.instruction);
     }
 
@@ -110,17 +110,17 @@ public class InstructionList implements Iterable<Instruction> {
         return new InstructionIterator(leadingEnd, mainEnd);
     }
 
-    public void setTerminateInst(TerminateInst instruction) {
-        removeNodeFromList(this.terminateInstNode);
-        this.terminateInstNode = instruction.__getInstructionListNode__();
-        insertAlphaAfterBeta(terminateInstNode, mainEnd);
+    public void setTerminateInstruction(TerminateInst instruction) {
+        removeNodeFromList(this.terminateInstructionNode);
+        this.terminateInstructionNode = instruction.__getInstructionListNode__();
+        insertAlphaAfterBeta(terminateInstructionNode, mainEnd);
     }
 
-    public TerminateInst getTerminateInst() {
-        if (terminateInstNode.instruction instanceof DummyInstruction) {
+    public TerminateInst getTerminateInstruction() {
+        if (terminateInstructionNode.instruction instanceof DummyInstruction) {
             return null;
         } else {
-            return (TerminateInst) terminateInstNode.instruction;
+            return (TerminateInst) terminateInstructionNode.instruction;
         }
     }
 
