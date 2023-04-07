@@ -72,10 +72,10 @@ public class BasicBlock extends Value {
             return;
         }
         if (instruction instanceof TerminateInst) {
-            instructionList.setTerminateInst((TerminateInst) instruction);
+            instructionList.setTerminateInstruction((TerminateInst) instruction);
             return;
         }
-        instructionList.appendMainInst(instruction);
+        instructionList.appendMainInstruction(instruction);
     }
 
     /**
@@ -100,7 +100,7 @@ public class BasicBlock extends Value {
      * @return 结束指令或 null
      */
     public TerminateInst getTerminateInstruction() {
-        return instructionList.getTerminateInst();
+        return instructionList.getTerminateInstruction();
     }
 
     /**
