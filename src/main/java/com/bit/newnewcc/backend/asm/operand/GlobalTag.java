@@ -5,9 +5,9 @@ package com.bit.newnewcc.backend.asm.operand;
 //使用地址寄存器+地址偏移量的形式读取，例如%lo(tag)(a5)
 
 public class GlobalTag extends AsmOperand {
-    String tagName;
-    SEGMENT segment;
-    Register baseAddress;
+    private final String tagName;
+    private final SEGMENT segment;
+    private final Register baseAddress;
 
     public GlobalTag(String tagName, SEGMENT segment, Register baseAddress) {
         super(TYPE.GTAG);
