@@ -1,7 +1,6 @@
 package com.bit.newnewcc.ir.value.constant;
 
 import com.bit.newnewcc.ir.Type;
-import com.bit.newnewcc.ir.exception.IllegalArgumentException;
 import com.bit.newnewcc.ir.exception.IndexOutOfBoundsException;
 import com.bit.newnewcc.ir.type.ArrayType;
 import com.bit.newnewcc.ir.value.Constant;
@@ -28,6 +27,10 @@ public class ConstArray extends Constant {
 
     public boolean isZero() {
         return valueList.size() == 0;
+    }
+
+    public int getNoneZeroLength() {
+        return valueList.size();
     }
 
     public Constant getValueAt(int index) {
