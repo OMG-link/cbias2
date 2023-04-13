@@ -19,8 +19,10 @@ public class GlobalTag extends AsmOperand {
     public String getOffset() {
         if (segment == SEGMENT.HIGH) {
             return String.format("%%hi(%s)", tagName);
-        } else {
+        } else if (segment == SEGMENT.LOW) {
             return String.format("%%lo(%s)", tagName);
+        } else {
+            return tagName;
         }
     }
 
@@ -33,6 +35,6 @@ public class GlobalTag extends AsmOperand {
     }
 
     enum SEGMENT {
-        HIGH, LOW
+        HIGH, LOW, NONE
     }
 }
