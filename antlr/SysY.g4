@@ -7,7 +7,7 @@ declaration: constantDeclaration | variableDeclaration;
 constantDeclaration:
 	CONST typeSpecifier constantDefinition (COMMA constantDefinition)* SEMI;
 
-typeSpecifier: INT | FLOAT;
+typeSpecifier: type=(INT | FLOAT);
 
 constantDefinition:
 	Identifier (LBRACKET constantExpression RBRACKET)* ASSIGN constantInitializer;
@@ -24,13 +24,14 @@ variableDefinition:
 	| Identifier (LBRACKET constantExpression RBRACKET)* ASSIGN initializer;
 
 initializer:
-	expression
-	| LBRACE (initializer (COMMA initializer)*)? RBRACE;
+	expression # initializerExpression
+	| LBRACE (initializer (COMMA initializer)*)? RBRACE # initializerList
+	;
 
 functionDefinition:
 	returnTypeSpecifier Identifier LPAREN parameterList? RPAREN compoundStatement;
 
-returnTypeSpecifier: VOID | INT | FLOAT;
+returnTypeSpecifier: type=(VOID | INT | FLOAT);
 
 parameterList:
 	parameterDeclaration (COMMA parameterDeclaration)*;
@@ -59,9 +60,16 @@ conditionalExpression: logicalOrExpression;
 
 lValue: Identifier (LBRACKET expression RBRACKET)*;
 
-primaryExpression: LPAREN expression RPAREN | lValue | number;
+primaryExpression:
+	LPAREN expression RPAREN # parenthesizedExpression
+	| lValue # childLValue
+	| number # childNumer
+	;
 
-number: IntegerConstant | FloatingConstant;
+number:
+	IntegerConstant # integerConstant
+	| FloatingConstant # floatingConstant
+	;
 
 unaryExpression:
 	primaryExpression # childPrimaryExpression
@@ -69,27 +77,39 @@ unaryExpression:
 	| unaryOperator unaryExpression # unaryOperatorExpression
 	;
 
-unaryOperator: ADD | SUB | LNOT;
+unaryOperator: op=(ADD | SUB | LNOT);
 
 argumentExpressionList: expression (COMMA expression)*;
 
 multiplicativeExpression:
-	unaryExpression ((MUL | DIV | MOD) unaryExpression)*;
+	unaryExpression # childUnaryExpression
+	| unaryExpression op=(MUL | DIV | MOD) multiplicativeExpression # binaryMultiplicativeExpression
+	;
 
 additiveExpression:
-	multiplicativeExpression ((ADD | SUB) multiplicativeExpression)*;
+	multiplicativeExpression # childMultiplicativeExpression
+	| multiplicativeExpression op=(ADD | SUB) additiveExpression # binaryAdditiveExpression
+	;
 
 relationalExpression:
-	additiveExpression ((LT | GT | LE | GE) additiveExpression)*;
+	additiveExpression # childAdditiveExpression
+	| additiveExpression op=(LT | GT | LE | GE) relationalExpression # binaryRelationalExpression
+	;
 
 equalityExpression:
-	relationalExpression ((EQ | NE) relationalExpression)*;
+	relationalExpression # childRelationalExoression
+	| relationalExpression op=(EQ | NE) equalityExpression # binaryEqualityExpression
+	;
 
 logicalAndExpression:
-	equalityExpression (LAND equalityExpression)*;
+	equalityExpression # childEqualityExpression
+	| equalityExpression op=LAND logicalAndExpression # binaryLogicalAndExpression
+	;
 
 logicalOrExpression:
-	logicalAndExpression (LOR logicalAndExpression)*;
+	logicalAndExpression # childLogicalAndExpression
+	| logicalAndExpression op=LOR logicalOrExpression # binaryLogicalOrExpression
+	;
 
 constantExpression: additiveExpression;
 
