@@ -14,7 +14,6 @@ import java.util.List;
  * @see <a href="https://llvm.org/docs/LangRef.html#complex-constants">LLVM IR文档</a>
  */
 public class ConstArray extends Constant {
-    private final Type baseType;
     private final int length;
     private final List<Constant> valueList;
 
@@ -25,14 +24,13 @@ public class ConstArray extends Constant {
      */
     public ConstArray(Type baseType, int length, List<Constant> initializerList) {
         super(ArrayType.getInstance(length, baseType));
-        this.baseType = baseType;
         this.length = length;
         this.valueList = initializerList;
     }
 
     @Override
-    public boolean isFilledWithZero() {
-        return valueList.size() == 0;
+    public ArrayType getType() {
+        return (ArrayType) super.getType();
     }
 
     /**
@@ -42,6 +40,13 @@ public class ConstArray extends Constant {
         return valueList.size();
     }
 
+    /**
+     * @return 数组（最高维）的长度
+     */
+    public int getLength() {
+        return length;
+    }
+
     public Constant getValueAt(int index) {
         if (index < 0 || index >= length) {
             throw new IndexOutOfBoundsException(index, 0, length);
@@ -49,8 +54,13 @@ public class ConstArray extends Constant {
         if (index < valueList.size()) {
             return valueList.get(index);
         } else {
-            return baseType.getDefaultInitialization();
+            return getType().getBaseType().getDefaultInitialization();
         }
+    }
+
+    @Override
+    public boolean isFilledWithZero() {
+        return valueList.size() == 0;
     }
 
     @Override
@@ -64,11 +74,11 @@ public class ConstArray extends Constant {
                 if (i != 0) {
                     builder.append(", ");
                 }
-                builder.append(baseType.getTypeName()).append(' ');
+                builder.append(getType().getBaseType().getTypeName()).append(' ');
                 if (i < valueList.size()) {
                     builder.append(valueList.get(i).getValueNameIR());
                 } else {
-                    builder.append(baseType.getDefaultInitialization().getValueNameIR());
+                    builder.append(getType().getBaseType().getDefaultInitialization().getValueNameIR());
                 }
             }
             builder.append(']');
