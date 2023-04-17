@@ -18,6 +18,11 @@ public class ConstArray extends Constant {
     private final int length;
     private final List<Constant> valueList;
 
+    /**
+     * @param baseType        数组的基类。若想定义高维数组，请使用“数组的数组”
+     * @param length          数组的实际长度
+     * @param initializerList 数组已初始化部分的长度。未初始化部分将被初始化为0。
+     */
     public ConstArray(Type baseType, int length, List<Constant> initializerList) {
         super(ArrayType.getInstance(length, baseType));
         this.baseType = baseType;
@@ -30,7 +35,10 @@ public class ConstArray extends Constant {
         return valueList.size() == 0;
     }
 
-    public int getNoneZeroLength() {
+    /**
+     * @return 数组已初始化部分的长度
+     */
+    public int getInitializedLength() {
         return valueList.size();
     }
 
