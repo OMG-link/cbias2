@@ -25,7 +25,8 @@ public class ConstArray extends Constant {
         this.valueList = initializerList;
     }
 
-    public boolean isZero() {
+    @Override
+    public boolean isFilledWithZero() {
         return valueList.size() == 0;
     }
 
@@ -46,7 +47,7 @@ public class ConstArray extends Constant {
 
     @Override
     public String getValueName() {
-        if (isZero()) {
+        if (isFilledWithZero()) {
             return "zeroinitializer";
         } else {
             var builder = new StringBuilder();

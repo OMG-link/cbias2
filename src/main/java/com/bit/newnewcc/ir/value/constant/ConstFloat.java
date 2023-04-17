@@ -18,14 +18,19 @@ public class ConstFloat extends Constant {
         this.value = value;
     }
 
+    @Override
+    public boolean isFilledWithZero() {
+        return value == 0;
+    }
+
     public float getValue() {
         return value;
     }
 
-    private static Map<Float,ConstFloat> instanceMap;
+    private static Map<Float, ConstFloat> instanceMap;
 
     public static ConstFloat getInstance(float value) {
-        if(instanceMap==null){
+        if (instanceMap == null) {
             instanceMap = new HashMap<>();
         }
         if(!instanceMap.containsKey(value)){

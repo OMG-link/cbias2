@@ -18,14 +18,19 @@ public class ConstInt extends Constant {
         this.value = value;
     }
 
+    @Override
+    public boolean isFilledWithZero() {
+        return value == 0;
+    }
+
     public int getValue() {
         return value;
     }
 
-    private static Map<Integer,ConstInt> instanceMap;
+    private static Map<Integer, ConstInt> instanceMap;
 
     public static ConstInt getInstance(int value) {
-        if(instanceMap==null){
+        if (instanceMap == null) {
             instanceMap = new HashMap<>();
         }
         if(!instanceMap.containsKey(value)){
