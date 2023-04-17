@@ -17,12 +17,20 @@ public class ArrayType extends Type {
         this.baseType = baseType;
     }
 
+    public int getLength() {
+        return length;
+    }
+
+    public Type getBaseType() {
+        return baseType;
+    }
+
     private ConstArray defaultInitialization;
 
     @Override
     public Constant getDefaultInitialization() {
-        if(defaultInitialization==null){
-            defaultInitialization = new ConstArray(baseType,length,new ArrayList<>());
+        if (defaultInitialization == null) {
+            defaultInitialization = new ConstArray(baseType, length, new ArrayList<>());
         }
         return defaultInitialization;
     }
