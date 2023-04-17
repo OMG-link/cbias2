@@ -37,15 +37,20 @@ public class ArrayType extends Type {
 
     @Override
     protected String getTypeName_() {
-        return String.format("[%d x %s]",length,baseType.getTypeName());
+        return String.format("[%d x %s]", length, baseType.getTypeName());
     }
 
-    private static Map<ArrayType,ArrayType> instanceMap;
+    @Override
+    public long getSize() {
+        return baseType.getSize() * length;
+    }
+
+    private static Map<ArrayType, ArrayType> instanceMap;
 
     public static ArrayType getInstance(int length, Type baseType) {
-        var keyType = new ArrayType(length,baseType);
-        if(!instanceMap.containsKey(keyType)){
-            instanceMap.put(keyType,keyType);
+        var keyType = new ArrayType(length, baseType);
+        if (!instanceMap.containsKey(keyType)) {
+            instanceMap.put(keyType, keyType);
         }
         return instanceMap.get(keyType);
     }

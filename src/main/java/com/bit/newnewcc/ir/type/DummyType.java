@@ -18,10 +18,15 @@ public class DummyType extends Type {
         throw new UnsupportedOperationException();
     }
 
+    @Override
+    public long getSize() {
+        return 0;
+    }
+
     private static DummyType instance;
 
     public static DummyType getInstance() {
-        if(instance==null){
+        if (instance == null) {
             instance = new DummyType();
         }
         return instance;

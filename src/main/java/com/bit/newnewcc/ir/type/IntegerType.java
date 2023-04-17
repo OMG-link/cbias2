@@ -24,20 +24,25 @@ public class IntegerType extends Type {
 
     @Override
     protected String getTypeName_() {
-        return String.format("i%d",bitWidth);
+        return String.format("i%d", bitWidth);
     }
 
     @Override
     public Constant getDefaultInitialization() {
-        return switch (bitWidth){
+        return switch (bitWidth) {
             case 32 -> ConstInt.getInstance(0);
             default -> throw new UnsupportedOperationException();
         };
     }
 
-    private static boolean isBitWidthLegal(int bitWidth){
-        return switch (bitWidth){
-            case 1,32 -> true;
+    @Override
+    public long getSize() {
+        return 4;
+    }
+
+    private static boolean isBitWidthLegal(int bitWidth) {
+        return switch (bitWidth) {
+            case 1, 32 -> true;
             default -> false;
         };
     }

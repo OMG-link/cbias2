@@ -29,20 +29,25 @@ public class FloatType extends Type {
 
     @Override
     public Constant getDefaultInitialization() {
-        return switch (bitWidth){
+        return switch (bitWidth) {
             case 32 -> ConstFloat.getInstance(0);
             default -> throw new UnsupportedOperationException();
         };
     }
 
-    private static boolean isBitWidthLegal(int bitWidth){
-        return switch (bitWidth){
+    @Override
+    public long getSize() {
+        return 4;
+    }
+
+    private static boolean isBitWidthLegal(int bitWidth) {
+        return switch (bitWidth) {
             case 32 -> true;
             default -> false;
         };
     }
 
-    private static Map<Integer,FloatType> instanceMap = null;
+    private static Map<Integer, FloatType> instanceMap = null;
 
     private static FloatType getInstance(int bitWidth) {
         if(instanceMap==null){

@@ -21,10 +21,17 @@ public class LabelType extends Type {
         throw new UnsupportedOperationException();
     }
 
+    @Override
+    public long getSize() {
+        // 理论上应该返回指针的位数，但是SysY不涉及指针，所以这个方法应该不会被调用到
+        throw new UnsupportedOperationException();
+    }
+
     private static LabelType instance = null;
 
     /**
      * 获取Label类型的实例
+     *
      * @return Label类型的唯一实例
      */
     public static LabelType getInstance() {

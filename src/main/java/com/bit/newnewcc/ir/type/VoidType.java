@@ -33,4 +33,11 @@ public class VoidType extends Type {
     public Constant getDefaultInitialization() {
         throw new UnsupportedOperationException();
     }
+
+    @Override
+    public long getSize() {
+        // 理论上应该返回0，但是这个方法应该不会被调用到
+        throw new UnsupportedOperationException();
+    }
+
 }

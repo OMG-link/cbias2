@@ -22,11 +22,19 @@ public abstract class Type {
     protected abstract String getTypeName_();
 
     private String typeNameCache;
-    public String getTypeName(){
-        if(typeNameCache==null){
+
+    public String getTypeName() {
+        if (typeNameCache == null) {
             typeNameCache = getTypeName_();
         }
         return typeNameCache;
     }
+
+    /**
+     * 获取类型的实例占用内存的大小，以字节为单位
+     *
+     * @return 类型的实例占用内存的大小，以字节为单位
+     */
+    public abstract long getSize();
 
 }
