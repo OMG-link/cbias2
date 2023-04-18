@@ -14,33 +14,39 @@ import java.util.List;
  */
 public class AsmGlobalVariable {
     private final String globalVariableName;
-    private final boolean isConstant, initialized;
+    private final boolean isConstant, isInitialized, isSmallSection;
     private final long size;
     //存储了该全局变量的全部数据
     private final List<ValueTag> valueList;
-    private int align;
+    private final int align;
 
     public AsmGlobalVariable(GlobalVariable globalVariable) {
         this.globalVariableName = globalVariable.getValueName();
         this.isConstant = globalVariable.isConstant();
 
         Constant initialValue = globalVariable.getInitialValue();
-        this.initialized = (!initialValue.isFilledWithZero());
+        this.isInitialized = (!initialValue.isFilledWithZero());
         this.size = initialValue.getType().getSize();
         this.valueList = new ArrayList<>();
-        if (initialValue instanceof ConstArray arrayValue) {
-            this.align = 3;
-            if (this.initialized) {
-                getArrayValues(arrayValue);
-            } else {
-                this.valueList.add(new ValueTag(ValueTag.Tag.ZERO, this.size));
-            }
-        } else if (initialValue instanceof ConstInt intValue) {
+        if (initialValue instanceof ConstInt intValue) {
             this.align = 2;
             this.valueList.add(new ValueTag(intValue.getValue()));
+            this.isSmallSection = true;
         } else if (initialValue instanceof ConstFloat floatValue) {
             this.align = 2;
             this.valueList.add(new ValueTag(floatValue.getValue()));
+            this.isSmallSection = true;
+        } else if (initialValue instanceof ConstArray arrayValue) {
+            this.align = 3;
+            this.isSmallSection = false;
+            if (this.isInitialized) {
+                this.getArrayValues(arrayValue);
+            } else {
+                this.valueList.add(new ValueTag(ValueTag.Tag.ZERO, this.size));
+            }
+        } else {
+            this.align = 2;
+            this.isSmallSection = true;
         }
     }
 
@@ -75,10 +81,53 @@ public class AsmGlobalVariable {
         }
     }
 
+    private boolean isConstant() {
+        return isConstant;
+    }
+
+    private String getSectionStr() {
+        if (this.isConstant) {
+            if (this.isSmallSection) {
+                return ".section .srodata,\"a\"";
+            } else {
+                return ".section .rodata";
+            }
+        } else if (this.isInitialized) {
+            if (this.isSmallSection) {
+                return ".section .sdata,\"aw\"";
+            } else {
+                return ".data";
+            }
+        } else {
+            if (this.isSmallSection) {
+                return ".section .sbss,\"aw\",@nobits";
+            } else {
+                return ".bss";
+            }
+        }
+    }
+
+    /**
+     * 输出汇编格式的全局变量数据
+     */
+    public String emit() {
+        StringBuilder output = new StringBuilder();
+        output.append(String.format(".globl %s\n", this.globalVariableName));
+        output.append(this.getSectionStr()).append('\n');
+        output.append(String.format(".align %d\n", this.align));
+        output.append(String.format(".type %s, @object\n", this.globalVariableName));
+        output.append(String.format(".size %s, %d\n", this.globalVariableName, this.size));
+        output.append(String.format("%s:\n", this.globalVariableName));
+        for (var i : valueList) {
+            output.append(i.emit()).append('\n');
+        }
+        return output.toString();
+    }
+
     /**
      * 用于标注数据格式，WORD时value存储的为数据值，ZERO则存储数据长度（字节数）
      */
-    public class ValueTag {
+    public static class ValueTag {
         private final Tag tag;
         private final int value;
         private final long length;
@@ -117,10 +166,6 @@ public class AsmGlobalVariable {
         public enum Tag {
             WORD, ZERO
         }
-    }
-
-    public boolean isConstant() {
-        return isConstant;
     }
 
 }
