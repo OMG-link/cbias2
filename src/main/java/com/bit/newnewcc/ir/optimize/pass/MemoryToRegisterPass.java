@@ -14,9 +14,9 @@ import org.antlr.v4.runtime.misc.Pair;
 
 import java.util.*;
 
-public class MemoryToRegister {
+public class MemoryToRegisterPass {
 
-    private MemoryToRegister() {
+    private MemoryToRegisterPass() {
     }
 
     /**
@@ -144,6 +144,6 @@ public class MemoryToRegister {
     }
 
     public static void optimize(Module module) {
-        module.getFunctions().forEach(function -> new MemoryToRegister().transformMemoryToRegister(function));
+        module.getFunctions().forEach(function -> new MemoryToRegisterPass().transformMemoryToRegister(function));
     }
 }
