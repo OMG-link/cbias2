@@ -14,6 +14,9 @@ import org.antlr.v4.runtime.misc.Pair;
 
 import java.util.*;
 
+/**
+ * 将对栈上变量的 load,store 语句尽可能转化为寄存器操作
+ */
 public class MemoryToRegisterPass {
 
     private MemoryToRegisterPass() {
