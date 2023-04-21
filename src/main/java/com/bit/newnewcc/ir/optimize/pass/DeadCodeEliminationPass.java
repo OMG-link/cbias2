@@ -240,7 +240,7 @@ public class DeadCodeEliminationPass {
     public static void optimize(Module module) {
         var seInstructions = getSeInstructions(module);
         var validInstructions = getValidInstructions(module, seInstructions);
-        //todo: 删除所有非有效指令
+        removeInvalidInstruction(module, validInstructions);
     }
 
 }
