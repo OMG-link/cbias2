@@ -123,5 +123,17 @@ public abstract class Instruction extends Value {
         return node;
     }
 
+    // 禁止重写
+    // Instruction对象在部分Pass中会被放入Set，需要以内存地址鉴别等价性
+    @Override
+    public final boolean equals(Object obj) {
+        return super.equals(obj);
+    }
 
+    // 禁止重写
+    // Instruction对象在部分Pass中会被放入Set，需要以内存地址鉴别等价性
+    @Override
+    public final int hashCode() {
+        return super.hashCode();
+    }
 }
