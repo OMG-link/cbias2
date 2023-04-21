@@ -13,7 +13,7 @@ import java.util.*;
  */
 public class Function extends AbstractFunction {
 
-    private class FormalParameter extends Value {
+    public class FormalParameter extends Value {
         public FormalParameter(Type type) {
             super(type);
         }
@@ -22,7 +22,7 @@ public class Function extends AbstractFunction {
 
         @Override
         public String getValueName() {
-            if(valueName==null){
+            if (valueName == null) {
                 valueName = NameAllocator.getLvName(Function.this);
             }
             return valueName;
