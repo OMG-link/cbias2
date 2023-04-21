@@ -143,28 +143,7 @@ public class MemoryToRegister {
         }
     }
 
-    private static MemoryToRegister instance;
-
-    /**
-     * 使用此对象对函数进行mem2reg处理
-     *
-     * @param function 待处理的函数
-     */
-    // 此层包装实际上是为了实现对象存储数据的清理
-    // 此方法是同步的，因为同时调用该方法会导致不同线程所处理函数的信息交织在一起
-    // 若需要该方法的多线程实现，可以考虑每次重新生成一个 MemoryToRegister 对象
-    private synchronized void processFunction(Function function) {
-        transformMemoryToRegister(function);
-        // 清除数据以避免内存泄漏，同时准备好下次使用
-        promotableAllocateInstructions.clear();
-        lastDefineMap.clear();
-        phiFillQueue.clear(); // 事实上，该队列在此应当本就是空的
-    }
-
     public static void optimize(Module module) {
-        if (instance == null) {
-            instance = new MemoryToRegister();
-        }
-        module.getFunctions().forEach(instance::transformMemoryToRegister);
+        module.getFunctions().forEach(function -> new MemoryToRegister().transformMemoryToRegister(function));
     }
 }
