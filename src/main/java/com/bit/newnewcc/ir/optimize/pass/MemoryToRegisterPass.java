@@ -124,14 +124,10 @@ public class MemoryToRegisterPass {
                 phiInst.addEntry(entryBlock, getLastDefine(function, entryBlock, allocateInst));
             }
         }
-        // 清理多余的 alloca, store, load 语句
+        // 清理多余的 store, load 语句
         for (BasicBlock basicBlock : function.getBasicBlocks()) {
             for (Instruction instruction : basicBlock.getInstructions()) {
-                if (instruction instanceof AllocateInst allocateInst) {
-                    if (promotableAllocateInstructions.contains(allocateInst)) {
-                        allocateInst.waste();
-                    }
-                } else if (instruction instanceof LoadInst loadInst) {
+                if (instruction instanceof LoadInst loadInst) {
                     var address = loadInst.getAddressOperand();
                     if (address instanceof AllocateInst allocateInst && promotableAllocateInstructions.contains(allocateInst)) {
                         loadInst.waste();
@@ -141,6 +137,14 @@ public class MemoryToRegisterPass {
                     if (address instanceof AllocateInst allocateInst && promotableAllocateInstructions.contains(allocateInst)) {
                         storeInst.waste();
                     }
+                }
+            }
+        }
+        // 清理多余的 alloca 语句
+        for (Instruction instruction : function.getEntryBasicBlock().getLeadingInstructions()) {
+            if (instruction instanceof AllocateInst allocateInst) {
+                if (promotableAllocateInstructions.contains(allocateInst)) {
+                    allocateInst.waste();
                 }
             }
         }
