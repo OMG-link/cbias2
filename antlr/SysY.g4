@@ -7,7 +7,7 @@ declaration: constantDeclaration | variableDeclaration;
 constantDeclaration:
 	CONST typeSpecifier constantDefinition (COMMA constantDefinition)* SEMI;
 
-typeSpecifier: type=(INT | FLOAT);
+typeSpecifier: type=(VOID | INT | FLOAT);
 
 constantDefinition:
 	Identifier (LBRACKET constantExpression RBRACKET)* ASSIGN constantInitializer;
@@ -29,9 +29,7 @@ initializer:
 	;
 
 functionDefinition:
-	returnTypeSpecifier Identifier LPAREN parameterList? RPAREN compoundStatement;
-
-returnTypeSpecifier: type=(VOID | INT | FLOAT);
+	typeSpecifier Identifier LPAREN parameterList? RPAREN compoundStatement;
 
 parameterList:
 	parameterDeclaration (COMMA parameterDeclaration)*;
