@@ -3,6 +3,7 @@ package com.bit.newnewcc.ir.value;
 import com.bit.newnewcc.ir.Operand;
 import com.bit.newnewcc.ir.Type;
 import com.bit.newnewcc.ir.Value;
+import com.bit.newnewcc.ir.exception.ValueBeingUsedException;
 import com.bit.newnewcc.ir.util.InstructionList;
 import com.bit.newnewcc.ir.util.NameAllocator;
 
@@ -23,6 +24,9 @@ public abstract class Instruction extends Value {
      * 此操作会将该语句从基本块中移除，清除所有操作数绑定 <br>
      */
     public void waste() {
+        if (getUsages().size() > 0) {
+            throw new ValueBeingUsedException();
+        }
         if (getBasicBlock() != null) {
             removeFromBasicBlock();
         }
@@ -41,7 +45,7 @@ public abstract class Instruction extends Value {
                 throw new UnsupportedOperationException("Cannot get the name of an instruction outside a basic block.");
             }
             var fun = bb.getFunction();
-            if(fun==null){
+            if (fun == null) {
                 throw new UnsupportedOperationException("Cannot get the name of an instruction outside a function.");
             }
             valueName = NameAllocator.getLvName(fun);
@@ -51,7 +55,7 @@ public abstract class Instruction extends Value {
 
     @Override
     public String getValueNameIR() {
-        return '%'+getValueName();
+        return '%' + getValueName();
     }
 
     @Override
@@ -90,6 +94,7 @@ public abstract class Instruction extends Value {
     /**
      * 将当前节点插入到乙节点后方 <br>
      * 在插入前，需保证当前节点不属于任何链表 <br>
+     *
      * @param beta 乙节点
      */
     public void insertAfter(Instruction beta) {
@@ -123,5 +128,17 @@ public abstract class Instruction extends Value {
         return node;
     }
 
+    // 禁止重写
+    // Instruction对象在部分Pass中会被放入Set，需要以内存地址鉴别等价性
+    @Override
+    public final boolean equals(Object obj) {
+        return super.equals(obj);
+    }
 
+    // 禁止重写
+    // Instruction对象在部分Pass中会被放入Set，需要以内存地址鉴别等价性
+    @Override
+    public final int hashCode() {
+        return super.hashCode();
+    }
 }

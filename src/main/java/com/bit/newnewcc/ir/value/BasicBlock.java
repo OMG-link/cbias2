@@ -106,6 +106,7 @@ public class BasicBlock extends Value {
     /**
      * 获取结束指令 <br>
      * 没有设置结束指令时，返回 null <br>
+     *
      * @return 结束指令或 null
      */
     public TerminateInst getTerminateInstruction() {
@@ -162,6 +163,12 @@ public class BasicBlock extends Value {
 
     public Function getFunction() {
         return function;
+    }
+
+    public void removeFromFunction() {
+        if (function != null) {
+            function.removeBasicBlock(this);
+        }
     }
 
     /**

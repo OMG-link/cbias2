@@ -14,9 +14,12 @@ import org.antlr.v4.runtime.misc.Pair;
 
 import java.util.*;
 
-public class MemoryToRegister {
+/**
+ * 将对栈上变量的 load,store 语句尽可能转化为寄存器操作
+ */
+public class MemoryToRegisterPass {
 
-    private MemoryToRegister() {
+    private MemoryToRegisterPass() {
     }
 
     /**
@@ -121,14 +124,10 @@ public class MemoryToRegister {
                 phiInst.addEntry(entryBlock, getLastDefine(function, entryBlock, allocateInst));
             }
         }
-        // 清理多余的 alloca, store, load 语句
+        // 清理多余的 store, load 语句
         for (BasicBlock basicBlock : function.getBasicBlocks()) {
             for (Instruction instruction : basicBlock.getInstructions()) {
-                if (instruction instanceof AllocateInst allocateInst) {
-                    if (promotableAllocateInstructions.contains(allocateInst)) {
-                        allocateInst.waste();
-                    }
-                } else if (instruction instanceof LoadInst loadInst) {
+                if (instruction instanceof LoadInst loadInst) {
                     var address = loadInst.getAddressOperand();
                     if (address instanceof AllocateInst allocateInst && promotableAllocateInstructions.contains(allocateInst)) {
                         loadInst.waste();
@@ -141,30 +140,17 @@ public class MemoryToRegister {
                 }
             }
         }
-    }
-
-    private static MemoryToRegister instance;
-
-    /**
-     * 使用此对象对函数进行mem2reg处理
-     *
-     * @param function 待处理的函数
-     */
-    // 此层包装实际上是为了实现对象存储数据的清理
-    // 此方法是同步的，因为同时调用该方法会导致不同线程所处理函数的信息交织在一起
-    // 若需要该方法的多线程实现，可以考虑每次重新生成一个 MemoryToRegister 对象
-    private synchronized void processFunction(Function function) {
-        transformMemoryToRegister(function);
-        // 清除数据以避免内存泄漏，同时准备好下次使用
-        promotableAllocateInstructions.clear();
-        lastDefineMap.clear();
-        phiFillQueue.clear(); // 事实上，该队列在此应当本就是空的
+        // 清理多余的 alloca 语句
+        for (Instruction instruction : function.getEntryBasicBlock().getLeadingInstructions()) {
+            if (instruction instanceof AllocateInst allocateInst) {
+                if (promotableAllocateInstructions.contains(allocateInst)) {
+                    allocateInst.waste();
+                }
+            }
+        }
     }
 
     public static void optimize(Module module) {
-        if (instance == null) {
-            instance = new MemoryToRegister();
-        }
-        module.getFunctions().forEach(instance::transformMemoryToRegister);
+        module.getFunctions().forEach(function -> new MemoryToRegisterPass().transformMemoryToRegister(function));
     }
 }

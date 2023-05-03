@@ -1,12 +1,11 @@
 package com.bit.newnewcc.ir.value.instruction;
 
 import com.bit.newnewcc.ir.Operand;
-import com.bit.newnewcc.ir.Type;
 import com.bit.newnewcc.ir.Value;
 import com.bit.newnewcc.ir.exception.IllegalArgumentException;
 import com.bit.newnewcc.ir.exception.IndexOutOfBoundsException;
 import com.bit.newnewcc.ir.type.FunctionType;
-import com.bit.newnewcc.ir.value.Function;
+import com.bit.newnewcc.ir.value.AbstractFunction;
 import com.bit.newnewcc.ir.value.Instruction;
 
 import java.util.ArrayList;
@@ -46,7 +45,7 @@ public class CallInst extends Instruction {
      * @param function  被调用函数
      * @param arguments 实参列表
      */
-    public CallInst(Function function, List<Value> arguments) {
+    public CallInst(AbstractFunction function, List<Value> arguments) {
         super(function.getType());
         this.calleeOperand = new Operand(this, function.getType(), function);
         if (arguments.size() != function.getParameterTypes().size()) {
@@ -75,8 +74,8 @@ public class CallInst extends Instruction {
      *
      * @return 被调用的函数
      */
-    public Function getCallee() {
-        return (Function) calleeOperand.getValue();
+    public AbstractFunction getCallee() {
+        return (AbstractFunction) calleeOperand.getValue();
     }
 
     /**
@@ -84,7 +83,7 @@ public class CallInst extends Instruction {
      *
      * @param function 被调用的函数
      */
-    public void setCallee(Function function) {
+    public void setCallee(AbstractFunction function) {
         calleeOperand.setValue(function);
     }
 
