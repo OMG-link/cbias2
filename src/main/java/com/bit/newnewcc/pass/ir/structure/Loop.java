@@ -1,4 +1,4 @@
-package com.bit.newnewcc.ir.structure;
+package com.bit.newnewcc.pass.ir.structure;
 
 import com.bit.newnewcc.ir.value.BasicBlock;
 
