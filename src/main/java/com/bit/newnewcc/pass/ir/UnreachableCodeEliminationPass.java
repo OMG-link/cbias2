@@ -1,4 +1,4 @@
-package com.bit.newnewcc.ir.optimize.pass;
+package com.bit.newnewcc.pass.ir;
 
 import com.bit.newnewcc.ir.Module;
 import com.bit.newnewcc.ir.exception.ValueBeingUsedException;
