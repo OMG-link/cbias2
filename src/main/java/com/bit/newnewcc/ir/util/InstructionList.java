@@ -102,7 +102,7 @@ public class InstructionList implements Iterable<Instruction> {
     }
 
     public void appendMainInstruction(Instruction instruction) {
-        instruction.insertBefore(mainEnd.instruction);
+        insertAlphaBeforeBeta(instruction.__getInstructionListNode__(), mainEnd);
     }
 
     public Iterator<Instruction> getMainInstructions() {
