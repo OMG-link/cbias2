@@ -2,8 +2,10 @@ package com.bit.newnewcc;
 
 import org.apache.commons.cli.*;
 
+import java.io.IOException;
+
 public class Compiler {
-    public static void main(String[] args) throws ParseException {
+    public static void main(String[] args) throws ParseException, IOException {
         Options options = new Options();
         Option outputFileName = Option.builder("o")
                 .hasArg()

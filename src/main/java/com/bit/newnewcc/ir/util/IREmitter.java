@@ -5,8 +5,8 @@ import com.bit.newnewcc.ir.Type;
 import com.bit.newnewcc.ir.Value;
 import com.bit.newnewcc.ir.value.*;
 
-import java.io.FileWriter;
 import java.io.IOException;
+import java.util.StringJoiner;
 
 public class IREmitter {
     private final StringBuilder builder = new StringBuilder();
@@ -27,16 +27,11 @@ public class IREmitter {
                 function.getValueNameIR()
         ));
         builder.append('(');
-        boolean isFirstParameter = true;
+        StringJoiner joiner = new StringJoiner(", ");
         for (Value formalParameter : function.getFormalParameters()) {
-            if(!isFirstParameter){
-                builder.append(", ");
-            }
-            builder.append(formalParameter.getTypeName())
-                    .append(' ')
-                    .append(formalParameter.getValueName());
-            isFirstParameter = false;
+            joiner.add(formalParameter.getTypeName() + " " + formalParameter.getValueNameIR());
         }
+        builder.append(joiner);
         builder.append(") {\n");
         for (BasicBlock basicBlock : function.getBasicBlocks()) {
             emitBasicBlock(basicBlock);
@@ -89,12 +84,9 @@ public class IREmitter {
         builder.append('\n');
     }
 
-    public static void emitModule(String outputFilePath, Module module) throws IOException {
+    public static String emit(Module module) throws IOException {
         var emitter = new IREmitter();
         emitter.emitModule(module);
-        var fileWriter = new FileWriter(outputFilePath);
-        fileWriter.write(emitter.builder.toString());
-        fileWriter.close();
+        return emitter.builder.toString();
     }
-
 }

@@ -45,9 +45,10 @@ public class LoadInst extends MemoryInst{
     @Override
     public String toString() {
         return String.format(
-                "%s = load %s, ptr %s",
-                this.getValueNameIR(),
-                this.getTypeName(),
+                "%s = load %s, %s %s",
+                getValueNameIR(),
+                getTypeName(),
+                getAddressOperand().getType().getTypeName(),
                 getAddressOperand().getValueNameIR()
         );
     }

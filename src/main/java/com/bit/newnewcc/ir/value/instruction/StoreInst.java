@@ -3,7 +3,6 @@ package com.bit.newnewcc.ir.value.instruction;
 import com.bit.newnewcc.ir.Operand;
 import com.bit.newnewcc.ir.Type;
 import com.bit.newnewcc.ir.Value;
-import com.bit.newnewcc.ir.exception.IllegalArgumentException;
 import com.bit.newnewcc.ir.type.PointerType;
 import com.bit.newnewcc.ir.type.VoidType;
 
@@ -83,9 +82,10 @@ public class StoreInst extends MemoryInst {
     @Override
     public String toString() {
         return String.format(
-                "store %s %s, ptr %s",
+                "store %s %s, %s %s",
                 valueOperand.getValue().getTypeName(),
                 valueOperand.getValue().getValueNameIR(),
+                addressOperand.getValue().getTypeName(),
                 addressOperand.getValue().getValueNameIR()
         );
     }
