@@ -46,6 +46,10 @@ public class GlobalTag extends AsmOperand {
         }
     }
 
+    public boolean isHighSegment() {
+        return segment == SEGMENT.HIGH;
+    }
+
     public String emit() {
         if (baseAddress == null) {
             return getOffset();
