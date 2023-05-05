@@ -7,6 +7,7 @@ import com.bit.newnewcc.ir.type.*;
 import com.bit.newnewcc.ir.value.BasicBlock;
 import com.bit.newnewcc.ir.value.Function;
 import com.bit.newnewcc.ir.value.Instruction;
+import com.bit.newnewcc.ir.value.VoidValue;
 import com.bit.newnewcc.ir.value.constant.ConstFloat;
 import com.bit.newnewcc.ir.value.constant.ConstInt;
 import com.bit.newnewcc.ir.value.instruction.*;
@@ -320,6 +321,17 @@ public class Translator extends SysYBaseVisitor<Void> {
         }
 
         visit(ctx.compoundStatement());
+
+        if (returnType == VoidType.getInstance()) {
+            currentBasicBlock.addInstruction(new ReturnInst(VoidValue.getInstance()));
+        }
+
+        if (currentBasicBlock.getInstructions().isEmpty()) {
+            if (returnType == IntegerType.getI32())
+                currentBasicBlock.addInstruction(new ReturnInst(ConstInt.getInstance(0)));
+            if (returnType == FloatType.getFloat())
+                currentBasicBlock.addInstruction(new ReturnInst(ConstFloat.getInstance(0f)));
+        }
 
         symbolTable.popScope();
         return null;
