@@ -270,14 +270,14 @@ public class SysYBaseVisitor<T> extends AbstractParseTreeVisitor<T> implements S
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
-	@Override public T visitChildUnaryExpression(SysYParser.ChildUnaryExpressionContext ctx) { return visitChildren(ctx); }
+	@Override public T visitBinaryMultiplicativeExpression(SysYParser.BinaryMultiplicativeExpressionContext ctx) { return visitChildren(ctx); }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
-	@Override public T visitBinaryMultiplicativeExpression(SysYParser.BinaryMultiplicativeExpressionContext ctx) { return visitChildren(ctx); }
+	@Override public T visitChildUnaryExpression(SysYParser.ChildUnaryExpressionContext ctx) { return visitChildren(ctx); }
 	/**
 	 * {@inheritDoc}
 	 *
@@ -312,13 +312,6 @@ public class SysYBaseVisitor<T> extends AbstractParseTreeVisitor<T> implements S
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
-	@Override public T visitChildRelationalExoression(SysYParser.ChildRelationalExoressionContext ctx) { return visitChildren(ctx); }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation returns the result of calling
-	 * {@link #visitChildren} on {@code ctx}.</p>
-	 */
 	@Override public T visitBinaryEqualityExpression(SysYParser.BinaryEqualityExpressionContext ctx) { return visitChildren(ctx); }
 	/**
 	 * {@inheritDoc}
@@ -326,7 +319,7 @@ public class SysYBaseVisitor<T> extends AbstractParseTreeVisitor<T> implements S
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
-	@Override public T visitChildEqualityExpression(SysYParser.ChildEqualityExpressionContext ctx) { return visitChildren(ctx); }
+	@Override public T visitChildRelationalExoression(SysYParser.ChildRelationalExoressionContext ctx) { return visitChildren(ctx); }
 	/**
 	 * {@inheritDoc}
 	 *
@@ -334,6 +327,13 @@ public class SysYBaseVisitor<T> extends AbstractParseTreeVisitor<T> implements S
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
 	@Override public T visitBinaryLogicalAndExpression(SysYParser.BinaryLogicalAndExpressionContext ctx) { return visitChildren(ctx); }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation returns the result of calling
+	 * {@link #visitChildren} on {@code ctx}.</p>
+	 */
+	@Override public T visitChildEqualityExpression(SysYParser.ChildEqualityExpressionContext ctx) { return visitChildren(ctx); }
 	/**
 	 * {@inheritDoc}
 	 *

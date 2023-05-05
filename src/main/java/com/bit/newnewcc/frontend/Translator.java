@@ -353,10 +353,10 @@ public class Translator extends SysYBaseVisitor<Void> {
 
     @Override
     public Void visitBinaryAdditiveExpression(SysYParser.BinaryAdditiveExpressionContext ctx) {
-        visit(ctx.multiplicativeExpression());
+        visit(ctx.additiveExpression());
         Value leftOperand = result;
 
-        visit(ctx.additiveExpression());
+        visit(ctx.multiplicativeExpression());
         Value rightOperand = result;
 
         applyBinaryOperator(leftOperand, rightOperand, makeBinaryOperator(ctx.op));
@@ -365,10 +365,10 @@ public class Translator extends SysYBaseVisitor<Void> {
 
     @Override
     public Void visitBinaryMultiplicativeExpression(SysYParser.BinaryMultiplicativeExpressionContext ctx) {
-        visit(ctx.unaryExpression());
+        visit(ctx.multiplicativeExpression());
         Value leftOperand = result;
 
-        visit(ctx.multiplicativeExpression());
+        visit(ctx.unaryExpression());
         Value rightOperand = result;
 
         applyBinaryOperator(leftOperand, rightOperand, makeBinaryOperator(ctx.op));
