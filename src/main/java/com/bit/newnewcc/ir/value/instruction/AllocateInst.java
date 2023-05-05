@@ -30,7 +30,7 @@ public class AllocateInst extends MemoryInst{
         return String.format(
                 "%s = alloca %s",
                 this.getValueNameIR(),
-                this.getType().getBaseType()
+                this.getType().getBaseType().getTypeName()
         );
     }
 }
