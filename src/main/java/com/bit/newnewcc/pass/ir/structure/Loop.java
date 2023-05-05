@@ -33,6 +33,11 @@ public class Loop {
     private final List<BasicBlock> basicBlocks;
 
     /**
+     * 循环嵌套的深度，最外层循环的深度为0
+     */
+    private int loopDepth;
+
+    /**
      * 构建一个循环
      *
      * @param headerBasicBlock 循环的入口块
@@ -43,6 +48,27 @@ public class Loop {
         this.headerBasicBlock = headerBasicBlock;
         this.subLoops = new ArrayList<>(subLoops);
         this.basicBlocks = new ArrayList<>(basicBlocks);
+        this.loopDepth = -1;
+    }
+
+    /**
+     * 设置父循环 <br>
+     * 该函数仅限构建LoopTree时使用 <br>
+     *
+     * @param parentLoop 父循环
+     */
+    public void __setParentLoop__(Loop parentLoop) {
+        this.parentLoop = parentLoop;
+    }
+
+    /**
+     * 设置循环深度 <br>
+     * 该函数仅限构建LoopTree时使用 <br>
+     *
+     * @param loopDepth 循环深度
+     */
+    public void __setLoopDepth__(int loopDepth) {
+        this.loopDepth = loopDepth;
     }
 
     /**
@@ -64,6 +90,13 @@ public class Loop {
      */
     public List<Loop> getSubLoops() {
         return Collections.unmodifiableList(subLoops);
+    }
+
+    /**
+     * @return 循环深度
+     */
+    public int getLoopDepth() {
+        return loopDepth;
     }
 
     /**
