@@ -8,7 +8,7 @@ import com.bit.newnewcc.backend.asm.operand.StackVar;
 /**
  * 汇编部分中的load指令，在本语言中分为
  * <ul>
- *     <li>ld 双字加载，仅当加载一个地址或时使用</li>
+ *     <li>ld 双字加载，仅当加载64位的栈变量时使用</li>
  *     <li>lw 字加载，在加载任何变量时使用，默认指令均为lw</li>
  *     <li>lui 高位立即数加载，仅当加载全局符号地址中的高位时使用</li>
  *     <li>li 立即数加载</li>
