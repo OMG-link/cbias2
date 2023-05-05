@@ -10,7 +10,6 @@ import com.bit.newnewcc.ir.type.VoidType;
 public class VoidValue extends Value {
     private VoidValue() {
         super(VoidType.getInstance());
-        setValueName("");
     }
 
     @Override
