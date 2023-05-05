@@ -93,19 +93,19 @@ public class Translator extends SysYBaseVisitor<Void> {
 
     private void applyTypeConversion(Value value, Type targetType) {
         if (value.getType() == IntegerType.getI32() && targetType == FloatType.getFloat()) {
-            SignedIntegerToFloatInst sitofp = new SignedIntegerToFloatInst(value, FloatType.getFloat());
+            var sitofp = new SignedIntegerToFloatInst(value, FloatType.getFloat());
             currentBasicBlock.addInstruction(sitofp);
             result = sitofp;
             return;
         }
         if (value.getType() == FloatType.getFloat() && targetType == IntegerType.getI32()) {
-            FloatToSignedIntegerInst fptosi = new FloatToSignedIntegerInst(value, IntegerType.getI32());
+            var fptosi = new FloatToSignedIntegerInst(value, IntegerType.getI32());
             currentBasicBlock.addInstruction(fptosi);
             result = fptosi;
             return;
         }
         if (value.getType() == IntegerType.getI32() && targetType == IntegerType.getI1()) {
-            IntegerCompareInst icmp = new IntegerCompareInst(
+            var icmp = new IntegerCompareInst(
                     IntegerType.getI32(), IntegerCompareInst.Condition.NE,
                     value, ConstInt.getInstance(0)
             );
@@ -114,7 +114,7 @@ public class Translator extends SysYBaseVisitor<Void> {
             return;
         }
         if (value.getType() == FloatType.getFloat() && targetType == IntegerType.getI1()) {
-            FloatCompareInst fcmp = new FloatCompareInst(
+            var fcmp = new FloatCompareInst(
                     FloatType.getFloat(), FloatCompareInst.Condition.ONE,
                     value, ConstFloat.getInstance(0f)
             );
@@ -123,7 +123,7 @@ public class Translator extends SysYBaseVisitor<Void> {
             return;
         }
         if (value.getType() == IntegerType.getI1() && targetType == IntegerType.getI32()) {
-            ZeroExtensionInst zext = new ZeroExtensionInst(value, IntegerType.getI32());
+            var zext = new ZeroExtensionInst(value, IntegerType.getI32());
             currentBasicBlock.addInstruction(zext);
             result = zext;
             return;
@@ -136,13 +136,13 @@ public class Translator extends SysYBaseVisitor<Void> {
             case POS -> result = operand;
             case NEG -> {
                 if (operand.getType() == IntegerType.getI32()) {
-                    IntegerSubInst sub = new IntegerSubInst(IntegerType.getI32(), ConstInt.getInstance(0), operand);
+                    var sub = new IntegerSubInst(IntegerType.getI32(), ConstInt.getInstance(0), operand);
                     currentBasicBlock.addInstruction(sub);
                     result = sub;
                     return;
                 }
                 if (operand.getType() == FloatType.getFloat()) {
-                    FloatNegateInst fneg = new FloatNegateInst(FloatType.getFloat(), operand);
+                    var fneg = new FloatNegateInst(FloatType.getFloat(), operand);
                     currentBasicBlock.addInstruction(fneg);
                     result = fneg;
                     return;
@@ -151,7 +151,7 @@ public class Translator extends SysYBaseVisitor<Void> {
             }
             case LNOT -> {
                 if (operand.getType() == IntegerType.getI32()) {
-                    IntegerCompareInst icmp = new IntegerCompareInst(
+                    var icmp = new IntegerCompareInst(
                             IntegerType.getI32(), IntegerCompareInst.Condition.EQ,
                             operand, ConstInt.getInstance(0)
                     );
@@ -160,7 +160,7 @@ public class Translator extends SysYBaseVisitor<Void> {
                     return;
                 }
                 if (operand.getType() == FloatType.getFloat()) {
-                    FloatCompareInst fcmp = new FloatCompareInst(
+                    var fcmp = new FloatCompareInst(
                             FloatType.getFloat(), FloatCompareInst.Condition.OEQ,
                             operand, ConstFloat.getInstance(0f)
                     );
@@ -190,41 +190,73 @@ public class Translator extends SysYBaseVisitor<Void> {
             rightOperand = result;
         }
 
-        Instruction instruction = switch (operator) {
-            case ADD -> {
-                if (operandType == IntegerType.getI32())
-                    yield new IntegerAddInst(IntegerType.getI32(), leftOperand, rightOperand);
-                else if (operandType == FloatType.getFloat())
-                    yield new FloatAddInst(FloatType.getFloat(), leftOperand, rightOperand);
-                else
-                    throw new IllegalArgumentException();
-            }
-            case SUB -> {
-                if (operandType == IntegerType.getI32())
-                    yield new IntegerSubInst(IntegerType.getI32(), leftOperand, rightOperand);
-                else if (operandType == FloatType.getFloat())
-                    yield new FloatSubInst(FloatType.getFloat(), leftOperand, rightOperand);
-                else
-                    throw new IllegalArgumentException();
-            }
-            case MUL -> {
-                if (operandType == IntegerType.getI32())
-                    yield new IntegerMultiplyInst(IntegerType.getI32(), leftOperand, rightOperand);
-                else if (operandType == FloatType.getFloat())
-                    yield new FloatMultiplyInst(FloatType.getFloat(), leftOperand, rightOperand);
-                else
-                    throw new IllegalArgumentException();
-            }
-            case DIV -> {
-                if (operandType == IntegerType.getI32())
-                    yield new IntegerSignedDivideInst(IntegerType.getI32(), leftOperand, rightOperand);
-                else if (operandType == FloatType.getFloat())
-                    yield new FloatDivideInst(FloatType.getFloat(), leftOperand, rightOperand);
-                else
-                    throw new IllegalArgumentException();
-            }
-            default -> throw new IllegalArgumentException();
-        };
+        Instruction instruction;
+        if (operandType == IntegerType.getI32()) {
+            instruction = switch (operator) {
+                case ADD -> new IntegerAddInst(IntegerType.getI32(), leftOperand, rightOperand);
+                case SUB -> new IntegerSubInst(IntegerType.getI32(), leftOperand, rightOperand);
+                case MUL -> new IntegerMultiplyInst(IntegerType.getI32(), leftOperand, rightOperand);
+                case DIV -> new IntegerSignedDivideInst(IntegerType.getI32(), leftOperand, rightOperand);
+                case MOD -> new IntegerSignedRemainderInst(IntegerType.getI32(), leftOperand, rightOperand);
+                case LT -> new IntegerCompareInst(
+                        IntegerType.getI32(), IntegerCompareInst.Condition.SLT,
+                        leftOperand, rightOperand
+                );
+                case GT -> new IntegerCompareInst(
+                        IntegerType.getI32(), IntegerCompareInst.Condition.SGT,
+                        leftOperand, rightOperand
+                );
+                case LE -> new IntegerCompareInst(
+                        IntegerType.getI32(), IntegerCompareInst.Condition.SLE,
+                        leftOperand, rightOperand
+                );
+                case GE -> new IntegerCompareInst(
+                        IntegerType.getI32(), IntegerCompareInst.Condition.SGE,
+                        leftOperand, rightOperand
+                );
+                case EQ -> new IntegerCompareInst(
+                        IntegerType.getI32(), IntegerCompareInst.Condition.EQ,
+                        leftOperand, rightOperand
+                );
+                case NE -> new IntegerCompareInst(
+                        IntegerType.getI32(), IntegerCompareInst.Condition.NE,
+                        leftOperand, rightOperand
+                );
+                default -> throw new IllegalArgumentException();
+            };
+        } else if (operandType == FloatType.getFloat()) {
+            instruction = switch (operator) {
+                case ADD -> new FloatAddInst(FloatType.getFloat(), leftOperand, rightOperand);
+                case SUB -> new FloatSubInst(FloatType.getFloat(), leftOperand, rightOperand);
+                case MUL -> new FloatMultiplyInst(FloatType.getFloat(), leftOperand, rightOperand);
+                case DIV -> new FloatDivideInst(FloatType.getFloat(), leftOperand, rightOperand);
+                case LT -> new FloatCompareInst(
+                        FloatType.getFloat(), FloatCompareInst.Condition.OLT,
+                        leftOperand, rightOperand
+                );
+                case GT -> new FloatCompareInst(
+                        FloatType.getFloat(), FloatCompareInst.Condition.OGT,
+                        leftOperand, rightOperand
+                );
+                case LE -> new FloatCompareInst(
+                        FloatType.getFloat(), FloatCompareInst.Condition.OLE,
+                        leftOperand, rightOperand
+                );
+                case GE -> new FloatCompareInst(
+                        FloatType.getFloat(), FloatCompareInst.Condition.OGE,
+                        leftOperand, rightOperand
+                );
+                case EQ -> new FloatCompareInst(
+                        FloatType.getFloat(), FloatCompareInst.Condition.OEQ,
+                        leftOperand, rightOperand
+                );
+                case NE -> new FloatCompareInst(
+                        FloatType.getFloat(), FloatCompareInst.Condition.ONE,
+                        leftOperand, rightOperand
+                );
+                default -> throw new IllegalArgumentException();
+            };
+        } else throw new IllegalArgumentException();
 
         currentBasicBlock.addInstruction(instruction);
         result = instruction;
@@ -237,9 +269,26 @@ public class Translator extends SysYBaseVisitor<Void> {
     @Override
     public Void visitCompilationUnit(SysYParser.CompilationUnitContext ctx) {
         currentModule = new Module();
+
         for (var functionDefinition : ctx.functionDefinition()) {
             visit(functionDefinition);
         }
+
+        return null;
+    }
+
+    @Override
+    public Void visitVariableDeclaration(SysYParser.VariableDeclarationContext ctx) {
+        Type type = makeType(ctx.typeSpecifier().type);
+
+        for (var variableDefinition : ctx.variableDefinition()) {
+            String name = variableDefinition.Identifier().getText();
+
+            var alloca = new AllocateInst(type);
+            currentBasicBlock.addInstruction(alloca);
+            symbolTable.putLocalVariable(name, alloca);
+        }
+
         return null;
     }
 
@@ -282,8 +331,8 @@ public class Translator extends SysYBaseVisitor<Void> {
         for (int i = 0; i < parameters.size(); ++i) {
             Parameter parameter = parameters.get(i);
 
-            AllocateInst alloca = new AllocateInst(parameter.getType());
-            StoreInst store = new StoreInst(alloca, currentFunction.getFormalParameters().get(i));
+            var alloca = new AllocateInst(parameter.getType());
+            var store = new StoreInst(alloca, currentFunction.getFormalParameters().get(i));
 
             currentBasicBlock.addInstruction(alloca);
             currentBasicBlock.addInstruction(store);
@@ -298,11 +347,27 @@ public class Translator extends SysYBaseVisitor<Void> {
     }
 
     @Override
+    public Void visitAssignmentStatement(SysYParser.AssignmentStatementContext ctx) {
+        visit(ctx.expression());
+        Value value = result;
+
+        visit(ctx.lValue());
+        var address = resultAddress;
+
+        var store = new StoreInst(address, value);
+        currentBasicBlock.addInstruction(store);
+
+        return null;
+    }
+
+    @Override
     public Void visitReturnStatement(SysYParser.ReturnStatementContext ctx) {
         visit(ctx.expression());
+
         if (result.getType() != currentFunction.getReturnType()) {
             applyTypeConversion(result, currentFunction.getReturnType());
         }
+
         currentBasicBlock.addInstruction(new ReturnInst(result));
         return null;
     }
@@ -343,7 +408,7 @@ public class Translator extends SysYBaseVisitor<Void> {
         String name = ctx.Identifier().getText();
         resultAddress = symbolTable.getLocalVariable(name);
 
-        LoadInst load = new LoadInst(resultAddress);
+        var load = new LoadInst(resultAddress);
         currentBasicBlock.addInstruction(load);
 
         result = load;
