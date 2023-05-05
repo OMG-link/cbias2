@@ -15,7 +15,7 @@ public class GlobalTag extends AsmOperand {
      *
      * @param tagName     标识符名字
      * @param segment     取地址的段（分为高16位与低16位）
-     * @param baseAddress 取的基地址
+     * @param baseAddress 取的基地址，若为null则仅返回偏移量
      */
     public GlobalTag(String tagName, SEGMENT segment, Register baseAddress) {
         super(TYPE.GTAG);

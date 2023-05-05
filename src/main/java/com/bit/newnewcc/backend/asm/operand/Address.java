@@ -1,9 +1,9 @@
 package com.bit.newnewcc.backend.asm.operand;
 
 /**
- * 栈上变量，被表示为栈帧寄存器+地址偏移量的形式，如-32(s0), 24(sp)
+ * 地址操作数，被表示为基址+偏移量的形式
  */
-public class StackVar extends AsmOperand {
+public class Address extends AsmOperand {
     private final int offset;
     private final Register baseAddress;
 
@@ -13,8 +13,8 @@ public class StackVar extends AsmOperand {
      * @param offset      偏移量
      * @param baseAddress 基址寄存器
      */
-    public StackVar(int offset, Register baseAddress) {
-        super(TYPE.SVAR);
+    public Address(int offset, Register baseAddress) {
+        super(TYPE.ADDR);
         this.offset = offset;
         this.baseAddress = baseAddress;
     }

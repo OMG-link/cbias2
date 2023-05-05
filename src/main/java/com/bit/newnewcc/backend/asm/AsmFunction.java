@@ -1,8 +1,8 @@
 package com.bit.newnewcc.backend.asm;
 
+import com.bit.newnewcc.backend.asm.operand.Address;
 import com.bit.newnewcc.backend.asm.operand.AsmOperand;
 import com.bit.newnewcc.backend.asm.operand.Register;
-import com.bit.newnewcc.backend.asm.operand.StackVar;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,12 +30,12 @@ public class AsmFunction {
          * 在栈上申请一段长度为size的内存作为栈变量
          *
          * @param size 内存大小
-         * @return 栈变量
+         * @return 指向栈上对应的地址
          */
-        public StackVar push(int size) {
+        public Address push(int size) {
             top += size;
             maxSize = max(maxSize, top);
-            return new StackVar(-top, new Register("s0"));
+            return new Address(-top, new Register("s0"));
         }
 
         /**
