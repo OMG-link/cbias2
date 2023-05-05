@@ -6,6 +6,7 @@ import com.bit.newnewcc.ir.Value;
 import com.bit.newnewcc.ir.type.*;
 import com.bit.newnewcc.ir.value.BasicBlock;
 import com.bit.newnewcc.ir.value.Function;
+import com.bit.newnewcc.ir.value.Instruction;
 import com.bit.newnewcc.ir.value.constant.ConstFloat;
 import com.bit.newnewcc.ir.value.constant.ConstInt;
 import com.bit.newnewcc.ir.value.instruction.*;
@@ -20,7 +21,19 @@ public class Translator extends SysYBaseVisitor<Void> {
         LNOT,
         ADD, SUB, MUL, DIV, MOD,
         LT, GT, LE, GE, EQ, NE,
-        LAND, LOR
+        LAND, LOR;
+
+        public boolean isArithmetic() {
+            return List.of(POS, NEG, ADD, SUB, MUL, DIV, MOD).contains(this);
+        }
+
+        public boolean isRelational() {
+            return List.of(LT, GT, LE, GE, EQ, NE).contains(this);
+        }
+
+        public boolean isLogical() {
+            return List.of(LNOT, LAND, LOR).contains(this);
+        }
     }
 
     private final SymbolTable symbolTable = new SymbolTable();
@@ -80,25 +93,56 @@ public class Translator extends SysYBaseVisitor<Void> {
 
     private void applyTypeConversion(Value value, Type targetType) {
         if (value.getType() == IntegerType.getI32() && targetType == FloatType.getFloat()) {
-            SignedIntegerToFloatInst sitofp = new SignedIntegerToFloatInst(IntegerType.getI32(), FloatType.getFloat());
+            SignedIntegerToFloatInst sitofp = new SignedIntegerToFloatInst(value, FloatType.getFloat());
             currentBasicBlock.addInstruction(sitofp);
             result = sitofp;
+            return;
+        }
+        if (value.getType() == FloatType.getFloat() && targetType == IntegerType.getI32()) {
+            FloatToSignedIntegerInst fptosi = new FloatToSignedIntegerInst(value, IntegerType.getI32());
+            currentBasicBlock.addInstruction(fptosi);
+            result = fptosi;
+            return;
+        }
+        if (value.getType() == IntegerType.getI32() && targetType == IntegerType.getI1()) {
+            IntegerCompareInst icmp = new IntegerCompareInst(
+                    IntegerType.getI32(), IntegerCompareInst.Condition.NE,
+                    value, ConstInt.getInstance(0)
+            );
+            currentBasicBlock.addInstruction(icmp);
+            result = icmp;
+            return;
+        }
+        if (value.getType() == FloatType.getFloat() && targetType == IntegerType.getI1()) {
+            FloatCompareInst fcmp = new FloatCompareInst(
+                    FloatType.getFloat(), FloatCompareInst.Condition.ONE,
+                    value, ConstFloat.getInstance(0f)
+            );
+            currentBasicBlock.addInstruction(fcmp);
+            result = fcmp;
+            return;
+        }
+        if (value.getType() == IntegerType.getI1() && targetType == IntegerType.getI32()) {
+            ZeroExtensionInst zext = new ZeroExtensionInst(value, IntegerType.getI32());
+            currentBasicBlock.addInstruction(zext);
+            result = zext;
+            return;
         }
         throw new IllegalArgumentException();
     }
 
-    private void applyUnaryOperator(Value value, Operator operator) {
+    private void applyUnaryOperator(Value operand, Operator operator) {
         switch (operator) {
-            case POS -> result = value;
+            case POS -> result = operand;
             case NEG -> {
-                if (value.getType() == IntegerType.getI32()) {
-                    IntegerSubInst sub = new IntegerSubInst(IntegerType.getI32(), ConstInt.getInstance(0), value);
+                if (operand.getType() == IntegerType.getI32()) {
+                    IntegerSubInst sub = new IntegerSubInst(IntegerType.getI32(), ConstInt.getInstance(0), operand);
                     currentBasicBlock.addInstruction(sub);
                     result = sub;
                     return;
                 }
-                if (value.getType() == FloatType.getFloat()) {
-                    FloatNegateInst fneg = new FloatNegateInst(FloatType.getFloat(), value);
+                if (operand.getType() == FloatType.getFloat()) {
+                    FloatNegateInst fneg = new FloatNegateInst(FloatType.getFloat(), operand);
                     currentBasicBlock.addInstruction(fneg);
                     result = fneg;
                     return;
@@ -106,27 +150,87 @@ public class Translator extends SysYBaseVisitor<Void> {
                 throw new IllegalArgumentException();
             }
             case LNOT -> {
-                if (value.getType() == IntegerType.getI32()) {
+                if (operand.getType() == IntegerType.getI32()) {
                     IntegerCompareInst icmp = new IntegerCompareInst(
                             IntegerType.getI32(), IntegerCompareInst.Condition.EQ,
-                            value, ConstInt.getInstance(0)
+                            operand, ConstInt.getInstance(0)
                     );
                     currentBasicBlock.addInstruction(icmp);
                     result = icmp;
                     return;
                 }
-                if (value.getType() == FloatType.getFloat()) {
+                if (operand.getType() == FloatType.getFloat()) {
                     FloatCompareInst fcmp = new FloatCompareInst(
                             FloatType.getFloat(), FloatCompareInst.Condition.OEQ,
-                            value, ConstFloat.getInstance(0f)
+                            operand, ConstFloat.getInstance(0f)
                     );
                     currentBasicBlock.addInstruction(fcmp);
                     result = fcmp;
+                    applyTypeConversion(result, IntegerType.getI32());
                     return;
                 }
                 throw new IllegalArgumentException();
             }
             default -> throw new IllegalArgumentException();
+        }
+    }
+
+    public void applyBinaryOperator(Value leftOperand, Value rightOperand, Operator operator) {
+        Type operandType;
+        if (operator.isLogical()) operandType = IntegerType.getI1();
+        else operandType = commonType(leftOperand.getType(), rightOperand.getType());
+
+        if (leftOperand.getType() != operandType) {
+            applyTypeConversion(leftOperand, operandType);
+            leftOperand = result;
+        }
+
+        if (rightOperand.getType() != operandType) {
+            applyTypeConversion(rightOperand, operandType);
+            rightOperand = result;
+        }
+
+        Instruction instruction = switch (operator) {
+            case ADD -> {
+                if (operandType == IntegerType.getI32())
+                    yield new IntegerAddInst(IntegerType.getI32(), leftOperand, rightOperand);
+                else if (operandType == FloatType.getFloat())
+                    yield new FloatAddInst(FloatType.getFloat(), leftOperand, rightOperand);
+                else
+                    throw new IllegalArgumentException();
+            }
+            case SUB -> {
+                if (operandType == IntegerType.getI32())
+                    yield new IntegerSubInst(IntegerType.getI32(), leftOperand, rightOperand);
+                else if (operandType == FloatType.getFloat())
+                    yield new FloatSubInst(FloatType.getFloat(), leftOperand, rightOperand);
+                else
+                    throw new IllegalArgumentException();
+            }
+            case MUL -> {
+                if (operandType == IntegerType.getI32())
+                    yield new IntegerMultiplyInst(IntegerType.getI32(), leftOperand, rightOperand);
+                else if (operandType == FloatType.getFloat())
+                    yield new FloatMultiplyInst(FloatType.getFloat(), leftOperand, rightOperand);
+                else
+                    throw new IllegalArgumentException();
+            }
+            case DIV -> {
+                if (operandType == IntegerType.getI32())
+                    yield new IntegerSignedDivideInst(IntegerType.getI32(), leftOperand, rightOperand);
+                else if (operandType == FloatType.getFloat())
+                    yield new FloatDivideInst(FloatType.getFloat(), leftOperand, rightOperand);
+                else
+                    throw new IllegalArgumentException();
+            }
+            default -> throw new IllegalArgumentException();
+        };
+
+        currentBasicBlock.addInstruction(instruction);
+        result = instruction;
+
+        if (operator.isRelational() || operator.isLogical()) {
+            applyTypeConversion(result, IntegerType.getI32());
         }
     }
 
@@ -196,7 +300,34 @@ public class Translator extends SysYBaseVisitor<Void> {
     @Override
     public Void visitReturnStatement(SysYParser.ReturnStatementContext ctx) {
         visit(ctx.expression());
+        if (result.getType() != currentFunction.getReturnType()) {
+            applyTypeConversion(result, currentFunction.getReturnType());
+        }
         currentBasicBlock.addInstruction(new ReturnInst(result));
+        return null;
+    }
+
+    @Override
+    public Void visitBinaryAdditiveExpression(SysYParser.BinaryAdditiveExpressionContext ctx) {
+        visit(ctx.multiplicativeExpression());
+        Value leftOperand = result;
+
+        visit(ctx.additiveExpression());
+        Value rightOperand = result;
+
+        applyBinaryOperator(leftOperand, rightOperand, makeBinaryOperator(ctx.op));
+        return null;
+    }
+
+    @Override
+    public Void visitBinaryMultiplicativeExpression(SysYParser.BinaryMultiplicativeExpressionContext ctx) {
+        visit(ctx.unaryExpression());
+        Value leftOperand = result;
+
+        visit(ctx.multiplicativeExpression());
+        Value rightOperand = result;
+
+        applyBinaryOperator(leftOperand, rightOperand, makeBinaryOperator(ctx.op));
         return null;
     }
 
