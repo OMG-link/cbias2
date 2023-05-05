@@ -3,7 +3,6 @@ package com.bit.newnewcc.ir.value.instruction;
 import com.bit.newnewcc.ir.Operand;
 import com.bit.newnewcc.ir.Type;
 import com.bit.newnewcc.ir.Value;
-import com.bit.newnewcc.ir.type.FloatType;
 import com.bit.newnewcc.ir.value.Instruction;
 
 import java.util.ArrayList;
@@ -54,18 +53,6 @@ abstract public class BinaryInstruction extends Instruction {
      * @return 指令的名称
      */
     protected abstract String getInstName();
-
-    @Override
-    public String toString() {
-        return String.format(
-                "%s = %s %s %s, %s",
-                this.getValueNameIR(),
-                this.getInstName(),
-                this.getTypeName(),
-                getOperand1().getValueNameIR(),
-                getOperand2().getValueNameIR()
-        );
-    }
 
     @Override
     public List<Operand> getOperandList() {
