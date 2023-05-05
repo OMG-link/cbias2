@@ -92,86 +92,64 @@ public class Translator extends SysYBaseVisitor<Void> {
     }
 
     private void applyTypeConversion(Value value, Type targetType) {
-        if (value.getType() == IntegerType.getI32() && targetType == FloatType.getFloat()) {
-            var sitofp = new SignedIntegerToFloatInst(value, FloatType.getFloat());
-            currentBasicBlock.addInstruction(sitofp);
-            result = sitofp;
-            return;
-        }
-        if (value.getType() == FloatType.getFloat() && targetType == IntegerType.getI32()) {
-            var fptosi = new FloatToSignedIntegerInst(value, IntegerType.getI32());
-            currentBasicBlock.addInstruction(fptosi);
-            result = fptosi;
-            return;
-        }
-        if (value.getType() == IntegerType.getI32() && targetType == IntegerType.getI1()) {
-            var icmp = new IntegerCompareInst(
+        Instruction instruction;
+
+        if (value.getType() == IntegerType.getI32() && targetType == FloatType.getFloat())
+            instruction = new SignedIntegerToFloatInst(value, FloatType.getFloat());
+        else if (value.getType() == FloatType.getFloat() && targetType == IntegerType.getI32())
+            instruction = new FloatToSignedIntegerInst(value, IntegerType.getI32());
+        else if (value.getType() == IntegerType.getI32() && targetType == IntegerType.getI1())
+            instruction = new IntegerCompareInst(
                     IntegerType.getI32(), IntegerCompareInst.Condition.NE,
                     value, ConstInt.getInstance(0)
             );
-            currentBasicBlock.addInstruction(icmp);
-            result = icmp;
-            return;
-        }
-        if (value.getType() == FloatType.getFloat() && targetType == IntegerType.getI1()) {
-            var fcmp = new FloatCompareInst(
+        else if (value.getType() == FloatType.getFloat() && targetType == IntegerType.getI1())
+            instruction = new FloatCompareInst(
                     FloatType.getFloat(), FloatCompareInst.Condition.ONE,
                     value, ConstFloat.getInstance(0f)
             );
-            currentBasicBlock.addInstruction(fcmp);
-            result = fcmp;
-            return;
-        }
-        if (value.getType() == IntegerType.getI1() && targetType == IntegerType.getI32()) {
-            var zext = new ZeroExtensionInst(value, IntegerType.getI32());
-            currentBasicBlock.addInstruction(zext);
-            result = zext;
-            return;
-        }
-        throw new IllegalArgumentException();
+        else if (value.getType() == IntegerType.getI1() && targetType == IntegerType.getI32())
+            instruction = new ZeroExtensionInst(value, IntegerType.getI32());
+        else
+            throw new IllegalArgumentException();
+
+        currentBasicBlock.addInstruction(instruction);
+        result = instruction;
     }
 
     private void applyUnaryOperator(Value operand, Operator operator) {
-        switch (operator) {
-            case POS -> result = operand;
-            case NEG -> {
-                if (operand.getType() == IntegerType.getI32()) {
-                    var sub = new IntegerSubInst(IntegerType.getI32(), ConstInt.getInstance(0), operand);
-                    currentBasicBlock.addInstruction(sub);
-                    result = sub;
-                    return;
-                }
-                if (operand.getType() == FloatType.getFloat()) {
-                    var fneg = new FloatNegateInst(FloatType.getFloat(), operand);
-                    currentBasicBlock.addInstruction(fneg);
-                    result = fneg;
-                    return;
-                }
-                throw new IllegalArgumentException();
-            }
-            case LNOT -> {
-                if (operand.getType() == IntegerType.getI32()) {
-                    var icmp = new IntegerCompareInst(
-                            IntegerType.getI32(), IntegerCompareInst.Condition.EQ,
-                            operand, ConstInt.getInstance(0)
-                    );
-                    currentBasicBlock.addInstruction(icmp);
-                    result = icmp;
-                    return;
-                }
-                if (operand.getType() == FloatType.getFloat()) {
-                    var fcmp = new FloatCompareInst(
-                            FloatType.getFloat(), FloatCompareInst.Condition.OEQ,
-                            operand, ConstFloat.getInstance(0f)
-                    );
-                    currentBasicBlock.addInstruction(fcmp);
-                    result = fcmp;
-                    applyTypeConversion(result, IntegerType.getI32());
-                    return;
-                }
-                throw new IllegalArgumentException();
-            }
-            default -> throw new IllegalArgumentException();
+        if (operator == Operator.POS) {
+            result = operand;
+            return;
+        }
+
+        Instruction instruction;
+        if (operand.getType() == IntegerType.getI32())
+            instruction = switch (operator) {
+                case NEG -> new IntegerSubInst(IntegerType.getI32(), ConstInt.getInstance(0), operand);
+                case LNOT -> new IntegerCompareInst(
+                        IntegerType.getI32(), IntegerCompareInst.Condition.EQ,
+                        operand, ConstInt.getInstance(0)
+                );
+                default -> throw new IllegalArgumentException();
+            };
+        else if (operand.getType() == FloatType.getFloat())
+            instruction = switch (operator) {
+                case NEG -> new FloatNegateInst(FloatType.getFloat(), operand);
+                case LNOT -> new FloatCompareInst(
+                        FloatType.getFloat(), FloatCompareInst.Condition.OEQ,
+                        operand, ConstFloat.getInstance(0f)
+                );
+                default -> throw new IllegalArgumentException();
+            };
+        else
+            throw new IllegalArgumentException();
+
+        currentBasicBlock.addInstruction(instruction);
+        result = instruction;
+
+        if (operator.isLogical()) {
+            applyTypeConversion(result, IntegerType.getI32());
         }
     }
 
@@ -191,7 +169,7 @@ public class Translator extends SysYBaseVisitor<Void> {
         }
 
         Instruction instruction;
-        if (operandType == IntegerType.getI32()) {
+        if (operandType == IntegerType.getI32())
             instruction = switch (operator) {
                 case ADD -> new IntegerAddInst(IntegerType.getI32(), leftOperand, rightOperand);
                 case SUB -> new IntegerSubInst(IntegerType.getI32(), leftOperand, rightOperand);
@@ -224,7 +202,7 @@ public class Translator extends SysYBaseVisitor<Void> {
                 );
                 default -> throw new IllegalArgumentException();
             };
-        } else if (operandType == FloatType.getFloat()) {
+        else if (operandType == FloatType.getFloat())
             instruction = switch (operator) {
                 case ADD -> new FloatAddInst(FloatType.getFloat(), leftOperand, rightOperand);
                 case SUB -> new FloatSubInst(FloatType.getFloat(), leftOperand, rightOperand);
@@ -256,7 +234,8 @@ public class Translator extends SysYBaseVisitor<Void> {
                 );
                 default -> throw new IllegalArgumentException();
             };
-        } else throw new IllegalArgumentException();
+        else
+            throw new IllegalArgumentException();
 
         currentBasicBlock.addInstruction(instruction);
         result = instruction;
