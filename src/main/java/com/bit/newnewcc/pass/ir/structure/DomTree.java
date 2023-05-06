@@ -5,10 +5,7 @@ import com.bit.newnewcc.ir.value.BasicBlock;
 import com.bit.newnewcc.ir.value.Function;
 import com.bit.newnewcc.util.DomTreeBuilder;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * 支配树
@@ -27,7 +24,9 @@ public class DomTree {
          * 下标为i的元素代表当前节点的第2^i级父亲 <br>
          */
         // bexp = binary exponentiation
-        private final List<Node> bexpParents = new ArrayList<>();
+        private final List<BasicBlock> bexpParents = new ArrayList<>();
+
+        private final List<BasicBlock> domSons = new ArrayList<>();
 
         private int depth;
 
@@ -39,7 +38,7 @@ public class DomTree {
 
     private final Map<BasicBlock, Node> nodeMap = new HashMap<>();
 
-    private DomTree(Function function) {
+    public DomTree(Function function) {
         var builder = new DomTreeBuilder<BasicBlock>();
         builder.setRoot(function.getEntryBasicBlock());
         for (BasicBlock basicBlock : function.getBasicBlocks()) {
@@ -51,24 +50,39 @@ public class DomTree {
         for (BasicBlock basicBlock : function.getBasicBlocks()) {
             var node = new Node(basicBlock);
             nodeMap.put(basicBlock, node);
+            node.domSons.addAll(builder.getDomSons(basicBlock));
         }
         nodeMap.get(function.getEntryBasicBlock()).depth = 0;
-        buildBexpArray(builder, nodeMap.get(function.getEntryBasicBlock()));
+        buildBexpArray(nodeMap.get(function.getEntryBasicBlock()));
     }
 
-    private void buildBexpArray(DomTreeBuilder<BasicBlock> builder, Node u) {
+    private void buildBexpArray(Node u) {
         for (int i = 0; i < u.bexpParents.size(); i++) {
-            var f = u.bexpParents.get(i);
+            var f = nodeMap.get(u.bexpParents.get(i));
             if (i < f.bexpParents.size()) {
                 u.bexpParents.add(f.bexpParents.get(i));
             }
         }
-        for (BasicBlock domSon : builder.getDomSons(u.basicBlock)) {
+        for (BasicBlock domSon : u.domSons) {
             var sonNode = nodeMap.get(domSon);
             sonNode.depth = u.depth + 1;
-            sonNode.bexpParents.add(u);
-            buildBexpArray(builder, sonNode);
+            sonNode.bexpParents.add(u.basicBlock);
+            buildBexpArray(sonNode);
         }
+    }
+
+    /**
+     * 获取基本块在支配树上的所有直接孩子
+     *
+     * @param basicBlock 基本块
+     * @return 基本块在支配树上的所有直接孩子列表（只读）
+     */
+    public Collection<BasicBlock> getDomSons(BasicBlock basicBlock) {
+        var node = nodeMap.get(basicBlock);
+        if (node == null) {
+            throw new IllegalArgumentException("Basic block not in this dom tree.");
+        }
+        return Collections.unmodifiableCollection(node.domSons);
     }
 
     /**
@@ -88,20 +102,11 @@ public class DomTree {
         int delta = b.depth - a.depth;
         for (int i = 0; delta != 0; i++) {
             if ((delta & (1 << i)) != 0) {
-                a = a.bexpParents.get(i);
+                a = nodeMap.get(a.bexpParents.get(i));
                 delta ^= (1 << i);
             }
         }
         return a == b;
     }
 
-    /**
-     * 由函数构造一棵支配树
-     *
-     * @param function 函数
-     * @return 支配树
-     */
-    public static DomTree fromFunction(Function function) {
-        return new DomTree(function);
-    }
 }
