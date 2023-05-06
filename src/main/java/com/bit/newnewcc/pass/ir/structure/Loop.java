@@ -2,9 +2,9 @@ package com.bit.newnewcc.pass.ir.structure;
 
 import com.bit.newnewcc.ir.value.BasicBlock;
 
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * 循环结构 <br>
@@ -25,12 +25,12 @@ public class Loop {
     /**
      * 子循环列表
      */
-    private final List<Loop> subLoops;
+    private final Set<Loop> subLoops;
 
     /**
      * 循环包含的<b>不属于subLoops中循环的</b>基本块
      */
-    private final List<BasicBlock> basicBlocks;
+    private final Set<BasicBlock> basicBlocks;
 
     /**
      * 循环嵌套的深度，最外层循环的深度为0
@@ -44,10 +44,10 @@ public class Loop {
      * @param subLoops         循环的子循环
      * @param basicBlocks      循环包含的<b>不属于subLoops中循环的</b>基本块
      */
-    public Loop(BasicBlock headerBasicBlock, List<Loop> subLoops, List<BasicBlock> basicBlocks) {
+    public Loop(BasicBlock headerBasicBlock, Set<Loop> subLoops, Set<BasicBlock> basicBlocks) {
         this.headerBasicBlock = headerBasicBlock;
-        this.subLoops = new ArrayList<>(subLoops);
-        this.basicBlocks = new ArrayList<>(basicBlocks);
+        this.subLoops = new HashSet<>(subLoops);
+        this.basicBlocks = new HashSet<>(basicBlocks);
         this.loopDepth = -1;
     }
 
@@ -88,8 +88,8 @@ public class Loop {
     /**
      * @return 循环的子循环列表（只读）
      */
-    public List<Loop> getSubLoops() {
-        return Collections.unmodifiableList(subLoops);
+    public Set<Loop> getSubLoops() {
+        return Collections.unmodifiableSet(subLoops);
     }
 
     /**
@@ -102,8 +102,8 @@ public class Loop {
     /**
      * @return 循环内不在任何subLoops中的基本块列表（只读）
      */
-    public List<BasicBlock> getBasicBlocks() {
-        return Collections.unmodifiableList(basicBlocks);
+    public Set<BasicBlock> getBasicBlocks() {
+        return Collections.unmodifiableSet(basicBlocks);
     }
 
 }
