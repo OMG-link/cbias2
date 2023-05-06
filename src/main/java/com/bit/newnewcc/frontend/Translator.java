@@ -7,6 +7,7 @@ import com.bit.newnewcc.ir.type.*;
 import com.bit.newnewcc.ir.value.BasicBlock;
 import com.bit.newnewcc.ir.value.Function;
 import com.bit.newnewcc.ir.value.Instruction;
+import com.bit.newnewcc.ir.value.VoidValue;
 import com.bit.newnewcc.ir.value.constant.ConstFloat;
 import com.bit.newnewcc.ir.value.constant.ConstInt;
 import com.bit.newnewcc.ir.value.instruction.*;
@@ -321,6 +322,17 @@ public class Translator extends SysYBaseVisitor<Void> {
 
         visit(ctx.compoundStatement());
 
+        if (returnType == VoidType.getInstance()) {
+            currentBasicBlock.addInstruction(new ReturnInst(VoidValue.getInstance()));
+        }
+
+        if (currentBasicBlock.getInstructions().isEmpty()) {
+            if (returnType == IntegerType.getI32())
+                currentBasicBlock.addInstruction(new ReturnInst(ConstInt.getInstance(0)));
+            if (returnType == FloatType.getFloat())
+                currentBasicBlock.addInstruction(new ReturnInst(ConstFloat.getInstance(0f)));
+        }
+
         symbolTable.popScope();
         return null;
     }
@@ -353,10 +365,10 @@ public class Translator extends SysYBaseVisitor<Void> {
 
     @Override
     public Void visitBinaryAdditiveExpression(SysYParser.BinaryAdditiveExpressionContext ctx) {
-        visit(ctx.multiplicativeExpression());
+        visit(ctx.additiveExpression());
         Value leftOperand = result;
 
-        visit(ctx.additiveExpression());
+        visit(ctx.multiplicativeExpression());
         Value rightOperand = result;
 
         applyBinaryOperator(leftOperand, rightOperand, makeBinaryOperator(ctx.op));
@@ -365,10 +377,10 @@ public class Translator extends SysYBaseVisitor<Void> {
 
     @Override
     public Void visitBinaryMultiplicativeExpression(SysYParser.BinaryMultiplicativeExpressionContext ctx) {
-        visit(ctx.unaryExpression());
+        visit(ctx.multiplicativeExpression());
         Value leftOperand = result;
 
-        visit(ctx.multiplicativeExpression());
+        visit(ctx.unaryExpression());
         Value rightOperand = result;
 
         applyBinaryOperator(leftOperand, rightOperand, makeBinaryOperator(ctx.op));
