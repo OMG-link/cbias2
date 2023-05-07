@@ -1,7 +1,7 @@
-package com.bit.newnewcc.backend.asm.instruction;
+package cn.edu.bit.newnewcc.backend.asm.instruction;
 
-import com.bit.newnewcc.backend.asm.operand.AsmOperand;
-import com.bit.newnewcc.backend.asm.operand.Register;
+import cn.edu.bit.newnewcc.backend.asm.operand.AsmOperand;
+import cn.edu.bit.newnewcc.backend.asm.operand.Register;
 
 /**
  * 汇编加指令，分为普通加和加立即数两种

@@ -1,7 +1,7 @@
-package com.bit.newnewcc.backend.asm;
+package cn.edu.bit.newnewcc.backend.asm;
 
-import com.bit.newnewcc.backend.asm.operand.AsmOperand;
-import com.bit.newnewcc.backend.asm.operand.StackVar;
+import cn.edu.bit.newnewcc.backend.asm.operand.AsmOperand;
+import cn.edu.bit.newnewcc.backend.asm.operand.StackVar;
 
 import java.util.ArrayList;
 import java.util.List;
