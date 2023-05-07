@@ -1,4 +1,4 @@
-package com.bit.newnewcc.backend.asm.operand;
+package cn.edu.bit.newnewcc.backend.asm.operand;
 
 /**
  * 地址操作数，被表示为基址+偏移量的形式

@@ -1,9 +1,9 @@
-package com.bit.newnewcc.backend.asm.instruction;
+package cn.edu.bit.newnewcc.backend.asm.instruction;
 
 
-import com.bit.newnewcc.backend.asm.operand.AsmOperand;
-import com.bit.newnewcc.backend.asm.operand.Register;
-import com.bit.newnewcc.backend.asm.operand.StackVar;
+import cn.edu.bit.newnewcc.backend.asm.operand.AsmOperand;
+import cn.edu.bit.newnewcc.backend.asm.operand.Register;
+import cn.edu.bit.newnewcc.backend.asm.operand.StackVar;
 
 /**
  * 汇编部分中的save指令，在本语言中分为
