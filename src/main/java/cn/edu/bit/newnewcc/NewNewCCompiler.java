@@ -4,7 +4,7 @@ import org.apache.commons.cli.*;
 
 import java.io.IOException;
 
-public class Compiler {
+public class NewNewCCompiler {
     public static void main(String[] args) throws ParseException, IOException {
         Options options = new Options();
         Option outputFileName = Option.builder("o")
