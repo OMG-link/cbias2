@@ -3,6 +3,7 @@ package cn.edu.bit.newnewcc.ir.util;
 import cn.edu.bit.newnewcc.ir.Module;
 import cn.edu.bit.newnewcc.ir.Type;
 import cn.edu.bit.newnewcc.ir.Value;
+import cn.edu.bit.newnewcc.ir.type.VoidType;
 import cn.edu.bit.newnewcc.ir.value.*;
 
 import java.io.IOException;
@@ -20,7 +21,28 @@ public class IREmitter {
         basicBlock.getInstructions().forEach(this::emitInstruction);
     }
 
+    /**
+     * 为所有变量分配名字 <br>
+     * LLVM IR要求数字名称按出现顺序递增 <br>
+     *
+     * @param function 待分配名字的函数
+     */
+    private void nameFunction(Function function) {
+        for (Value formalParameter : function.getFormalParameters()) {
+            formalParameter.getValueNameIR();
+        }
+        for (BasicBlock basicBlock : function.getBasicBlocks()) {
+            basicBlock.getValueNameIR();
+            for (Instruction instruction : basicBlock.getInstructions()) {
+                if (instruction.getType() != VoidType.getInstance()) {
+                    instruction.getValueNameIR();
+                }
+            }
+        }
+    }
+
     private void emitFunction(Function function) {
+        nameFunction(function);
         builder.append(String.format(
                 "define dso_local %s %s",
                 function.getReturnType().getTypeName(),
@@ -46,7 +68,7 @@ public class IREmitter {
                 .append('(');
         boolean isFirstParameter = true;
         for (Type parameterType : externalFunction.getParameterTypes()) {
-            if(!isFirstParameter){
+            if (!isFirstParameter) {
                 builder.append(", ");
             }
             builder.append(parameterType.getTypeName());
@@ -63,7 +85,7 @@ public class IREmitter {
         builder.append(String.format(
                 "%s = dso_local %s %s %s\n",
                 globalVariable.getValueNameIR(),
-                globalVariable.isConstant()?"constant":"global",
+                globalVariable.isConstant() ? "constant" : "global",
                 globalVariable.getTypeName(),
                 globalVariable.getInitialValue().getValueNameIR()
         ));
