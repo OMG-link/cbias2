@@ -325,11 +325,9 @@ public class Translator extends SysYBaseVisitor<Void> {
 
         visit(ctx.compoundStatement());
 
-        if (returnType == VoidType.getInstance()) {
-            currentBasicBlock.addInstruction(new ReturnInst(VoidValue.getInstance()));
-        }
-
         if (currentBasicBlock.getInstructions().isEmpty()) {
+            if (returnType == VoidType.getInstance())
+                currentBasicBlock.addInstruction(new ReturnInst(VoidValue.getInstance()));
             if (returnType == IntegerType.getI32())
                 currentBasicBlock.addInstruction(new ReturnInst(ConstInt.getInstance(0)));
             if (returnType == FloatType.getFloat())
@@ -356,13 +354,19 @@ public class Translator extends SysYBaseVisitor<Void> {
 
     @Override
     public Void visitReturnStatement(SysYParser.ReturnStatementContext ctx) {
-        visit(ctx.expression());
+        if (ctx.expression() != null) {
+            visit(ctx.expression());
 
-        if (result.getType() != currentFunction.getReturnType()) {
-            applyTypeConversion(result, currentFunction.getReturnType());
-        }
+            if (result.getType() != currentFunction.getReturnType()) {
+                applyTypeConversion(result, currentFunction.getReturnType());
+            }
 
-        currentBasicBlock.addInstruction(new ReturnInst(result));
+            currentBasicBlock.addInstruction(new ReturnInst(result));
+        } else
+            currentBasicBlock.addInstruction(new ReturnInst(VoidValue.getInstance()));
+
+        currentBasicBlock = new BasicBlock();
+        currentFunction.addBasicBlock(currentBasicBlock);
         return null;
     }
 
