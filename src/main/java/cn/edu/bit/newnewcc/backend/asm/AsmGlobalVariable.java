@@ -10,7 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * 用于存储汇编格式的全局（静态）变量
+ * 用于存储汇编格式的全局（静态）变量，以变量名作为唯一标识符作为区分
  */
 public class AsmGlobalVariable {
     private final String globalVariableName;
