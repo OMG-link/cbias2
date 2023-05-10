@@ -369,6 +369,37 @@ public class Translator extends SysYBaseVisitor<Void> {
     }
 
     @Override
+    public Void visitIfStatement(SysYParser.IfStatementContext ctx) {
+        BasicBlock thenBlock = new BasicBlock();
+        BasicBlock elseBlock = new BasicBlock();
+        BasicBlock successorBlock = new BasicBlock();
+
+        currentFunction.addBasicBlock(thenBlock);
+        currentFunction.addBasicBlock(elseBlock);
+        currentFunction.addBasicBlock(successorBlock);
+
+        visit(ctx.conditionalExpression());
+        if (result.getType() != IntegerType.getI1()) {
+            applyTypeConversion(result, IntegerType.getI1());
+        }
+
+        currentBasicBlock.addInstruction(new BranchInst(result, thenBlock, elseBlock));
+
+        currentBasicBlock = thenBlock;
+        visit(ctx.statement(0));
+        currentBasicBlock.addInstruction(new JumpInst(successorBlock));
+
+        currentBasicBlock = elseBlock;
+        if (ctx.statement().size() == 2) {
+            visit(ctx.statement(1));
+        }
+        currentBasicBlock.addInstruction(new JumpInst(successorBlock));
+
+        currentBasicBlock = successorBlock;
+        return null;
+    }
+
+    @Override
     public Void visitReturnStatement(SysYParser.ReturnStatementContext ctx) {
         if (ctx.expression() != null) {
             visit(ctx.expression());
