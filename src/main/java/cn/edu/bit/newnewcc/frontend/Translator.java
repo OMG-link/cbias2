@@ -45,7 +45,7 @@ public class Translator extends SysYBaseVisitor<Void> {
     private Function currentFunction;
     private BasicBlock currentBasicBlock;
     private Value result;
-    private AllocateInst resultAddress;
+    private Value resultAddress;
 
     public Module getModule() {
         return currentModule;
