@@ -5,6 +5,7 @@ import cn.edu.bit.newnewcc.ir.Value;
 import cn.edu.bit.newnewcc.ir.exception.IllegalArgumentException;
 import cn.edu.bit.newnewcc.ir.exception.IndexOutOfBoundsException;
 import cn.edu.bit.newnewcc.ir.type.FunctionType;
+import cn.edu.bit.newnewcc.ir.type.VoidType;
 import cn.edu.bit.newnewcc.ir.value.AbstractFunction;
 import cn.edu.bit.newnewcc.ir.value.Instruction;
 
@@ -117,19 +118,21 @@ public class CallInst extends Instruction {
     public String toString() {
         // e.g. %1 = call double @sum(i32 1, float 2.000000e+00)
         var builder = new StringBuilder();
+        if (getType() != VoidType.getInstance()) {
+            builder.append(getValueName()).append(" = ");
+        }
         builder.append(String.format(
-                "%s = call %s %s",
-                this.getValueNameIR(),
+                "call %s %s",
                 this.getTypeName(),
                 getCallee().getValueNameIR()
         ));
         builder.append('(');
-        for(var i=0;i<argumentOperands.size();i++){
-            if(i!=0){
+        for (var i = 0; i < argumentOperands.size(); i++) {
+            if (i != 0) {
                 builder.append(", ");
             }
             var argument = argumentOperands.get(i).getValue();
-            builder.append(String.format("%s %s",argument.getTypeName(),argument.getValueNameIR()));
+            builder.append(String.format("%s %s", argument.getTypeName(), argument.getValueNameIR()));
         }
         builder.append(')');
         return builder.toString();
