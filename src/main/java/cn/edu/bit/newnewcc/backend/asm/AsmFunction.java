@@ -8,7 +8,11 @@ import java.util.List;
 
 import static java.lang.Integer.max;
 
+/**
+ * 函数以函数名作为唯一标识符加以区分
+ */
 public class AsmFunction {
+    String functionName;
     List<AsmOperand> parameters = new ArrayList<>();
     List<AsmBasicBlock> basicBlocks = new ArrayList<>();
 
@@ -18,7 +22,6 @@ public class AsmFunction {
 
         /**
          * 进行函数调用前的准备，目前仅设置保存返回寄存器
-         *
          * @param originFunction 原函数
          */
         public void callFunction(AsmFunction originFunction) {

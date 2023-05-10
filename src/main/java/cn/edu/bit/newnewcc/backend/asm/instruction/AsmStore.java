@@ -12,14 +12,14 @@ import cn.edu.bit.newnewcc.backend.asm.operand.StackVar;
  *     <li>sw 字保存，在保存任何变量时使用，默认指令均为sw</li>
  * </ul>
  */
-public class AsmSave extends AsmInstruction {
+public class AsmStore extends AsmInstruction {
     /**
      * 创建一个保存指令，将寄存器source中的内容保存至地址goal中，goal可能为栈变量或内存地址
      *
      * @param source 需要保存的寄存器
      * @param goal   保存到的目标地址
      */
-    public AsmSave(Register source, AsmOperand goal) {
+    public AsmStore(Register source, AsmOperand goal) {
         super("sw", source, goal, null);
         if (goal.isStackVar()) {
             StackVar stackVar = (StackVar) goal;

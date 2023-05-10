@@ -39,6 +39,8 @@ public class AsmLoad extends AsmInstruction {
             } else {
                 setInstructionName("li");
             }
+        } else if (source.isRegister()) {
+            setInstructionName("mv");
         }
     }
 }

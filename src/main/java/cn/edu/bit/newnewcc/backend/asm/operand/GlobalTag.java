@@ -26,12 +26,18 @@ public class GlobalTag extends AsmOperand {
 
     /**
      * 创建一个代码位置的标识符，用于支持代码跳转
-     *
+     * 标识符具有两类，一类是全局变量、函数名等带有globl标签的可链接的名称，
+     * 另一类是局部的块标签、数据标签等，无需globl标记，通常在前方加'.'作为区分
      * @param tagName 标识符名称
+     * @param isLinkedTag 是否是带有标记的全局类标签
      */
-    public GlobalTag(String tagName) {
+    public GlobalTag(String tagName, boolean isLinkedTag) {
         super(TYPE.GTAG);
-        this.tagName = tagName + ":";
+        if (isLinkedTag) {
+            this.tagName = tagName;
+        } else {
+            this.tagName = "." + tagName;
+        }
         this.segment = null;
         this.baseAddress = null;
     }
@@ -56,6 +62,14 @@ public class GlobalTag extends AsmOperand {
         } else {
             return getOffset() + "(" + baseAddress.emit() + ")";
         }
+    }
+
+    /**
+     * 输出一个带冒号的标签，仅用于标签位置
+     * @return 返回标签名称+括号
+     */
+    public String tagExpress() {
+        return tagName + ":";
     }
 
     enum SEGMENT {
