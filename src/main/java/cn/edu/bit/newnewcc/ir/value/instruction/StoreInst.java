@@ -72,6 +72,11 @@ public class StoreInst extends MemoryInst {
     }
 
     @Override
+    public String getValueName() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
     public List<Operand> getOperandList() {
         var list = new ArrayList<Operand>();
         list.add(addressOperand);

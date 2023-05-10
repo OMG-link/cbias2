@@ -20,6 +20,11 @@ public abstract class TerminateInst extends Instruction {
         return (VoidType) super.getType();
     }
 
+    @Override
+    public String getValueName() {
+        throw new UnsupportedOperationException();
+    }
+
     /**
      * @return 该语句可能跳转到的所有基本块
      */
