@@ -1,10 +1,15 @@
 package cn.edu.bit.newnewcc.backend.asm;
 
-import cn.edu.bit.newnewcc.backend.asm.operand.AsmOperand;
-import cn.edu.bit.newnewcc.backend.asm.operand.StackVar;
+import cn.edu.bit.newnewcc.backend.asm.instruction.AsmAdd;
+import cn.edu.bit.newnewcc.backend.asm.instruction.AsmInstruction;
+import cn.edu.bit.newnewcc.backend.asm.instruction.AsmLoad;
+import cn.edu.bit.newnewcc.backend.asm.instruction.AsmStore;
+import cn.edu.bit.newnewcc.backend.asm.operand.*;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static java.lang.Integer.max;
 
@@ -15,6 +20,27 @@ public class AsmFunction {
     String functionName;
     List<AsmOperand> parameters = new ArrayList<>();
     List<AsmBasicBlock> basicBlocks = new ArrayList<>();
+
+    public class RegisterAllocator {
+        Map<String, Register> registerMap;
+        int total;
+        RegisterAllocator() {
+            total = 0;
+            registerMap = new HashMap<>();
+        }
+        Register allocate(String name) {
+            total -= 1;
+            Register reg = new Register(total);
+            registerMap.put(name, reg);
+            return reg;
+        }
+        Register get(String name) {
+            return registerMap.get(name);
+        }
+        boolean contain(String name) {
+            return registerMap.containsKey(name);
+        }
+    }
 
     private class StackAllocator {
         private int top = 16, maxSize = 16;
@@ -53,13 +79,28 @@ public class AsmFunction {
          * 输出函数初始化栈帧的汇编代码
          * 注意，emit操作仅当maxSize初始化完成后进行，避免栈帧大小分配错误
          */
-        public String emitHead() {
-            String res = "";
-            res += String.format("addi sp, sp, %d", -maxSize);
+        public List<AsmInstruction> emitHead() {
+            List<AsmInstruction> res = new ArrayList<>();
+            Register sp = new Register("sp");
+            Register ra = new Register("ra");
+            Register s0 = new Register("s0");
+            res.add(new AsmAdd(sp, sp, new Immediate(-maxSize)));
             if (savedRa) {
-                res += String.format("sd ra, %d(sp)", maxSize - 8);
+                res.add(new AsmStore(ra, new Address(maxSize - 8, sp)));
             }
-            res += String.format("sd s0, %d(sp)", maxSize - 8);
+            res.add(new AsmStore(s0, new Address(maxSize - 16, sp)));
+            return res;
+        }
+        public List<AsmInstruction> emitTail() {
+            List<AsmInstruction> res = new ArrayList<>();
+            Register sp = new Register("sp");
+            Register ra = new Register("ra");
+            Register s0 = new Register("s0");
+            if (savedRa) {
+                res.add(new AsmLoad(ra, new Address(maxSize - 8, sp)));
+            }
+            res.add(new AsmLoad(s0, new Address(maxSize - 16, sp)));
+            res.add(new AsmAdd(sp, sp, new Immediate(maxSize)));
             return res;
         }
     }

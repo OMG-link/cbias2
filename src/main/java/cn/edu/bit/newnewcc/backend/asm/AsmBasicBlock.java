@@ -8,7 +8,7 @@ import java.util.List;
 public class AsmBasicBlock {
     private List<AsmInstruction> instructionList;
     private GlobalTag blockTag;
-    AsmBasicBlock(String blockName) {
+    public AsmBasicBlock(String blockName) {
         this.blockTag = new GlobalTag(blockName, false);
     }
 
