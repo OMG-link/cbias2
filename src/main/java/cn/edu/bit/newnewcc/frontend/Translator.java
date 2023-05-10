@@ -277,51 +277,24 @@ public class Translator extends SysYBaseVisitor<Void> {
 
     @Override
     public Void visitFunctionDefinition(SysYParser.FunctionDefinitionContext ctx) {
-        @lombok.Value
-        class Parameter {
-            Type type;
-            String name;
-        }
-
         String name = ctx.Identifier().getText();
+
         Type returnType = makeType(ctx.typeSpecifier().type);
 
-        List<Parameter> parameters = new ArrayList<>();
-
+        List<Type> parameterTypes = new ArrayList<>();
         if (ctx.parameterList() != null) {
             for (var parameterDeclaration : ctx.parameterList().parameterDeclaration()) {
-                parameters.add(new Parameter(
-                        makeType(parameterDeclaration.typeSpecifier().type),
-                        parameterDeclaration.Identifier().getText()
-                ));
+                parameterTypes.add(makeType(parameterDeclaration.typeSpecifier().type));
             }
         }
 
-        FunctionType type = FunctionType.getInstance(
-                returnType,
-                parameters.stream().map(parameter -> parameter.type).toList()
-        );
+        FunctionType type = FunctionType.getInstance(returnType, parameterTypes);
 
         currentFunction = new Function(type);
         currentFunction.setValueName(name);
         currentModule.addFunction(currentFunction);
         symbolTable.putFunction(name, currentFunction);
-
         currentBasicBlock = currentFunction.getEntryBasicBlock();
-
-        symbolTable.pushScope();
-
-        for (int i = 0; i < parameters.size(); ++i) {
-            Parameter parameter = parameters.get(i);
-
-            var alloca = new AllocateInst(parameter.getType());
-            var store = new StoreInst(alloca, currentFunction.getFormalParameters().get(i));
-
-            currentBasicBlock.addInstruction(alloca);
-            currentBasicBlock.addInstruction(store);
-
-            symbolTable.putLocalVariable(parameter.getName(), alloca);
-        }
 
         visit(ctx.compoundStatement());
 
@@ -332,6 +305,49 @@ public class Translator extends SysYBaseVisitor<Void> {
                 currentBasicBlock.addInstruction(new ReturnInst(ConstInt.getInstance(0)));
             if (returnType == FloatType.getFloat())
                 currentBasicBlock.addInstruction(new ReturnInst(ConstFloat.getInstance(0f)));
+        }
+
+        return null;
+    }
+
+    @Override
+    public Void visitCompoundStatement(SysYParser.CompoundStatementContext ctx) {
+        symbolTable.pushScope();
+
+        if (ctx.getParent() instanceof SysYParser.FunctionDefinitionContext functionDefinition) {
+            @lombok.Value
+            class Parameter {
+                Type type;
+                String name;
+            }
+
+            List<Parameter> parameters = new ArrayList<>();
+            if (functionDefinition.parameterList() != null) {
+                for (var parameterDeclaration : functionDefinition.parameterList().parameterDeclaration()) {
+                    parameters.add(new Parameter(
+                            makeType(parameterDeclaration.typeSpecifier().type),
+                            parameterDeclaration.Identifier().getText()
+                    ));
+                }
+            }
+
+            for (int i = 0; i < parameters.size(); ++i) {
+                Parameter parameter = parameters.get(i);
+
+                var alloca = new AllocateInst(parameter.getType());
+                var store = new StoreInst(alloca, currentFunction.getFormalParameters().get(i));
+
+                currentBasicBlock.addInstruction(alloca);
+                currentBasicBlock.addInstruction(store);
+
+                symbolTable.putLocalVariable(parameter.getName(), alloca);
+            }
+        }
+
+        if (ctx.blockItem() != null) {
+            for (var blockItem : ctx.blockItem()) {
+                visit(blockItem);
+            }
         }
 
         symbolTable.popScope();
