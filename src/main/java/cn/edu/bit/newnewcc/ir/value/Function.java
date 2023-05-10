@@ -30,7 +30,7 @@ public class Function extends AbstractFunction {
 
         @Override
         public String getValueNameIR() {
-            return '%'+getValueName();
+            return '%' + getValueName();
         }
 
         @Override
@@ -46,6 +46,7 @@ public class Function extends AbstractFunction {
     /**
      * 创建一个函数 <br>
      * 新建的函数默认携带一个入口块，且该入口块是与函数绑定的，不可解绑。 <br>
+     *
      * @param functionType 函数类型
      */
     public Function(FunctionType functionType) {
@@ -63,7 +64,7 @@ public class Function extends AbstractFunction {
 
     @Override
     public String getValueName() {
-        if(functionName==null){
+        if (functionName == null) {
             functionName = NameAllocator.getGvName();
         }
         return functionName;
@@ -71,7 +72,7 @@ public class Function extends AbstractFunction {
 
     @Override
     public String getValueNameIR() {
-        return '@'+functionName;
+        return '@' + functionName;
     }
 
     @Override
@@ -118,8 +119,23 @@ public class Function extends AbstractFunction {
         return entryBasicBlock;
     }
 
+    /**
+     * 获取函数内的所有基本块 <br>
+     * 此方法保证入口块一定是集合的第一个元素 <br>
+     *
+     * @return 函数内的所有基本块集合（只读）
+     */
     public Collection<BasicBlock> getBasicBlocks() {
-        return Collections.unmodifiableCollection(basicBlocks);
+        // 保证入口块总是在开头
+        List<BasicBlock> sortedBasicBlocks = new ArrayList<>();
+        var entryBasicBlock = getEntryBasicBlock();
+        sortedBasicBlocks.add(entryBasicBlock);
+        for (BasicBlock basicBlock : basicBlocks) {
+            if (basicBlock != entryBasicBlock) {
+                sortedBasicBlocks.add(basicBlock);
+            }
+        }
+        return Collections.unmodifiableCollection(sortedBasicBlocks);
     }
 
     /**
