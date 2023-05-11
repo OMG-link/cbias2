@@ -1,4 +1,4 @@
-package cn.edu.bit.newnewcc.ir.util;
+package cn.edu.bit.newnewcc.pass.ir;
 
 import cn.edu.bit.newnewcc.ir.Module;
 import cn.edu.bit.newnewcc.ir.Operand;
@@ -14,13 +14,18 @@ import cn.edu.bit.newnewcc.ir.value.instruction.PhiInst;
 
 import java.util.*;
 
-public class IrIntegrityVerifier {
+/**
+ * IR 语义分析 <br>
+ * 用于检查 IR 语义是否正确，可以发现部分优化过程产生的错误 <br>
+ * 此 Pass 不会对 IR 进行任何修改 <br>
+ */
+public class IrSemanticAnalysisPass {
 
     private final Set<Value> globalValues = new HashSet<>();
     private Set<Value> localValues;
     private Map<BasicBlock, Set<BasicBlock>> basicBlockEntries;
 
-    private IrIntegrityVerifier() {
+    private IrSemanticAnalysisPass() {
     }
 
     private void verifyInstruction(Instruction instruction) {
@@ -90,7 +95,7 @@ public class IrIntegrityVerifier {
     }
 
     public static void verify(Module module) {
-        new IrIntegrityVerifier().verifyModule(module);
+        new IrSemanticAnalysisPass().verifyModule(module);
     }
 
 }

@@ -5,7 +5,6 @@ import cn.edu.bit.newnewcc.frontend.SysYParser;
 import cn.edu.bit.newnewcc.frontend.Translator;
 import cn.edu.bit.newnewcc.ir.Module;
 import cn.edu.bit.newnewcc.ir.util.IREmitter;
-import cn.edu.bit.newnewcc.ir.util.IrIntegrityVerifier;
 import cn.edu.bit.newnewcc.pass.IrPassManager;
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CharStreams;
@@ -36,7 +35,6 @@ public class Driver {
 
             // 在IR层面优化代码
             IrPassManager.optimize(module, compilerOptions.getOptimizationLevel());
-            IrIntegrityVerifier.verify(module);
             // 输出LLVM IR格式的文件
             if (compilerOptions.isEmitLLVM()) {
                 try (var fileOutputStream = new FileOutputStream(compilerOptions.getOutputFileName())) {
