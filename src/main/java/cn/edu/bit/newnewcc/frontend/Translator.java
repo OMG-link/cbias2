@@ -244,9 +244,8 @@ public class Translator extends SysYBaseVisitor<Void> {
         currentBasicBlock.addInstruction(instruction);
         result = instruction;
 
-        if (operator.isRelational() || operator.isLogical()) {
+        if (operator.isRelational())
             applyTypeConversion(result, IntegerType.getI32());
-        }
     }
 
     @Override
@@ -400,6 +399,18 @@ public class Translator extends SysYBaseVisitor<Void> {
     }
 
     @Override
+    public Void visitBinaryRelationalExpression(SysYParser.BinaryRelationalExpressionContext ctx) {
+        visit(ctx.relationalExpression());
+        Value leftOperand = result;
+
+        visit(ctx.additiveExpression());
+        Value rightOperand = result;
+
+        applyBinaryOperator(leftOperand, rightOperand, makeBinaryOperator(ctx.op));
+        return null;
+    }
+
+    @Override
     public Void visitReturnStatement(SysYParser.ReturnStatementContext ctx) {
         if (ctx.expression() != null) {
             visit(ctx.expression());
@@ -414,6 +425,18 @@ public class Translator extends SysYBaseVisitor<Void> {
 
         currentBasicBlock = new BasicBlock();
         currentFunction.addBasicBlock(currentBasicBlock);
+        return null;
+    }
+
+    @Override
+    public Void visitBinaryEqualityExpression(SysYParser.BinaryEqualityExpressionContext ctx) {
+        visit(ctx.equalityExpression());
+        Value leftOperand = result;
+
+        visit(ctx.relationalExpression());
+        Value rightOperand = result;
+
+        applyBinaryOperator(leftOperand, rightOperand, makeBinaryOperator(ctx.op));
         return null;
     }
 
