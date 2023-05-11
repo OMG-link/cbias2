@@ -113,10 +113,7 @@ public class AsmFunction {
     }
 
     public String getFunctionName() {
-        if (functionName == null) {
-            throw new RuntimeException("function name is null");
-        }
-        return functionName;
+        return Objects.requireNonNull(functionName);
     }
 
     public GlobalTag getRetBlockTag() {
@@ -147,7 +144,7 @@ public class AsmFunction {
         List<AsmInstruction> res = new ArrayList<>();
         //参数数量不匹配
         if (parameters.size() != calledFunction.formalParameters.size()) {
-            throw new RuntimeException("call function parameter not match");
+            throw new RuntimeException("Function parameter mismatch");
         }
         List<Pair<StackVar, Register>> pushList = new ArrayList<>();
         for (int i = 0; i < parameters.size(); i++) {
