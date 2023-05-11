@@ -135,7 +135,7 @@ public class Function extends AbstractFunction {
                 sortedBasicBlocks.add(basicBlock);
             }
         }
-        return Collections.unmodifiableCollection(sortedBasicBlocks);
+        return Collections.unmodifiableList(sortedBasicBlocks);
     }
 
     /**

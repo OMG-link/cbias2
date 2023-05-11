@@ -104,7 +104,7 @@ public class LoopForest implements Iterable<Loop> {
      * @return 所有循环树的根循环列表（只读）
      */
     public Collection<Loop> getRootLoops() {
-        return Collections.unmodifiableCollection(rootLoops);
+        return Collections.unmodifiableList(rootLoops);
     }
 
     /**

@@ -89,7 +89,7 @@ public class BasicBlock extends Value {
     public Collection<Instruction> getLeadingInstructions() {
         var list = new ArrayList<Instruction>();
         instructionList.getLeadingInstructions().forEachRemaining(list::add);
-        return Collections.unmodifiableCollection(list);
+        return Collections.unmodifiableList(list);
     }
 
     /**
@@ -100,7 +100,7 @@ public class BasicBlock extends Value {
     public Collection<Instruction> getMainInstructions() {
         var list = new ArrayList<Instruction>();
         instructionList.getMainInstructions().forEachRemaining(list::add);
-        return Collections.unmodifiableCollection(list);
+        return Collections.unmodifiableList(list);
     }
 
     /**
@@ -121,7 +121,7 @@ public class BasicBlock extends Value {
     public Collection<Instruction> getInstructions() {
         var list = new ArrayList<Instruction>();
         instructionList.iterator().forEachRemaining(list::add);
-        return Collections.unmodifiableCollection(list);
+        return Collections.unmodifiableList(list);
     }
 
     public Collection<BasicBlock> getExitBlocks() {
@@ -149,7 +149,7 @@ public class BasicBlock extends Value {
      * @return 基本块的所有入口块的只读副本
      */
     public Collection<BasicBlock> getEntryBlocks() {
-        return Collections.unmodifiableCollection(entryBlockSet);
+        return Collections.unmodifiableSet(entryBlockSet);
     }
 
     /// 基本块与函数的关系

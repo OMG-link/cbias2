@@ -22,7 +22,7 @@ public class UnreachableInst extends TerminateInst {
 
     @Override
     public Collection<BasicBlock> getExits() {
-        return Collections.unmodifiableCollection(new ArrayList<>());
+        return Collections.unmodifiableList(new ArrayList<>());
     }
 
 }

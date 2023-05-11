@@ -82,7 +82,7 @@ public class DomTree {
         if (node == null) {
             throw new IllegalArgumentException("Basic block not in this dom tree.");
         }
-        return Collections.unmodifiableCollection(node.domSons);
+        return Collections.unmodifiableList(node.domSons);
     }
 
     /**
