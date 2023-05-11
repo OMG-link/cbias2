@@ -266,9 +266,9 @@ public class Translator extends SysYBaseVisitor<Void> {
         for (var variableDefinition : ctx.variableDefinition()) {
             String name = variableDefinition.Identifier().getText();
 
-            var alloca = new AllocateInst(type);
-            currentBasicBlock.addInstruction(alloca);
-            symbolTable.putLocalVariable(name, alloca);
+            var address = new AllocateInst(type);
+            currentBasicBlock.addInstruction(address);
+            symbolTable.putLocalVariable(name, address);
         }
 
         return null;
@@ -333,13 +333,11 @@ public class Translator extends SysYBaseVisitor<Void> {
             for (int i = 0; i < parameters.size(); ++i) {
                 Parameter parameter = parameters.get(i);
 
-                var alloca = new AllocateInst(parameter.getType());
-                var store = new StoreInst(alloca, currentFunction.getFormalParameters().get(i));
+                var address = new AllocateInst(parameter.getType());
+                currentBasicBlock.addInstruction(address);
+                currentBasicBlock.addInstruction(new StoreInst(address, currentFunction.getFormalParameters().get(i)));
 
-                currentBasicBlock.addInstruction(alloca);
-                currentBasicBlock.addInstruction(store);
-
-                symbolTable.putLocalVariable(parameter.getName(), alloca);
+                symbolTable.putLocalVariable(parameter.getName(), address);
             }
         }
 
@@ -359,10 +357,9 @@ public class Translator extends SysYBaseVisitor<Void> {
         Value value = result;
 
         visit(ctx.lValue());
-        var address = resultAddress;
+        Value address = resultAddress;
 
-        var store = new StoreInst(address, value);
-        currentBasicBlock.addInstruction(store);
+        currentBasicBlock.addInstruction(new StoreInst(address, value));
 
         return null;
     }
@@ -378,9 +375,8 @@ public class Translator extends SysYBaseVisitor<Void> {
         currentFunction.addBasicBlock(successorBlock);
 
         visit(ctx.conditionalExpression());
-        if (result.getType() != IntegerType.getI1()) {
+        if (result.getType() != IntegerType.getI1())
             applyTypeConversion(result, IntegerType.getI1());
-        }
 
         currentBasicBlock.addInstruction(new BranchInst(result, thenBlock, elseBlock));
 
@@ -417,14 +413,38 @@ public class Translator extends SysYBaseVisitor<Void> {
     }
 
     @Override
-    public Void visitBinaryRelationalExpression(SysYParser.BinaryRelationalExpressionContext ctx) {
-        visit(ctx.relationalExpression());
-        Value leftOperand = result;
+    public Void visitBinaryLogicalAndExpression(SysYParser.BinaryLogicalAndExpressionContext ctx) {
+        BasicBlock trueBlock = new BasicBlock();
+        BasicBlock successorBlock = new BasicBlock();
 
-        visit(ctx.additiveExpression());
-        Value rightOperand = result;
+        currentFunction.addBasicBlock(trueBlock);
+        currentFunction.addBasicBlock(successorBlock);
 
-        applyBinaryOperator(leftOperand, rightOperand, makeBinaryOperator(ctx.op));
+        var address = new AllocateInst(IntegerType.getI1());
+        currentBasicBlock.addInstruction(address);
+
+        visit(ctx.logicalAndExpression());
+        if (result.getType() != IntegerType.getI1())
+            applyTypeConversion(result, IntegerType.getI1());
+
+        currentBasicBlock.addInstruction(new StoreInst(address, result));
+        currentBasicBlock.addInstruction(new BranchInst(result, trueBlock, successorBlock));
+
+        currentBasicBlock = trueBlock;
+
+        visit(ctx.equalityExpression());
+        if (result.getType() != IntegerType.getI1())
+            applyTypeConversion(result, IntegerType.getI1());
+
+        currentBasicBlock.addInstruction(new StoreInst(address, result));
+        currentBasicBlock.addInstruction(new JumpInst(successorBlock));
+
+        currentBasicBlock = successorBlock;
+
+        var value = new LoadInst(address);
+        currentBasicBlock.addInstruction(value);
+        result = value;
+
         return null;
     }
 
@@ -434,6 +454,18 @@ public class Translator extends SysYBaseVisitor<Void> {
         Value leftOperand = result;
 
         visit(ctx.relationalExpression());
+        Value rightOperand = result;
+
+        applyBinaryOperator(leftOperand, rightOperand, makeBinaryOperator(ctx.op));
+        return null;
+    }
+
+    @Override
+    public Void visitBinaryRelationalExpression(SysYParser.BinaryRelationalExpressionContext ctx) {
+        visit(ctx.relationalExpression());
+        Value leftOperand = result;
+
+        visit(ctx.additiveExpression());
         Value rightOperand = result;
 
         applyBinaryOperator(leftOperand, rightOperand, makeBinaryOperator(ctx.op));
@@ -476,10 +508,10 @@ public class Translator extends SysYBaseVisitor<Void> {
         String name = ctx.Identifier().getText();
         resultAddress = symbolTable.getLocalVariable(name);
 
-        var load = new LoadInst(resultAddress);
-        currentBasicBlock.addInstruction(load);
+        var value = new LoadInst(resultAddress);
+        currentBasicBlock.addInstruction(value);
 
-        result = load;
+        result = value;
         return null;
     }
 
