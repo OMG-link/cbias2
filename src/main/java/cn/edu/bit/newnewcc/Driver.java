@@ -1,8 +1,8 @@
 package cn.edu.bit.newnewcc;
 
-import cn.edu.bit.newnewcc.frontend.SysYLexer;
-import cn.edu.bit.newnewcc.frontend.SysYParser;
 import cn.edu.bit.newnewcc.frontend.Translator;
+import cn.edu.bit.newnewcc.frontend.antlr.SysYLexer;
+import cn.edu.bit.newnewcc.frontend.antlr.SysYParser;
 import cn.edu.bit.newnewcc.ir.Module;
 import cn.edu.bit.newnewcc.ir.util.IREmitter;
 import cn.edu.bit.newnewcc.pass.IrPassManager;
