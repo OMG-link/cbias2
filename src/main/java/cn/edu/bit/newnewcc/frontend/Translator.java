@@ -88,7 +88,6 @@ public class Translator extends SysYBaseVisitor<Void> {
 
     private void applyTypeConversion(Value value, Type targetType) {
         Instruction instruction;
-
         if (value.getType() == IntegerType.getI32() && targetType == FloatType.getFloat())
             instruction = new SignedIntegerToFloatInst(value, FloatType.getFloat());
         else if (value.getType() == FloatType.getFloat() && targetType == IntegerType.getI32())
@@ -279,7 +278,6 @@ public class Translator extends SysYBaseVisitor<Void> {
 
         for (var variableDefinition : ctx.variableDefinition()) {
             String name = variableDefinition.Identifier().getText();
-
             var address = new AllocateInst(type);
             currentBasicBlock.addInstruction(address);
             symbolTable.putLocalVariable(name, address);
@@ -291,9 +289,7 @@ public class Translator extends SysYBaseVisitor<Void> {
     @Override
     public Void visitFunctionDefinition(SysYParser.FunctionDefinitionContext ctx) {
         String name = ctx.Identifier().getText();
-
         Type returnType = makeType(ctx.typeSpecifier().type);
-
         List<Type> parameterTypes = new ArrayList<>();
         if (ctx.parameterList() != null) {
             for (var parameterDeclaration : ctx.parameterList().parameterDeclaration()) {
@@ -305,8 +301,10 @@ public class Translator extends SysYBaseVisitor<Void> {
 
         currentFunction = new Function(type);
         currentFunction.setValueName(name);
+
         currentModule.addFunction(currentFunction);
         symbolTable.putFunction(name, currentFunction);
+
         currentBasicBlock = currentFunction.getEntryBasicBlock();
 
         visit(ctx.compoundStatement());
@@ -355,11 +353,9 @@ public class Translator extends SysYBaseVisitor<Void> {
             }
         }
 
-        if (ctx.blockItem() != null) {
-            for (var blockItem : ctx.blockItem()) {
+        if (ctx.blockItem() != null)
+            for (var blockItem : ctx.blockItem())
                 visit(blockItem);
-            }
-        }
 
         symbolTable.popScope();
         return null;
@@ -399,9 +395,8 @@ public class Translator extends SysYBaseVisitor<Void> {
         currentBasicBlock.addInstruction(new JumpInst(doneBlock));
 
         currentBasicBlock = elseBlock;
-        if (ctx.statement().size() == 2) {
+        if (ctx.statement().size() == 2)
             visit(ctx.statement(1));
-        }
         currentBasicBlock.addInstruction(new JumpInst(doneBlock));
 
         currentBasicBlock = doneBlock;
@@ -468,10 +463,8 @@ public class Translator extends SysYBaseVisitor<Void> {
     public Void visitReturnStatement(SysYParser.ReturnStatementContext ctx) {
         if (ctx.expression() != null) {
             visit(ctx.expression());
-
-            if (result.getType() != currentFunction.getReturnType()) {
+            if (result.getType() != currentFunction.getReturnType())
                 applyTypeConversion(result, currentFunction.getReturnType());
-            }
 
             currentBasicBlock.addInstruction(new ReturnInst(result));
         } else
@@ -479,6 +472,7 @@ public class Translator extends SysYBaseVisitor<Void> {
 
         currentBasicBlock = new BasicBlock();
         currentFunction.addBasicBlock(currentBasicBlock);
+
         return null;
     }
 
@@ -616,8 +610,8 @@ public class Translator extends SysYBaseVisitor<Void> {
 
         var value = new LoadInst(resultAddress);
         currentBasicBlock.addInstruction(value);
-
         result = value;
+
         return null;
     }
 
