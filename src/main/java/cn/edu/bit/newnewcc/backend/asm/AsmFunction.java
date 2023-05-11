@@ -17,17 +17,31 @@ import static java.lang.Integer.max;
  */
 public class AsmFunction {
     private String functionName;
+    AsmCode globalCode;
     private final List<AsmOperand> formalParameters = new ArrayList<>();
     private final List<AsmBasicBlock> basicBlocks = new ArrayList<>();
     private final StackAllocator stackAllocator = new StackAllocator();
     private final RegisterAllocator registerAllocator = new RegisterAllocator();
     private final FloatRegisterAllocator floatRegisterAllocator = new FloatRegisterAllocator();
 
-    List<AsmInstruction> call(AsmFunction calledFunction, List<AsmOperand> parameters) throws Exception {
+    public AsmCode getGlobalCode() {
+        return globalCode;
+    }
+
+    public RegisterAllocator getRegisterAllocator() {
+        return registerAllocator;
+    }
+
+    public FloatRegisterAllocator getFloatRegisterAllocator() {
+        return floatRegisterAllocator;
+    }
+
+    List<AsmInstruction> call(AsmFunction calledFunction, List<AsmOperand> parameters) {
+        stackAllocator.callFunction(this);
         List<AsmInstruction> res = new ArrayList<>();
         //参数数量不匹配
         if (parameters.size() != calledFunction.formalParameters.size()) {
-            throw new Exception("call function parameter not match");
+            throw new RuntimeException("call function parameter not match");
         }
         List<Pair<StackVar, Register>> pushList = new ArrayList<>();
         for (int i = 0; i < parameters.size(); i++) {
@@ -64,6 +78,9 @@ public class AsmFunction {
     }
 
     String getFunctionName() {
+        if (functionName == null) {
+            throw new RuntimeException("function name is null");
+        }
         return functionName;
     }
 
