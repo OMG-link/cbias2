@@ -31,11 +31,11 @@ public class IrSemanticCheckPass {
     private void verifyInstruction(Instruction instruction) {
         for (Operand operand : instruction.getOperandList()) {
             if (!operand.hasValueBound()) {
-                throw new SemanticCheckFailedException("Operand has no value bound.");
+                throw new SemanticCheckFailedException("Operand has no value bound");
             }
             if (!(operand.getValue() instanceof Constant || localValues.contains(operand.getValue()))) {
                 System.out.println(instruction);
-                throw new SemanticCheckFailedException("Value bound cannot be used as an operand.");
+                throw new SemanticCheckFailedException("Value bound cannot be used as an operand");
             }
         }
     }
@@ -44,11 +44,11 @@ public class IrSemanticCheckPass {
         basicBlock.getInstructions().forEach(this::verifyInstruction);
         basicBlock.getLeadingInstructions().forEach(instruction -> {
             if (instruction instanceof AllocateInst && !isFunctionEntry) {
-                throw new SemanticCheckFailedException("Alloca instruction must be placed in entry block.");
+                throw new SemanticCheckFailedException("Alloca instruction must be placed in entry block");
             }
         });
         if (basicBlock.getTerminateInstruction() == null) {
-            throw new SemanticCheckFailedException("Basic block has no terminate instruction.");
+            throw new SemanticCheckFailedException("Basic block has no terminate instruction");
         }
     }
 
@@ -83,7 +83,7 @@ public class IrSemanticCheckPass {
             for (Instruction instruction : basicBlock.getLeadingInstructions()) {
                 if (instruction instanceof PhiInst phiInst) {
                     if (!Objects.equals(phiInst.getEntrySet(), basicBlockEntries.get(basicBlock))) {
-                        throw new SemanticCheckFailedException("Phi instruction's entry map does not match basic block entries.");
+                        throw new SemanticCheckFailedException("Phi instruction's entry map does not match basic block entries");
                     }
                 }
             }
@@ -93,7 +93,7 @@ public class IrSemanticCheckPass {
             if (!Objects.equals(basicBlock.getEntryBlocks(), basicBlockEntries.get(basicBlock))) {
                 System.out.println(basicBlock.getEntryBlocks().getClass());
                 System.out.println(basicBlockEntries.get(basicBlock).getClass());
-                throw new SemanticCheckFailedException("Block entry was not properly maintained.");
+                throw new SemanticCheckFailedException("Block entry was not properly maintained");
             }
         }
     }

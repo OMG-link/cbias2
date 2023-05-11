@@ -80,7 +80,7 @@ public class DomTree {
     public Collection<BasicBlock> getDomSons(BasicBlock basicBlock) {
         var node = nodeMap.get(basicBlock);
         if (node == null) {
-            throw new IllegalArgumentException("Basic block not in this dom tree.");
+            throw new IllegalArgumentException("Basic block not in this dom tree");
         }
         return Collections.unmodifiableList(node.domSons);
     }

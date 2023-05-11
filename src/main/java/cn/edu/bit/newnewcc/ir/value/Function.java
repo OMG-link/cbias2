@@ -109,7 +109,7 @@ public class Function extends AbstractFunction {
      */
     public void removeBasicBlock(BasicBlock basicBlock) {
         if (basicBlock.getFunction() != this) {
-            throw new IllegalArgumentException("Specified basic block does not belong to this function.");
+            throw new IllegalArgumentException("Specified basic block does not belong to this function");
         }
         basicBlock.__clearFunction__();
         this.basicBlocks.remove(basicBlock);

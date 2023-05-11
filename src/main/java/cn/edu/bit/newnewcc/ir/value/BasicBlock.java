@@ -34,7 +34,7 @@ public class BasicBlock extends Value {
     public String getValueName() {
         if (valueName == null) {
             if (function == null) {
-                throw new UnsupportedOperationException("Cannot get the name of a basic block outside a function.");
+                throw new UnsupportedOperationException("Cannot get the name of a basic block outside any functions");
             }
             valueName = NameAllocator.getLvName(function);
         }
@@ -138,7 +138,7 @@ public class BasicBlock extends Value {
 
     private void removeEntryBlock(BasicBlock basicBlock) {
         if (!entryBlockSet.contains(basicBlock)) {
-            throw new IllegalArgumentException("Specified basic block is not an entry of this block.");
+            throw new IllegalArgumentException("Specified basic block is not an entry of this block");
         }
         entryBlockSet.remove(basicBlock);
     }
@@ -180,7 +180,7 @@ public class BasicBlock extends Value {
     public void __setFunction__(Function function, boolean shouldFixFunction) {
         // 检查所属函数是否被锁定，锁定则不能被修改
         if (this.isFunctionFixed) {
-            throw new UsageRelationshipCheckFailedException("Belonging of this basic block has been fixed.");
+            throw new UsageRelationshipCheckFailedException("Belonging of this basic block has been fixed");
         }
         // 检查是否直接修改所属函数，必须先从其他函数中移除该基本块
         if (this.function != null && function != null) {
@@ -190,7 +190,7 @@ public class BasicBlock extends Value {
         if (shouldFixFunction) {
             // 不可以锁定到null上
             if (function == null) {
-                throw new IllegalArgumentException("Cannot fix null as the belonging of this basic block.");
+                throw new IllegalArgumentException("Cannot fix null as the belonging of this basic block");
             }
             this.isFunctionFixed = true;
         }

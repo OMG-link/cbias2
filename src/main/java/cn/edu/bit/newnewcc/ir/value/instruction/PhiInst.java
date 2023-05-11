@@ -60,7 +60,7 @@ public class PhiInst extends Instruction {
 
     public void addEntry(BasicBlock basicBlock, Value value) {
         if (basicBlockOperandMap.containsKey(basicBlock)) {
-            throw new IllegalArgumentException("Basic block already has a value in this phi instruction.");
+            throw new IllegalArgumentException("Basic block already has a value in this phi instruction");
         }
         var basicBlockOperand = new BasicBlockOperand(basicBlock);
         var valueOperand = new Operand(this, this.getType(), value);
@@ -69,7 +69,7 @@ public class PhiInst extends Instruction {
 
     public void removeEntry(BasicBlock basicBlock) {
         if (basicBlockOperandMap.containsKey(basicBlock)) {
-            throw new IllegalArgumentException("Basic block does not exist.");
+            throw new IllegalArgumentException("Basic block does not exist");
         }
         var basicBlockOperand = basicBlockOperandMap.get(basicBlock);
         var valueOperand = entryMap.get(basicBlockOperand);

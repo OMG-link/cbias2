@@ -42,11 +42,11 @@ public abstract class Instruction extends Value {
         if (valueName == null) {
             var bb = getBasicBlock();
             if (bb == null) {
-                throw new UnsupportedOperationException("Cannot get the name of an instruction outside a basic block.");
+                throw new UnsupportedOperationException("Cannot get the name of an instruction outside any basic blocks");
             }
             var fun = bb.getFunction();
             if (fun == null) {
-                throw new UnsupportedOperationException("Cannot get the name of an instruction outside a function.");
+                throw new UnsupportedOperationException("Cannot get the name of an instruction outside any functions");
             }
             valueName = NameAllocator.getLvName(fun);
         }

@@ -23,7 +23,7 @@ public class FloatType extends Type {
     protected String getTypeName_() {
         return switch (bitWidth){
             case 32 -> "float";
-            default -> throw new IllegalStateException("Illegal bit width of floating number: " + bitWidth);
+            default -> throw new IllegalStateException("Illegal floating number bit width: " + bitWidth);
         };
     }
 

@@ -50,7 +50,7 @@ public class CallInst extends Instruction {
         super(function.getType());
         this.calleeOperand = new Operand(this, function.getType(), function);
         if (arguments.size() != function.getParameterTypes().size()) {
-            throw new IllegalArgumentException("Size of provided argument does not match the one required by function.");
+            throw new IllegalArgumentException("Size of provided argument does not match the one required by function");
         }
         this.argumentOperands = new ArrayList<>();
         var iArguments = arguments.iterator();

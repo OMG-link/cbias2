@@ -80,7 +80,7 @@ public abstract class Value {
     public void __removeUsage__(Operand operand){
         boolean success = usages.remove(operand);
         if(!success){
-            throw new NoSuchElementException("Trying to remove a usage that does not exist");
+            throw new NoSuchElementException("Removing a non-existent usage");
         }
     }
 

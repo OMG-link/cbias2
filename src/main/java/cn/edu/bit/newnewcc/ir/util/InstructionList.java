@@ -161,7 +161,7 @@ public class InstructionList implements Iterable<Instruction> {
 
     public static void removeNodeFromList(Node node) {
         if (node.list == null) {
-            throw new IllegalArgumentException("Node is not in any list.");
+            throw new IllegalArgumentException("Node is not in any list");
         }
         var prev = node.prev;
         var next = node.next;

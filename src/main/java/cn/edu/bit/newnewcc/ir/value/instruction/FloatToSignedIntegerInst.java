@@ -24,7 +24,7 @@ public class FloatToSignedIntegerInst extends Instruction {
     public FloatToSignedIntegerInst(Value sourceValue, IntegerType targetType){
         super(targetType);
         if(!(sourceValue.getType() instanceof FloatType)){
-            throw new IllegalArgumentException("Source value must have a float type.");
+            throw new IllegalArgumentException("Source value must be of floating point type");
         }
         this.sourceOperand = new Operand(this,sourceValue.getType(),sourceValue);
     }

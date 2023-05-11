@@ -22,7 +22,7 @@ public class ZeroExtensionInst extends Instruction {
     public ZeroExtensionInst(IntegerType sourceType, IntegerType targetType) {
         super(targetType);
         if (sourceType.getBitWidth() >= targetType.getBitWidth()) {
-            throw new IllegalArgumentException("Source type cannot have more bits than target type.");
+            throw new IllegalArgumentException("Source type cannot have more bits than target type");
         }
         this.sourceOperand = new Operand(this, sourceType, null);
     }
@@ -30,10 +30,10 @@ public class ZeroExtensionInst extends Instruction {
     public ZeroExtensionInst(Value sourceValue, IntegerType targetType) {
         super(targetType);
         if (!(sourceValue.getType() instanceof IntegerType)) {
-            throw new java.lang.IllegalArgumentException("Source value must have an integer type.");
+            throw new java.lang.IllegalArgumentException("Source value must be of integer type");
         }
         if (((IntegerType) sourceValue.getType()).getBitWidth() >= targetType.getBitWidth()) {
-            throw new IllegalArgumentException("Source type cannot have more bits than target type.");
+            throw new IllegalArgumentException("Source type cannot have more bits than target type");
         }
         this.sourceOperand = new Operand(this, sourceValue.getType(), sourceValue);
     }
