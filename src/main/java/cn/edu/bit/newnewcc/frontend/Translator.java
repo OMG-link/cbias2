@@ -157,10 +157,8 @@ public class Translator extends SysYBaseVisitor<Void> {
         }
     }
 
-    public void applyBinaryOperator(Value leftOperand, Value rightOperand, Operator operator) {
-        Type operandType;
-        if (operator.isLogical()) operandType = IntegerType.getI1();
-        else operandType = commonType(leftOperand.getType(), rightOperand.getType());
+    public void applyBinaryArithmeticOperator(Value leftOperand, Value rightOperand, Operator operator) {
+        Type operandType = commonType(leftOperand.getType(), rightOperand.getType());
 
         if (leftOperand.getType() != operandType) {
             applyTypeConversion(leftOperand, operandType);
@@ -180,6 +178,39 @@ public class Translator extends SysYBaseVisitor<Void> {
                 case MUL -> new IntegerMultiplyInst(IntegerType.getI32(), leftOperand, rightOperand);
                 case DIV -> new IntegerSignedDivideInst(IntegerType.getI32(), leftOperand, rightOperand);
                 case MOD -> new IntegerSignedRemainderInst(IntegerType.getI32(), leftOperand, rightOperand);
+                default -> throw new IllegalArgumentException();
+            };
+        else if (operandType == FloatType.getFloat())
+            instruction = switch (operator) {
+                case ADD -> new FloatAddInst(FloatType.getFloat(), leftOperand, rightOperand);
+                case SUB -> new FloatSubInst(FloatType.getFloat(), leftOperand, rightOperand);
+                case MUL -> new FloatMultiplyInst(FloatType.getFloat(), leftOperand, rightOperand);
+                case DIV -> new FloatDivideInst(FloatType.getFloat(), leftOperand, rightOperand);
+                default -> throw new IllegalArgumentException();
+            };
+        else
+            throw new IllegalArgumentException();
+
+        currentBasicBlock.addInstruction(instruction);
+        result = instruction;
+    }
+
+    public void applyBinaryRelationalOperator(Value leftOperand, Value rightOperand, Operator operator) {
+        Type operandType = commonType(leftOperand.getType(), rightOperand.getType());
+
+        if (leftOperand.getType() != operandType) {
+            applyTypeConversion(leftOperand, operandType);
+            leftOperand = result;
+        }
+
+        if (rightOperand.getType() != operandType) {
+            applyTypeConversion(rightOperand, operandType);
+            rightOperand = result;
+        }
+
+        Instruction instruction;
+        if (operandType == IntegerType.getI32())
+            instruction = switch (operator) {
                 case LT -> new IntegerCompareInst(
                         IntegerType.getI32(), IntegerCompareInst.Condition.SLT,
                         leftOperand, rightOperand
@@ -208,10 +239,6 @@ public class Translator extends SysYBaseVisitor<Void> {
             };
         else if (operandType == FloatType.getFloat())
             instruction = switch (operator) {
-                case ADD -> new FloatAddInst(FloatType.getFloat(), leftOperand, rightOperand);
-                case SUB -> new FloatSubInst(FloatType.getFloat(), leftOperand, rightOperand);
-                case MUL -> new FloatMultiplyInst(FloatType.getFloat(), leftOperand, rightOperand);
-                case DIV -> new FloatDivideInst(FloatType.getFloat(), leftOperand, rightOperand);
                 case LT -> new FloatCompareInst(
                         FloatType.getFloat(), FloatCompareInst.Condition.OLT,
                         leftOperand, rightOperand
@@ -243,18 +270,15 @@ public class Translator extends SysYBaseVisitor<Void> {
 
         currentBasicBlock.addInstruction(instruction);
         result = instruction;
-
-        if (operator.isRelational())
-            applyTypeConversion(result, IntegerType.getI32());
+        applyTypeConversion(result, IntegerType.getI32());
     }
 
     @Override
     public Void visitCompilationUnit(SysYParser.CompilationUnitContext ctx) {
         currentModule = new Module();
 
-        for (var functionDefinition : ctx.functionDefinition()) {
+        for (var functionDefinition : ctx.functionDefinition())
             visit(functionDefinition);
-        }
 
         return null;
     }
@@ -413,6 +437,42 @@ public class Translator extends SysYBaseVisitor<Void> {
     }
 
     @Override
+    public Void visitBinaryLogicalOrExpression(SysYParser.BinaryLogicalOrExpressionContext ctx) {
+        BasicBlock falseBlock = new BasicBlock();
+        BasicBlock successorBlock = new BasicBlock();
+
+        currentFunction.addBasicBlock(falseBlock);
+        currentFunction.addBasicBlock(successorBlock);
+
+        var address = new AllocateInst(IntegerType.getI1());
+        currentBasicBlock.addInstruction(address);
+
+        visit(ctx.logicalOrExpression());
+        if (result.getType() != IntegerType.getI1())
+            applyTypeConversion(result, IntegerType.getI1());
+
+        currentBasicBlock.addInstruction(new StoreInst(address, result));
+        currentBasicBlock.addInstruction(new BranchInst(result, successorBlock, falseBlock));
+
+        currentBasicBlock = falseBlock;
+
+        visit(ctx.logicalAndExpression());
+        if (result.getType() != IntegerType.getI1())
+            applyTypeConversion(result, IntegerType.getI1());
+
+        currentBasicBlock.addInstruction(new StoreInst(address, result));
+        currentBasicBlock.addInstruction(new JumpInst(successorBlock));
+
+        currentBasicBlock = successorBlock;
+
+        var value = new LoadInst(address);
+        currentBasicBlock.addInstruction(value);
+        result = value;
+
+        return null;
+    }
+
+    @Override
     public Void visitBinaryLogicalAndExpression(SysYParser.BinaryLogicalAndExpressionContext ctx) {
         BasicBlock trueBlock = new BasicBlock();
         BasicBlock successorBlock = new BasicBlock();
@@ -456,7 +516,7 @@ public class Translator extends SysYBaseVisitor<Void> {
         visit(ctx.relationalExpression());
         Value rightOperand = result;
 
-        applyBinaryOperator(leftOperand, rightOperand, makeBinaryOperator(ctx.op));
+        applyBinaryRelationalOperator(leftOperand, rightOperand, makeBinaryOperator(ctx.op));
         return null;
     }
 
@@ -468,7 +528,7 @@ public class Translator extends SysYBaseVisitor<Void> {
         visit(ctx.additiveExpression());
         Value rightOperand = result;
 
-        applyBinaryOperator(leftOperand, rightOperand, makeBinaryOperator(ctx.op));
+        applyBinaryRelationalOperator(leftOperand, rightOperand, makeBinaryOperator(ctx.op));
         return null;
     }
 
@@ -480,7 +540,7 @@ public class Translator extends SysYBaseVisitor<Void> {
         visit(ctx.multiplicativeExpression());
         Value rightOperand = result;
 
-        applyBinaryOperator(leftOperand, rightOperand, makeBinaryOperator(ctx.op));
+        applyBinaryArithmeticOperator(leftOperand, rightOperand, makeBinaryOperator(ctx.op));
         return null;
     }
 
@@ -492,7 +552,7 @@ public class Translator extends SysYBaseVisitor<Void> {
         visit(ctx.unaryExpression());
         Value rightOperand = result;
 
-        applyBinaryOperator(leftOperand, rightOperand, makeBinaryOperator(ctx.op));
+        applyBinaryArithmeticOperator(leftOperand, rightOperand, makeBinaryOperator(ctx.op));
         return null;
     }
 
