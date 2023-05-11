@@ -1,4 +1,4 @@
-package cn.edu.bit.newnewcc.frontend;// Generated from SysY.g4 by ANTLR 4.12.0
+package cn.edu.bit.newnewcc.frontend.antlr;// Generated from SysY.g4 by ANTLR 4.12.0
 import org.antlr.v4.runtime.Lexer;
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.Token;

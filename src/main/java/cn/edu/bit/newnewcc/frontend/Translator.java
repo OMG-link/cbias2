@@ -1,5 +1,7 @@
 package cn.edu.bit.newnewcc.frontend;
 
+import cn.edu.bit.newnewcc.frontend.antlr.SysYBaseVisitor;
+import cn.edu.bit.newnewcc.frontend.antlr.SysYParser;
 import cn.edu.bit.newnewcc.ir.Module;
 import cn.edu.bit.newnewcc.ir.Type;
 import cn.edu.bit.newnewcc.ir.Value;
