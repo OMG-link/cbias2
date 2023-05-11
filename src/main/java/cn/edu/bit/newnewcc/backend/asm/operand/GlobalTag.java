@@ -8,7 +8,7 @@ package cn.edu.bit.newnewcc.backend.asm.operand;
 public class GlobalTag extends AsmOperand {
     private final String tagName;
     private final SEGMENT segment;
-    private final Register baseAddress;
+    private final IntRegister baseAddress;
 
     /**
      * 创建一个内存位置的标识符，用于读取数据
@@ -17,7 +17,7 @@ public class GlobalTag extends AsmOperand {
      * @param segment     取地址的段（分为高16位与低16位）
      * @param baseAddress 取的基地址，若为null则仅返回偏移量
      */
-    public GlobalTag(String tagName, SEGMENT segment, Register baseAddress) {
+    public GlobalTag(String tagName, SEGMENT segment, IntRegister baseAddress) {
         super(TYPE.GTAG);
         this.tagName = tagName;
         this.segment = segment;

@@ -1,7 +1,7 @@
 package cn.edu.bit.newnewcc.backend.asm.instruction;
 
 import cn.edu.bit.newnewcc.backend.asm.operand.GlobalTag;
-import cn.edu.bit.newnewcc.backend.asm.operand.Register;
+import cn.edu.bit.newnewcc.backend.asm.operand.IntRegister;
 
 public class AsmJump extends AsmInstruction{
     /**
@@ -20,7 +20,7 @@ public class AsmJump extends AsmInstruction{
      * @param operand1 跳转条件参数1
      * @param operand2 跳转条件参数2
      */
-    AsmJump(GlobalTag goalTag, JUMPTYPE type, Register operand1, Register operand2) {
+    AsmJump(GlobalTag goalTag, JUMPTYPE type, IntRegister operand1, IntRegister operand2) {
         super("", null, null, null);
         this.goalTag = goalTag;
         if (type == JUMPTYPE.NON) {
@@ -37,7 +37,7 @@ public class AsmJump extends AsmInstruction{
      * 寄存器跳转指令
      * @param addressRegister 存储这目标地址的寄存器
      */
-    AsmJump(Register addressRegister) {
+    AsmJump(IntRegister addressRegister) {
         super("jr", addressRegister, null, null);
     }
 

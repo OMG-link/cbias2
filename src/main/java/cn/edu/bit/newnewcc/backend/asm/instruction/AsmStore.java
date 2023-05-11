@@ -1,9 +1,7 @@
 package cn.edu.bit.newnewcc.backend.asm.instruction;
 
 
-import cn.edu.bit.newnewcc.backend.asm.operand.AsmOperand;
-import cn.edu.bit.newnewcc.backend.asm.operand.Register;
-import cn.edu.bit.newnewcc.backend.asm.operand.StackVar;
+import cn.edu.bit.newnewcc.backend.asm.operand.*;
 
 /**
  * 汇编部分中的save指令，在本语言中分为
@@ -21,10 +19,20 @@ public class AsmStore extends AsmInstruction {
      */
     public AsmStore(Register source, AsmOperand goal) {
         super("sw", source, goal, null);
-        if (goal.isStackVar()) {
-            StackVar stackVar = (StackVar) goal;
-            if (stackVar.getSize() == 8) {
-                setInstructionName("sd");
+        if (source.isInt()) {
+            if (goal.isStackVar()) {
+                StackVar stackVar = (StackVar) goal;
+                if (stackVar.getSize() == 8) {
+                    setInstructionName("sd");
+                }
+            }
+        } else {
+            setInstructionName("fsw");
+            if (goal.isStackVar()) {
+                StackVar stackVar = (StackVar) goal;
+                if (stackVar.getSize() == 8) {
+                    setInstructionName("fsd");
+                }
             }
         }
     }

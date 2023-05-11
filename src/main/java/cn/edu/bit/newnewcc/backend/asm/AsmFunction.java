@@ -1,10 +1,9 @@
 package cn.edu.bit.newnewcc.backend.asm;
 
-import cn.edu.bit.newnewcc.backend.asm.instruction.AsmAdd;
-import cn.edu.bit.newnewcc.backend.asm.instruction.AsmInstruction;
-import cn.edu.bit.newnewcc.backend.asm.instruction.AsmLoad;
-import cn.edu.bit.newnewcc.backend.asm.instruction.AsmStore;
+import cn.edu.bit.newnewcc.backend.asm.instruction.*;
 import cn.edu.bit.newnewcc.backend.asm.operand.*;
+import cn.edu.bit.newnewcc.ir.value.Instruction;
+import org.antlr.v4.runtime.misc.Pair;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -17,28 +16,104 @@ import static java.lang.Integer.max;
  * 函数以函数名作为唯一标识符加以区分
  */
 public class AsmFunction {
-    String functionName;
-    List<AsmOperand> parameters = new ArrayList<>();
-    List<AsmBasicBlock> basicBlocks = new ArrayList<>();
+    private String functionName;
+    private final List<AsmOperand> formalParameters = new ArrayList<>();
+    private final List<AsmBasicBlock> basicBlocks = new ArrayList<>();
+    private final StackAllocator stackAllocator = new StackAllocator();
+    private final RegisterAllocator registerAllocator = new RegisterAllocator();
+    private final FloatRegisterAllocator floatRegisterAllocator = new FloatRegisterAllocator();
+
+    List<AsmInstruction> call(AsmFunction calledFunction, List<AsmOperand> parameters) throws Exception {
+        List<AsmInstruction> res = new ArrayList<>();
+        //参数数量不匹配
+        if (parameters.size() != calledFunction.formalParameters.size()) {
+            throw new Exception("call function parameter not match");
+        }
+        List<Pair<StackVar, Register>> pushList = new ArrayList<>();
+        for (int i = 0; i < parameters.size(); i++) {
+            var fpara = calledFunction.formalParameters.get(i);
+            //若形参中使用了参数保存寄存器，则需先push寄存器保存原有内容
+            if (fpara instanceof Register reg) {
+                StackVar vreg = stackAllocator.push(8);
+                res.add(new AsmStore(reg, vreg));
+                pushList.add(new Pair<>(vreg, reg));
+            }
+
+            //将参数存储到形参对应为止
+            var para = parameters.get(i);
+            if (para instanceof Register reg) {
+                res.add(new AsmStore(reg, fpara));
+            } else {
+                if (fpara instanceof FloatRegister freg) {
+                    FloatRegister ftmp = floatRegisterAllocator.allocate();
+                    res.add(new AsmLoad(ftmp, para));
+                    res.add(new AsmStore(ftmp, freg));
+                } else {
+                    IntRegister tmp = registerAllocator.allocate();
+                    res.add(new AsmLoad(tmp, para));
+                    res.add(new AsmStore(tmp, fpara));
+                }
+            }
+        }
+        res.add(new AsmCall(calledFunction.getFunctionName()));
+        //执行完成后恢复寄存器现场
+        for (var p : pushList) {
+            res.add(new AsmLoad(p.b, p.a));
+        }
+        return res;
+    }
+
+    String getFunctionName() {
+        return functionName;
+    }
 
     public class RegisterAllocator {
-        Map<String, Register> registerMap;
+        Map<Instruction, IntRegister> registerMap;
         int total;
         RegisterAllocator() {
             total = 0;
             registerMap = new HashMap<>();
         }
-        Register allocate(String name) {
+        IntRegister allocate(Instruction instruction) {
             total -= 1;
-            Register reg = new Register(total);
-            registerMap.put(name, reg);
+            IntRegister reg = new IntRegister(total);
+            registerMap.put(instruction, reg);
             return reg;
         }
-        Register get(String name) {
-            return registerMap.get(name);
+        IntRegister allocate() {
+            total -= 1;
+            return new IntRegister(total);
         }
-        boolean contain(String name) {
-            return registerMap.containsKey(name);
+        IntRegister get(Instruction instruction) {
+            return registerMap.get(instruction);
+        }
+        boolean contain(Instruction instruction) {
+            return registerMap.containsKey(instruction);
+        }
+    }
+
+    public class FloatRegisterAllocator {
+        Map<Instruction, FloatRegister> registerMap;
+        int total;
+        FloatRegisterAllocator() {
+            total = 0;
+            registerMap = new HashMap<>();
+        }
+        FloatRegister allocate(Instruction instruction) {
+            total -= 1;
+            FloatRegister reg = new FloatRegister(total);
+            registerMap.put(instruction, reg);
+            return reg;
+        }
+        FloatRegister allocate() {
+            total -= 1;
+            return new FloatRegister(total);
+        }
+        FloatRegister get(Instruction instruction) {
+            return registerMap.get(instruction);
+        }
+        boolean contain(Instruction instruction) {
+            return registerMap.containsKey(instruction);
         }
     }
 
@@ -81,9 +156,9 @@ public class AsmFunction {
          */
         public List<AsmInstruction> emitHead() {
             List<AsmInstruction> res = new ArrayList<>();
-            Register sp = new Register("sp");
-            Register ra = new Register("ra");
-            Register s0 = new Register("s0");
+            IntRegister sp = new IntRegister("sp");
+            IntRegister ra = new IntRegister("ra");
+            IntRegister s0 = new IntRegister("s0");
             res.add(new AsmAdd(sp, sp, new Immediate(-maxSize)));
             if (savedRa) {
                 res.add(new AsmStore(ra, new Address(maxSize - 8, sp)));
@@ -93,9 +168,9 @@ public class AsmFunction {
         }
         public List<AsmInstruction> emitTail() {
             List<AsmInstruction> res = new ArrayList<>();
-            Register sp = new Register("sp");
-            Register ra = new Register("ra");
-            Register s0 = new Register("s0");
+            IntRegister sp = new IntRegister("sp");
+            IntRegister ra = new IntRegister("ra");
+            IntRegister s0 = new IntRegister("s0");
             if (savedRa) {
                 res.add(new AsmLoad(ra, new Address(maxSize - 8, sp)));
             }

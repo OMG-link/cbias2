@@ -16,7 +16,7 @@ public class StackVar extends AsmOperand {
      */
     public StackVar(int offset, int size) {
         super(TYPE.SVAR);
-        this.address = new Address(offset, new Register("s0"));
+        this.address = new Address(offset, new IntRegister("s0"));
         this.size = size;
     }
 

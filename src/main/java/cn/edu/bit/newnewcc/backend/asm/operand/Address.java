@@ -5,7 +5,7 @@ package cn.edu.bit.newnewcc.backend.asm.operand;
  */
 public class Address extends AsmOperand {
     private final int offset;
-    private final Register baseAddress;
+    private final IntRegister baseAddress;
 
     /**
      * 新建一个以寄存器存储的地址为基址，偏移量为立即数的栈变量
@@ -13,7 +13,7 @@ public class Address extends AsmOperand {
      * @param offset      偏移量
      * @param baseAddress 基址寄存器
      */
-    public Address(int offset, Register baseAddress) {
+    public Address(int offset, IntRegister baseAddress) {
         super(TYPE.ADDR);
         this.offset = offset;
         this.baseAddress = baseAddress;

@@ -1,9 +1,6 @@
 package cn.edu.bit.newnewcc.backend.asm.instruction;
 
-import cn.edu.bit.newnewcc.backend.asm.operand.AsmOperand;
-import cn.edu.bit.newnewcc.backend.asm.operand.GlobalTag;
-import cn.edu.bit.newnewcc.backend.asm.operand.Register;
-import cn.edu.bit.newnewcc.backend.asm.operand.StackVar;
+import cn.edu.bit.newnewcc.backend.asm.operand.*;
 
 /**
  * 汇编部分中的load指令，在本语言中分为
@@ -23,24 +20,40 @@ public class AsmLoad extends AsmInstruction {
      */
     public AsmLoad(Register goal, AsmOperand source) {
         super("lw", goal, source, null);
-        if (source.isImmediate()) {
-            setInstructionName("li");
-        } else if (source.isStackVar()) {
-            StackVar stackVar = (StackVar) source;
-            if (stackVar.getSize() == 8) {
-                setInstructionName("ld");
-            } else if (stackVar.getSize() == 4) {
-                setInstructionName("lw");
-            }
-        } else if (source.isGlobalTag()) {
-            GlobalTag globalTag = (GlobalTag) source;
-            if (globalTag.isHighSegment()) {
-                setInstructionName("lui");
-            } else {
+        if (goal.isInt()) {
+            if (source.isImmediate()) {
                 setInstructionName("li");
+            } else if (source.isStackVar()) {
+                StackVar stackVar = (StackVar) source;
+                if (stackVar.getSize() == 8) {
+                    setInstructionName("ld");
+                } else if (stackVar.getSize() == 4) {
+                    setInstructionName("lw");
+                }
+            } else if (source.isGlobalTag()) {
+                GlobalTag globalTag = (GlobalTag) source;
+                if (globalTag.isHighSegment()) {
+                    setInstructionName("lui");
+                } else {
+                    setInstructionName("li");
+                }
+            } else if (source.isRegister() && ((Register) source).isInt()) {
+                setInstructionName("mv");
             }
-        } else if (source.isRegister()) {
-            setInstructionName("mv");
+        } else {
+            setInstructionName("flw");
+            if (source.isImmediate()) {
+                setInstructionName("fli");
+            } else if (source.isStackVar()) {
+                StackVar stackVar = (StackVar) source;
+                if (stackVar.getSize() == 8) {
+                    setInstructionName("fld");
+                } else if (stackVar.getSize() == 4) {
+                    setInstructionName("flw");
+                }
+            } else if (source.isRegister() && ((Register)source).isFloat()) {
+                setInstructionName("fmv.d.x");
+            }
         }
     }
 }
