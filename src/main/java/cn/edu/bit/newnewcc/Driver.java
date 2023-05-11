@@ -36,8 +36,6 @@ public class Driver {
 
             // 在IR层面优化代码
             IrPassManager.optimize(module, compilerOptions.getOptimizationLevel());
-            //测试汇编输出
-            AsmCode asmCode = new AsmCode(module);
 
             // 输出LLVM IR格式的文件
             if (compilerOptions.isEmitLLVM()) {
@@ -47,7 +45,12 @@ public class Driver {
                 try (var fileOutputStream = new FileOutputStream(outputFileName)) {
                     fileOutputStream.write(IREmitter.emit(module).getBytes(StandardCharsets.UTF_8));
                 }
+
+                continue;
             }
+
+            //测试汇编输出
+            AsmCode asmCode = new AsmCode(module);
 
             if (compilerOptions.isEmitAssembly()) {
                 String outputFileName = compilerOptions.getOutputFileName();
@@ -56,7 +59,13 @@ public class Driver {
                 try (var fileOutputStream = new FileOutputStream(outputFileName)) {
                     fileOutputStream.write(asmCode.emit().getBytes(StandardCharsets.UTF_8));
                 }
+
+                continue;
             }
+
+            String outputFileName = compilerOptions.getOutputFileName();
+            if (outputFileName == null) outputFileName = changeExtension(inputFileName, "o");
+            // TODO
         }
     }
 
