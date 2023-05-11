@@ -1,5 +1,6 @@
 package cn.edu.bit.newnewcc;
 
+import cn.edu.bit.newnewcc.backend.asm.AsmCode;
 import cn.edu.bit.newnewcc.frontend.Translator;
 import cn.edu.bit.newnewcc.frontend.antlr.SysYLexer;
 import cn.edu.bit.newnewcc.frontend.antlr.SysYParser;
@@ -39,6 +40,14 @@ public class Driver {
             if (compilerOptions.isEmitLLVM()) {
                 try (var fileOutputStream = new FileOutputStream(compilerOptions.getOutputFileName())) {
                     fileOutputStream.write(IREmitter.emit(module).getBytes(StandardCharsets.UTF_8));
+                }
+            }
+
+            //测试汇编输出
+            AsmCode asmCode = new AsmCode(module);
+            if (compilerOptions.isEmitAssembly()) {
+                try (var fileOutputStream = new FileOutputStream(compilerOptions.getOutputFileName())) {
+                    fileOutputStream.write(asmCode.emit().getBytes(StandardCharsets.UTF_8));
                 }
             }
         }

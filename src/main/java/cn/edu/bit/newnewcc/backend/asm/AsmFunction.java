@@ -26,7 +26,12 @@ public class AsmFunction {
     private final Map<BasicBlock, AsmBasicBlock> basicBlockMap = new HashMap<>();
     private final List<AsmInstruction> instructionList = new LinkedList<>();
 
-    public AsmFunction(AbstractFunction abstractFunction) {
+    public boolean isExternal() {
+        return basicBlocks.size() == 0;
+    }
+
+    public AsmFunction(AbstractFunction abstractFunction, AsmCode code) {
+        this.globalCode = code;
         int intParameterId = 0, floatParameterId = 0;
         for (var parameterType : abstractFunction.getParameterTypes()) {
             if (parameterType instanceof IntegerType) {
@@ -69,15 +74,15 @@ public class AsmFunction {
         res.append(String.format(".type %s, @function\n", functionName));
         res.append(String.format("%s:\n", functionName));
         for (var inst : stackAllocator.emitHead()) {
-            res.append(inst.emit());
+            res.append(inst.emit()).append("\n");
         }
         for (var inst : instructionList) {
-            res.append(inst.emit());
+            res.append(inst.emit()).append("\n");
         }
         for (var inst : stackAllocator.emitTail()) {
-            res.append(inst.emit());
+            res.append(inst.emit()).append("\n");
         }
-        res.append(String.format(".size %s, .-%s", functionName, functionName));
+        res.append(String.format(".size %s, .-%s\n", functionName, functionName));
         return res.toString();
     }
 
