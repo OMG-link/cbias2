@@ -399,18 +399,6 @@ public class Translator extends SysYBaseVisitor<Void> {
     }
 
     @Override
-    public Void visitBinaryRelationalExpression(SysYParser.BinaryRelationalExpressionContext ctx) {
-        visit(ctx.relationalExpression());
-        Value leftOperand = result;
-
-        visit(ctx.additiveExpression());
-        Value rightOperand = result;
-
-        applyBinaryOperator(leftOperand, rightOperand, makeBinaryOperator(ctx.op));
-        return null;
-    }
-
-    @Override
     public Void visitReturnStatement(SysYParser.ReturnStatementContext ctx) {
         if (ctx.expression() != null) {
             visit(ctx.expression());
@@ -425,6 +413,18 @@ public class Translator extends SysYBaseVisitor<Void> {
 
         currentBasicBlock = new BasicBlock();
         currentFunction.addBasicBlock(currentBasicBlock);
+        return null;
+    }
+
+    @Override
+    public Void visitBinaryRelationalExpression(SysYParser.BinaryRelationalExpressionContext ctx) {
+        visit(ctx.relationalExpression());
+        Value leftOperand = result;
+
+        visit(ctx.additiveExpression());
+        Value rightOperand = result;
+
+        applyBinaryOperator(leftOperand, rightOperand, makeBinaryOperator(ctx.op));
         return null;
     }
 
