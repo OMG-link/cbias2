@@ -1,11 +1,8 @@
 package cn.edu.bit.newnewcc.backend.asm;
 
-import cn.edu.bit.newnewcc.backend.asm.operand.GlobalTag;
-import cn.edu.bit.newnewcc.ir.value.AbstractFunction;
-import cn.edu.bit.newnewcc.ir.value.Function;
-import cn.edu.bit.newnewcc.ir.value.GlobalVariable;
 import cn.edu.bit.newnewcc.ir.Module;
-import cn.edu.bit.newnewcc.ir.value.constant.ConstFloat;
+import cn.edu.bit.newnewcc.ir.value.AbstractFunction;
+import cn.edu.bit.newnewcc.ir.value.GlobalVariable;
 
 import java.util.HashMap;
 import java.util.Map;

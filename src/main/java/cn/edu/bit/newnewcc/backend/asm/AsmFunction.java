@@ -18,7 +18,7 @@ import static java.lang.Integer.max;
  * 函数以函数名作为唯一标识符加以区分
  */
 public class AsmFunction {
-    private String functionName;
+    private final String functionName;
 
     AsmCode globalCode;
     private final List<AsmOperand> formalParameters = new ArrayList<>();
@@ -33,6 +33,7 @@ public class AsmFunction {
     public AsmFunction(AbstractFunction abstractFunction, AsmCode code) {
         this.globalCode = code;
         int intParameterId = 0, floatParameterId = 0;
+        this.functionName = abstractFunction.getValueName();
         for (var parameterType : abstractFunction.getParameterTypes()) {
             if (parameterType instanceof IntegerType) {
                 if (intParameterId < 8) {
@@ -135,7 +136,7 @@ public class AsmFunction {
 
     //调用另一个函数的汇编代码
     Collection<AsmInstruction> call(AsmFunction calledFunction, List<AsmOperand> parameters) {
-        stackAllocator.callFunction(this);
+        stackAllocator.callFunction();
         List<AsmInstruction> res = new ArrayList<>();
         //参数数量不匹配
         if (parameters.size() != calledFunction.formalParameters.size()) {
@@ -180,7 +181,7 @@ public class AsmFunction {
         //未完成
     }
 
-    public class RegisterAllocator {
+    public static class RegisterAllocator {
         Map<Instruction, IntRegister> registerMap;
         int total;
         RegisterAllocator() {
@@ -205,7 +206,7 @@ public class AsmFunction {
         }
     }
 
-    public class FloatRegisterAllocator {
+    public static class FloatRegisterAllocator {
         Map<Instruction, FloatRegister> registerMap;
         int total;
         FloatRegisterAllocator() {
@@ -230,15 +231,14 @@ public class AsmFunction {
         }
     }
 
-    public class StackAllocator {
+    public static class StackAllocator {
         private int top = 16, maxSize = 16;
         private boolean savedRa = false;
 
         /**
          * 进行函数调用前的准备，目前仅设置保存返回寄存器
-         * @param originFunction 原函数
          */
-        public void callFunction(AsmFunction originFunction) {
+        public void callFunction() {
             savedRa = true;
         }
 
