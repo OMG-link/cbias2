@@ -37,7 +37,7 @@ public class AsmJump extends AsmInstruction{
      * 寄存器跳转指令
      * @param addressRegister 存储这目标地址的寄存器
      */
-    AsmJump(IntRegister addressRegister) {
+    public AsmJump(IntRegister addressRegister) {
         super("jr", addressRegister, null, null);
     }
 

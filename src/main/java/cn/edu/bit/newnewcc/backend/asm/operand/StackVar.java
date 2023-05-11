@@ -14,9 +14,13 @@ public class StackVar extends AsmOperand {
      * @param offset 变量在栈帧中的偏移量
      * @param size   变量占据的大小
      */
-    public StackVar(int offset, int size) {
+    public StackVar(int offset, int size, boolean isS0) {
         super(TYPE.SVAR);
-        this.address = new Address(offset, new IntRegister("s0"));
+        if (isS0) {
+            this.address = new Address(offset, new IntRegister("s0"));
+        } else {
+            this.address = new Address(offset, new IntRegister("sp"));
+        }
         this.size = size;
     }
 

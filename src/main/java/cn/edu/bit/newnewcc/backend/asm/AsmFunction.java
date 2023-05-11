@@ -2,13 +2,15 @@ package cn.edu.bit.newnewcc.backend.asm;
 
 import cn.edu.bit.newnewcc.backend.asm.instruction.*;
 import cn.edu.bit.newnewcc.backend.asm.operand.*;
+import cn.edu.bit.newnewcc.ir.type.FloatType;
+import cn.edu.bit.newnewcc.ir.type.IntegerType;
+import cn.edu.bit.newnewcc.ir.value.AbstractFunction;
+import cn.edu.bit.newnewcc.ir.value.BasicBlock;
+import cn.edu.bit.newnewcc.ir.value.Function;
 import cn.edu.bit.newnewcc.ir.value.Instruction;
 import org.antlr.v4.runtime.misc.Pair;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static java.lang.Integer.max;
 
@@ -17,12 +19,96 @@ import static java.lang.Integer.max;
  */
 public class AsmFunction {
     private String functionName;
+
     AsmCode globalCode;
     private final List<AsmOperand> formalParameters = new ArrayList<>();
     private final List<AsmBasicBlock> basicBlocks = new ArrayList<>();
+    private final Map<BasicBlock, AsmBasicBlock> basicBlockMap = new HashMap<>();
+    private final List<AsmInstruction> instructionList = new LinkedList<>();
+
+    public AsmFunction(AbstractFunction abstractFunction) {
+        int intParameterId = 0, floatParameterId = 0;
+        for (var parameterType : abstractFunction.getParameterTypes()) {
+            if (parameterType instanceof IntegerType) {
+                if (intParameterId < 8) {
+                    formalParameters.add(new IntRegister(String.format("a%d", intParameterId)));
+                } else {
+                    stackAllocator.push(4);
+                    formalParameters.add(new StackVar((intParameterId - 8) * 4, 4, false));
+                }
+                intParameterId += 1;
+            } else if (parameterType instanceof FloatType) {
+                if (floatParameterId < 8) {
+                    formalParameters.add(new FloatRegister(String.format("fa%d", intParameterId)));
+                } else {
+                    stackAllocator.push(4);
+                    formalParameters.add(new StackVar((floatParameterId - 8) * 4, 4, false));
+                }
+                floatParameterId += 1;
+            }
+        }
+
+        //生成具体函数的汇编代码
+        if (abstractFunction instanceof Function function) {
+            for (var block : function.getBasicBlocks()) {
+                AsmBasicBlock asmBlock = new AsmBasicBlock(this, block);
+                basicBlockMap.put(block, asmBlock);
+                basicBlocks.add(asmBlock);
+            }
+            for (var block : basicBlocks) {
+                block.emitToFunction();
+            }
+            reAllocateRegister();
+        }
+    }
+
+    public String emit() {
+        StringBuilder res = new StringBuilder();
+        res.append(".text\n.align 1\n");
+        res.append(String.format(".globl %s\n", functionName));
+        res.append(String.format(".type %s, @function\n", functionName));
+        res.append(String.format("%s:\n", functionName));
+        for (var inst : stackAllocator.emitHead()) {
+            res.append(inst.emit());
+        }
+        for (var inst : instructionList) {
+            res.append(inst.emit());
+        }
+        for (var inst : stackAllocator.emitTail()) {
+            res.append(inst.emit());
+        }
+        res.append(String.format(".size %s, .-%s", functionName, functionName));
+        return res.toString();
+    }
+
+
+    //向函数添加指令的方法
+    public void appendInstruction(AsmInstruction instruction) {
+        instructionList.add(instruction);
+    }
+
+    public void appendAllInstruction(Collection<AsmInstruction> instructions) {
+        instructionList.addAll(instructions);
+    }
+
+
+
+    //函数内部资源分配器
     private final StackAllocator stackAllocator = new StackAllocator();
     private final RegisterAllocator registerAllocator = new RegisterAllocator();
     private final FloatRegisterAllocator floatRegisterAllocator = new FloatRegisterAllocator();
+
+    //资源对应的get方法
+    public AsmBasicBlock getBasicBlock(BasicBlock block) {
+        return basicBlockMap.get(block);
+    }
+
+    String getFunctionName() {
+        if (functionName == null) {
+            throw new RuntimeException("function name is null");
+        }
+        return functionName;
+    }
 
     public AsmCode getGlobalCode() {
         return globalCode;
@@ -36,7 +122,14 @@ public class AsmFunction {
         return floatRegisterAllocator;
     }
 
-    List<AsmInstruction> call(AsmFunction calledFunction, List<AsmOperand> parameters) {
+    public StackAllocator getStackAllocator() {
+        return stackAllocator;
+    }
+
+
+
+    //调用另一个函数的汇编代码
+    Collection<AsmInstruction> call(AsmFunction calledFunction, List<AsmOperand> parameters) {
         stackAllocator.callFunction(this);
         List<AsmInstruction> res = new ArrayList<>();
         //参数数量不匹配
@@ -77,11 +170,9 @@ public class AsmFunction {
         return res;
     }
 
-    String getFunctionName() {
-        if (functionName == null) {
-            throw new RuntimeException("function name is null");
-        }
-        return functionName;
+    //未分配寄存器的分配方法
+    private void reAllocateRegister() {
+        //未完成
     }
 
     public class RegisterAllocator {
@@ -134,7 +225,7 @@ public class AsmFunction {
         }
     }
 
-    private class StackAllocator {
+    public class StackAllocator {
         private int top = 16, maxSize = 16;
         private boolean savedRa = false;
 
@@ -155,7 +246,7 @@ public class AsmFunction {
         public StackVar push(int size) {
             top += size;
             maxSize = max(maxSize, top);
-            return new StackVar(-top, size);
+            return new StackVar(-top, size, true);
         }
 
         /**
@@ -171,7 +262,7 @@ public class AsmFunction {
          * 输出函数初始化栈帧的汇编代码
          * 注意，emit操作仅当maxSize初始化完成后进行，避免栈帧大小分配错误
          */
-        public List<AsmInstruction> emitHead() {
+        public Collection<AsmInstruction> emitHead() {
             List<AsmInstruction> res = new ArrayList<>();
             IntRegister sp = new IntRegister("sp");
             IntRegister ra = new IntRegister("ra");
@@ -183,7 +274,7 @@ public class AsmFunction {
             res.add(new AsmStore(s0, new Address(maxSize - 16, sp)));
             return res;
         }
-        public List<AsmInstruction> emitTail() {
+        public Collection<AsmInstruction> emitTail() {
             List<AsmInstruction> res = new ArrayList<>();
             IntRegister sp = new IntRegister("sp");
             IntRegister ra = new IntRegister("ra");
@@ -193,6 +284,7 @@ public class AsmFunction {
             }
             res.add(new AsmLoad(s0, new Address(maxSize - 16, sp)));
             res.add(new AsmAdd(sp, sp, new Immediate(maxSize)));
+            res.add(new AsmJump(new IntRegister("ra")));
             return res;
         }
     }
