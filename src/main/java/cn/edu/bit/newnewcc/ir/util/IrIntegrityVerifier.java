@@ -29,7 +29,7 @@ public class IrIntegrityVerifier {
                 throw new IntegrityVerifyFailedException("Operand has no value bound.");
             }
             if (!(operand.getValue() instanceof Constant || localValues.contains(operand.getValue()))) {
-                throw new IntegrityVerifyFailedException("Value bounded cannot be used as an operand.");
+                throw new IntegrityVerifyFailedException("Value bound cannot be used as an operand.");
             }
         }
     }
