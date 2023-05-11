@@ -379,11 +379,11 @@ public class Translator extends SysYBaseVisitor<Void> {
     public Void visitIfStatement(SysYParser.IfStatementContext ctx) {
         BasicBlock thenBlock = new BasicBlock();
         BasicBlock elseBlock = new BasicBlock();
-        BasicBlock successorBlock = new BasicBlock();
+        BasicBlock doneBlock = new BasicBlock();
 
         currentFunction.addBasicBlock(thenBlock);
         currentFunction.addBasicBlock(elseBlock);
-        currentFunction.addBasicBlock(successorBlock);
+        currentFunction.addBasicBlock(doneBlock);
 
         visit(ctx.expression());
         if (result.getType() != IntegerType.getI1())
@@ -393,15 +393,45 @@ public class Translator extends SysYBaseVisitor<Void> {
 
         currentBasicBlock = thenBlock;
         visit(ctx.statement(0));
-        currentBasicBlock.addInstruction(new JumpInst(successorBlock));
+        currentBasicBlock.addInstruction(new JumpInst(doneBlock));
 
         currentBasicBlock = elseBlock;
         if (ctx.statement().size() == 2) {
             visit(ctx.statement(1));
         }
-        currentBasicBlock.addInstruction(new JumpInst(successorBlock));
+        currentBasicBlock.addInstruction(new JumpInst(doneBlock));
 
-        currentBasicBlock = successorBlock;
+        currentBasicBlock = doneBlock;
+        return null;
+    }
+
+    @Override
+    public Void visitWhileStatement(SysYParser.WhileStatementContext ctx) {
+        BasicBlock testBlock = new BasicBlock();
+        BasicBlock bodyBlock = new BasicBlock();
+        BasicBlock doneBlock = new BasicBlock();
+
+        currentFunction.addBasicBlock(testBlock);
+        currentFunction.addBasicBlock(bodyBlock);
+        currentFunction.addBasicBlock(doneBlock);
+
+        currentBasicBlock.addInstruction(new JumpInst(testBlock));
+
+        currentBasicBlock = testBlock;
+
+        visit(ctx.expression());
+        if (result.getType() != IntegerType.getI1())
+            applyTypeConversion(result, IntegerType.getI1());
+
+        currentBasicBlock.addInstruction(new BranchInst(result, bodyBlock, doneBlock));
+
+        currentBasicBlock = bodyBlock;
+
+        visit(ctx.statement());
+
+        currentBasicBlock.addInstruction(new JumpInst(testBlock));
+
+        currentBasicBlock = doneBlock;
         return null;
     }
 
@@ -426,10 +456,10 @@ public class Translator extends SysYBaseVisitor<Void> {
     @Override
     public Void visitBinaryLogicalOrExpression(SysYParser.BinaryLogicalOrExpressionContext ctx) {
         BasicBlock falseBlock = new BasicBlock();
-        BasicBlock successorBlock = new BasicBlock();
+        BasicBlock doneBlock = new BasicBlock();
 
         currentFunction.addBasicBlock(falseBlock);
-        currentFunction.addBasicBlock(successorBlock);
+        currentFunction.addBasicBlock(doneBlock);
 
         var address = new AllocateInst(IntegerType.getI1());
         currentBasicBlock.addInstruction(address);
@@ -439,7 +469,7 @@ public class Translator extends SysYBaseVisitor<Void> {
             applyTypeConversion(result, IntegerType.getI1());
 
         currentBasicBlock.addInstruction(new StoreInst(address, result));
-        currentBasicBlock.addInstruction(new BranchInst(result, successorBlock, falseBlock));
+        currentBasicBlock.addInstruction(new BranchInst(result, doneBlock, falseBlock));
 
         currentBasicBlock = falseBlock;
 
@@ -448,9 +478,9 @@ public class Translator extends SysYBaseVisitor<Void> {
             applyTypeConversion(result, IntegerType.getI1());
 
         currentBasicBlock.addInstruction(new StoreInst(address, result));
-        currentBasicBlock.addInstruction(new JumpInst(successorBlock));
+        currentBasicBlock.addInstruction(new JumpInst(doneBlock));
 
-        currentBasicBlock = successorBlock;
+        currentBasicBlock = doneBlock;
 
         var value = new LoadInst(address);
         currentBasicBlock.addInstruction(value);
@@ -462,10 +492,10 @@ public class Translator extends SysYBaseVisitor<Void> {
     @Override
     public Void visitBinaryLogicalAndExpression(SysYParser.BinaryLogicalAndExpressionContext ctx) {
         BasicBlock trueBlock = new BasicBlock();
-        BasicBlock successorBlock = new BasicBlock();
+        BasicBlock doneBlock = new BasicBlock();
 
         currentFunction.addBasicBlock(trueBlock);
-        currentFunction.addBasicBlock(successorBlock);
+        currentFunction.addBasicBlock(doneBlock);
 
         var address = new AllocateInst(IntegerType.getI1());
         currentBasicBlock.addInstruction(address);
@@ -475,7 +505,7 @@ public class Translator extends SysYBaseVisitor<Void> {
             applyTypeConversion(result, IntegerType.getI1());
 
         currentBasicBlock.addInstruction(new StoreInst(address, result));
-        currentBasicBlock.addInstruction(new BranchInst(result, trueBlock, successorBlock));
+        currentBasicBlock.addInstruction(new BranchInst(result, trueBlock, doneBlock));
 
         currentBasicBlock = trueBlock;
 
@@ -484,9 +514,9 @@ public class Translator extends SysYBaseVisitor<Void> {
             applyTypeConversion(result, IntegerType.getI1());
 
         currentBasicBlock.addInstruction(new StoreInst(address, result));
-        currentBasicBlock.addInstruction(new JumpInst(successorBlock));
+        currentBasicBlock.addInstruction(new JumpInst(doneBlock));
 
-        currentBasicBlock = successorBlock;
+        currentBasicBlock = doneBlock;
 
         var value = new LoadInst(address);
         currentBasicBlock.addInstruction(value);
