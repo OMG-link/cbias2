@@ -34,6 +34,7 @@ public class IrSemanticAnalysisPass {
                 throw new IntegrityVerifyFailedException("Operand has no value bound.");
             }
             if (!(operand.getValue() instanceof Constant || localValues.contains(operand.getValue()))) {
+                System.out.println(instruction);
                 throw new IntegrityVerifyFailedException("Value bound cannot be used as an operand.");
             }
         }
@@ -55,6 +56,7 @@ public class IrSemanticAnalysisPass {
         // Collect all local values and basic block entries
         localValues = new HashSet<>(globalValues);
         localValues.addAll(function.getFormalParameters());
+        localValues.addAll(function.getBasicBlocks());
         for (BasicBlock basicBlock : function.getBasicBlocks()) {
             for (Instruction instruction : basicBlock.getInstructions()) {
                 if (instruction.getType() != VoidType.getInstance()) {
