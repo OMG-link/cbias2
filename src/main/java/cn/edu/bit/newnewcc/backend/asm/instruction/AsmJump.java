@@ -20,7 +20,7 @@ public class AsmJump extends AsmInstruction{
      * @param operand1 跳转条件参数1
      * @param operand2 跳转条件参数2
      */
-    AsmJump(GlobalTag goalTag, JUMPTYPE type, IntRegister operand1, IntRegister operand2) {
+    public AsmJump(GlobalTag goalTag, JUMPTYPE type, IntRegister operand1, IntRegister operand2) {
         super("", null, null, null);
         this.goalTag = goalTag;
         if (type == JUMPTYPE.NON) {

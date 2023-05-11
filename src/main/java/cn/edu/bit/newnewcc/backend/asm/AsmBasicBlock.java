@@ -1,5 +1,6 @@
 package cn.edu.bit.newnewcc.backend.asm;
 
+import cn.edu.bit.newnewcc.backend.asm.instruction.AsmJump;
 import cn.edu.bit.newnewcc.backend.asm.instruction.AsmLoad;
 import cn.edu.bit.newnewcc.backend.asm.instruction.AsmTag;
 import cn.edu.bit.newnewcc.backend.asm.operand.GlobalTag;
@@ -33,6 +34,7 @@ public class AsmBasicBlock {
             var ret = returnInst.getReturnValue();
             if (ret instanceof ConstInt retInt) {
                 function.appendInstruction(new AsmLoad(new IntRegister("a0"), new Immediate(retInt.getValue())));
+                function.appendInstruction(new AsmJump(function.getRetBlockTag(), AsmJump.JUMPTYPE.NON, null, null));
             }
         }
     }

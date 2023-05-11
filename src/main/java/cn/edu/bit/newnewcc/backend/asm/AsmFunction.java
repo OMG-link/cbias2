@@ -25,6 +25,7 @@ public class AsmFunction {
     private final List<AsmBasicBlock> basicBlocks = new ArrayList<>();
     private final Map<BasicBlock, AsmBasicBlock> basicBlockMap = new HashMap<>();
     private final List<AsmInstruction> instructionList = new LinkedList<>();
+    private final GlobalTag retBlockTag;
 
     public boolean isExternal() {
         return basicBlocks.size() == 0;
@@ -34,6 +35,7 @@ public class AsmFunction {
         this.globalCode = code;
         int intParameterId = 0, floatParameterId = 0;
         this.functionName = abstractFunction.getValueName();
+        retBlockTag = new GlobalTag(functionName + "_ret", false);
         for (var parameterType : abstractFunction.getParameterTypes()) {
             if (parameterType instanceof IntegerType) {
                 if (intParameterId < 8) {
@@ -75,13 +77,14 @@ public class AsmFunction {
         res.append(String.format(".type %s, @function\n", functionName));
         res.append(String.format("%s:\n", functionName));
         for (var inst : stackAllocator.emitHead()) {
-            res.append(inst.emit()).append("\n");
+            res.append(inst.emit());
         }
         for (var inst : instructionList) {
-            res.append(inst.emit()).append("\n");
+            res.append(inst.emit());
         }
+        res.append((new AsmTag(retBlockTag)).emit());
         for (var inst : stackAllocator.emitTail()) {
-            res.append(inst.emit()).append("\n");
+            res.append(inst.emit());
         }
         res.append(String.format(".size %s, .-%s\n", functionName, functionName));
         return res.toString();
@@ -109,11 +112,15 @@ public class AsmFunction {
         return basicBlockMap.get(block);
     }
 
-    String getFunctionName() {
+    public String getFunctionName() {
         if (functionName == null) {
             throw new RuntimeException("function name is null");
         }
         return functionName;
+    }
+
+    public GlobalTag getRetBlockTag() {
+        return retBlockTag;
     }
 
     public AsmCode getGlobalCode() {
