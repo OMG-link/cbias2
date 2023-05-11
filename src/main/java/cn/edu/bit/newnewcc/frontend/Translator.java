@@ -31,6 +31,7 @@ public class Translator extends SysYBaseVisitor<Void> {
     }
 
     private final SymbolTable symbolTable = new SymbolTable();
+    private final ControlFlowStack controlFlowStack = new ControlFlowStack();
     private Module currentModule;
     private Function currentFunction;
     private BasicBlock currentBasicBlock;
@@ -417,6 +418,8 @@ public class Translator extends SysYBaseVisitor<Void> {
         currentFunction.addBasicBlock(bodyBlock);
         currentFunction.addBasicBlock(doneBlock);
 
+        controlFlowStack.pushContext(new ControlFlowStack.WhileContext(testBlock, doneBlock));
+
         currentBasicBlock.addInstruction(new JumpInst(testBlock));
 
         currentBasicBlock = testBlock;
@@ -434,6 +437,30 @@ public class Translator extends SysYBaseVisitor<Void> {
         currentBasicBlock.addInstruction(new JumpInst(testBlock));
 
         currentBasicBlock = doneBlock;
+
+        controlFlowStack.popContext();
+        return null;
+    }
+
+    @Override
+    public Void visitBreakStatement(SysYParser.BreakStatementContext ctx) {
+        var doneBlock = ((ControlFlowStack.WhileContext)controlFlowStack.getTopContext()).getDoneBlock();
+        currentBasicBlock.addInstruction(new JumpInst(doneBlock));
+
+        currentBasicBlock = new BasicBlock();
+        currentFunction.addBasicBlock(currentBasicBlock);
+
+        return null;
+    }
+
+    @Override
+    public Void visitContinueStatement(SysYParser.ContinueStatementContext ctx) {
+        var testBlock = ((ControlFlowStack.WhileContext)controlFlowStack.getTopContext()).getTestBlock();
+        currentBasicBlock.addInstruction(new JumpInst(testBlock));
+
+        currentBasicBlock = new BasicBlock();
+        currentFunction.addBasicBlock(currentBasicBlock);
+
         return null;
     }
 
