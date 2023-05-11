@@ -26,6 +26,7 @@ public class InstructionList implements Iterable<Instruction> {
         }
 
         public BasicBlock getBasicBlock() {
+            if (list == null) return null;
             return list.getBasicBlock();
         }
 
