@@ -36,20 +36,34 @@ public class Driver {
 
             // 在IR层面优化代码
             IrPassManager.optimize(module, compilerOptions.getOptimizationLevel());
+            //测试汇编输出
+            AsmCode asmCode = new AsmCode(module);
+
             // 输出LLVM IR格式的文件
             if (compilerOptions.isEmitLLVM()) {
-                try (var fileOutputStream = new FileOutputStream(compilerOptions.getOutputFileName())) {
+                String outputFileName = compilerOptions.getOutputFileName();
+                if (outputFileName == null) outputFileName = changeExtension(inputFileName, "ll");
+
+                try (var fileOutputStream = new FileOutputStream(outputFileName)) {
                     fileOutputStream.write(IREmitter.emit(module).getBytes(StandardCharsets.UTF_8));
                 }
             }
 
-            //测试汇编输出
-            AsmCode asmCode = new AsmCode(module);
             if (compilerOptions.isEmitAssembly()) {
-                try (var fileOutputStream = new FileOutputStream(compilerOptions.getOutputFileName())) {
+                String outputFileName = compilerOptions.getOutputFileName();
+                if (outputFileName == null) outputFileName = changeExtension(inputFileName, "s");
+
+                try (var fileOutputStream = new FileOutputStream(outputFileName)) {
                     fileOutputStream.write(asmCode.emit().getBytes(StandardCharsets.UTF_8));
                 }
             }
         }
+    }
+
+    private static String changeExtension(String fileName, String newExtension) {
+        if (fileName.contains("."))
+            return fileName.replaceAll("\\.[^.]+$", "." + newExtension);
+        else
+            return fileName + "." + newExtension;
     }
 }
