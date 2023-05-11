@@ -33,6 +33,13 @@ public class NewNewCCompiler {
         CommandLineParser parser = new DefaultParser();
         CommandLine cmd = parser.parse(options, args);
 
+        if (cmd.getArgs().length == 0)
+            error("No input files");
+        if (cmd.hasOption(outputFileName) && cmd.getArgs().length > 1)
+            error("Cannot specify -o when generating multiple output files");
+        if (cmd.hasOption(emitAssembly) && cmd.hasOption(emitLLVM))
+            error("Cannot specify both -S and --emit-llvm");
+
         CompilerOptions compilerOptions = CompilerOptions.builder()
                 .inputFileNames(cmd.getArgs())
                 .outputFileName(cmd.getOptionValue(outputFileName))
@@ -43,5 +50,10 @@ public class NewNewCCompiler {
 
         Driver driver = new Driver(compilerOptions);
         driver.launch();
+    }
+
+    private static void error(String message) {
+        System.err.println(message);
+        System.exit(1);
     }
 }
