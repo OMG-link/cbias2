@@ -26,18 +26,6 @@ public class Translator extends SysYBaseVisitor<Void> {
         ADD, SUB, MUL, DIV, MOD,
         LT, GT, LE, GE, EQ, NE,
         LAND, LOR;
-
-        public boolean isArithmetic() {
-            return List.of(POS, NEG, ADD, SUB, MUL, DIV, MOD).contains(this);
-        }
-
-        public boolean isRelational() {
-            return List.of(LT, GT, LE, GE, EQ, NE).contains(this);
-        }
-
-        public boolean isLogical() {
-            return List.of(LNOT, LAND, LOR).contains(this);
-        }
     }
 
     private final SymbolTable symbolTable = new SymbolTable();
@@ -152,9 +140,8 @@ public class Translator extends SysYBaseVisitor<Void> {
         currentBasicBlock.addInstruction(instruction);
         result = instruction;
 
-        if (operator.isLogical()) {
+        if (operator == Operator.LNOT)
             applyTypeConversion(result, IntegerType.getI32());
-        }
     }
 
     public void applyBinaryArithmeticOperator(Value leftOperand, Value rightOperand, Operator operator) {
