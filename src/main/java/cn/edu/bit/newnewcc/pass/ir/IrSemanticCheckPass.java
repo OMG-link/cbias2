@@ -3,7 +3,7 @@ package cn.edu.bit.newnewcc.pass.ir;
 import cn.edu.bit.newnewcc.ir.Module;
 import cn.edu.bit.newnewcc.ir.Operand;
 import cn.edu.bit.newnewcc.ir.Value;
-import cn.edu.bit.newnewcc.ir.exception.IntegrityVerifyFailedException;
+import cn.edu.bit.newnewcc.ir.exception.SemanticCheckFailedException;
 import cn.edu.bit.newnewcc.ir.type.VoidType;
 import cn.edu.bit.newnewcc.ir.value.BasicBlock;
 import cn.edu.bit.newnewcc.ir.value.Constant;
@@ -19,23 +19,23 @@ import java.util.*;
  * 用于检查 IR 语义是否正确，可以发现部分优化过程产生的错误 <br>
  * 此 Pass 不会对 IR 进行任何修改 <br>
  */
-public class IrSemanticAnalysisPass {
+public class IrSemanticCheckPass {
 
     private final Set<Value> globalValues = new HashSet<>();
     private Set<Value> localValues;
     private Map<BasicBlock, Set<BasicBlock>> basicBlockEntries;
 
-    private IrSemanticAnalysisPass() {
+    private IrSemanticCheckPass() {
     }
 
     private void verifyInstruction(Instruction instruction) {
         for (Operand operand : instruction.getOperandList()) {
             if (!operand.hasValueBound()) {
-                throw new IntegrityVerifyFailedException("Operand has no value bound.");
+                throw new SemanticCheckFailedException("Operand has no value bound.");
             }
             if (!(operand.getValue() instanceof Constant || localValues.contains(operand.getValue()))) {
                 System.out.println(instruction);
-                throw new IntegrityVerifyFailedException("Value bound cannot be used as an operand.");
+                throw new SemanticCheckFailedException("Value bound cannot be used as an operand.");
             }
         }
     }
@@ -44,11 +44,11 @@ public class IrSemanticAnalysisPass {
         basicBlock.getInstructions().forEach(this::verifyInstruction);
         basicBlock.getLeadingInstructions().forEach(instruction -> {
             if (instruction instanceof AllocateInst && !isFunctionEntry) {
-                throw new IntegrityVerifyFailedException("Alloca instruction must be placed in entry block.");
+                throw new SemanticCheckFailedException("Alloca instruction must be placed in entry block.");
             }
         });
         if (basicBlock.getTerminateInstruction() == null) {
-            throw new IntegrityVerifyFailedException("Basic block has no terminate instruction.");
+            throw new SemanticCheckFailedException("Basic block has no terminate instruction.");
         }
     }
 
@@ -82,7 +82,7 @@ public class IrSemanticAnalysisPass {
             for (Instruction instruction : basicBlock.getLeadingInstructions()) {
                 if (instruction instanceof PhiInst phiInst) {
                     if (!Objects.equals(phiInst.getEntrySet(), basicBlockEntries.get(basicBlock))) {
-                        throw new IntegrityVerifyFailedException("Phi instruction's entry map does not match basic block entries.");
+                        throw new SemanticCheckFailedException("Phi instruction's entry map does not match basic block entries.");
                     }
                 }
             }
@@ -97,7 +97,7 @@ public class IrSemanticAnalysisPass {
     }
 
     public static void verify(Module module) {
-        new IrSemanticAnalysisPass().verifyModule(module);
+        new IrSemanticCheckPass().verifyModule(module);
     }
 
 }
