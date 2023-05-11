@@ -3,9 +3,6 @@ package cn.edu.bit.newnewcc.ir.value.constant;
 import cn.edu.bit.newnewcc.ir.type.IntegerType;
 import cn.edu.bit.newnewcc.ir.value.Constant;
 
-import java.util.HashMap;
-import java.util.Map;
-
 public class ConstBool extends Constant {
 
     private final int value;
@@ -24,16 +21,20 @@ public class ConstBool extends Constant {
         return value;
     }
 
-    private static Map<Boolean, ConstBool> instanceMap;
+    private static ConstBool constBoolTrue, constBoolFalse;
 
     public static ConstBool getInstance(boolean value) {
-        if (instanceMap == null) {
-            instanceMap = new HashMap<>();
+        if (value) {
+            if (constBoolTrue == null) {
+                constBoolTrue = new ConstBool(1);
+            }
+            return constBoolTrue;
+        } else {
+            if (constBoolFalse == null) {
+                constBoolFalse = new ConstBool(0);
+            }
+            return constBoolFalse;
         }
-        if (!instanceMap.containsKey(value)) {
-            instanceMap.put(value, new ConstBool(value ? 1 : 0));
-        }
-        return instanceMap.get(value);
     }
 
     @Override
