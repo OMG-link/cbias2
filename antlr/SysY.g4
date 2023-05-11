@@ -45,16 +45,14 @@ statement:
 	lValue ASSIGN expression SEMI # assignmentStatement
 	| expression? SEMI # expressionStatement
 	| compoundStatement # childCompoundStatement
-	| IF LPAREN conditionalExpression RPAREN statement (ELSE statement)? # ifStatement
-	| WHILE LPAREN conditionalExpression RPAREN statement # whileStatement
+	| IF LPAREN expression RPAREN statement (ELSE statement)? # ifStatement
+	| WHILE LPAREN expression RPAREN statement # whileStatement
 	| BREAK SEMI # breakStatement
 	| CONTINUE SEMI # continueStatement
 	| RETURN expression? SEMI # returnStatement
     ;
 
 expression: logicalOrExpression;
-
-conditionalExpression: logicalOrExpression;
 
 constantExpression: logicalOrExpression;
 

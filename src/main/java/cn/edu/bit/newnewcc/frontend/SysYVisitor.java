@@ -164,12 +164,6 @@ public interface SysYVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitExpression(SysYParser.ExpressionContext ctx);
 	/**
-	 * Visit a parse tree produced by {@link SysYParser#conditionalExpression}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitConditionalExpression(SysYParser.ConditionalExpressionContext ctx);
-	/**
 	 * Visit a parse tree produced by {@link SysYParser#constantExpression}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
@@ -295,12 +289,12 @@ public interface SysYVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitChildLValue(SysYParser.ChildLValueContext ctx);
 	/**
-	 * Visit a parse tree produced by the {@code childNumer}
+	 * Visit a parse tree produced by the {@code childNumber}
 	 * labeled alternative in {@link SysYParser#primaryExpression}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitChildNumer(SysYParser.ChildNumerContext ctx);
+	T visitChildNumber(SysYParser.ChildNumberContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link SysYParser#lValue}.
 	 * @param ctx the parse tree

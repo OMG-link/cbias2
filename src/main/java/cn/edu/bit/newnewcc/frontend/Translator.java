@@ -25,7 +25,7 @@ public class Translator extends SysYBaseVisitor<Void> {
         LNOT,
         ADD, SUB, MUL, DIV, MOD,
         LT, GT, LE, GE, EQ, NE,
-        LAND, LOR;
+        LAND, LOR
     }
 
     private final SymbolTable symbolTable = new SymbolTable();
@@ -385,7 +385,7 @@ public class Translator extends SysYBaseVisitor<Void> {
         currentFunction.addBasicBlock(elseBlock);
         currentFunction.addBasicBlock(successorBlock);
 
-        visit(ctx.conditionalExpression());
+        visit(ctx.expression());
         if (result.getType() != IntegerType.getI1())
             applyTypeConversion(result, IntegerType.getI1());
 
