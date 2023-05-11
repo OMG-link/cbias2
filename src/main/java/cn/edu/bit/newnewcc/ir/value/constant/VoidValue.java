@@ -1,13 +1,13 @@
-package cn.edu.bit.newnewcc.ir.value;
+package cn.edu.bit.newnewcc.ir.value.constant;
 
-import cn.edu.bit.newnewcc.ir.Value;
 import cn.edu.bit.newnewcc.ir.type.VoidType;
+import cn.edu.bit.newnewcc.ir.value.Constant;
 
 /**
  * void值 <br>
  * ReturnInst在返回void时会用到该值 <br>
  */
-public class VoidValue extends Value {
+public class VoidValue extends Constant {
     private VoidValue() {
         super(VoidType.getInstance());
     }
@@ -15,6 +15,11 @@ public class VoidValue extends Value {
     @Override
     public String getValueName() {
         throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public boolean isFilledWithZero() {
+        return true;
     }
 
     @Override

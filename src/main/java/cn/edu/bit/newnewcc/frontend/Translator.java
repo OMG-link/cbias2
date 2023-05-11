@@ -10,9 +10,9 @@ import cn.edu.bit.newnewcc.ir.type.VoidType;
 import cn.edu.bit.newnewcc.ir.value.BasicBlock;
 import cn.edu.bit.newnewcc.ir.value.Function;
 import cn.edu.bit.newnewcc.ir.value.Instruction;
-import cn.edu.bit.newnewcc.ir.value.VoidValue;
 import cn.edu.bit.newnewcc.ir.value.constant.ConstFloat;
 import cn.edu.bit.newnewcc.ir.value.constant.ConstInt;
+import cn.edu.bit.newnewcc.ir.value.constant.VoidValue;
 import cn.edu.bit.newnewcc.ir.value.instruction.*;
 import org.antlr.v4.runtime.Token;
 
