@@ -53,7 +53,7 @@ public class IrSemanticCheckPass {
     }
 
     private void verifyFunction(Function function) {
-        // Collect all local values and basic block entries
+        // 收集局部变量列表
         localValues = new HashSet<>(globalValues);
         localValues.addAll(function.getFormalParameters());
         localValues.addAll(function.getBasicBlocks());
@@ -64,11 +64,11 @@ public class IrSemanticCheckPass {
                 }
             }
         }
-        // Check use relationship
+        // 检查每个基本块是否正常
         function.getBasicBlocks().forEach(basicBlock ->
                 verifyBasicBlock(basicBlock, basicBlock == function.getEntryBasicBlock())
         );
-        // Check phi instructions
+        // 用 getExitBlocks 方法收集块入口列表
         basicBlockEntries = new HashMap<>();
         for (BasicBlock basicBlock : function.getBasicBlocks()) {
             basicBlockEntries.put(basicBlock, new HashSet<>());
@@ -78,6 +78,7 @@ public class IrSemanticCheckPass {
                     exitBlock -> basicBlockEntries.get(exitBlock).add(basicBlock)
             );
         }
+        // 检查 Phi 语句
         for (BasicBlock basicBlock : function.getBasicBlocks()) {
             for (Instruction instruction : basicBlock.getLeadingInstructions()) {
                 if (instruction instanceof PhiInst phiInst) {
@@ -85,6 +86,14 @@ public class IrSemanticCheckPass {
                         throw new SemanticCheckFailedException("Phi instruction's entry map does not match basic block entries.");
                     }
                 }
+            }
+        }
+        // 检查基本块维护的入口块列表是否正确
+        for (BasicBlock basicBlock : function.getBasicBlocks()) {
+            if (!Objects.equals(basicBlock.getEntryBlocks(), basicBlockEntries.get(basicBlock))) {
+                System.out.println(basicBlock.getEntryBlocks().getClass());
+                System.out.println(basicBlockEntries.get(basicBlock).getClass());
+                throw new SemanticCheckFailedException("Block entry was not properly maintained.");
             }
         }
     }
