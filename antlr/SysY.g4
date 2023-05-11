@@ -52,21 +52,40 @@ statement:
 	| RETURN expression? SEMI # returnStatement
     ;
 
-expression: additiveExpression;
+expression: logicalOrExpression;
 
 conditionalExpression: logicalOrExpression;
 
-lValue: Identifier (LBRACKET expression RBRACKET)*;
+constantExpression: logicalOrExpression;
 
-primaryExpression:
-	LPAREN expression RPAREN # parenthesizedExpression
-	| lValue # childLValue
-	| number # childNumer
+logicalOrExpression:
+	logicalAndExpression # childLogicalAndExpression
+	| logicalOrExpression LOR logicalAndExpression # binaryLogicalOrExpression
 	;
 
-number:
-	IntegerConstant # integerConstant
-	| FloatingConstant # floatingConstant
+logicalAndExpression:
+	equalityExpression # childEqualityExpression
+	| logicalAndExpression LAND equalityExpression # binaryLogicalAndExpression
+	;
+
+equalityExpression:
+	relationalExpression # childRelationalExoression
+	| equalityExpression op=(EQ | NE) relationalExpression # binaryEqualityExpression
+	;
+
+relationalExpression:
+	additiveExpression # childAdditiveExpression
+	| relationalExpression op=(LT | GT | LE | GE) additiveExpression # binaryRelationalExpression
+	;
+
+additiveExpression:
+	multiplicativeExpression # childMultiplicativeExpression
+	| additiveExpression op=(ADD | SUB) multiplicativeExpression # binaryAdditiveExpression
+	;
+
+multiplicativeExpression:
+	unaryExpression # childUnaryExpression
+	| multiplicativeExpression op=(MUL | DIV | MOD) unaryExpression # binaryMultiplicativeExpression
 	;
 
 unaryExpression:
@@ -75,41 +94,22 @@ unaryExpression:
 	| unaryOperator unaryExpression # unaryOperatorExpression
 	;
 
-unaryOperator: op=(ADD | SUB | LNOT);
+primaryExpression:
+	LPAREN expression RPAREN # parenthesizedExpression
+	| lValue # childLValue
+	| number # childNumer
+	;
+
+lValue: Identifier (LBRACKET expression RBRACKET)*;
+
+number:
+	IntegerConstant # integerConstant
+	| FloatingConstant # floatingConstant
+	;
 
 argumentExpressionList: expression (COMMA expression)*;
 
-multiplicativeExpression:
-	unaryExpression # childUnaryExpression
-	| unaryExpression op=(MUL | DIV | MOD) multiplicativeExpression # binaryMultiplicativeExpression
-	;
-
-additiveExpression:
-	multiplicativeExpression # childMultiplicativeExpression
-	| multiplicativeExpression op=(ADD | SUB) additiveExpression # binaryAdditiveExpression
-	;
-
-relationalExpression:
-	additiveExpression # childAdditiveExpression
-	| additiveExpression op=(LT | GT | LE | GE) relationalExpression # binaryRelationalExpression
-	;
-
-equalityExpression:
-	relationalExpression # childRelationalExoression
-	| relationalExpression op=(EQ | NE) equalityExpression # binaryEqualityExpression
-	;
-
-logicalAndExpression:
-	equalityExpression # childEqualityExpression
-	| equalityExpression op=LAND logicalAndExpression # binaryLogicalAndExpression
-	;
-
-logicalOrExpression:
-	logicalAndExpression # childLogicalAndExpression
-	| logicalAndExpression op=LOR logicalOrExpression # binaryLogicalOrExpression
-	;
-
-constantExpression: additiveExpression;
+unaryOperator: op=(ADD | SUB | LNOT);
 
 BREAK: 'break';
 CONST: 'const';

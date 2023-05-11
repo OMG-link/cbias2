@@ -1,5 +1,4 @@
-package cn.edu.bit.newnewcc.frontend;
-// Generated from SysY.g4 by ANTLR 4.12.0
+package cn.edu.bit.newnewcc.frontend;// Generated from SysY.g4 by ANTLR 4.12.0
 import org.antlr.v4.runtime.tree.ParseTreeVisitor;
 
 /**
@@ -171,46 +170,95 @@ public interface SysYVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitConditionalExpression(SysYParser.ConditionalExpressionContext ctx);
 	/**
-	 * Visit a parse tree produced by {@link SysYParser#lValue}.
+	 * Visit a parse tree produced by {@link SysYParser#constantExpression}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitLValue(SysYParser.LValueContext ctx);
+	T visitConstantExpression(SysYParser.ConstantExpressionContext ctx);
 	/**
-	 * Visit a parse tree produced by the {@code parenthesizedExpression}
-	 * labeled alternative in {@link SysYParser#primaryExpression}.
+	 * Visit a parse tree produced by the {@code childLogicalAndExpression}
+	 * labeled alternative in {@link SysYParser#logicalOrExpression}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitParenthesizedExpression(SysYParser.ParenthesizedExpressionContext ctx);
+	T visitChildLogicalAndExpression(SysYParser.ChildLogicalAndExpressionContext ctx);
 	/**
-	 * Visit a parse tree produced by the {@code childLValue}
-	 * labeled alternative in {@link SysYParser#primaryExpression}.
+	 * Visit a parse tree produced by the {@code binaryLogicalOrExpression}
+	 * labeled alternative in {@link SysYParser#logicalOrExpression}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitChildLValue(SysYParser.ChildLValueContext ctx);
+	T visitBinaryLogicalOrExpression(SysYParser.BinaryLogicalOrExpressionContext ctx);
 	/**
-	 * Visit a parse tree produced by the {@code childNumer}
-	 * labeled alternative in {@link SysYParser#primaryExpression}.
+	 * Visit a parse tree produced by the {@code binaryLogicalAndExpression}
+	 * labeled alternative in {@link SysYParser#logicalAndExpression}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitChildNumer(SysYParser.ChildNumerContext ctx);
+	T visitBinaryLogicalAndExpression(SysYParser.BinaryLogicalAndExpressionContext ctx);
 	/**
-	 * Visit a parse tree produced by the {@code integerConstant}
-	 * labeled alternative in {@link SysYParser#number}.
+	 * Visit a parse tree produced by the {@code childEqualityExpression}
+	 * labeled alternative in {@link SysYParser#logicalAndExpression}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitIntegerConstant(SysYParser.IntegerConstantContext ctx);
+	T visitChildEqualityExpression(SysYParser.ChildEqualityExpressionContext ctx);
 	/**
-	 * Visit a parse tree produced by the {@code floatingConstant}
-	 * labeled alternative in {@link SysYParser#number}.
+	 * Visit a parse tree produced by the {@code binaryEqualityExpression}
+	 * labeled alternative in {@link SysYParser#equalityExpression}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitFloatingConstant(SysYParser.FloatingConstantContext ctx);
+	T visitBinaryEqualityExpression(SysYParser.BinaryEqualityExpressionContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code childRelationalExoression}
+	 * labeled alternative in {@link SysYParser#equalityExpression}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitChildRelationalExoression(SysYParser.ChildRelationalExoressionContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code childAdditiveExpression}
+	 * labeled alternative in {@link SysYParser#relationalExpression}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitChildAdditiveExpression(SysYParser.ChildAdditiveExpressionContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code binaryRelationalExpression}
+	 * labeled alternative in {@link SysYParser#relationalExpression}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitBinaryRelationalExpression(SysYParser.BinaryRelationalExpressionContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code childMultiplicativeExpression}
+	 * labeled alternative in {@link SysYParser#additiveExpression}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitChildMultiplicativeExpression(SysYParser.ChildMultiplicativeExpressionContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code binaryAdditiveExpression}
+	 * labeled alternative in {@link SysYParser#additiveExpression}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitBinaryAdditiveExpression(SysYParser.BinaryAdditiveExpressionContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code binaryMultiplicativeExpression}
+	 * labeled alternative in {@link SysYParser#multiplicativeExpression}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitBinaryMultiplicativeExpression(SysYParser.BinaryMultiplicativeExpressionContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code childUnaryExpression}
+	 * labeled alternative in {@link SysYParser#multiplicativeExpression}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitChildUnaryExpression(SysYParser.ChildUnaryExpressionContext ctx);
 	/**
 	 * Visit a parse tree produced by the {@code childPrimaryExpression}
 	 * labeled alternative in {@link SysYParser#unaryExpression}.
@@ -233,11 +281,46 @@ public interface SysYVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitUnaryOperatorExpression(SysYParser.UnaryOperatorExpressionContext ctx);
 	/**
-	 * Visit a parse tree produced by {@link SysYParser#unaryOperator}.
+	 * Visit a parse tree produced by the {@code parenthesizedExpression}
+	 * labeled alternative in {@link SysYParser#primaryExpression}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitUnaryOperator(SysYParser.UnaryOperatorContext ctx);
+	T visitParenthesizedExpression(SysYParser.ParenthesizedExpressionContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code childLValue}
+	 * labeled alternative in {@link SysYParser#primaryExpression}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitChildLValue(SysYParser.ChildLValueContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code childNumer}
+	 * labeled alternative in {@link SysYParser#primaryExpression}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitChildNumer(SysYParser.ChildNumerContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link SysYParser#lValue}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitLValue(SysYParser.LValueContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code integerConstant}
+	 * labeled alternative in {@link SysYParser#number}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitIntegerConstant(SysYParser.IntegerConstantContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code floatingConstant}
+	 * labeled alternative in {@link SysYParser#number}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitFloatingConstant(SysYParser.FloatingConstantContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link SysYParser#argumentExpressionList}.
 	 * @param ctx the parse tree
@@ -245,93 +328,9 @@ public interface SysYVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitArgumentExpressionList(SysYParser.ArgumentExpressionListContext ctx);
 	/**
-	 * Visit a parse tree produced by the {@code binaryMultiplicativeExpression}
-	 * labeled alternative in {@link SysYParser#multiplicativeExpression}.
+	 * Visit a parse tree produced by {@link SysYParser#unaryOperator}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitBinaryMultiplicativeExpression(SysYParser.BinaryMultiplicativeExpressionContext ctx);
-	/**
-	 * Visit a parse tree produced by the {@code childUnaryExpression}
-	 * labeled alternative in {@link SysYParser#multiplicativeExpression}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitChildUnaryExpression(SysYParser.ChildUnaryExpressionContext ctx);
-	/**
-	 * Visit a parse tree produced by the {@code childMultiplicativeExpression}
-	 * labeled alternative in {@link SysYParser#additiveExpression}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitChildMultiplicativeExpression(SysYParser.ChildMultiplicativeExpressionContext ctx);
-	/**
-	 * Visit a parse tree produced by the {@code binaryAdditiveExpression}
-	 * labeled alternative in {@link SysYParser#additiveExpression}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitBinaryAdditiveExpression(SysYParser.BinaryAdditiveExpressionContext ctx);
-	/**
-	 * Visit a parse tree produced by the {@code childAdditiveExpression}
-	 * labeled alternative in {@link SysYParser#relationalExpression}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitChildAdditiveExpression(SysYParser.ChildAdditiveExpressionContext ctx);
-	/**
-	 * Visit a parse tree produced by the {@code binaryRelationalExpression}
-	 * labeled alternative in {@link SysYParser#relationalExpression}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitBinaryRelationalExpression(SysYParser.BinaryRelationalExpressionContext ctx);
-	/**
-	 * Visit a parse tree produced by the {@code binaryEqualityExpression}
-	 * labeled alternative in {@link SysYParser#equalityExpression}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitBinaryEqualityExpression(SysYParser.BinaryEqualityExpressionContext ctx);
-	/**
-	 * Visit a parse tree produced by the {@code childRelationalExoression}
-	 * labeled alternative in {@link SysYParser#equalityExpression}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitChildRelationalExoression(SysYParser.ChildRelationalExoressionContext ctx);
-	/**
-	 * Visit a parse tree produced by the {@code binaryLogicalAndExpression}
-	 * labeled alternative in {@link SysYParser#logicalAndExpression}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitBinaryLogicalAndExpression(SysYParser.BinaryLogicalAndExpressionContext ctx);
-	/**
-	 * Visit a parse tree produced by the {@code childEqualityExpression}
-	 * labeled alternative in {@link SysYParser#logicalAndExpression}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitChildEqualityExpression(SysYParser.ChildEqualityExpressionContext ctx);
-	/**
-	 * Visit a parse tree produced by the {@code childLogicalAndExpression}
-	 * labeled alternative in {@link SysYParser#logicalOrExpression}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitChildLogicalAndExpression(SysYParser.ChildLogicalAndExpressionContext ctx);
-	/**
-	 * Visit a parse tree produced by the {@code binaryLogicalOrExpression}
-	 * labeled alternative in {@link SysYParser#logicalOrExpression}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitBinaryLogicalOrExpression(SysYParser.BinaryLogicalOrExpressionContext ctx);
-	/**
-	 * Visit a parse tree produced by {@link SysYParser#constantExpression}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitConstantExpression(SysYParser.ConstantExpressionContext ctx);
+	T visitUnaryOperator(SysYParser.UnaryOperatorContext ctx);
 }
