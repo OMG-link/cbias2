@@ -277,10 +277,16 @@ public class Translator extends SysYBaseVisitor<Void> {
         Type type = makeType(ctx.typeSpecifier().type);
 
         for (var variableDefinition : ctx.variableDefinition()) {
-            String name = variableDefinition.Identifier().getText();
             var address = new AllocateInst(type);
             currentBasicBlock.addInstruction(address);
+
+            String name = variableDefinition.Identifier().getText();
             symbolTable.putLocalVariable(name, address);
+
+            if (variableDefinition.initializer() != null) {
+                visit(variableDefinition.initializer());
+                currentBasicBlock.addInstruction(new StoreInst(address, result));
+            }
         }
 
         return null;
@@ -291,11 +297,9 @@ public class Translator extends SysYBaseVisitor<Void> {
         String name = ctx.Identifier().getText();
         Type returnType = makeType(ctx.typeSpecifier().type);
         List<Type> parameterTypes = new ArrayList<>();
-        if (ctx.parameterList() != null) {
-            for (var parameterDeclaration : ctx.parameterList().parameterDeclaration()) {
+        if (ctx.parameterList() != null)
+            for (var parameterDeclaration : ctx.parameterList().parameterDeclaration())
                 parameterTypes.add(makeType(parameterDeclaration.typeSpecifier().type));
-            }
-        }
 
         FunctionType type = FunctionType.getInstance(returnType, parameterTypes);
 
