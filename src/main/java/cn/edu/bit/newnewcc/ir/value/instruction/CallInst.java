@@ -32,7 +32,7 @@ public class CallInst extends Instruction {
      * @param functionType 函数类型
      */
     public CallInst(FunctionType functionType) {
-        super(functionType);
+        super(functionType.getReturnType());
         this.calleeOperand = new Operand(this, functionType, null);
         this.argumentOperands = new ArrayList<>();
         for (var type : functionType.getParameterTypes()) {
@@ -47,7 +47,7 @@ public class CallInst extends Instruction {
      * @param arguments 实参列表
      */
     public CallInst(AbstractFunction function, List<Value> arguments) {
-        super(function.getType());
+        super(function.getReturnType());
         this.calleeOperand = new Operand(this, function.getType(), function);
         if (arguments.size() != function.getParameterTypes().size()) {
             throw new IllegalArgumentException("Size of provided argument does not match the one required by function");
