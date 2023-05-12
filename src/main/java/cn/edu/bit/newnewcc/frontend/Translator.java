@@ -164,7 +164,7 @@ public class Translator extends SysYBaseVisitor<Void> {
             applyTypeConversion(result, IntegerType.getI32());
     }
 
-    public void applyBinaryArithmeticOperator(Value leftOperand, Value rightOperand, Operator operator) {
+    private void applyBinaryArithmeticOperator(Value leftOperand, Value rightOperand, Operator operator) {
         Type operandType = Types.commonType(leftOperand.getType(), rightOperand.getType());
 
         if (!leftOperand.getType().equals(operandType)) {
@@ -201,7 +201,7 @@ public class Translator extends SysYBaseVisitor<Void> {
         result = instruction;
     }
 
-    public void applyBinaryRelationalOperator(Value leftOperand, Value rightOperand, Operator operator) {
+    private void applyBinaryRelationalOperator(Value leftOperand, Value rightOperand, Operator operator) {
         Type operandType = Types.commonType(leftOperand.getType(), rightOperand.getType());
 
         if (!leftOperand.getType().equals(operandType)) {
