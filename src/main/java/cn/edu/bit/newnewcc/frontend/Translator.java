@@ -309,9 +309,10 @@ public class Translator extends SysYBaseVisitor<Void> {
 
         visit(ctx.compoundStatement());
 
+        if (returnType == VoidType.getInstance())
+            currentBasicBlock.addInstruction(new ReturnInst(VoidValue.getInstance()));
+
         if (currentBasicBlock.getInstructions().isEmpty()) {
-            if (returnType == VoidType.getInstance())
-                currentBasicBlock.addInstruction(new ReturnInst(VoidValue.getInstance()));
             if (returnType == IntegerType.getI32())
                 currentBasicBlock.addInstruction(new ReturnInst(ConstInt.getInstance(0)));
             if (returnType == FloatType.getFloat())
