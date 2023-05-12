@@ -95,7 +95,7 @@ unaryExpression:
 primaryExpression:
 	LPAREN expression RPAREN # parenthesizedExpression
 	| lValue # childLValue
-	| number # childNumer
+	| number # childNumber
 	;
 
 lValue: Identifier (LBRACKET expression RBRACKET)*;
@@ -151,7 +151,7 @@ SEMI: ';';
 
 Identifier: Nondigit (Nondigit | Digit)*;
 
-fragment Nondigit: [a-zA-Z];
+fragment Nondigit: [a-zA-Z_];
 
 fragment Digit: [0-9];
 
