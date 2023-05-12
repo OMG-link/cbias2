@@ -2,6 +2,8 @@ package cn.edu.bit.newnewcc.frontend;
 
 import cn.edu.bit.newnewcc.frontend.antlr.SysYBaseVisitor;
 import cn.edu.bit.newnewcc.frontend.antlr.SysYParser;
+import cn.edu.bit.newnewcc.frontend.util.Constants;
+import cn.edu.bit.newnewcc.frontend.util.Types;
 import cn.edu.bit.newnewcc.ir.Module;
 import cn.edu.bit.newnewcc.ir.Type;
 import cn.edu.bit.newnewcc.ir.Value;
@@ -9,10 +11,7 @@ import cn.edu.bit.newnewcc.ir.type.FloatType;
 import cn.edu.bit.newnewcc.ir.type.FunctionType;
 import cn.edu.bit.newnewcc.ir.type.IntegerType;
 import cn.edu.bit.newnewcc.ir.type.VoidType;
-import cn.edu.bit.newnewcc.ir.value.AbstractFunction;
-import cn.edu.bit.newnewcc.ir.value.BasicBlock;
-import cn.edu.bit.newnewcc.ir.value.Function;
-import cn.edu.bit.newnewcc.ir.value.Instruction;
+import cn.edu.bit.newnewcc.ir.value.*;
 import cn.edu.bit.newnewcc.ir.value.constant.ConstFloat;
 import cn.edu.bit.newnewcc.ir.value.constant.ConstInt;
 import cn.edu.bit.newnewcc.ir.value.constant.VoidValue;
@@ -23,24 +22,16 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Translator extends SysYBaseVisitor<Void> {
-    private enum Operator {
-        POS, NEG,
-        LNOT,
-        ADD, SUB, MUL, DIV, MOD,
-        LT, GT, LE, GE, EQ, NE,
-        LAND, LOR
-    }
-
     private final SymbolTable symbolTable = new SymbolTable();
     private final ControlFlowStack controlFlowStack = new ControlFlowStack();
-    private Module currentModule;
+    private Module module;
     private Function currentFunction;
     private BasicBlock currentBasicBlock;
     private Value result;
     private Value resultAddress;
 
     public Module getModule() {
-        return currentModule;
+        return module;
     }
 
     private Type makeType(Token token) {
@@ -78,13 +69,6 @@ public class Translator extends SysYBaseVisitor<Void> {
             case SysYParser.LOR -> Operator.LOR;
             default -> throw new IllegalArgumentException();
         };
-    }
-
-    private Type commonType(Type firstType, Type secondType) {
-        if (firstType.equals(secondType)) return firstType;
-        if (firstType == IntegerType.getI32() && secondType == FloatType.getFloat()) return FloatType.getFloat();
-        if (firstType == FloatType.getFloat() && secondType == IntegerType.getI32()) return FloatType.getFloat();
-        throw new IllegalArgumentException();
     }
 
     private void applyTypeConversion(Value value, Type targetType) {
@@ -148,14 +132,13 @@ public class Translator extends SysYBaseVisitor<Void> {
     }
 
     public void applyBinaryArithmeticOperator(Value leftOperand, Value rightOperand, Operator operator) {
-        Type operandType = commonType(leftOperand.getType(), rightOperand.getType());
+        Type operandType = Types.commonType(leftOperand.getType(), rightOperand.getType());
 
-        if (leftOperand.getType() != operandType) {
+        if (!leftOperand.getType().equals(operandType)) {
             applyTypeConversion(leftOperand, operandType);
             leftOperand = result;
         }
-
-        if (rightOperand.getType() != operandType) {
+        if (!rightOperand.getType().equals(operandType)) {
             applyTypeConversion(rightOperand, operandType);
             rightOperand = result;
         }
@@ -186,14 +169,13 @@ public class Translator extends SysYBaseVisitor<Void> {
     }
 
     public void applyBinaryRelationalOperator(Value leftOperand, Value rightOperand, Operator operator) {
-        Type operandType = commonType(leftOperand.getType(), rightOperand.getType());
+        Type operandType = Types.commonType(leftOperand.getType(), rightOperand.getType());
 
-        if (leftOperand.getType() != operandType) {
+        if (!leftOperand.getType().equals(operandType)) {
             applyTypeConversion(leftOperand, operandType);
             leftOperand = result;
         }
-
-        if (rightOperand.getType() != operandType) {
+        if (!rightOperand.getType().equals(operandType)) {
             applyTypeConversion(rightOperand, operandType);
             rightOperand = result;
         }
@@ -265,10 +247,48 @@ public class Translator extends SysYBaseVisitor<Void> {
 
     @Override
     public Void visitCompilationUnit(SysYParser.CompilationUnitContext ctx) {
-        currentModule = new Module();
+        module = new Module();
+
+        for (var declaration : ctx.declaration())
+            visit(declaration);
 
         for (var functionDefinition : ctx.functionDefinition())
             visit(functionDefinition);
+
+        return null;
+    }
+
+    @Override
+    public Void visitConstantDeclaration(SysYParser.ConstantDeclarationContext ctx) {
+        Type type = makeType(ctx.typeSpecifier().type);
+
+        for (var constantDefinition : ctx.constantDefinition()) {
+            if (symbolTable.getScopeDepth() > 0) {
+                var address = new AllocateInst(type);
+                currentBasicBlock.addInstruction(address);
+
+                String name = constantDefinition.Identifier().getText();
+                symbolTable.putLocalVariable(name, address);
+
+                if (constantDefinition.constantInitializer() != null) {
+                    visit(constantDefinition.constantInitializer());
+                    currentBasicBlock.addInstruction(new StoreInst(address, result));
+                }
+            } else {
+                Constant initialValue = Constants.zero(type);
+                if (constantDefinition.constantInitializer() != null) {
+                    visit(constantDefinition.constantInitializer());
+                    initialValue = (Constant) result;
+                }
+
+                String name = constantDefinition.Identifier().getText();
+
+                GlobalVariable globalVariable = new GlobalVariable(true, initialValue);
+                globalVariable.setValueName(name);
+                module.addGlobalVariable(globalVariable);
+                symbolTable.putGlobalVariable(name, globalVariable);
+            }
+        }
 
         return null;
     }
@@ -278,15 +298,30 @@ public class Translator extends SysYBaseVisitor<Void> {
         Type type = makeType(ctx.typeSpecifier().type);
 
         for (var variableDefinition : ctx.variableDefinition()) {
-            var address = new AllocateInst(type);
-            currentBasicBlock.addInstruction(address);
+            if (symbolTable.getScopeDepth() > 0) {
+                var address = new AllocateInst(type);
+                currentBasicBlock.addInstruction(address);
 
-            String name = variableDefinition.Identifier().getText();
-            symbolTable.putLocalVariable(name, address);
+                String name = variableDefinition.Identifier().getText();
+                symbolTable.putLocalVariable(name, address);
 
-            if (variableDefinition.initializer() != null) {
-                visit(variableDefinition.initializer());
-                currentBasicBlock.addInstruction(new StoreInst(address, result));
+                if (variableDefinition.initializer() != null) {
+                    visit(variableDefinition.initializer());
+                    currentBasicBlock.addInstruction(new StoreInst(address, result));
+                }
+            } else {
+                Constant initialValue = Constants.zero(type);
+                if (variableDefinition.initializer() != null) {
+                    visit(variableDefinition.initializer());
+                    initialValue = (Constant) result;
+                }
+
+                String name = variableDefinition.Identifier().getText();
+
+                GlobalVariable globalVariable = new GlobalVariable(false, initialValue);
+                globalVariable.setValueName(name);
+                module.addGlobalVariable(globalVariable);
+                symbolTable.putGlobalVariable(name, globalVariable);
             }
         }
 
@@ -307,7 +342,7 @@ public class Translator extends SysYBaseVisitor<Void> {
         currentFunction = new Function(type);
         currentFunction.setValueName(name);
 
-        currentModule.addFunction(currentFunction);
+        module.addFunction(currentFunction);
         symbolTable.putFunction(name, currentFunction);
 
         currentBasicBlock = currentFunction.getEntryBasicBlock();
@@ -586,7 +621,13 @@ public class Translator extends SysYBaseVisitor<Void> {
         visit(ctx.multiplicativeExpression());
         Value rightOperand = result;
 
-        applyBinaryArithmeticOperator(leftOperand, rightOperand, makeBinaryOperator(ctx.op));
+        Operator operator = makeBinaryOperator(ctx.op);
+
+        if (symbolTable.getScopeDepth() > 0)
+            applyBinaryArithmeticOperator(leftOperand, rightOperand, operator);
+        else
+            result = Constants.applyBinaryOperator((Constant) leftOperand, (Constant) rightOperand, operator);
+
         return null;
     }
 
@@ -598,7 +639,13 @@ public class Translator extends SysYBaseVisitor<Void> {
         visit(ctx.unaryExpression());
         Value rightOperand = result;
 
-        applyBinaryArithmeticOperator(leftOperand, rightOperand, makeBinaryOperator(ctx.op));
+        Operator operator = makeBinaryOperator(ctx.op);
+
+        if (symbolTable.getScopeDepth() > 0)
+            applyBinaryArithmeticOperator(leftOperand, rightOperand, operator);
+        else
+            result = Constants.applyBinaryOperator((Constant) leftOperand, (Constant) rightOperand, operator);
+
         return null;
     }
 
@@ -625,14 +672,21 @@ public class Translator extends SysYBaseVisitor<Void> {
     @Override
     public Void visitUnaryOperatorExpression(SysYParser.UnaryOperatorExpressionContext ctx) {
         visit(ctx.unaryExpression());
-        applyUnaryOperator(result, makeUnaryOperator(ctx.unaryOperator().op));
+        Value operand = result;
+        Operator operator = makeUnaryOperator(ctx.unaryOperator().op);
+
+        if (symbolTable.getScopeDepth() > 0)
+            applyUnaryOperator(operand, operator);
+        else
+            result = Constants.applyUnaryOperator((Constant) operand, operator);
+
         return null;
     }
 
     @Override
     public Void visitLValue(SysYParser.LValueContext ctx) {
         String name = ctx.Identifier().getText();
-        resultAddress = symbolTable.getLocalVariable(name);
+        resultAddress = symbolTable.getVariable(name);
 
         var value = new LoadInst(resultAddress);
         currentBasicBlock.addInstruction(value);
