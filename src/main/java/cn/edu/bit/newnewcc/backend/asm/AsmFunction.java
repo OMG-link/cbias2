@@ -101,7 +101,6 @@ public class AsmFunction {
     }
 
 
-
     //函数内部资源分配器
     private final StackAllocator stackAllocator = new StackAllocator();
     private final RegisterAllocator registerAllocator = new RegisterAllocator();
@@ -135,7 +134,6 @@ public class AsmFunction {
     public StackAllocator getStackAllocator() {
         return stackAllocator;
     }
-
 
 
     //调用另一个函数的汇编代码
@@ -188,23 +186,28 @@ public class AsmFunction {
     public static class RegisterAllocator {
         Map<Instruction, IntRegister> registerMap;
         int total;
+
         RegisterAllocator() {
             total = 0;
             registerMap = new HashMap<>();
         }
+
         IntRegister allocate(Instruction instruction) {
             total -= 1;
             IntRegister reg = new IntRegister(total);
             registerMap.put(instruction, reg);
             return reg;
         }
+
         IntRegister allocate() {
             total -= 1;
             return new IntRegister(total);
         }
+
         IntRegister get(Instruction instruction) {
             return registerMap.get(instruction);
         }
+
         boolean contain(Instruction instruction) {
             return registerMap.containsKey(instruction);
         }
@@ -213,23 +216,28 @@ public class AsmFunction {
     public static class FloatRegisterAllocator {
         Map<Instruction, FloatRegister> registerMap;
         int total;
+
         FloatRegisterAllocator() {
             total = 0;
             registerMap = new HashMap<>();
         }
+
         FloatRegister allocate(Instruction instruction) {
             total -= 1;
             FloatRegister reg = new FloatRegister(total);
             registerMap.put(instruction, reg);
             return reg;
         }
+
         FloatRegister allocate() {
             total -= 1;
             return new FloatRegister(total);
         }
+
         FloatRegister get(Instruction instruction) {
             return registerMap.get(instruction);
         }
+
         boolean contain(Instruction instruction) {
             return registerMap.containsKey(instruction);
         }
@@ -284,6 +292,7 @@ public class AsmFunction {
             res.add(new AsmStore(s0, new Address(maxSize - 16, sp)));
             return res;
         }
+
         public Collection<AsmInstruction> emitTail() {
             List<AsmInstruction> res = new ArrayList<>();
             IntRegister sp = new IntRegister("sp");

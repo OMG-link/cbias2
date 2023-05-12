@@ -16,6 +16,7 @@ public class AsmBasicBlock {
     private final GlobalTag blockTag;
     private final AsmFunction function;
     private final BasicBlock irBlock;
+
     public AsmBasicBlock(AsmFunction function, BasicBlock block) {
         this.function = function;
         this.blockTag = new GlobalTag(function.getFunctionName() + "_" + block.getValueName(), false);

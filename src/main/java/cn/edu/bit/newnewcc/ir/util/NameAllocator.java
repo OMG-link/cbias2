@@ -24,12 +24,12 @@ public class NameAllocator {
      * @param function 局部变量所属的函数
      * @return 一个纯数字的名字
      */
-    public static @NonNull String getLvName(Function function){
-        if(lvAllocateState ==null){
+    public static @NonNull String getLvName(Function function) {
+        if (lvAllocateState == null) {
             lvAllocateState = new HashMap<>();
         }
-        int id = lvAllocateState.getOrDefault(function,-1)+1;
-        lvAllocateState.put(function,id);
+        int id = lvAllocateState.getOrDefault(function, -1) + 1;
+        lvAllocateState.put(function, id);
         return String.valueOf(id);
     }
 
@@ -43,7 +43,7 @@ public class NameAllocator {
      *
      * @return 一个纯数字的名字
      */
-    public static @NonNull String getGvName(){
+    public static @NonNull String getGvName() {
         return String.valueOf(gvAllocateState++);
     }
 

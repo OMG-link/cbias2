@@ -22,7 +22,7 @@ public class FloatType extends Type {
 
     @Override
     protected String getTypeName_() {
-        return switch (bitWidth){
+        return switch (bitWidth) {
             case 32 -> "float";
             default -> throw new IllegalStateException("Illegal floating number bit width: " + bitWidth);
         };
@@ -51,11 +51,11 @@ public class FloatType extends Type {
     private static Map<Integer, FloatType> instanceMap = null;
 
     private static FloatType getInstance(int bitWidth) {
-        if(instanceMap==null){
+        if (instanceMap == null) {
             instanceMap = new HashMap<>();
         }
-        if(!instanceMap.containsKey(bitWidth)){
-            if(!isBitWidthLegal(bitWidth)){
+        if (!instanceMap.containsKey(bitWidth)) {
+            if (!isBitWidthLegal(bitWidth)) {
                 throw new IllegalBitWidthException();
             }
             instanceMap.put(bitWidth, new FloatType(bitWidth));
@@ -63,7 +63,7 @@ public class FloatType extends Type {
         return instanceMap.get(bitWidth);
     }
 
-    public static FloatType getFloat(){
+    public static FloatType getFloat() {
         return getInstance(32);
     }
 

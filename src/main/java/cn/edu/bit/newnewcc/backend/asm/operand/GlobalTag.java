@@ -31,7 +31,7 @@ public class GlobalTag extends AsmOperand {
      * <p>
      * 另一类是局部的块标签、数据标签等，无需globl标记，通常在前方加'.'作为区分
      *
-     * @param tagName 标识符名称
+     * @param tagName     标识符名称
      * @param isLinkedTag 是否是带有标记的全局类标签
      */
     public GlobalTag(String tagName, boolean isLinkedTag) {

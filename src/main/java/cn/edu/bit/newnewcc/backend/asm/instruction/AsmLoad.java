@@ -51,7 +51,7 @@ public class AsmLoad extends AsmInstruction {
                 } else if (stackVar.getSize() == 4) {
                     setInstructionName("flw");
                 }
-            } else if (source.isRegister() && ((Register)source).isFloat()) {
+            } else if (source.isRegister() && ((Register) source).isFloat()) {
                 setInstructionName("fmv.d.x");
             }
         }

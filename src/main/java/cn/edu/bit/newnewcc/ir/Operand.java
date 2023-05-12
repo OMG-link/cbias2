@@ -29,10 +29,10 @@ public class Operand {
      * 构造一个操作数
      *
      * @param instruction 操作数所属的指令
-     * @param type 操作数的类型限制，null表示无限制
-     * @param value 操作数的初始值，null表示不绑定初始值
+     * @param type        操作数的类型限制，null表示无限制
+     * @param value       操作数的初始值，null表示不绑定初始值
      */
-    public Operand(Instruction instruction, Type type, Value value){
+    public Operand(Instruction instruction, Type type, Value value) {
         this.instruction = instruction;
         this.type = type;
         this.value = null;
@@ -52,7 +52,7 @@ public class Operand {
      * @return 若绑定了值，返回true；否则返回false
      */
     public boolean hasValueBound() {
-        return value!=null;
+        return value != null;
     }
 
     /**
@@ -68,16 +68,16 @@ public class Operand {
      * @param value 操作数的新值
      */
     public void setValue(Value value) {
-        if(value!=null){
-            if(type !=null&&value.getType()!= type){
-                throw new OperandTypeMismatchException(instruction, type,value.getType());
+        if (value != null) {
+            if (type != null && value.getType() != type) {
+                throw new OperandTypeMismatchException(instruction, type, value.getType());
             }
         }
-        if(this.value!=null){
+        if (this.value != null) {
             this.value.__removeUsage__(this);
         }
         this.value = value;
-        if(this.value!=null){
+        if (this.value != null) {
             this.value.__addUsage__(this);
         }
     }
@@ -85,7 +85,7 @@ public class Operand {
     /**
      * 移除当前操作数绑定的值
      */
-    public void removeValue(){
+    public void removeValue() {
         this.setValue(null);
     }
 

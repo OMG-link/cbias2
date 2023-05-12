@@ -18,7 +18,7 @@ public class ExternalFunction extends AbstractFunction {
 
     @Override
     public String getValueNameIR() {
-        return '@'+functionName;
+        return '@' + functionName;
     }
 
     @Override

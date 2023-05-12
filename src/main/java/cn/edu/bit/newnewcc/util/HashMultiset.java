@@ -54,7 +54,7 @@ public class HashMultiset<E> implements Iterable<E> {
 
     private final HashMap<E, Integer> hashMap = new HashMap<>();
 
-    public boolean contains(E e){
+    public boolean contains(E e) {
         return hashMap.containsKey(e);
     }
 
@@ -95,6 +95,7 @@ public class HashMultiset<E> implements Iterable<E> {
 
     /**
      * 从集合中移除一个元素（若元素出现了多次，则全部移除）
+     *
      * @param e 待移除的元素
      * @return 成功移除元素的数量（当元素不存在时，返回0）
      */
@@ -108,9 +109,10 @@ public class HashMultiset<E> implements Iterable<E> {
 
     /**
      * 获取当前集合的一个ArrayList版复制
+     *
      * @return 当前集合内元素构成的ArrayList
      */
-    public ArrayList<E> getArrayCopy(){
+    public ArrayList<E> getArrayCopy() {
         var array = new ArrayList<E>();
         for (E e : this) {
             array.add(e);

@@ -33,8 +33,8 @@ public class ConstInt extends Constant {
         if (instanceMap == null) {
             instanceMap = new HashMap<>();
         }
-        if(!instanceMap.containsKey(value)){
-            instanceMap.put(value,new ConstInt(value));
+        if (!instanceMap.containsKey(value)) {
+            instanceMap.put(value, new ConstInt(value));
         }
         return instanceMap.get(value);
     }

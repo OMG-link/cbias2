@@ -45,7 +45,7 @@ abstract public class BinaryInstruction extends Instruction {
     /**
      * 获取指令的名称，其中可以包含空格。指令将被打印为：
      * <p>
-     * &lt;返回值名称&gt; = &lt;指令名称&gt; &lt;操作数类型&gt; &lt;操作数1&gt;, &lt;操作数2&gt;
+     * 返回值名称 = 指令名称 操作数类型 操作数1, 操作数2;
      * <p>
      * 例如：
      * <ul>

@@ -33,14 +33,14 @@ public class ConstFloat extends Constant {
         if (instanceMap == null) {
             instanceMap = new HashMap<>();
         }
-        if(!instanceMap.containsKey(value)){
-            instanceMap.put(value,new ConstFloat(value));
+        if (!instanceMap.containsKey(value)) {
+            instanceMap.put(value, new ConstFloat(value));
         }
         return instanceMap.get(value);
     }
 
     @Override
     public String getValueName() {
-        return "0x"+Long.toHexString(Double.doubleToLongBits(value));
+        return "0x" + Long.toHexString(Double.doubleToLongBits(value));
     }
 }

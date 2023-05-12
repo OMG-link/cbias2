@@ -36,7 +36,7 @@ public class VoidValue extends Constant {
     private static VoidValue voidValue = null;
 
     public static VoidValue getInstance() {
-        if(voidValue==null){
+        if (voidValue == null) {
             voidValue = new VoidValue();
         }
         return voidValue;

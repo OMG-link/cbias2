@@ -78,7 +78,7 @@ public abstract class Value {
      *
      * @param operand 操作数
      */
-    public void __addUsage__(Operand operand){
+    public void __addUsage__(Operand operand) {
         usages.add(operand);
     }
 
@@ -89,9 +89,9 @@ public abstract class Value {
      *
      * @param operand 操作数
      */
-    public void __removeUsage__(Operand operand){
+    public void __removeUsage__(Operand operand) {
         boolean success = usages.remove(operand);
-        if(!success){
+        if (!success) {
             throw new NoSuchElementException("Removing a non-existent usage");
         }
     }

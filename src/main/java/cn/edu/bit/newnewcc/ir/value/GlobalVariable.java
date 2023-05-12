@@ -20,14 +20,14 @@ public class GlobalVariable extends Value {
      *
      * @param type 全局变量的类型
      */
-    public GlobalVariable(Type type){
-        this(false,type.getDefaultInitialization());
+    public GlobalVariable(Type type) {
+        this(false, type.getDefaultInitialization());
     }
 
     /**
      * 指定初始值的全局变量
      *
-     * @param isConstant 该全局变量是否被定义为常量
+     * @param isConstant   该全局变量是否被定义为常量
      * @param initialValue 全局变量的初始值
      */
     public GlobalVariable(boolean isConstant, Constant initialValue) {
@@ -38,6 +38,7 @@ public class GlobalVariable extends Value {
 
     /**
      * 判断该全局变量是否被<strong>定义</strong>为常量
+     *
      * @return 若该全局变量被定义为常量，则返回true；否则返回false
      */
     public boolean isConstant() {
@@ -80,7 +81,7 @@ public class GlobalVariable extends Value {
 
     @Override
     public String getValueName() {
-        if(valueName==null){
+        if (valueName == null) {
             valueName = NameAllocator.getGvName();
         }
         return valueName;
@@ -88,7 +89,7 @@ public class GlobalVariable extends Value {
 
     @Override
     public String getValueNameIR() {
-        return '@'+getValueName();
+        return '@' + getValueName();
     }
 
     @Override

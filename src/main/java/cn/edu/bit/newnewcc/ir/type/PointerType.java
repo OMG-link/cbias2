@@ -50,8 +50,8 @@ public class PointerType extends Type {
             instanceMap = new HashMap<>();
         }
         var keyType = new PointerType(baseType);
-        if(!instanceMap.containsKey(keyType)){
-            instanceMap.put(keyType,keyType);
+        if (!instanceMap.containsKey(keyType)) {
+            instanceMap.put(keyType, keyType);
         }
         return instanceMap.get(keyType);
     }

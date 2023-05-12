@@ -444,7 +444,7 @@ public class Translator extends SysYBaseVisitor<Void> {
 
     @Override
     public Void visitBreakStatement(SysYParser.BreakStatementContext ctx) {
-        var doneBlock = ((ControlFlowStack.WhileContext)controlFlowStack.getTopContext()).getDoneBlock();
+        var doneBlock = ((ControlFlowStack.WhileContext) controlFlowStack.getTopContext()).getDoneBlock();
         currentBasicBlock.addInstruction(new JumpInst(doneBlock));
 
         currentBasicBlock = new BasicBlock();
@@ -455,7 +455,7 @@ public class Translator extends SysYBaseVisitor<Void> {
 
     @Override
     public Void visitContinueStatement(SysYParser.ContinueStatementContext ctx) {
-        var testBlock = ((ControlFlowStack.WhileContext)controlFlowStack.getTopContext()).getTestBlock();
+        var testBlock = ((ControlFlowStack.WhileContext) controlFlowStack.getTopContext()).getTestBlock();
         currentBasicBlock.addInstruction(new JumpInst(testBlock));
 
         currentBasicBlock = new BasicBlock();

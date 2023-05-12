@@ -19,7 +19,7 @@ public class OperandTypeMismatchException extends CompilationProcessCheckFailedE
         super(cause);
     }
 
-    public OperandTypeMismatchException(Instruction context, Type expectedType, Type actualType){
-        this(String.format("In instruction %s, expected type %s, got type %s",context,expectedType.getTypeName(),actualType.getTypeName()));
+    public OperandTypeMismatchException(Instruction context, Type expectedType, Type actualType) {
+        this(String.format("In instruction %s, expected type %s, got type %s", context, expectedType.getTypeName(), actualType.getTypeName()));
     }
 }

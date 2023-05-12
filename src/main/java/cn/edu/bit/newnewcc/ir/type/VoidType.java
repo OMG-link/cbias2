@@ -21,6 +21,7 @@ public class VoidType extends Type {
 
     /**
      * 获取Void类型的实例
+     *
      * @return Void类型的唯一实例
      */
     public static VoidType getInstance() {

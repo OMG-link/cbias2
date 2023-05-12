@@ -1,6 +1,6 @@
 package cn.edu.bit.newnewcc.ir.exception;
 
-public class CompilationProcessCheckFailedException extends RuntimeException{
+public class CompilationProcessCheckFailedException extends RuntimeException {
     public CompilationProcessCheckFailedException() {
     }
 
