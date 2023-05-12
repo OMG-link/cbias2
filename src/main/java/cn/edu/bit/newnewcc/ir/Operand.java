@@ -14,8 +14,9 @@ public class Operand {
     protected final Instruction instruction;
 
     /**
-     * 操作数类型的限制 <br>
-     * 值为null时表示不限制类型
+     * 操作数类型的限制
+     * <p>
+     * 值为null表示不限制类型
      */
     protected final Type type;
 
@@ -25,7 +26,8 @@ public class Operand {
     protected Value value;
 
     /**
-     * 构建一个操作数
+     * 构造一个操作数
+     *
      * @param instruction 操作数所属的指令
      * @param type 操作数的类型限制，null表示无限制
      * @param value 操作数的初始值，null表示不绑定初始值
@@ -46,7 +48,8 @@ public class Operand {
 
     /**
      * 判断当前操作数是否绑定了值
-     * @return 若绑定了值，返回True；否则返回False
+     *
+     * @return 若绑定了值，返回true；否则返回false
      */
     public boolean hasValueBound() {
         return value!=null;
@@ -61,6 +64,7 @@ public class Operand {
 
     /**
      * 修改操作数的值
+     *
      * @param value 操作数的新值
      */
     public void setValue(Value value) {

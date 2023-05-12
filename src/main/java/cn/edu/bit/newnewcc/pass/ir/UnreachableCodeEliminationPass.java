@@ -12,8 +12,9 @@ import java.util.*;
 import java.util.function.Consumer;
 
 /**
- * 删除不可达代码 <br>
- * 该Pass的功能是DeadCodeEliminationPass的子集 <br>
+ * 删除不可达代码
+ * <p>
+ * 该Pass的功能是DeadCodeEliminationPass的子集
  */
 public class UnreachableCodeEliminationPass {
     private UnreachableCodeEliminationPass() {

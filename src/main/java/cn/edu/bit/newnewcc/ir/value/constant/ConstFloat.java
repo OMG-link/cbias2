@@ -7,7 +7,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * const float
+ * 浮点型常量
  */
 public class ConstFloat extends Constant {
 

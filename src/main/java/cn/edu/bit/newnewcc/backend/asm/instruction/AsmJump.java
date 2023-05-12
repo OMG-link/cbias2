@@ -15,6 +15,7 @@ public class AsmJump extends AsmInstruction{
 
     /**
      * 基本跳转指令，按照条件向指定位置跳转
+     *
      * @param goalTag 跳转的目标位置
      * @param type 跳转条件的类型
      * @param operand1 跳转条件参数1

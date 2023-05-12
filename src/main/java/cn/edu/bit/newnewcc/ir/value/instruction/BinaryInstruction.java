@@ -43,13 +43,16 @@ abstract public class BinaryInstruction extends Instruction {
     }
 
     /**
-     * 获取指令的名称，其中可以包含空格。指令将被打印为： <br>
-     * &lt;返回值名称&gt; = &lt;指令名称&gt; &lt;操作数类型&gt; &lt;操作数1&gt;, &lt;操作数2&gt; <br>
-     * 例如: <br>
+     * 获取指令的名称，其中可以包含空格。指令将被打印为：
+     * <p>
+     * &lt;返回值名称&gt; = &lt;指令名称&gt; &lt;操作数类型&gt; &lt;操作数1&gt;, &lt;操作数2&gt;
+     * <p>
+     * 例如：
      * <ul>
      *     <li>%2 = add i32 %1, 1</li>
      *     <li>%4 = fcmp oeq float 3.0, %3</li>
      * </ul>
+     *
      * @return 指令的名称
      */
     protected abstract String getInstName();

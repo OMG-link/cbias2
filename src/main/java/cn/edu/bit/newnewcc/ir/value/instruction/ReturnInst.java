@@ -17,8 +17,10 @@ public class ReturnInst extends TerminateInst{
     private final Operand returnValueOperand;
 
     /**
-     * 构建一个未填入返回值的返回语句 <br>
-     * 若要构建返回void的语句，请使用new ReturnInst(VoidValue.getInstance()) <br>
+     * 构造一个未填入返回值的返回语句
+     * <p>
+     * 若要构造返回void的语句，请使用new ReturnInst(VoidValue.getInstance())
+     *
      * @param returnType 返回值类型
      */
     public ReturnInst(Type returnType) {
@@ -26,8 +28,10 @@ public class ReturnInst extends TerminateInst{
     }
 
     /**
-     * 构建一个返回语句 <br>
-     * 若要构建返回void的语句，请传入VoidValue.getInstance() <br>
+     * 构造一个返回语句
+     * <p>
+     * 若要构造返回void的语句，请传入VoidValue.getInstance()
+     *
      * @param returnValue 返回值
      */
     public ReturnInst(Value returnValue) {

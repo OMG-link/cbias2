@@ -4,7 +4,7 @@ import cn.edu.bit.newnewcc.ir.Value;
 import cn.edu.bit.newnewcc.ir.type.IntegerType;
 
 /**
- * 整数比较语句 <br>
+ * 整数比较语句
  */
 public class IntegerCompareInst extends CompareInst {
 

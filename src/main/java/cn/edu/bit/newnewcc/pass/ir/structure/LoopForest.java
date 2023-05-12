@@ -6,14 +6,16 @@ import cn.edu.bit.newnewcc.ir.value.Function;
 import java.util.*;
 
 /**
- * 循环森林 <br>
- * 每个函数内包含若干个循环树，这些树构成一个循环森林 <br>
+ * 循环森林
+ * <p>
+ * 每个函数内包含若干个循环树，这些树构成一个循环森林
  */
 public class LoopForest implements Iterable<Loop> {
 
     /**
-     * 构建过程中临时存储的全局信息 <br>
-     * 将在构建完成后被自动释放 <br>
+     * 构建过程中临时存储的全局信息
+     * <p>
+     * 将在构建完成后被自动释放
      */
     private static class Builder {
         public final DomTree domTree;
@@ -24,12 +26,12 @@ public class LoopForest implements Iterable<Loop> {
     }
 
     /**
-     * 所有循环树的根 <br>
+     * 所有循环树的根
      */
     private final List<Loop> rootLoops = new ArrayList<>();
 
     /**
-     * 基本块到循环的映射关系 <br>
+     * 基本块到循环的映射关系
      */
     private final Map<BasicBlock, Loop> basicBlockLoopMap = new HashMap<>();
 

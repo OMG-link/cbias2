@@ -20,8 +20,9 @@ public abstract class Instruction extends Value {
     }
 
     /**
-     * 废弃该语句 <br>
-     * 此操作会将该语句从基本块中移除，清除所有操作数绑定 <br>
+     * 废弃该语句
+     * <p>
+     * 此操作会将该语句从基本块中移除，清除所有操作数绑定
      */
     public void waste() {
         if (getUsages().size() > 0) {
@@ -92,8 +93,9 @@ public abstract class Instruction extends Value {
     }
 
     /**
-     * 将当前节点插入到乙节点后方 <br>
-     * 在插入前，需保证当前节点不属于任何链表 <br>
+     * 将当前节点插入到乙节点后方
+     * <p>
+     * 在插入前，需保证当前节点不属于任何链表
      *
      * @param beta 乙节点
      */
@@ -102,8 +104,9 @@ public abstract class Instruction extends Value {
     }
 
     /**
-     * 将当前节点插入到乙节点前方 <br>
-     * 在插入前，需保证当前节点不属于任何链表 <br>
+     * 将当前节点插入到乙节点前方
+     * <p>
+     * 在插入前，需保证当前节点不属于任何链表
      *
      * @param beta 乙节点
      */
@@ -119,8 +122,9 @@ public abstract class Instruction extends Value {
     }
 
     /**
-     * 获取当前指令所处的链表节点 <br>
-     * <b style="color:red">【不要在InstructionList类以外的任何地方调用该函数！！！】</b> <br>
+     * 获取当前指令所处的链表节点
+     * <p>
+     * 不要在InstructionList类以外的任何地方调用该函数！
      *
      * @return 当前指令所处的链表节点
      */

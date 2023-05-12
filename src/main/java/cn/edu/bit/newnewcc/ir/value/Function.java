@@ -44,8 +44,9 @@ public class Function extends AbstractFunction {
     private final BasicBlock entryBasicBlock;
 
     /**
-     * 创建一个函数 <br>
-     * 新建的函数默认携带一个入口块，且该入口块是与函数绑定的，不可解绑。 <br>
+     * 创建一个函数
+     * <p>
+     * 新建的函数默认携带一个入口块，且该入口块是与函数绑定的，不可解绑。
      *
      * @param functionType 函数类型
      */
@@ -90,8 +91,9 @@ public class Function extends AbstractFunction {
     }
 
     /**
-     * 添加基本块 <br>
-     * 锁定功能只允许Function类使用，用于锁定函数入口块 <br>
+     * 添加基本块
+     * <p>
+     * 锁定功能只允许Function类使用，用于锁定函数入口块
      *
      * @param basicBlock        待添加的基本块
      * @param shouldFixFunction 是否锁定该基本块
@@ -120,8 +122,9 @@ public class Function extends AbstractFunction {
     }
 
     /**
-     * 获取函数内的所有基本块 <br>
-     * 此方法保证入口块一定是集合的第一个元素 <br>
+     * 获取函数内的所有基本块
+     * <p>
+     * 此方法保证入口块一定是集合的第一个元素
      *
      * @return 函数内的所有基本块集合（只读）
      */

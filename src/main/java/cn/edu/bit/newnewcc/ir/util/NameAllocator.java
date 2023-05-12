@@ -7,8 +7,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * 名称分配器 <br>
- * 为局步变量和全局变量自动分配名字 <br>
+ * 名称分配器
+ * <p>
+ * 为局步变量和全局变量自动分配名字
  */
 public class NameAllocator {
 
@@ -19,6 +20,7 @@ public class NameAllocator {
 
     /**
      * 为局部变量获取一个名字
+     *
      * @param function 局部变量所属的函数
      * @return 一个纯数字的名字
      */
@@ -38,6 +40,7 @@ public class NameAllocator {
 
     /**
      * 为全局变量获取一个名字
+     *
      * @return 一个纯数字的名字
      */
     public static @NonNull String getGvName(){

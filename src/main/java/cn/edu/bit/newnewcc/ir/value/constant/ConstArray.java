@@ -8,8 +8,9 @@ import cn.edu.bit.newnewcc.ir.value.Constant;
 import java.util.List;
 
 /**
- * 常量数组 <br>
- * 出于性能的考虑，此类型并非单例 <br>
+ * 常量数组
+ * <p>
+ * 出于性能的考虑，此类型并非单例
  *
  * @see <a href="https://llvm.org/docs/LangRef.html#complex-constants">LLVM IR文档</a>
  */

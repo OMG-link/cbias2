@@ -7,6 +7,7 @@ public class IntRegister extends Register {
 
     /**
      * 生成指定下标的寄存器
+     *
      * @param index 下标，下标为负数时代表其为暂时未分配的普通临时寄存器，等待分配过程
      */
     public IntRegister(int index) {

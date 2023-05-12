@@ -62,7 +62,8 @@ public class MemoryToRegisterPass {
     }
 
     /**
-     * 获取变量在基本块中的上一次定义 <br>
+     * 获取变量在基本块中的上一次定义
+     * <p>
      * 该函数首先试图从 lastDefineMap 中寻找结果。若结果不存在，则创建phi语句(非入口块)或是默认值(入口块)作为结果 <br>
      *
      * @param function     基本块所在的函数

@@ -22,8 +22,9 @@ public class IREmitter {
     }
 
     /**
-     * 为所有变量分配名字 <br>
-     * LLVM IR要求数字名称按出现顺序递增 <br>
+     * 为所有变量分配名字
+     * <p>
+     * LLVM IR要求数字名称按出现顺序递增
      *
      * @param function 待分配名字的函数
      */

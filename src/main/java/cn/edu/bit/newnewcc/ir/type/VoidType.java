@@ -4,8 +4,9 @@ import cn.edu.bit.newnewcc.ir.Type;
 import cn.edu.bit.newnewcc.ir.value.Constant;
 
 /**
- * Void类型 <br>
- * 该类型是单例的 <br>
+ * Void类型
+ * <p>
+ * 该类型是单例
  */
 public class VoidType extends Type {
     private VoidType() {

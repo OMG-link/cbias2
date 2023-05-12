@@ -4,8 +4,9 @@ import cn.edu.bit.newnewcc.ir.Value;
 import cn.edu.bit.newnewcc.ir.type.IntegerType;
 
 /**
- * 整数运算语句 <br>
- * 此类没有存在的必要，只是为了共享整数运算语句通用的代码 <br>
+ * 整数运算语句
+ * <p>
+ * 此类没有存在的必要，只是为了共享整数运算语句通用的代码
  */
 public abstract class IntegerArithmeticInst extends ArithmeticInst {
 

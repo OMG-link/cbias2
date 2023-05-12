@@ -10,7 +10,8 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * 模块 <br>
+ * 模块
+ * <p>
  * 每个源文件构成一个模块
  */
 public class Module {

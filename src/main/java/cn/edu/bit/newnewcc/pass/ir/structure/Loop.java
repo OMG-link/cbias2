@@ -7,8 +7,9 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * 循环结构 <br>
- * 存储了父循环、子循环、以及循环包含的不在子循环内的基本块 <br>
+ * 循环结构
+ * <p>
+ * 存储了父循环、子循环、以及循环包含的不在子循环内的基本块
  */
 public class Loop {
 
@@ -28,7 +29,7 @@ public class Loop {
     private final Set<Loop> subLoops;
 
     /**
-     * 循环包含的<b>不属于subLoops中循环的</b>基本块
+     * 循环包含的<strong>不属于subLoops中循环的</strong>基本块
      */
     private final Set<BasicBlock> basicBlocks;
 
@@ -42,7 +43,7 @@ public class Loop {
      *
      * @param headerBasicBlock 循环的入口块
      * @param subLoops         循环的子循环
-     * @param basicBlocks      循环包含的<b>不属于subLoops中循环的</b>基本块
+     * @param basicBlocks      循环包含的不属于subLoops中循环的基本块
      */
     public Loop(BasicBlock headerBasicBlock, Set<Loop> subLoops, Set<BasicBlock> basicBlocks) {
         this.headerBasicBlock = headerBasicBlock;
@@ -52,8 +53,9 @@ public class Loop {
     }
 
     /**
-     * 设置父循环 <br>
-     * 该函数仅限构建LoopTree时使用 <br>
+     * 设置父循环
+     * <p>
+     * 该函数仅限构建LoopTree时使用
      *
      * @param parentLoop 父循环
      */
@@ -62,8 +64,9 @@ public class Loop {
     }
 
     /**
-     * 设置循环深度 <br>
-     * 该函数仅限构建LoopTree时使用 <br>
+     * 设置循环深度
+     * <p>
+     * 该函数仅限构建LoopTree时使用
      *
      * @param loopDepth 循环深度
      */

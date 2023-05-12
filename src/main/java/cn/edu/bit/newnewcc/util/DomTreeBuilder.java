@@ -3,8 +3,9 @@ package cn.edu.bit.newnewcc.util;
 import java.util.*;
 
 /**
- * 支配树构建类  <br>
- * 采用Tarjan提出的支配树算法 <br>
+ * 支配树构建类
+ * <p>
+ * 采用Tarjan提出的支配树算法
  *
  * @param <T> 用于索引节点的类，该类的每个实例对应图中的一个节点
  * @see <a href="https://dl.acm.org/doi/pdf/10.1145/357062.357071">Tarjan论文原文</a>
@@ -124,8 +125,9 @@ public class DomTreeBuilder<T> {
     }
 
     /**
-     * 添加一条图中的有向边 <br>
-     * 你只需要添加正向边，算法所需的反向边是自动添加的 <br>
+     * 添加一条图中的有向边
+     * <p>
+     * 你只需要添加正向边，算法所需的反向边是自动添加的
      *
      * @param source      边的起点
      * @param destination 边的终点
@@ -141,7 +143,7 @@ public class DomTreeBuilder<T> {
     }
 
     /**
-     * 设置支配树的根节点 <br>
+     * 设置支配树的根节点
      *
      * @param t 根节点
      */
@@ -153,8 +155,9 @@ public class DomTreeBuilder<T> {
     }
 
     /**
-     * 开始构建支配树 <br>
-     * 一旦开始构建，支配树的所有信息均不可被修改了 <br>
+     * 开始构建支配树
+     * <p>
+     * 一旦开始构建，支配树的所有信息均不可被修改了
      */
     public void build() {
         if (hasTreeBuilt) {

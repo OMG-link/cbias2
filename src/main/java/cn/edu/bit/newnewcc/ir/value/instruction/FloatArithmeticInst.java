@@ -4,8 +4,9 @@ import cn.edu.bit.newnewcc.ir.Value;
 import cn.edu.bit.newnewcc.ir.type.FloatType;
 
 /**
- * 浮点数运算语句 <br>
- * 此类没有存在的必要，只是为了共享浮点数运算语句通用的代码 <br>
+ * 浮点数运算语句
+ * <p>
+ * 此类没有存在的必要，只是为了共享浮点数运算语句通用的代码
  */
 public abstract class FloatArithmeticInst extends ArithmeticInst {
 

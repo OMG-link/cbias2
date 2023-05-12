@@ -5,7 +5,7 @@ import cn.edu.bit.newnewcc.ir.type.FloatType;
 import cn.edu.bit.newnewcc.ir.type.IntegerType;
 
 /**
- * 浮点数比较语句 <br>
+ * 浮点数比较语句
  */
 public class FloatCompareInst extends CompareInst {
 

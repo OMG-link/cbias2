@@ -10,7 +10,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * 零拓展指令 <br>
+ * 零拓展指令
+ * <p>
  * 在高位补0，将位数较少的整型转化为位数较多的整型
  *
  * @see <a href="https://llvm.org/docs/LangRef.html#zext-to-instruction" />LLVM IR文档</a>

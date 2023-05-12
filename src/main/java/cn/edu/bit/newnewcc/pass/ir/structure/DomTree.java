@@ -20,8 +20,9 @@ public class DomTree {
         private final BasicBlock basicBlock;
 
         /**
-         * 父节点列表 <br>
-         * 下标为i的元素代表当前节点的第2^i级父亲 <br>
+         * 父节点列表
+         * <p>
+         * 下标为i的元素代表当前节点的第2^i级父亲
          */
         // bexp = binary exponentiation
         private final List<BasicBlock> bexpParents = new ArrayList<>();

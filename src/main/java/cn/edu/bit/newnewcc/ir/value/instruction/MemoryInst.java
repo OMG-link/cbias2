@@ -4,8 +4,9 @@ import cn.edu.bit.newnewcc.ir.Type;
 import cn.edu.bit.newnewcc.ir.value.Instruction;
 
 /**
- * 涉及内存的指令 <br>
- * 此类仅用于分类，无实际含义 <br>
+ * 涉及内存的指令
+ * <p>
+ * 此类仅用于分类，无实际含义
  */
 public abstract class MemoryInst extends Instruction {
     public MemoryInst(Type type) {

@@ -12,8 +12,9 @@ import java.util.*;
 import java.util.function.Consumer;
 
 /**
- * 消除 ir 中的无用代码 <br>
- * 此Pass的功能是UnreachableCodeEliminationPass的超集 <br>
+ * 消除 ir 中的无用代码
+ * <p>
+ * 此Pass的功能是UnreachableCodeEliminationPass的超集
  */
 /* 思路如下：
  *

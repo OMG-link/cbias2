@@ -54,10 +54,11 @@ public class BasicBlock extends Value {
     private final InstructionList instructionList = new InstructionList(this);
 
     /**
-     * 向基本块中加入一条指令 <br>
-     * 对于一般的指令，其会被添加到主指令体的末尾 <br>
-     * 对于前导指令，其会被添加到基本块开头 <br>
-     * 对于结束指令，其会替换现有的结束指令 <br>
+     * 向基本块中加入一条指令
+     * <p>
+     * 对于一般的指令，其会被添加到主指令体的末尾；
+     * 对于前导指令，其会被添加到基本块开头；
+     * 对于结束指令，其会替换现有的结束指令
      *
      * @param instruction 待插入的指令
      */
@@ -104,8 +105,9 @@ public class BasicBlock extends Value {
     }
 
     /**
-     * 获取结束指令 <br>
-     * 没有设置结束指令时，返回 null <br>
+     * 获取结束指令
+     * <p>
+     * 没有设置结束指令时，返回 null
      *
      * @return 结束指令或 null
      */
@@ -172,8 +174,9 @@ public class BasicBlock extends Value {
     }
 
     /**
-     * 设置该基本块所在的函数 <br>
-     * <b style="color:red">【不要在Function类以外的任何地方调用该函数！！！】</b> <br>
+     * 设置该基本块所在的函数
+     * <p>
+     * 不要在Function类以外的任何地方调用该函数！
      *
      * @param function 基本块所在的函数
      */
@@ -198,8 +201,9 @@ public class BasicBlock extends Value {
     }
 
     /**
-     * 设置该基本块不在任何函数内 <br>
-     * <b style="color:red">【不要在Function类以外的任何地方调用该函数！！！】</b> <br>
+     * 设置该基本块不在任何函数内
+     * <p>
+     * 不要在Function类以外的任何地方调用该函数！
      */
     public void __clearFunction__() {
         __setFunction__(null, false);

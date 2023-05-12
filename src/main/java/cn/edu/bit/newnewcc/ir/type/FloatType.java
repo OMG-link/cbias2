@@ -9,8 +9,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * 浮点类型 <br>
- * 在SysY中目前只有float类型，但是我们还是预留了double,float128等类型的接口 <br>
+ * 浮点类型
+ * <p>
+ * 在SysY中目前只有float类型，但是我们还是预留了double,float128等类型的接口
  */
 public class FloatType extends Type {
     private final int bitWidth;

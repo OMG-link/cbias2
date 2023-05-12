@@ -19,14 +19,14 @@ public class BranchInst extends TerminateInst{
     private final Operand trueExitOperand, falseExitOperand;
 
     /**
-     * 构建一个空的分支语句
+     * 构造一个空的分支语句
      */
     public BranchInst(){
         this(null,null,null);
     }
 
     /**
-     * 构建一个分支语句
+     * 构造一个分支语句
      * @param condition 分支条件
      * @param trueExit 条件为真时跳转的基本块
      * @param falseExit 条件为假时跳转的基本块

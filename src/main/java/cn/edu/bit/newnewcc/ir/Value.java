@@ -5,8 +5,9 @@ import java.util.HashSet;
 import java.util.NoSuchElementException;
 
 /**
- * Value是一种具有类型、名字，并且可以被作为Operand使用的东西。 <br>
- * 例如： <br>
+ * Value是一种具有类型、名字，并且可以被作为Operand使用的东西。
+ * <p>
+ * 例如：
  * <ul>
  *     <li>BasicBlock是一个Value，因为其可以作为跳转指令的操作数</li>
  *     <li>Function是一个Value，因为其可以作为Call指令的操作数</li>
@@ -35,23 +36,30 @@ public abstract class Value {
     }
 
     /**
-     * 获取值的名字 <br>
-     * 此名字不可直接用作ir的名字，因为其不包含 '@','%' 等标记 <br>
+     * 获取值的名字
+     * <p>
+     * 此名字不可直接用作ir的名字，因为其不包含 '@','%' 等标记
+     *
      * @return 值的名字
      */
     public abstract String getValueName();
 
     /**
-     * 获取值在IR中的名字 <br>
-     * 此名词通常带有 '@','%' 等前缀标记；对于常量，其返回值与getValueName相同 <br>
+     * 获取值在IR中的名字
+     * <p>
+     * 此名词通常带有 '@','%' 等前缀标记；对于常量，其返回值与getValueName相同
+     *
      * @return 值在IR中的名字
      */
     public abstract String getValueNameIR();
 
     /**
-     * 设置值的名字 <br>
-     * 不要设置纯数字的名字，因为这可能会与自动生成的名字相冲突 <br>
-     * 当此函数未被调用时，getValueName将自动生成一个数字名 <br>
+     * 设置值的名字
+     * <p>
+     * 不要设置纯数字的名字，因为这可能会与自动生成的名字相冲突
+     * <p>
+     * 当此函数未被调用时，getValueName将自动生成一个数字名
+     *
      * @param valueName 值的名字
      */
     public abstract void setValueName(String valueName);
@@ -64,8 +72,10 @@ public abstract class Value {
     private final HashSet<Operand> usages = new HashSet<>();
 
     /**
-     * 添加一个当前Value被作为操作数的记录 <br>
-     * <b style="color:red">【不要在Operand类以外的任何地方调用该函数！！！】</b> <br>
+     * 添加一个当前Value被作为操作数的记录
+     * <p>
+     * 不要在Operand类以外的任何地方调用该函数！
+     *
      * @param operand 操作数
      */
     public void __addUsage__(Operand operand){
@@ -73,8 +83,10 @@ public abstract class Value {
     }
 
     /**
-     * 移除一个当前Value被作为操作数的记录 <br>
-     * <b style="color:red">【不要在Operand类以外的任何地方调用该函数！！！】</b> <br>
+     * 移除一个当前Value被作为操作数的记录
+     * <p>
+     * 不要在Operand类以外的任何地方调用该函数！
+     *
      * @param operand 操作数
      */
     public void __removeUsage__(Operand operand){

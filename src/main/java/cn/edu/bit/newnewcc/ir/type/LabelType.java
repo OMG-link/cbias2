@@ -4,8 +4,9 @@ import cn.edu.bit.newnewcc.ir.Type;
 import cn.edu.bit.newnewcc.ir.value.Constant;
 
 /**
- * Label类型 <br>
- * 该类型是单例的 <br>
+ * Label类型
+ * <p>
+ * 该类型是单例
  */
 public class LabelType extends Type {
     private LabelType() {

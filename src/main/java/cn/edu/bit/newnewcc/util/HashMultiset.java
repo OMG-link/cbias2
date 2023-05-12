@@ -60,6 +60,7 @@ public class HashMultiset<E> implements Iterable<E> {
 
     /**
      * 向集合中添加一个元素
+     *
      * @param e 待添加的元素
      * @return 总是返回true，表示添加成功
      */
@@ -74,6 +75,7 @@ public class HashMultiset<E> implements Iterable<E> {
 
     /**
      * 从集合中移除一个元素（若元素出现了多次，只会移除一个）
+     *
      * @param e 待移除的元素
      * @return 若移除成功，返回true；否则返回false。
      */

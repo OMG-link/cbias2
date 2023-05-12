@@ -26,9 +26,11 @@ public class AllocateInst extends MemoryInst {
     }
 
     /**
-     * 获取此语句返回值的类型 <br>
-     * 注意：该方法返回的是语句返回值的类型，而不是被分配变量的类型 <br>
-     * 要得到被分配变量的类型，请使用 getAllocatedType <br>
+     * 获取此语句返回值的类型
+     * <p>
+     * 注意：该方法返回的是语句返回值的类型，而不是被分配变量的类型
+     * <p>
+     * 要得到被分配变量的类型，请使用 getAllocatedType
      *
      * @return 此语句返回值的类型
      */

@@ -22,9 +22,11 @@ public class GetElementPtrInst extends Instruction {
     private final Operand rootOperand;
 
     /**
-     * 下标操作数列表 <br>
-     * 注意其与直观意义上的下标不同，例如 a[1] 会产生两个下标 [0,1] <br>
-     * 具体定义详见 LLVM IR 文档 <br>
+     * 下标操作数列表
+     * <p>
+     * 注意其与直观意义上的下标不同，例如 a[1] 会产生两个下标 [0,1]
+     * <p>
+     * 具体定义详见 LLVM IR 文档
      */
     private final List<Operand> indexOperands;
 

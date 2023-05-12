@@ -7,7 +7,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * const int
+ * 整型常量
  */
 public class ConstInt extends Constant {
 

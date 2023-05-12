@@ -10,8 +10,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * 存储操作 <br>
- * 将值存入到目标地址 <br>
+ * 存储操作
+ * <p>
+ * 将值存入到目标地址
  */
 public class StoreInst extends MemoryInst {
 

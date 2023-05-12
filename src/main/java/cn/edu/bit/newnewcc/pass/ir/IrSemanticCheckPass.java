@@ -15,9 +15,11 @@ import cn.edu.bit.newnewcc.ir.value.instruction.PhiInst;
 import java.util.*;
 
 /**
- * IR 语义分析 <br>
- * 用于检查 IR 语义是否正确，可以发现部分优化过程产生的错误 <br>
- * 此 Pass 不会对 IR 进行任何修改 <br>
+ * IR 语义分析
+ * <p>
+ * 用于检查 IR 语义是否正确，可以发现部分优化过程产生的错误
+ * <p>
+ * 此 Pass 不会对 IR 进行任何修改
  */
 public class IrSemanticCheckPass {
 

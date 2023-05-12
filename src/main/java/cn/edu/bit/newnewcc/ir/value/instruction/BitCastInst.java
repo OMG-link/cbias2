@@ -9,9 +9,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * 位转换指令 <br>
- * 此指令可以强制将一个类型转化为另一个类型，而不改变内存结构 <br>
- * 在本项目中，其唯一用途是调用memset时需要将float*转化为i32* <br>
+ * 位转换指令
+ * <p>
+ * 此指令可以强制将一个类型转化为另一个类型，而不改变内存结构
+ * <p>
+ * 在本项目中，其唯一用途是调用memset时需要将float*转化为i32*
+ *
  * @see <a href="https://llvm.org/docs/LangRef.html#bitcast-to-instruction">LLVM IR文档</a>
  */
 public class BitCastInst extends Instruction {

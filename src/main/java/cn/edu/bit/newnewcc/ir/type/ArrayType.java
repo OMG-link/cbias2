@@ -10,20 +10,25 @@ import java.util.Map;
 import java.util.Objects;
 
 /**
- * 数组类型 <br>
- * 包含两个参数：长度、基类型 <br>
- * 若要定义多维数组，需使用“数组的数组”的方式实现 <br>
+ * 数组类型
+ * <p>
+ * 包含两个参数：长度、基类型
+ * <p>
+ * 若要定义多维数组，需使用“数组的数组”的方式实现
  */
 public class ArrayType extends Type {
     /**
-     * 数组的长度 <br>
-     * 即：数组内包含length个baseType类型的元素 <br>
+     * 数组的长度
+     * <p>
+     * 即：数组内包含length个baseType类型的元素
      */
     private final int length;
     /**
-     * 基类型 <br>
-     * 即每个数组内单个元素的类型 <br>
-     * 若基类型也是数组类型，则构成一个多维数组 <br>
+     * 基类型
+     * <p>
+     * 即每个数组内单个元素的类型
+     * <p>
+     * 若基类型也是数组类型，则构成一个多维数组
      */
     private final Type baseType;
 
@@ -37,8 +42,9 @@ public class ArrayType extends Type {
     }
 
     /**
-     * 获取数组长度 <br>
-     * 若类型是多维数组，返回最高维的长度 <br>
+     * 获取数组长度
+     * <p>
+     * 若类型是多维数组，返回最高维的长度
      *
      * @return 数组长度
      */
@@ -47,8 +53,9 @@ public class ArrayType extends Type {
     }
 
     /**
-     * 获取基类型 <br>
-     * 即数组解引用一次后的类型 <br>
+     * 获取基类型
+     * <p>
+     * 即数组解引用一次后的类型
      *
      * @return 基类型
      */
@@ -79,8 +86,9 @@ public class ArrayType extends Type {
     private static Map<ArrayType, ArrayType> instanceMap;
 
     /**
-     * 获取数组类型的实例 <br>
-     * 数组类型是单例的 <br>
+     * 获取数组类型的实例
+     * <p>
+     * 数组类型是单例的
      *
      * @param length   数组长度
      * @param baseType 数组的基类型

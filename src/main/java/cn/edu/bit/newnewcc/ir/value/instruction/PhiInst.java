@@ -12,17 +12,20 @@ import java.util.*;
 import java.util.function.BiConsumer;
 
 /**
- * Phi指令 <br>
- * 用于在存在分支的情况下实现SSA <br>
- * 该指令必须放置于基本块的开头 <br>
+ * Phi指令
+ * <p>
+ * 用于在存在分支的情况下实现SSA
+ * <p>
+ * 该指令必须放置于基本块的开头
  *
  * @see <a href="https://llvm.org/docs/LangRef.html#phi-instruction">LLVM IR文档</a>
  */
 public class PhiInst extends Instruction {
 
     /**
-     * 基本块操作数 <br>
-     * 自动同步修改到 PhiInst::basicBlockOperandMap <br>
+     * 基本块操作数
+     * <p>
+     * 自动同步修改到 PhiInst::basicBlockOperandMap
      */
     private class BasicBlockOperand extends Operand {
         public BasicBlockOperand(Value value) {
