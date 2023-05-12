@@ -119,7 +119,7 @@ public class CallInst extends Instruction {
         // e.g. %1 = call double @sum(i32 1, float 2.000000e+00)
         var builder = new StringBuilder();
         if (getType() != VoidType.getInstance()) {
-            builder.append(getValueName()).append(" = ");
+            builder.append(getValueNameIR()).append(" = ");
         }
         builder.append(String.format(
                 "call %s %s",
