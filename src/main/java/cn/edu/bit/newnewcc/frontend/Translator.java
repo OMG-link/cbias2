@@ -9,6 +9,7 @@ import cn.edu.bit.newnewcc.ir.type.FloatType;
 import cn.edu.bit.newnewcc.ir.type.FunctionType;
 import cn.edu.bit.newnewcc.ir.type.IntegerType;
 import cn.edu.bit.newnewcc.ir.type.VoidType;
+import cn.edu.bit.newnewcc.ir.value.AbstractFunction;
 import cn.edu.bit.newnewcc.ir.value.BasicBlock;
 import cn.edu.bit.newnewcc.ir.value.Function;
 import cn.edu.bit.newnewcc.ir.value.Instruction;
@@ -598,6 +599,26 @@ public class Translator extends SysYBaseVisitor<Void> {
         Value rightOperand = result;
 
         applyBinaryArithmeticOperator(leftOperand, rightOperand, makeBinaryOperator(ctx.op));
+        return null;
+    }
+
+    @Override
+    public Void visitFunctionCallExpression(SysYParser.FunctionCallExpressionContext ctx) {
+        String name = ctx.Identifier().getText();
+        AbstractFunction function = symbolTable.getFunction(name);
+
+        List<Value> arguments = new ArrayList<>();
+        if (ctx.argumentExpressionList() != null) {
+            for (var expression : ctx.argumentExpressionList().expression()) {
+                visit(expression);
+                arguments.add(result);
+            }
+        }
+
+        var value = new CallInst(function, arguments);
+        currentBasicBlock.addInstruction(value);
+        result = value;
+
         return null;
     }
 
