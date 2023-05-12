@@ -87,7 +87,7 @@ public class IREmitter {
                 "%s = dso_local %s %s %s\n",
                 globalVariable.getValueNameIR(),
                 globalVariable.isConstant() ? "constant" : "global",
-                globalVariable.getTypeName(),
+                globalVariable.getType().getBaseType().getTypeName(),
                 globalVariable.getInitialValue().getValueNameIR()
         ));
     }
