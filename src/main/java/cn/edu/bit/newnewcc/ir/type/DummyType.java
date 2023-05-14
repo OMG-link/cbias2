@@ -23,12 +23,11 @@ public class DummyType extends Type {
         return 0;
     }
 
-    private static DummyType instance;
+    private static class Holder {
+        private static final DummyType INSTANCE = new DummyType();
+    }
 
     public static DummyType getInstance() {
-        if (instance == null) {
-            instance = new DummyType();
-        }
-        return instance;
+        return Holder.INSTANCE;
     }
 }

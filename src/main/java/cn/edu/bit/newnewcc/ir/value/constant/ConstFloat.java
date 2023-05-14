@@ -27,20 +27,19 @@ public class ConstFloat extends Constant {
         return value;
     }
 
-    private static Map<Float, ConstFloat> instanceMap;
-
-    public static ConstFloat getInstance(float value) {
-        if (instanceMap == null) {
-            instanceMap = new HashMap<>();
-        }
-        if (!instanceMap.containsKey(value)) {
-            instanceMap.put(value, new ConstFloat(value));
-        }
-        return instanceMap.get(value);
-    }
-
     @Override
     public String getValueName() {
         return "0x" + Long.toHexString(Double.doubleToLongBits(value));
+    }
+
+    private static class Cache {
+        private static final Map<Float, ConstFloat> cache = new HashMap<>();
+    }
+
+    public static ConstFloat getInstance(float value) {
+        if (!Cache.cache.containsKey(value))
+            Cache.cache.put(value, new ConstFloat(value));
+
+        return Cache.cache.get(value);
     }
 }

@@ -41,27 +41,12 @@ public class PointerType extends Type {
         throw new UnsupportedOperationException();
     }
 
-    // 此处使用Map而非Set，是因为需要保证getInstance返回的实例是唯一的
-    // 使用Set时，无法通过临时构造的实例找到缓存了的唯一返回实例
-    private static Map<PointerType, PointerType> instanceMap;
-
-    public static PointerType getInstance(Type baseType) {
-        if (instanceMap == null) {
-            instanceMap = new HashMap<>();
-        }
-        var keyType = new PointerType(baseType);
-        if (!instanceMap.containsKey(keyType)) {
-            instanceMap.put(keyType, keyType);
-        }
-        return instanceMap.get(keyType);
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         PointerType that = (PointerType) o;
-        // 所有类型都是单例的，这里直接用==比较地址，可以避免递归比较内部类型
+        // 所有类型都是单例，这里直接用==比较地址，可以避免递归比较内部类型
         return baseType == that.baseType;
     }
 
@@ -70,4 +55,14 @@ public class PointerType extends Type {
         return Objects.hash(baseType);
     }
 
+    private static class Cache {
+        private static final Map<Type, PointerType> cache = new HashMap<>();
+    }
+
+    public static PointerType getInstance(Type baseType) {
+        if (!Cache.cache.containsKey(baseType))
+            Cache.cache.put(baseType, new PointerType(baseType));
+
+        return Cache.cache.get(baseType);
+    }
 }

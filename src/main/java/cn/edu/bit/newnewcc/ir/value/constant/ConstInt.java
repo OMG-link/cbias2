@@ -27,21 +27,19 @@ public class ConstInt extends Constant {
         return value;
     }
 
-    private static Map<Integer, ConstInt> instanceMap;
-
-    public static ConstInt getInstance(int value) {
-        if (instanceMap == null) {
-            instanceMap = new HashMap<>();
-        }
-        if (!instanceMap.containsKey(value)) {
-            instanceMap.put(value, new ConstInt(value));
-        }
-        return instanceMap.get(value);
-    }
-
     @Override
     public String getValueName() {
         return String.valueOf(value);
     }
 
+    private static class Cache {
+        private static final Map<Integer, ConstInt> cache = new HashMap<>();
+    }
+
+    public static ConstInt getInstance(int value) {
+        if (!Cache.cache.containsKey(value))
+            Cache.cache.put(value, new ConstInt(value));
+
+        return Cache.cache.get(value);
+    }
 }

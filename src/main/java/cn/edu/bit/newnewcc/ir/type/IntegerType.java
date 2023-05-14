@@ -1,12 +1,8 @@
 package cn.edu.bit.newnewcc.ir.type;
 
 import cn.edu.bit.newnewcc.ir.Type;
-import cn.edu.bit.newnewcc.ir.exception.IllegalBitWidthException;
 import cn.edu.bit.newnewcc.ir.value.Constant;
 import cn.edu.bit.newnewcc.ir.value.constant.ConstInt;
-
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * 整数类型
@@ -29,10 +25,7 @@ public class IntegerType extends Type {
 
     @Override
     public Constant getDefaultInitialization() {
-        return switch (bitWidth) {
-            case 32 -> ConstInt.getInstance(0);
-            default -> throw new UnsupportedOperationException();
-        };
+        return ConstInt.getInstance(0);
     }
 
     @Override
@@ -40,34 +33,19 @@ public class IntegerType extends Type {
         return 4;
     }
 
-    private static boolean isBitWidthLegal(int bitWidth) {
-        return switch (bitWidth) {
-            case 1, 32 -> true;
-            default -> false;
-        };
+    private static class I1Holder {
+        private static final IntegerType INSTANCE = new IntegerType(1);
     }
 
-    private static Map<Integer, IntegerType> instanceMap = null;
-
-    private static IntegerType getInstance(int bitWidth) {
-        if (instanceMap == null) {
-            instanceMap = new HashMap<>();
-        }
-        if (!instanceMap.containsKey(bitWidth)) {
-            if (!isBitWidthLegal(bitWidth)) {
-                throw new IllegalBitWidthException();
-            }
-            instanceMap.put(bitWidth, new IntegerType(bitWidth));
-        }
-        return instanceMap.get(bitWidth);
+    private static class I32Holder {
+        private static final IntegerType INSTANCE = new IntegerType(32);
     }
 
     public static IntegerType getI1() {
-        return getInstance(1);
+        return I1Holder.INSTANCE;
     }
 
     public static IntegerType getI32() {
-        return getInstance(32);
+        return I32Holder.INSTANCE;
     }
-
 }

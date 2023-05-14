@@ -28,18 +28,11 @@ public class VoidValue extends Constant {
         throw new UnsupportedOperationException();
     }
 
-    @Override
-    public void setValueName(String valueName) {
-        throw new UnsupportedOperationException();
+    private static class Holder {
+        private static final VoidValue INSTANCE = new VoidValue();
     }
-
-    private static VoidValue voidValue = null;
 
     public static VoidValue getInstance() {
-        if (voidValue == null) {
-            voidValue = new VoidValue();
-        }
-        return voidValue;
+        return Holder.INSTANCE;
     }
-
 }

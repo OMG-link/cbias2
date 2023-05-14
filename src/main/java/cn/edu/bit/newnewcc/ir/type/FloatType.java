@@ -5,9 +5,6 @@ import cn.edu.bit.newnewcc.ir.exception.IllegalBitWidthException;
 import cn.edu.bit.newnewcc.ir.value.Constant;
 import cn.edu.bit.newnewcc.ir.value.constant.ConstFloat;
 
-import java.util.HashMap;
-import java.util.Map;
-
 /**
  * 浮点类型
  * <p>
@@ -22,18 +19,18 @@ public class FloatType extends Type {
 
     @Override
     protected String getTypeName_() {
-        return switch (bitWidth) {
-            case 32 -> "float";
-            default -> throw new IllegalStateException("Illegal floating number bit width: " + bitWidth);
-        };
+        if (bitWidth != 32)
+            throw new IllegalBitWidthException();
+
+        return "float";
     }
 
     @Override
     public Constant getDefaultInitialization() {
-        return switch (bitWidth) {
-            case 32 -> ConstFloat.getInstance(0);
-            default -> throw new UnsupportedOperationException();
-        };
+        if (bitWidth != 32)
+            throw new IllegalBitWidthException();
+
+        return ConstFloat.getInstance(0);
     }
 
     @Override
@@ -41,30 +38,11 @@ public class FloatType extends Type {
         return 4;
     }
 
-    private static boolean isBitWidthLegal(int bitWidth) {
-        return switch (bitWidth) {
-            case 32 -> true;
-            default -> false;
-        };
-    }
-
-    private static Map<Integer, FloatType> instanceMap = null;
-
-    private static FloatType getInstance(int bitWidth) {
-        if (instanceMap == null) {
-            instanceMap = new HashMap<>();
-        }
-        if (!instanceMap.containsKey(bitWidth)) {
-            if (!isBitWidthLegal(bitWidth)) {
-                throw new IllegalBitWidthException();
-            }
-            instanceMap.put(bitWidth, new FloatType(bitWidth));
-        }
-        return instanceMap.get(bitWidth);
+    private static class FloatHolder {
+        private static final FloatType INSTANCE = new FloatType(32);
     }
 
     public static FloatType getFloat() {
-        return getInstance(32);
+        return FloatHolder.INSTANCE;
     }
-
 }

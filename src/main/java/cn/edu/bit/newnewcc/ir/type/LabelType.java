@@ -28,7 +28,9 @@ public class LabelType extends Type {
         throw new UnsupportedOperationException();
     }
 
-    private static LabelType instance = null;
+    private static class Holder {
+        private static final LabelType INSTANCE = new LabelType();
+    }
 
     /**
      * 获取Label类型的实例
@@ -36,9 +38,6 @@ public class LabelType extends Type {
      * @return Label类型的唯一实例
      */
     public static LabelType getInstance() {
-        if (instance == null) {
-            instance = new LabelType();
-        }
-        return instance;
+        return Holder.INSTANCE;
     }
 }

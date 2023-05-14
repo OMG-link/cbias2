@@ -2,6 +2,7 @@ package cn.edu.bit.newnewcc.ir.type;
 
 import cn.edu.bit.newnewcc.ir.Type;
 import cn.edu.bit.newnewcc.ir.value.Constant;
+import lombok.Value;
 
 import java.util.*;
 
@@ -63,21 +64,6 @@ public class FunctionType extends Type {
         throw new UnsupportedOperationException();
     }
 
-    // 此处使用Map而非Set，是因为需要保证getInstance返回的实例是唯一的
-    // 使用Set时，无法通过临时构造的实例找到缓存了的唯一返回实例
-    private static Map<FunctionType, FunctionType> instanceMap;
-
-    public static FunctionType getInstance(Type returnType, List<Type> parameterTypes) {
-        if (instanceMap == null) {
-            instanceMap = new HashMap<>();
-        }
-        var keyType = new FunctionType(returnType, parameterTypes);
-        if (!instanceMap.containsKey(keyType)) {
-            instanceMap.put(keyType, keyType);
-        }
-        return instanceMap.get(keyType);
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -89,5 +75,24 @@ public class FunctionType extends Type {
     @Override
     public int hashCode() {
         return Objects.hash(returnType, parameterTypes);
+    }
+
+    private static class Cache {
+        @Value
+        private static class Key {
+            Type returnType;
+            List<Type> parameterTypes;
+        }
+
+        private static final Map<Key, FunctionType> cache = new HashMap<>();
+    }
+
+    public static FunctionType getInstance(Type returnType, List<Type> parameterTypes) {
+        Cache.Key key = new Cache.Key(returnType, parameterTypes);
+
+        if (!Cache.cache.containsKey(key))
+            Cache.cache.put(key, new FunctionType(returnType, parameterTypes));
+
+        return Cache.cache.get(key);
     }
 }

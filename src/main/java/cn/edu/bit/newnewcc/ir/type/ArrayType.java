@@ -3,6 +3,7 @@ package cn.edu.bit.newnewcc.ir.type;
 import cn.edu.bit.newnewcc.ir.Type;
 import cn.edu.bit.newnewcc.ir.value.Constant;
 import cn.edu.bit.newnewcc.ir.value.constant.ConstArray;
+import lombok.Value;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -83,28 +84,6 @@ public class ArrayType extends Type {
         return baseType.getSize() * length;
     }
 
-    private static Map<ArrayType, ArrayType> instanceMap;
-
-    /**
-     * 获取数组类型的实例
-     * <p>
-     * 数组类型是单例的
-     *
-     * @param length   数组长度
-     * @param baseType 数组的基类型
-     * @return 数组类型
-     */
-    public static ArrayType getInstance(int length, Type baseType) {
-        if (instanceMap == null) {
-            instanceMap = new HashMap<>();
-        }
-        var keyType = new ArrayType(length, baseType);
-        if (!instanceMap.containsKey(keyType)) {
-            instanceMap.put(keyType, keyType);
-        }
-        return instanceMap.get(keyType);
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -116,5 +95,33 @@ public class ArrayType extends Type {
     @Override
     public int hashCode() {
         return Objects.hash(length, baseType);
+    }
+
+    private static class Cache {
+        @Value
+        private static class Key {
+            int length;
+            Type baseType;
+        }
+
+        private static final Map<Key, ArrayType> cache = new HashMap<>();
+    }
+
+    /**
+     * 获取数组类型的实例
+     * <p>
+     * 数组类型是单例
+     *
+     * @param length   数组长度
+     * @param baseType 数组的基类型
+     * @return 数组类型
+     */
+    public static ArrayType getInstance(int length, Type baseType) {
+        Cache.Key key = new Cache.Key(length, baseType);
+
+        if (!Cache.cache.containsKey(key))
+            Cache.cache.put(key, new ArrayType(length, baseType));
+
+        return Cache.cache.get(key);
     }
 }

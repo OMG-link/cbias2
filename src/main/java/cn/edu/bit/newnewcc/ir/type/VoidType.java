@@ -17,20 +17,6 @@ public class VoidType extends Type {
         return "void";
     }
 
-    private static VoidType instance = null;
-
-    /**
-     * 获取Void类型的实例
-     *
-     * @return Void类型的唯一实例
-     */
-    public static VoidType getInstance() {
-        if (instance == null) {
-            instance = new VoidType();
-        }
-        return instance;
-    }
-
     @Override
     public Constant getDefaultInitialization() {
         throw new UnsupportedOperationException();
@@ -38,8 +24,19 @@ public class VoidType extends Type {
 
     @Override
     public long getSize() {
-        // 理论上应该返回0，但是这个方法应该不会被调用到
         throw new UnsupportedOperationException();
     }
 
+    private static class Holder {
+        private static final VoidType INSTANCE = new VoidType();
+    }
+
+    /**
+     * 获取Void类型的实例
+     *
+     * @return Void类型的唯一实例
+     */
+    public static VoidType getInstance() {
+        return Holder.INSTANCE;
+    }
 }

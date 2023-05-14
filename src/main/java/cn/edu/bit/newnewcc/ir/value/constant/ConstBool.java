@@ -5,40 +5,36 @@ import cn.edu.bit.newnewcc.ir.value.Constant;
 
 public class ConstBool extends Constant {
 
-    private final int value;
+    private final boolean value;
 
-    private ConstBool(int value) {
+    private ConstBool(boolean value) {
         super(IntegerType.getI1());
         this.value = value;
     }
 
     @Override
     public boolean isFilledWithZero() {
-        return value == 0;
-    }
-
-    public int getValue() {
-        return value;
-    }
-
-    private static ConstBool constBoolTrue, constBoolFalse;
-
-    public static ConstBool getInstance(boolean value) {
-        if (value) {
-            if (constBoolTrue == null) {
-                constBoolTrue = new ConstBool(1);
-            }
-            return constBoolTrue;
-        } else {
-            if (constBoolFalse == null) {
-                constBoolFalse = new ConstBool(0);
-            }
-            return constBoolFalse;
-        }
+        return !value;
     }
 
     @Override
     public String getValueName() {
         return String.valueOf(value);
+    }
+
+    public boolean getValue() {
+        return value;
+    }
+
+    private static class TrueHolder {
+        private static final ConstBool INSTANCE = new ConstBool(true);
+    }
+
+    private static class FalseHolder {
+        private static final ConstBool INSTANCE = new ConstBool(false);
+    }
+
+    public static ConstBool getInstance(boolean value) {
+        return value ? TrueHolder.INSTANCE : FalseHolder.INSTANCE;
     }
 }
