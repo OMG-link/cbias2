@@ -30,6 +30,9 @@ public class IntegerType extends Type {
 
     @Override
     public long getSize() {
+        if (bitWidth != 32)
+            throw new UnsupportedOperationException();
+
         return 4;
     }
 
