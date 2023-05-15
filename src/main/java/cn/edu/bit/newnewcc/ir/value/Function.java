@@ -126,9 +126,9 @@ public class Function extends AbstractFunction {
      * <p>
      * 此方法保证入口块一定是集合的第一个元素
      *
-     * @return 函数内的所有基本块集合（只读）
+     * @return 函数基本块列表（只读）
      */
-    public Collection<BasicBlock> getBasicBlocks() {
+    public List<BasicBlock> getBasicBlocks() {
         // 保证入口块总是在开头
         List<BasicBlock> sortedBasicBlocks = new ArrayList<>();
         var entryBasicBlock = getEntryBasicBlock();
