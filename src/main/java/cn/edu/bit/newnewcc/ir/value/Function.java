@@ -40,7 +40,8 @@ public class Function extends AbstractFunction {
     }
 
     private final List<FormalParameter> formalParameters;
-    private final Set<BasicBlock> basicBlocks;
+    // LinkedHashSet能够保证迭代顺序和插入顺序一致
+    private final LinkedHashSet<BasicBlock> basicBlocks;
     private final BasicBlock entryBasicBlock;
 
     /**
@@ -56,7 +57,7 @@ public class Function extends AbstractFunction {
         for (Type parameterType : functionType.getParameterTypes()) {
             this.formalParameters.add(new FormalParameter(parameterType));
         }
-        this.basicBlocks = new HashSet<>();
+        this.basicBlocks = new LinkedHashSet<>();
         this.entryBasicBlock = new BasicBlock();
         this.addBasicBlock_(this.entryBasicBlock, true);
     }
@@ -124,21 +125,12 @@ public class Function extends AbstractFunction {
     /**
      * 获取函数内的所有基本块
      * <p>
-     * 此方法保证入口块一定是集合的第一个元素
+     * 保证基本块按插入顺序排列
      *
      * @return 函数基本块列表（只读）
      */
     public List<BasicBlock> getBasicBlocks() {
-        // 保证入口块总是在开头
-        List<BasicBlock> sortedBasicBlocks = new ArrayList<>();
-        var entryBasicBlock = getEntryBasicBlock();
-        sortedBasicBlocks.add(entryBasicBlock);
-        for (BasicBlock basicBlock : basicBlocks) {
-            if (basicBlock != entryBasicBlock) {
-                sortedBasicBlocks.add(basicBlock);
-            }
-        }
-        return Collections.unmodifiableList(sortedBasicBlocks);
+        return List.copyOf(basicBlocks);
     }
 
     /**
