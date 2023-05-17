@@ -7,6 +7,10 @@ import cn.edu.bit.newnewcc.ir.value.constant.ConstInt;
 import cn.edu.bit.newnewcc.ir.value.instruction.BranchInst;
 import cn.edu.bit.newnewcc.ir.value.instruction.JumpInst;
 
+/**
+ * 分支简化 <br>
+ * 对于分支条件为常量的分支语句，删除其无效的分支 <br>
+ */
 public class BranchSimplifyPass {
 
     private static void optimizeBasicBlock(BasicBlock basicBlock) {
