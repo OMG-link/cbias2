@@ -174,6 +174,7 @@ public class AsmFunction {
         //执行完成后恢复寄存器现场
         for (var p : pushList) {
             res.add(new AsmLoad(p.b, p.a));
+            stackAllocator.pop(8);
         }
         return res;
     }
