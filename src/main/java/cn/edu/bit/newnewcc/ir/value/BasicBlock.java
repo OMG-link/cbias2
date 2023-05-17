@@ -76,10 +76,10 @@ public class BasicBlock extends Value {
 
     public void setTerminateInstruction(TerminateInst terminateInstruction) {
         if (getTerminateInstruction() != null) {
-            getTerminateInstruction().getExits().forEach(exit -> exit.removeEntryBlock(this));
+            getTerminateInstruction().getExits().forEach(exit -> exit.__removeEntryBlock__(this));
         }
         instructionList.setTerminateInstruction(terminateInstruction);
-        getTerminateInstruction().getExits().forEach(exit -> exit.addEntryBlock(this));
+        getTerminateInstruction().getExits().forEach(exit -> exit.__addEntryBlock__(this));
     }
 
     /**
@@ -134,11 +134,11 @@ public class BasicBlock extends Value {
 
     private final Set<BasicBlock> entryBlockSet = new HashSet<>();
 
-    private void addEntryBlock(BasicBlock basicBlock) {
+    private void __addEntryBlock__(BasicBlock basicBlock) {
         entryBlockSet.add(basicBlock);
     }
 
-    private void removeEntryBlock(BasicBlock basicBlock) {
+    private void __removeEntryBlock__(BasicBlock basicBlock) {
         if (!entryBlockSet.contains(basicBlock)) {
             throw new IllegalArgumentException("Specified basic block is not an entry of this block");
         }
@@ -152,6 +152,19 @@ public class BasicBlock extends Value {
      */
     public Collection<BasicBlock> getEntryBlocks() {
         return Collections.unmodifiableSet(entryBlockSet);
+    }
+
+    /**
+     * 将入口从该基本块的所有PHI指令中移除
+     *
+     * @param entry 入口
+     */
+    public void removeEntryFromPhi(BasicBlock entry) {
+        for (Instruction leadingInstruction : getLeadingInstructions()) {
+            if (leadingInstruction instanceof PhiInst phiInst && phiInst.hasEntry(entry)) {
+                phiInst.removeEntry(entry);
+            }
+        }
     }
 
     /// 基本块与函数的关系
