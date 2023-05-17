@@ -62,7 +62,7 @@ public class PhiInst extends Instruction {
     private final Map<BasicBlockOperand, Operand> entryMap = new HashMap<>();
 
     public void addEntry(BasicBlock basicBlock, Value value) {
-        if (basicBlockOperandMap.containsKey(basicBlock)) {
+        if (hasEntry(basicBlock)) {
             throw new IllegalArgumentException("Basic block already has a value in this phi instruction");
         }
         var basicBlockOperand = new BasicBlockOperand(basicBlock);
@@ -70,8 +70,12 @@ public class PhiInst extends Instruction {
         entryMap.put(basicBlockOperand, valueOperand);
     }
 
+    public boolean hasEntry(BasicBlock basicBlock) {
+        return basicBlockOperandMap.containsKey(basicBlock);
+    }
+
     public void removeEntry(BasicBlock basicBlock) {
-        if (basicBlockOperandMap.containsKey(basicBlock)) {
+        if (!hasEntry(basicBlock)) {
             throw new IllegalArgumentException("Basic block does not exist");
         }
         var basicBlockOperand = basicBlockOperandMap.get(basicBlock);
@@ -92,10 +96,16 @@ public class PhiInst extends Instruction {
     }
 
     public Value getValue(BasicBlock basicBlock) {
+        if (!hasEntry(basicBlock)) {
+            throw new IllegalArgumentException("Basic block given is not an entry of this phi.");
+        }
         return entryMap.get(basicBlockOperandMap.get(basicBlock)).getValue();
     }
 
     public void setValue(BasicBlock basicBlock, Value value) {
+        if (!hasEntry(basicBlock)) {
+            throw new IllegalArgumentException("Basic block given is not an entry of this phi.");
+        }
         entryMap.get(basicBlockOperandMap.get(basicBlock)).setValue(value);
     }
 
