@@ -192,11 +192,7 @@ public class DeadCodeEliminationPass {
         // 清理基本块的出口信息
         for (BasicBlock invalidBasicBlock : invalidBasicBlocks) {
             for (BasicBlock exitBlock : invalidBasicBlock.getExitBlocks()) {
-                for (Instruction leadingInstruction : exitBlock.getLeadingInstructions()) {
-                    if (leadingInstruction instanceof PhiInst phiInst) {
-                        phiInst.removeEntry(invalidBasicBlock);
-                    }
-                }
+                exitBlock.removeEntryFromPhi(invalidBasicBlock);
             }
             invalidBasicBlock.setTerminateInstruction(new UnreachableInst());
         }

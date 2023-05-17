@@ -5,7 +5,6 @@ import cn.edu.bit.newnewcc.ir.exception.ValueBeingUsedException;
 import cn.edu.bit.newnewcc.ir.value.BasicBlock;
 import cn.edu.bit.newnewcc.ir.value.Function;
 import cn.edu.bit.newnewcc.ir.value.Instruction;
-import cn.edu.bit.newnewcc.ir.value.instruction.PhiInst;
 import cn.edu.bit.newnewcc.ir.value.instruction.UnreachableInst;
 
 import java.util.*;
@@ -30,11 +29,7 @@ public class UnreachableCodeEliminationPass {
         // 将该块从其出口中移除
         for (BasicBlock removingBlock : removingBlocks) {
             for (BasicBlock exitBlock : removingBlock.getExitBlocks()) {
-                for (Instruction leadingInstruction : exitBlock.getLeadingInstructions()) {
-                    if (leadingInstruction instanceof PhiInst phiInst) {
-                        phiInst.removeEntry(removingBlock);
-                    }
-                }
+                exitBlock.removeEntryFromPhi(removingBlock);
             }
             removingBlock.setTerminateInstruction(new UnreachableInst());
         }
