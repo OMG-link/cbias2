@@ -1,7 +1,7 @@
 <component name="ArtifactManager">
-  <artifact type="jar" name="compiler-2023:jar">
-    <output-path>$PROJECT_DIR$/out/artifacts/compiler_2023_jar</output-path>
-    <root id="archive" name="compiler-2023.jar">
+  <artifact type="jar" name="newnewcc:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/newnewcc_jar</output-path>
+    <root id="archive" name="newnewcc.jar">
       <element id="module-output" name="compiler-2023" />
       <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/antlr/antlr4-runtime/4.12.0/antlr4-runtime-4.12.0.jar" path-in-jar="/" />
       <element id="extracted-dir" path="$MAVEN_REPOSITORY$/commons-cli/commons-cli/1.5.0/commons-cli-1.5.0.jar" path-in-jar="/" />
