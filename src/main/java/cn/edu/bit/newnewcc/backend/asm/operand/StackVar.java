@@ -7,6 +7,7 @@ public class StackVar extends AsmOperand {
 
     Address address;
     int size;
+    boolean isS0;
 
     /**
      * 创建一个栈上变量
@@ -16,12 +17,17 @@ public class StackVar extends AsmOperand {
      */
     public StackVar(int offset, int size, boolean isS0) {
         super(TYPE.SVAR);
+        this.isS0 = isS0;
         if (isS0) {
             this.address = new Address(offset, new IntRegister("s0"));
         } else {
             this.address = new Address(offset, new IntRegister("sp"));
         }
         this.size = size;
+    }
+
+    public StackVar flip() {
+        return new StackVar(this.address.getOffset(), this.size, !this.isS0);
     }
 
     public int getSize() {

@@ -19,6 +19,10 @@ public class Address extends AsmOperand {
         this.baseAddress = baseAddress;
     }
 
+    public int getOffset() {
+        return offset;
+    }
+
     public String emit() {
         return String.format("%d(%s)", offset, baseAddress.emit());
     }

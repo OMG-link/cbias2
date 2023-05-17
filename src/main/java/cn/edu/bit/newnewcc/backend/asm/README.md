@@ -67,7 +67,51 @@
 
 ### 栈帧规范
 
-栈顶寄存器sp减去栈帧大小，将返回寄存器ra的值存储在栈的最深处，栈帧寄存器的值存储在第二位，随后将其赋值为原栈顶位置。
+参考[这里](https://lhtin.github.io/01world/blog/riscv-function-frame.html)
+```
+high memory address
+
+|===============================|
+|                               | 属于函数调用者的outgoing stack arguments区域，
+|  incoming stack arguments     | 放在这里便于理解。
+|                               | （从下往上分配，padding在上面）
+|===============================| <-- caller sp
+|                               |
+|  callee-allocated save area   | 当参数需要两个寄存器但是只有一个可用时，需要将
+|  for argument that are        | 通过寄存器传递的部分（参数中的低位）存入该区域。
+|  split between register and   | 从而和存储在incoming stack arguments中的
+|  the stack (x)                | 另一半组成一个整体。简称partial register区域
+|                               | （从上往下分配，padding在下面）
+|===============================|
+|                               |
+|  callee-allocated save area   | 匿名参数通过寄存器传递时，需要将其存储到该区域。
+|  for register varargs (x)     | 会跟incoming stack arguments区域衔接。简称varargs区域
+|                               | （从下往上分配，padding在下面）
+|===============================|
+|                               |
+|  GPR save area                | 用于存储需要存储的callee-saved整数寄存器。
+|                               | （从上往下分配，padding在下面）
+|===============================|
+|                               |
+|  FPR save area                | 用于存储需要存储的callee-saved浮点数寄存器。
+|                               |
+|===============================|
+|                               |
+|  local variables              | 用于存储局部变量。
+|                               |
+|===============================|
+|                               |
+|  dynamic allocation           | 调用__builtin_alloca动态分配的栈内存。
+|                               |
+|===============================|
+|                               |
+|  outgoing stack arguments     | 用于存储在调用函数时通过栈传递的参数。
+|                               | （从下往上分配，padding在上面）
+|===============================| <-- callee sp
+
+low memory address
+```
+
 
 ### 寄存器保存规范
 在调用中不保存的寄存器需要自行在栈中保存寄存器值，并在call命令执行后恢复

@@ -41,7 +41,6 @@ public class AsmFunction {
                 if (intParameterId < 8) {
                     formalParameters.add(new IntRegister(String.format("a%d", intParameterId)));
                 } else {
-                    stackAllocator.push(4);
                     formalParameters.add(new StackVar((intParameterId - 8) * 4, 4, false));
                 }
                 intParameterId += 1;
@@ -49,7 +48,6 @@ public class AsmFunction {
                 if (floatParameterId < 8) {
                     formalParameters.add(new FloatRegister(String.format("fa%d", intParameterId)));
                 } else {
-                    stackAllocator.push(4);
                     formalParameters.add(new StackVar((floatParameterId - 8) * 4, 4, false));
                 }
                 floatParameterId += 1;
@@ -135,6 +133,22 @@ public class AsmFunction {
         return stackAllocator;
     }
 
+    /**
+     * 获取一个可以被调用的实际参数
+     * @param index 参数的下标
+     * @return 参数操作数
+     */
+    public AsmOperand getParameterReference(int index) {
+        if (index < 0 || index >= formalParameters.size()) {
+            throw new RuntimeException("parameter id error");
+        }
+        var res = formalParameters.get(index);
+        if (res instanceof StackVar stackVar) {
+            return stackVar.flip();
+        }
+        return res;
+    }
+
 
     //调用另一个函数的汇编代码
     Collection<AsmInstruction> call(AsmFunction calledFunction, List<AsmOperand> parameters) {
@@ -146,27 +160,29 @@ public class AsmFunction {
         }
         List<Pair<StackVar, Register>> pushList = new ArrayList<>();
         for (int i = 0; i < parameters.size(); i++) {
-            var fpara = calledFunction.formalParameters.get(i);
+            var formalPara = calledFunction.formalParameters.get(i);
             //若形参中使用了参数保存寄存器，则需先push寄存器保存原有内容
-            if (fpara instanceof Register reg) {
+            if (formalPara instanceof Register reg) {
                 StackVar vreg = stackAllocator.push(8);
                 res.add(new AsmStore(reg, vreg));
                 pushList.add(new Pair<>(vreg, reg));
+            } else {
+                stackAllocator.push_back((StackVar)formalPara);
             }
 
             //将参数存储到形参对应为止
             var para = parameters.get(i);
             if (para instanceof Register reg) {
-                res.add(new AsmStore(reg, fpara));
+                res.add(new AsmStore(reg, formalPara));
             } else {
-                if (fpara instanceof FloatRegister freg) {
+                if (formalPara instanceof FloatRegister freg) {
                     FloatRegister ftmp = floatRegisterAllocator.allocate();
                     res.add(new AsmLoad(ftmp, para));
                     res.add(new AsmStore(ftmp, freg));
                 } else {
                     IntRegister tmp = registerAllocator.allocate();
                     res.add(new AsmLoad(tmp, para));
-                    res.add(new AsmStore(tmp, fpara));
+                    res.add(new AsmStore(tmp, formalPara));
                 }
             }
         }
@@ -245,7 +261,8 @@ public class AsmFunction {
     }
 
     public static class StackAllocator {
-        private int top = 16, maxSize = 16;
+        private int top = 16, maxSize = 16, backSize = 0, backMaxSize = 0;
+
         private boolean savedRa = false;
 
         /**
@@ -253,6 +270,7 @@ public class AsmFunction {
          */
         public void callFunction() {
             savedRa = true;
+            backSize = 0;
         }
 
         /**
@@ -262,6 +280,7 @@ public class AsmFunction {
          * @return 指向栈上对应的地址
          */
         public StackVar push(int size) {
+            top += (size - top % size) % size;
             top += size;
             maxSize = max(maxSize, top);
             return new StackVar(-top, size, true);
@@ -276,12 +295,23 @@ public class AsmFunction {
             top -= size;
         }
 
+        public void push_back(StackVar stackVar) {
+            backSize += stackVar.getSize();
+            backMaxSize = max(backMaxSize, backSize);
+        }
+
+        public void add_padding() {
+            maxSize += backMaxSize;
+            maxSize += (16 - maxSize % 16) % 16;
+        }
+
         /**
          * 输出函数初始化栈帧的汇编代码
          * <p>
          * 注意，emit操作仅当maxSize初始化完成后进行，避免栈帧大小分配错误
          */
         public Collection<AsmInstruction> emitHead() {
+            add_padding();
             List<AsmInstruction> res = new ArrayList<>();
             IntRegister sp = new IntRegister("sp");
             IntRegister ra = new IntRegister("ra");
