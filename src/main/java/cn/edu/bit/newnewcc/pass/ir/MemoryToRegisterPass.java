@@ -37,6 +37,14 @@ public class MemoryToRegisterPass {
      */
     private final Queue<Pair<AllocateInst, PhiInst>> phiFillQueue = new ArrayDeque<>();
 
+    private boolean isPromotableAddress(Value value) {
+        if (value instanceof AllocateInst allocateInst) {
+            return promotableAllocateInstructions.contains(allocateInst);
+        } else {
+            return false;
+        }
+    }
+
     /**
      * 从函数中提取可提升的 alloca 语句，并将其放入 promotableAllocateInstructions 和 latestDefineMap
      *
@@ -101,17 +109,16 @@ public class MemoryToRegisterPass {
             for (Instruction instruction : basicBlock.getMainInstructions()) {
                 if (instruction instanceof LoadInst loadInst) {
                     var address = loadInst.getAddressOperand();
-                    // 若该地址是可提升变量
-                    if (address instanceof AllocateInst allocateInst && promotableAllocateInstructions.contains(allocateInst)) {
+                    if (isPromotableAddress(address)) {
                         // 使用该值的上一次定义替换该 loadInst
                         // 此处未清理该 loadInst ，留着最后与 alloca, store 一并清理
-                        loadInst.replaceAllUsageTo(getLastDefine(function, basicBlock, allocateInst));
+                        loadInst.replaceAllUsageTo(getLastDefine(function, basicBlock, (AllocateInst) address));
                     }
                 }
                 if (instruction instanceof StoreInst storeInst) {
                     var address = storeInst.getAddressOperand();
-                    if (address instanceof AllocateInst allocateInst && promotableAllocateInstructions.contains(allocateInst)) {
-                        lastDefineMap.get(allocateInst).put(basicBlock, storeInst.getValueOperand());
+                    if (isPromotableAddress(address)) {
+                        lastDefineMap.get((AllocateInst) address).put(basicBlock, storeInst.getValueOperand());
                     }
                 }
             }
@@ -131,12 +138,12 @@ public class MemoryToRegisterPass {
             for (Instruction instruction : basicBlock.getInstructions()) {
                 if (instruction instanceof LoadInst loadInst) {
                     var address = loadInst.getAddressOperand();
-                    if (address instanceof AllocateInst allocateInst && promotableAllocateInstructions.contains(allocateInst)) {
+                    if (isPromotableAddress(address)) {
                         loadInst.waste();
                     }
                 } else if (instruction instanceof StoreInst storeInst) {
                     var address = storeInst.getAddressOperand();
-                    if (address instanceof AllocateInst allocateInst && promotableAllocateInstructions.contains(allocateInst)) {
+                    if (isPromotableAddress(address)) {
                         storeInst.waste();
                     }
                 }
@@ -144,10 +151,8 @@ public class MemoryToRegisterPass {
         }
         // 清理多余的 alloca 语句
         for (Instruction instruction : function.getEntryBasicBlock().getLeadingInstructions()) {
-            if (instruction instanceof AllocateInst allocateInst) {
-                if (promotableAllocateInstructions.contains(allocateInst)) {
-                    allocateInst.waste();
-                }
+            if (isPromotableAddress(instruction)) {
+                instruction.waste();
             }
         }
     }
