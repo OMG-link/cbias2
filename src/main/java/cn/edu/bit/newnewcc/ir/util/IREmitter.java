@@ -65,6 +65,7 @@ public class IREmitter {
     private void emitExternalFunction(ExternalFunction externalFunction) {
         builder.append("declare ")
                 .append(externalFunction.getReturnType().getTypeName())
+                .append(' ')
                 .append(externalFunction.getValueNameIR())
                 .append('(');
         boolean isFirstParameter = true;
