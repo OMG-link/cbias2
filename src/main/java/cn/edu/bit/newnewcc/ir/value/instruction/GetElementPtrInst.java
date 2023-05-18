@@ -4,6 +4,7 @@ import cn.edu.bit.newnewcc.ir.Operand;
 import cn.edu.bit.newnewcc.ir.Type;
 import cn.edu.bit.newnewcc.ir.Value;
 import cn.edu.bit.newnewcc.ir.exception.IndexOutOfBoundsException;
+import cn.edu.bit.newnewcc.ir.type.ArrayType;
 import cn.edu.bit.newnewcc.ir.type.PointerType;
 import cn.edu.bit.newnewcc.ir.value.Instruction;
 
@@ -95,8 +96,8 @@ public class GetElementPtrInst extends Instruction {
         builder.append(String.format(
                 "%s = getelementptr %s, %s %s",
                 getValueNameIR(),
-                getTypeName(),
-                PointerType.getInstance(getType()).getTypeName(),
+                rootOperand.getType().getTypeName(),
+                PointerType.getInstance(rootOperand.getType()).getTypeName(),
                 getRootOperand().getValueNameIR()
         ));
         for (var indexOperand : indexOperands) {
@@ -119,8 +120,8 @@ public class GetElementPtrInst extends Instruction {
      */
     public static Type analyzeDereferencedType(Type rootType, int dereferenceCount) {
         for (var i = 0; i < dereferenceCount; i++) {
-            rootType = ((PointerType) rootType).getBaseType();
+            rootType = ((ArrayType) rootType).getBaseType();
         }
-        return rootType;
+        return PointerType.getInstance(rootType);
     }
 }
