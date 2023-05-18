@@ -2,19 +2,27 @@ package cn.edu.bit.newnewcc.frontend.util;
 
 import cn.edu.bit.newnewcc.frontend.Operator;
 import cn.edu.bit.newnewcc.ir.Type;
+import cn.edu.bit.newnewcc.ir.type.ArrayType;
 import cn.edu.bit.newnewcc.ir.type.FloatType;
 import cn.edu.bit.newnewcc.ir.type.IntegerType;
 import cn.edu.bit.newnewcc.ir.value.Constant;
+import cn.edu.bit.newnewcc.ir.value.constant.ConstArray;
 import cn.edu.bit.newnewcc.ir.value.constant.ConstFloat;
 import cn.edu.bit.newnewcc.ir.value.constant.ConstInt;
+
+import java.util.List;
 
 public final class Constants {
     private Constants() {
     }
 
     public static Constant zero(Type type) {
-        if (type == IntegerType.getI32()) return ConstInt.getInstance(0);
-        if (type == FloatType.getFloat()) return ConstFloat.getInstance(0f);
+        if (type == IntegerType.getI32())
+            return ConstInt.getInstance(0);
+        if (type == FloatType.getFloat())
+            return ConstFloat.getInstance(0);
+        if (type instanceof ArrayType arrayType)
+            return new ConstArray(arrayType.getBaseType(), arrayType.getLength(), List.of());
         throw new IllegalArgumentException();
     }
 
