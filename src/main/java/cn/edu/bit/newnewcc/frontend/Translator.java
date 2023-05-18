@@ -429,13 +429,10 @@ public class Translator extends SysYBaseVisitor<Void> {
 
         if (returnType == VoidType.getInstance())
             currentBasicBlock.addInstruction(new ReturnInst(VoidValue.getInstance()));
-
-        if (currentBasicBlock.getInstructions().isEmpty()) {
-            if (returnType == IntegerType.getI32())
-                currentBasicBlock.addInstruction(new ReturnInst(ConstInt.getInstance(0)));
-            if (returnType == FloatType.getFloat())
-                currentBasicBlock.addInstruction(new ReturnInst(ConstFloat.getInstance(0f)));
-        }
+        if (returnType == IntegerType.getI32())
+            currentBasicBlock.addInstruction(new ReturnInst(ConstInt.getInstance(0)));
+        if (returnType == FloatType.getFloat())
+            currentBasicBlock.addInstruction(new ReturnInst(ConstFloat.getInstance(0f)));
 
         return null;
     }
