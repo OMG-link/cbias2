@@ -10,28 +10,28 @@ public class IntRegisterAllocator {
     Map<Instruction, IntRegister> registerMap;
     int total;
 
-    IntRegisterAllocator() {
+    public IntRegisterAllocator() {
         total = 0;
         registerMap = new HashMap<>();
     }
 
-    IntRegister allocate(Instruction instruction) {
+    public IntRegister allocate(Instruction instruction) {
         total -= 1;
         IntRegister reg = new IntRegister(total);
         registerMap.put(instruction, reg);
         return reg;
     }
 
-    IntRegister allocate() {
+    public IntRegister allocate() {
         total -= 1;
         return new IntRegister(total);
     }
 
-    IntRegister get(Instruction instruction) {
+    public IntRegister get(Instruction instruction) {
         return registerMap.get(instruction);
     }
 
-    boolean contain(Instruction instruction) {
+    public boolean contain(Instruction instruction) {
         return registerMap.containsKey(instruction);
     }
 }

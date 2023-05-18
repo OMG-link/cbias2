@@ -118,7 +118,7 @@ public class AsmFunction {
         return globalCode;
     }
 
-    public IntRegisterAllocator getRegisterAllocator() {
+    public IntRegisterAllocator getIntRegisterAllocator() {
         return intRegisterAllocator;
     }
 

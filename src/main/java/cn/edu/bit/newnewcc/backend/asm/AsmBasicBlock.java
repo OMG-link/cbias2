@@ -9,6 +9,7 @@ import cn.edu.bit.newnewcc.backend.asm.operand.IntRegister;
 import cn.edu.bit.newnewcc.ir.value.BasicBlock;
 import cn.edu.bit.newnewcc.ir.value.Instruction;
 import cn.edu.bit.newnewcc.ir.value.constant.ConstInt;
+import cn.edu.bit.newnewcc.ir.value.instruction.AllocateInst;
 import cn.edu.bit.newnewcc.ir.value.instruction.ReturnInst;
 
 

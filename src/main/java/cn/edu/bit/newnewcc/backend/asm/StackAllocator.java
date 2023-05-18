@@ -5,17 +5,30 @@ import cn.edu.bit.newnewcc.backend.asm.operand.Address;
 import cn.edu.bit.newnewcc.backend.asm.operand.Immediate;
 import cn.edu.bit.newnewcc.backend.asm.operand.IntRegister;
 import cn.edu.bit.newnewcc.backend.asm.operand.StackVar;
+import cn.edu.bit.newnewcc.ir.value.Instruction;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 
 import static java.lang.Integer.max;
 
 public class StackAllocator {
     private int top = 16, maxSize = 16, backSize = 0, backMaxSize = 0;
-
     private boolean savedRa = false;
+    private Map<Instruction, StackVar> stackVarMap = new HashMap<>();
+
+    public StackVar allocate(Instruction instruction, int size) {
+        StackVar res = push(size);
+        stackVarMap.put(instruction, res);
+        return res;
+    }
+
+    public StackVar get(Instruction instruction) {
+        return stackVarMap.get(instruction);
+    }
+
+    public boolean contain(Instruction instruction) {
+        return stackVarMap.containsKey(instruction);
+    }
 
     /**
      * 进行函数调用前的准备，目前仅设置保存返回寄存器
