@@ -63,6 +63,13 @@ public class Operand {
     }
 
     /**
+     * @return 操作数的类型
+     */
+    public Type getType() {
+        return type;
+    }
+
+    /**
      * 修改操作数的值
      *
      * @param value 操作数的新值
