@@ -36,7 +36,7 @@ public class GetElementPtrInst extends Instruction {
      * @param indices 下标操作数列表。这与直观意义上的下标不同，请务必阅读 LLVM IR 文档。
      */
     public GetElementPtrInst(Value root, List<Value> indices) {
-        super(analyzeDereferencedType(root.getType(), indices.size() - 1));
+        super(analyzeDereferencedType(root.getType(), indices.size()));
         this.rootOperand = new Operand(this, root.getType(), root);
         this.indexOperands = new ArrayList<>();
         for (var index : indices) {
@@ -119,7 +119,8 @@ public class GetElementPtrInst extends Instruction {
      * @return 解引用后的类型
      */
     public static Type analyzeDereferencedType(Type rootType, int dereferenceCount) {
-        for (var i = 0; i < dereferenceCount; i++) {
+        rootType = ((PointerType) rootType).getBaseType();
+        for (var i = 1; i < dereferenceCount; i++) {
             rootType = ((ArrayType) rootType).getBaseType();
         }
         return PointerType.getInstance(rootType);
