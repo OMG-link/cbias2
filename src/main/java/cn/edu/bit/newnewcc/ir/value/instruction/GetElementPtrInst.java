@@ -32,13 +32,13 @@ public class GetElementPtrInst extends Instruction {
 
     /**
      * @param root    基地址操作数
-     * @param indexes 下标操作数列表。这与直观意义上的下标不同，请务必阅读 LLVM IR 文档。
+     * @param indices 下标操作数列表。这与直观意义上的下标不同，请务必阅读 LLVM IR 文档。
      */
-    public GetElementPtrInst(Value root, List<Value> indexes) {
-        super(analysisDereferencedType(root.getType(), indexes.size() - 1));
+    public GetElementPtrInst(Value root, List<Value> indices) {
+        super(analysisDereferencedType(root.getType(), indices.size() - 1));
         this.rootOperand = new Operand(this, root.getType(), root);
         this.indexOperands = new ArrayList<>();
-        for (var index : indexes) {
+        for (var index : indices) {
             indexOperands.add(new Operand(this, index.getType(), index));
         }
     }
