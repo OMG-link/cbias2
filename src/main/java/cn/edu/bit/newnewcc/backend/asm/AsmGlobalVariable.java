@@ -1,5 +1,6 @@
 package cn.edu.bit.newnewcc.backend.asm;
 
+import cn.edu.bit.newnewcc.backend.asm.operand.GlobalTag;
 import cn.edu.bit.newnewcc.ir.value.Constant;
 import cn.edu.bit.newnewcc.ir.value.GlobalVariable;
 import cn.edu.bit.newnewcc.ir.value.constant.ConstArray;
@@ -83,6 +84,14 @@ public class AsmGlobalVariable {
 
     private boolean isConstant() {
         return isConstant;
+    }
+
+    public GlobalTag emitTag(boolean isHigh) {
+        if (isHigh) {
+            return new GlobalTag(globalVariableName, GlobalTag.SEGMENT.HIGH);
+        } else {
+            return new GlobalTag(globalVariableName, GlobalTag.SEGMENT.LOW);
+        }
     }
 
     private String getSectionStr() {

@@ -45,6 +45,13 @@ public class GlobalTag extends AsmOperand {
         this.baseAddress = null;
     }
 
+    public GlobalTag(String tagName, SEGMENT segment) {
+        super(TYPE.GTAG);
+        this.tagName = tagName;
+        this.segment = segment;
+        this.baseAddress = null;
+    }
+
     private String getOffset() {
         if (segment == SEGMENT.HIGH) {
             return String.format("%%hi(%s)", tagName);
@@ -76,7 +83,7 @@ public class GlobalTag extends AsmOperand {
         return tagName + ":";
     }
 
-    enum SEGMENT {
-        HIGH, LOW, NONE
+    public enum SEGMENT {
+        HIGH, LOW
     }
 }

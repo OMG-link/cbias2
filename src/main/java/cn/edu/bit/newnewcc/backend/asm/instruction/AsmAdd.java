@@ -16,7 +16,7 @@ public class AsmAdd extends AsmInstruction {
      */
     public AsmAdd(IntRegister goal, IntRegister source1, AsmOperand source2) {
         super("add", goal, source1, source2);
-        if (source2.isImmediate() || source2.isGlobalTag()) {
+        if (source2.isImmediate() || source2.isGlobalTag() || source2.isAddress()) {
             setInstructionName("addi");
         }
     }

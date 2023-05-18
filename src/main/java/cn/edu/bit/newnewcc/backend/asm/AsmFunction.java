@@ -2,6 +2,7 @@ package cn.edu.bit.newnewcc.backend.asm;
 
 import cn.edu.bit.newnewcc.backend.asm.instruction.*;
 import cn.edu.bit.newnewcc.backend.asm.operand.*;
+import cn.edu.bit.newnewcc.ir.Value;
 import cn.edu.bit.newnewcc.ir.type.FloatType;
 import cn.edu.bit.newnewcc.ir.type.IntegerType;
 import cn.edu.bit.newnewcc.ir.value.AbstractFunction;
@@ -19,6 +20,7 @@ public class AsmFunction {
 
     AsmCode globalCode;
     private final List<AsmOperand> formalParameters = new ArrayList<>();
+    private final Map<Value, AsmOperand> formalParameterMap = new HashMap<>();
     private final List<AsmBasicBlock> basicBlocks = new ArrayList<>();
     private final Map<BasicBlock, AsmBasicBlock> basicBlockMap = new HashMap<>();
     private final List<AsmInstruction> instructionList = new LinkedList<>();
@@ -53,6 +55,10 @@ public class AsmFunction {
 
         //生成具体函数的汇编代码
         if (abstractFunction instanceof Function function) {
+            var functionParameterList = function.getFormalParameters();
+            for (var i = 0; i < functionParameterList.size(); i++) {
+                formalParameterMap.put(functionParameterList.get(i), formalParameters.get(i));
+            }
             for (var block : function.getBasicBlocks()) {
                 AsmBasicBlock asmBlock = new AsmBasicBlock(this, block);
                 basicBlockMap.put(block, asmBlock);
@@ -135,11 +141,19 @@ public class AsmFunction {
      * @param index 参数的下标
      * @return 参数操作数
      */
-    public AsmOperand getParameterReference(int index) {
+    public AsmOperand getParameterByIndex(int index) {
         if (index < 0 || index >= formalParameters.size()) {
             throw new RuntimeException("parameter id error");
         }
         var res = formalParameters.get(index);
+        if (res instanceof StackVar stackVar) {
+            return stackVar.flip();
+        }
+        return res;
+    }
+
+    public AsmOperand getParameterByFormal(Value formalParameter) {
+        var res = formalParameterMap.get(formalParameter);
         if (res instanceof StackVar stackVar) {
             return stackVar.flip();
         }

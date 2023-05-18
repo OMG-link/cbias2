@@ -14,6 +14,7 @@ import cn.edu.bit.newnewcc.backend.asm.operand.*;
 public class AsmLoad extends AsmInstruction {
     /**
      * 创建一个汇编加载指令，将source中的内容加载到寄存器goal中
+     * 注意，load一个地址的时候默认是将地址中的内容读出（一个字节），而非将地址的值读入
      *
      * @param goal   目标寄存器
      * @param source 加载内容源

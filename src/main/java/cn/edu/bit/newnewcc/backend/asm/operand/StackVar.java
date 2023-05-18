@@ -30,6 +30,10 @@ public class StackVar extends AsmOperand {
         return new StackVar(this.address.getOffset(), this.size, !this.isS0);
     }
 
+    public Address getAddress() {
+        return this.address;
+    }
+
     public int getSize() {
         return size;
     }
