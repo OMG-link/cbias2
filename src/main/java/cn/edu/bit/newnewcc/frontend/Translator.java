@@ -16,7 +16,6 @@ import cn.edu.bit.newnewcc.ir.value.instruction.*;
 import org.antlr.v4.runtime.Token;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 public class Translator extends SysYBaseVisitor<Void> {
@@ -317,19 +316,12 @@ public class Translator extends SysYBaseVisitor<Void> {
             visit(ctx.expression());
             currentBasicBlock.addInstruction(new StoreInst(address, result));
         } else {
-            Type elementType = ((ArrayType) ((PointerType) address.getType()).getBaseType()).getBaseType();
-            var iterator = ctx.initializer().iterator();
-            int n = ((ArrayType) ((PointerType) address.getType()).getBaseType()).getLength();
-            for (int i = 0; i < n; ++i) {
+            int index = 0;
+            for (var elementInitializer : ctx.initializer()) {
                 var elementAddress = new GetElementPtrInst(
-                        address, List.of(ConstInt.getInstance(0), ConstInt.getInstance(i))
-                );
+                        address, List.of(ConstInt.getInstance(0), ConstInt.getInstance(index++)));
                 currentBasicBlock.addInstruction(elementAddress);
-
-                if (iterator.hasNext())
-                    initializeVariable(iterator.next(), elementAddress);
-                else
-                    currentBasicBlock.addInstruction(new StoreInst(elementAddress, Constants.zero(elementType)));
+                initializeVariable(elementInitializer, elementAddress);
             }
         }
     }
@@ -420,8 +412,10 @@ public class Translator extends SysYBaseVisitor<Void> {
                 String name = variableDefinition.Identifier().getText();
                 symbolTable.putLocalVariable(name, address);
 
-                if (variableDefinition.initializer() != null)
+                if (variableDefinition.initializer() != null) {
+                    currentBasicBlock.addInstruction(new StoreInst(address, Constants.zero(type)));
                     initializeVariable(variableDefinition.initializer(), address);
+                }
             }
         }
 
