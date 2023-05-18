@@ -7,10 +7,7 @@ import cn.edu.bit.newnewcc.frontend.util.Types;
 import cn.edu.bit.newnewcc.ir.Module;
 import cn.edu.bit.newnewcc.ir.Type;
 import cn.edu.bit.newnewcc.ir.Value;
-import cn.edu.bit.newnewcc.ir.type.FloatType;
-import cn.edu.bit.newnewcc.ir.type.FunctionType;
-import cn.edu.bit.newnewcc.ir.type.IntegerType;
-import cn.edu.bit.newnewcc.ir.type.VoidType;
+import cn.edu.bit.newnewcc.ir.type.*;
 import cn.edu.bit.newnewcc.ir.value.*;
 import cn.edu.bit.newnewcc.ir.value.constant.ConstFloat;
 import cn.edu.bit.newnewcc.ir.value.constant.ConstInt;
@@ -22,6 +19,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Translator extends SysYBaseVisitor<Void> {
+    @lombok.Value
+    private static class Parameter {
+        Type type;
+        String name;
+    }
+
     private final SymbolTable symbolTable = new SymbolTable();
     private final ControlFlowStack controlFlowStack = new ControlFlowStack();
     private final Module module = new Module();
@@ -62,7 +65,7 @@ public class Translator extends SysYBaseVisitor<Void> {
     private BasicBlock currentBasicBlock;
     private Value result;
     private Value resultAddress;
-    private boolean foldConstants;
+    private boolean constantFoldingEnabled;
 
     public Module getModule() {
         return module;
@@ -105,6 +108,34 @@ public class Translator extends SysYBaseVisitor<Void> {
         };
     }
 
+    private List<Parameter> makeParameterList(SysYParser.ParameterListContext ctx) {
+        List<Parameter> parameters = new ArrayList<>();
+
+        for (var parameterDeclaration : ctx.parameterDeclaration()) {
+            Type type = makeType(parameterDeclaration.typeSpecifier().type);
+
+            if (!parameterDeclaration.LBRACKET().isEmpty()) {
+                var listIterator = parameterDeclaration.expression()
+                        .listIterator(parameterDeclaration.expression().size());
+                while (listIterator.hasPrevious()) {
+                    constantFoldingEnabled = true;
+                    visit(listIterator.previous());
+                    constantFoldingEnabled = false;
+
+                    type = ArrayType.getInstance(((ConstInt) result).getValue(), type);
+                }
+
+                type = PointerType.getInstance(type);
+            }
+
+            String name = parameterDeclaration.Identifier().getText();
+
+            parameters.add(new Parameter(type, name));
+        }
+
+        return parameters;
+    }
+
     private void applyTypeConversion(Value value, Type targetType) {
         Instruction instruction;
         if (value.getType() == IntegerType.getI32() && targetType == FloatType.getFloat())
@@ -119,7 +150,7 @@ public class Translator extends SysYBaseVisitor<Void> {
         else if (value.getType() == FloatType.getFloat() && targetType == IntegerType.getI1())
             instruction = new FloatCompareInst(
                     FloatType.getFloat(), FloatCompareInst.Condition.ONE,
-                    value, ConstFloat.getInstance(0f)
+                    value, ConstFloat.getInstance(0)
             );
         else if (value.getType() == IntegerType.getI1() && targetType == IntegerType.getI32())
             instruction = new ZeroExtensionInst(value, IntegerType.getI32());
@@ -151,7 +182,7 @@ public class Translator extends SysYBaseVisitor<Void> {
                 case NEG -> new FloatNegateInst(FloatType.getFloat(), operand);
                 case LNOT -> new FloatCompareInst(
                         FloatType.getFloat(), FloatCompareInst.Condition.OEQ,
-                        operand, ConstFloat.getInstance(0f)
+                        operand, ConstFloat.getInstance(0)
                 );
                 default -> throw new IllegalArgumentException();
             };
@@ -281,12 +312,12 @@ public class Translator extends SysYBaseVisitor<Void> {
 
     @Override
     public Void visitCompilationUnit(SysYParser.CompilationUnitContext ctx) {
-        foldConstants = true;
+        constantFoldingEnabled = true;
 
         for (var declaration : ctx.declaration())
             visit(declaration);
 
-        foldConstants = false;
+        constantFoldingEnabled = false;
 
         for (var functionDefinition : ctx.functionDefinition())
             visit(functionDefinition);
@@ -299,7 +330,7 @@ public class Translator extends SysYBaseVisitor<Void> {
         Type type = makeType(ctx.typeSpecifier().type);
 
         for (var constantDefinition : ctx.constantDefinition()) {
-            if (foldConstants) {
+            if (constantFoldingEnabled) {
                 Constant initialValue = Constants.zero(type);
                 if (constantDefinition.constantInitializer() != null) {
                     visit(constantDefinition.constantInitializer());
@@ -314,8 +345,7 @@ public class Translator extends SysYBaseVisitor<Void> {
                 symbolTable.putGlobalVariable(name, globalVariable);
             } else {
                 var address = new AllocateInst(type);
-                currentBasicBlock.addInstruction(address);
-
+                currentFunction.getEntryBasicBlock().addInstruction(address);
                 String name = constantDefinition.Identifier().getText();
                 symbolTable.putLocalVariable(name, address);
 
@@ -331,10 +361,23 @@ public class Translator extends SysYBaseVisitor<Void> {
 
     @Override
     public Void visitVariableDeclaration(SysYParser.VariableDeclarationContext ctx) {
-        Type type = makeType(ctx.typeSpecifier().type);
+        Type baseType = makeType(ctx.typeSpecifier().type);
 
         for (var variableDefinition : ctx.variableDefinition()) {
-            if (foldConstants) {
+            Type type = baseType;
+
+            var listIterator = variableDefinition.expression()
+                    .listIterator(variableDefinition.expression().size());
+            while (listIterator.hasPrevious()) {
+                boolean savedConstantFoldingEnabled = constantFoldingEnabled;
+                constantFoldingEnabled = true;
+                visit(listIterator.previous());
+                constantFoldingEnabled = savedConstantFoldingEnabled;
+
+                type = ArrayType.getInstance(((ConstInt) result).getValue(), type);
+            }
+
+            if (constantFoldingEnabled) {
                 Constant initialValue = Constants.zero(type);
                 if (variableDefinition.initializer() != null) {
                     visit(variableDefinition.initializer());
@@ -349,8 +392,7 @@ public class Translator extends SysYBaseVisitor<Void> {
                 symbolTable.putGlobalVariable(name, globalVariable);
             } else {
                 var address = new AllocateInst(type);
-                currentBasicBlock.addInstruction(address);
-
+                currentFunction.getEntryBasicBlock().addInstruction(address);
                 String name = variableDefinition.Identifier().getText();
                 symbolTable.putLocalVariable(name, address);
 
@@ -368,10 +410,10 @@ public class Translator extends SysYBaseVisitor<Void> {
     public Void visitFunctionDefinition(SysYParser.FunctionDefinitionContext ctx) {
         String name = ctx.Identifier().getText();
         Type returnType = makeType(ctx.typeSpecifier().type);
-        List<Type> parameterTypes = new ArrayList<>();
+        List<Parameter> parameters = List.of();
         if (ctx.parameterList() != null)
-            for (var parameterDeclaration : ctx.parameterList().parameterDeclaration())
-                parameterTypes.add(makeType(parameterDeclaration.typeSpecifier().type));
+            parameters = makeParameterList(ctx.parameterList());
+        List<Type> parameterTypes = parameters.stream().map(Parameter::getType).toList();
 
         FunctionType type = FunctionType.getInstance(returnType, parameterTypes);
 
@@ -403,30 +445,18 @@ public class Translator extends SysYBaseVisitor<Void> {
         symbolTable.pushScope();
 
         if (ctx.getParent() instanceof SysYParser.FunctionDefinitionContext functionDefinition) {
-            @lombok.Value
-            class Parameter {
-                Type type;
-                String name;
-            }
-
-            List<Parameter> parameters = new ArrayList<>();
             if (functionDefinition.parameterList() != null) {
-                for (var parameterDeclaration : functionDefinition.parameterList().parameterDeclaration()) {
-                    parameters.add(new Parameter(
-                            makeType(parameterDeclaration.typeSpecifier().type),
-                            parameterDeclaration.Identifier().getText()
-                    ));
+                List<Parameter> parameters = makeParameterList(functionDefinition.parameterList());
+
+                for (int i = 0; i < parameters.size(); ++i) {
+                    Parameter parameter = parameters.get(i);
+
+                    var address = new AllocateInst(parameter.getType());
+                    currentFunction.getEntryBasicBlock().addInstruction(address);
+                    currentBasicBlock.addInstruction(new StoreInst(address, currentFunction.getFormalParameters().get(i)));
+
+                    symbolTable.putLocalVariable(parameter.getName(), address);
                 }
-            }
-
-            for (int i = 0; i < parameters.size(); ++i) {
-                Parameter parameter = parameters.get(i);
-
-                var address = new AllocateInst(parameter.getType());
-                currentBasicBlock.addInstruction(address);
-                currentBasicBlock.addInstruction(new StoreInst(address, currentFunction.getFormalParameters().get(i)));
-
-                symbolTable.putLocalVariable(parameter.getName(), address);
             }
         }
 
@@ -516,7 +546,7 @@ public class Translator extends SysYBaseVisitor<Void> {
 
     @Override
     public Void visitBreakStatement(SysYParser.BreakStatementContext ctx) {
-        var doneBlock = ((ControlFlowStack.WhileContext) controlFlowStack.getTopContext()).getDoneBlock();
+        BasicBlock doneBlock = ((ControlFlowStack.WhileContext) controlFlowStack.getTopContext()).getDoneBlock();
         currentBasicBlock.addInstruction(new JumpInst(doneBlock));
 
         currentBasicBlock = new BasicBlock();
@@ -527,7 +557,7 @@ public class Translator extends SysYBaseVisitor<Void> {
 
     @Override
     public Void visitContinueStatement(SysYParser.ContinueStatementContext ctx) {
-        var testBlock = ((ControlFlowStack.WhileContext) controlFlowStack.getTopContext()).getTestBlock();
+        BasicBlock testBlock = ((ControlFlowStack.WhileContext) controlFlowStack.getTopContext()).getTestBlock();
         currentBasicBlock.addInstruction(new JumpInst(testBlock));
 
         currentBasicBlock = new BasicBlock();
@@ -562,7 +592,7 @@ public class Translator extends SysYBaseVisitor<Void> {
         currentFunction.addBasicBlock(doneBlock);
 
         var address = new AllocateInst(IntegerType.getI1());
-        currentBasicBlock.addInstruction(address);
+        currentFunction.getEntryBasicBlock().addInstruction(address);
 
         visit(ctx.logicalOrExpression());
         if (result.getType() != IntegerType.getI1())
@@ -582,9 +612,8 @@ public class Translator extends SysYBaseVisitor<Void> {
 
         currentBasicBlock = doneBlock;
 
-        var value = new LoadInst(address);
-        currentBasicBlock.addInstruction(value);
-        result = value;
+        result = new LoadInst(address);
+        currentBasicBlock.addInstruction((Instruction) result);
 
         return null;
     }
@@ -598,7 +627,7 @@ public class Translator extends SysYBaseVisitor<Void> {
         currentFunction.addBasicBlock(doneBlock);
 
         var address = new AllocateInst(IntegerType.getI1());
-        currentBasicBlock.addInstruction(address);
+        currentFunction.getEntryBasicBlock().addInstruction(address);
 
         visit(ctx.logicalAndExpression());
         if (result.getType() != IntegerType.getI1())
@@ -618,9 +647,8 @@ public class Translator extends SysYBaseVisitor<Void> {
 
         currentBasicBlock = doneBlock;
 
-        var value = new LoadInst(address);
-        currentBasicBlock.addInstruction(value);
-        result = value;
+        result = new LoadInst(address);
+        currentBasicBlock.addInstruction((Instruction) result);
 
         return null;
     }
@@ -659,7 +687,7 @@ public class Translator extends SysYBaseVisitor<Void> {
 
         Operator operator = makeBinaryOperator(ctx.op);
 
-        if (foldConstants)
+        if (constantFoldingEnabled)
             result = Constants.applyBinaryOperator((Constant) leftOperand, (Constant) rightOperand, operator);
         else
             applyBinaryArithmeticOperator(leftOperand, rightOperand, operator);
@@ -677,7 +705,7 @@ public class Translator extends SysYBaseVisitor<Void> {
 
         Operator operator = makeBinaryOperator(ctx.op);
 
-        if (foldConstants)
+        if (constantFoldingEnabled)
             result = Constants.applyBinaryOperator((Constant) leftOperand, (Constant) rightOperand, operator);
         else
             applyBinaryArithmeticOperator(leftOperand, rightOperand, operator);
@@ -698,10 +726,8 @@ public class Translator extends SysYBaseVisitor<Void> {
             }
         }
 
-        var value = new CallInst(function, arguments);
-        currentBasicBlock.addInstruction(value);
-        result = value;
-
+        result = new CallInst(function, arguments);
+        currentBasicBlock.addInstruction((Instruction) result);
         return null;
     }
 
@@ -711,7 +737,7 @@ public class Translator extends SysYBaseVisitor<Void> {
         Value operand = result;
         Operator operator = makeUnaryOperator(ctx.unaryOperator().op);
 
-        if (foldConstants)
+        if (constantFoldingEnabled)
             result = Constants.applyUnaryOperator((Constant) operand, operator);
         else
             applyUnaryOperator(operand, operator);
@@ -722,18 +748,36 @@ public class Translator extends SysYBaseVisitor<Void> {
     @Override
     public Void visitLValue(SysYParser.LValueContext ctx) {
         String name = ctx.Identifier().getText();
-        resultAddress = symbolTable.getVariable(name);
 
-        var value = new LoadInst(resultAddress);
-        currentBasicBlock.addInstruction(value);
-        result = value;
+        Value address = symbolTable.getVariable(name);
+        for (var expression : ctx.expression()) {
+            visit(expression);
+            address = new GetElementPtrInst(address, List.of(ConstInt.getInstance(0), result));
+            currentBasicBlock.addInstruction((Instruction) address);
+        }
+        resultAddress = address;
+
+        result = new LoadInst(resultAddress);
+        currentBasicBlock.addInstruction((Instruction) result);
 
         return null;
     }
 
     @Override
     public Void visitIntegerConstant(SysYParser.IntegerConstantContext ctx) {
-        result = ConstInt.getInstance(Integer.parseInt(ctx.IntegerConstant().getText()));
+        String text = ctx.IntegerConstant().getText();
+
+        int value;
+        if ("0".equals(text))
+            value = 0;
+        else if (text.startsWith("0x"))
+            value = Integer.parseInt(text.substring(2), 16);
+        else if (text.startsWith("0"))
+            value = Integer.parseInt(text.substring(1), 8);
+        else
+            value = Integer.parseInt(text);
+
+        result = ConstInt.getInstance(value);
         return null;
     }
 
