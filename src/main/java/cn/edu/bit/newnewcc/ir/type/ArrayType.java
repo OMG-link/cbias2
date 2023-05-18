@@ -37,7 +37,7 @@ public class ArrayType extends Type {
      * @param length   数组长度
      * @param baseType 数组内元素的类型
      */
-    public ArrayType(int length, Type baseType) {
+    private ArrayType(int length, Type baseType) {
         this.length = length;
         this.baseType = baseType;
     }
