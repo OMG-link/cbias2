@@ -16,6 +16,7 @@ import cn.edu.bit.newnewcc.ir.value.instruction.*;
 import org.antlr.v4.runtime.Token;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 public class Translator extends SysYBaseVisitor<Void> {
@@ -118,9 +119,10 @@ public class Translator extends SysYBaseVisitor<Void> {
                 var listIterator = parameterDeclaration.expression()
                         .listIterator(parameterDeclaration.expression().size());
                 while (listIterator.hasPrevious()) {
+                    boolean savedConstantFoldingEnabled = constantFoldingEnabled;
                     constantFoldingEnabled = true;
                     visit(listIterator.previous());
-                    constantFoldingEnabled = false;
+                    constantFoldingEnabled = savedConstantFoldingEnabled;
 
                     type = ArrayType.getInstance(((ConstInt) result).getValue(), type);
                 }
@@ -136,7 +138,7 @@ public class Translator extends SysYBaseVisitor<Void> {
         return parameters;
     }
 
-    private void applyTypeConversion(Value value, Type targetType) {
+    private void convertType(Value value, Type targetType) {
         Instruction instruction;
         if (value.getType() == IntegerType.getI32() && targetType == FloatType.getFloat())
             instruction = new SignedIntegerToFloatInst(value, FloatType.getFloat());
@@ -193,18 +195,18 @@ public class Translator extends SysYBaseVisitor<Void> {
         result = instruction;
 
         if (operator == Operator.LNOT)
-            applyTypeConversion(result, IntegerType.getI32());
+            convertType(result, IntegerType.getI32());
     }
 
     private void applyBinaryArithmeticOperator(Value leftOperand, Value rightOperand, Operator operator) {
         Type operandType = Types.commonType(leftOperand.getType(), rightOperand.getType());
 
         if (!leftOperand.getType().equals(operandType)) {
-            applyTypeConversion(leftOperand, operandType);
+            convertType(leftOperand, operandType);
             leftOperand = result;
         }
         if (!rightOperand.getType().equals(operandType)) {
-            applyTypeConversion(rightOperand, operandType);
+            convertType(rightOperand, operandType);
             rightOperand = result;
         }
 
@@ -237,11 +239,11 @@ public class Translator extends SysYBaseVisitor<Void> {
         Type operandType = Types.commonType(leftOperand.getType(), rightOperand.getType());
 
         if (!leftOperand.getType().equals(operandType)) {
-            applyTypeConversion(leftOperand, operandType);
+            convertType(leftOperand, operandType);
             leftOperand = result;
         }
         if (!rightOperand.getType().equals(operandType)) {
-            applyTypeConversion(rightOperand, operandType);
+            convertType(rightOperand, operandType);
             rightOperand = result;
         }
 
@@ -307,7 +309,29 @@ public class Translator extends SysYBaseVisitor<Void> {
 
         currentBasicBlock.addInstruction(instruction);
         result = instruction;
-        applyTypeConversion(result, IntegerType.getI32());
+        convertType(result, IntegerType.getI32());
+    }
+
+    private void initializeVariable(SysYParser.InitializerContext ctx, Value address) {
+        if (ctx.expression() != null) {
+            visit(ctx.expression());
+            currentBasicBlock.addInstruction(new StoreInst(address, result));
+        } else {
+            Type elementType = ((ArrayType) ((PointerType) address.getType()).getBaseType()).getBaseType();
+            var iterator = ctx.initializer().iterator();
+            int n = ((ArrayType) ((PointerType) address.getType()).getBaseType()).getLength();
+            for (int i = 0; i < n; ++i) {
+                var elementAddress = new GetElementPtrInst(
+                        address, List.of(ConstInt.getInstance(0), ConstInt.getInstance(i))
+                );
+                currentBasicBlock.addInstruction(elementAddress);
+
+                if (iterator.hasNext())
+                    initializeVariable(iterator.next(), elementAddress);
+                else
+                    currentBasicBlock.addInstruction(new StoreInst(elementAddress, Constants.zero(elementType)));
+            }
+        }
     }
 
     @Override
@@ -396,10 +420,8 @@ public class Translator extends SysYBaseVisitor<Void> {
                 String name = variableDefinition.Identifier().getText();
                 symbolTable.putLocalVariable(name, address);
 
-                if (variableDefinition.initializer() != null) {
-                    visit(variableDefinition.initializer());
-                    currentBasicBlock.addInstruction(new StoreInst(address, result));
-                }
+                if (variableDefinition.initializer() != null)
+                    initializeVariable(variableDefinition.initializer(), address);
             }
         }
 
@@ -490,7 +512,7 @@ public class Translator extends SysYBaseVisitor<Void> {
 
         visit(ctx.expression());
         if (result.getType() != IntegerType.getI1())
-            applyTypeConversion(result, IntegerType.getI1());
+            convertType(result, IntegerType.getI1());
 
         currentBasicBlock.addInstruction(new BranchInst(result, thenBlock, elseBlock));
 
@@ -525,7 +547,7 @@ public class Translator extends SysYBaseVisitor<Void> {
 
         visit(ctx.expression());
         if (result.getType() != IntegerType.getI1())
-            applyTypeConversion(result, IntegerType.getI1());
+            convertType(result, IntegerType.getI1());
 
         currentBasicBlock.addInstruction(new BranchInst(result, bodyBlock, doneBlock));
 
@@ -568,7 +590,7 @@ public class Translator extends SysYBaseVisitor<Void> {
         if (ctx.expression() != null) {
             visit(ctx.expression());
             if (result.getType() != currentFunction.getReturnType())
-                applyTypeConversion(result, currentFunction.getReturnType());
+                convertType(result, currentFunction.getReturnType());
 
             currentBasicBlock.addInstruction(new ReturnInst(result));
         } else
@@ -593,7 +615,7 @@ public class Translator extends SysYBaseVisitor<Void> {
 
         visit(ctx.logicalOrExpression());
         if (result.getType() != IntegerType.getI1())
-            applyTypeConversion(result, IntegerType.getI1());
+            convertType(result, IntegerType.getI1());
 
         currentBasicBlock.addInstruction(new StoreInst(address, result));
         currentBasicBlock.addInstruction(new BranchInst(result, doneBlock, falseBlock));
@@ -602,7 +624,7 @@ public class Translator extends SysYBaseVisitor<Void> {
 
         visit(ctx.logicalAndExpression());
         if (result.getType() != IntegerType.getI1())
-            applyTypeConversion(result, IntegerType.getI1());
+            convertType(result, IntegerType.getI1());
 
         currentBasicBlock.addInstruction(new StoreInst(address, result));
         currentBasicBlock.addInstruction(new JumpInst(doneBlock));
@@ -628,7 +650,7 @@ public class Translator extends SysYBaseVisitor<Void> {
 
         visit(ctx.logicalAndExpression());
         if (result.getType() != IntegerType.getI1())
-            applyTypeConversion(result, IntegerType.getI1());
+            convertType(result, IntegerType.getI1());
 
         currentBasicBlock.addInstruction(new StoreInst(address, result));
         currentBasicBlock.addInstruction(new BranchInst(result, trueBlock, doneBlock));
@@ -637,7 +659,7 @@ public class Translator extends SysYBaseVisitor<Void> {
 
         visit(ctx.equalityExpression());
         if (result.getType() != IntegerType.getI1())
-            applyTypeConversion(result, IntegerType.getI1());
+            convertType(result, IntegerType.getI1());
 
         currentBasicBlock.addInstruction(new StoreInst(address, result));
         currentBasicBlock.addInstruction(new JumpInst(doneBlock));

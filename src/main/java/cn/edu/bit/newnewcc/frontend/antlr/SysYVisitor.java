@@ -58,19 +58,11 @@ public interface SysYVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitVariableDefinition(SysYParser.VariableDefinitionContext ctx);
 	/**
-	 * Visit a parse tree produced by the {@code initializerExpression}
-	 * labeled alternative in {@link SysYParser#initializer}.
+	 * Visit a parse tree produced by {@link SysYParser#initializer}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitInitializerExpression(SysYParser.InitializerExpressionContext ctx);
-	/**
-	 * Visit a parse tree produced by the {@code initializerList}
-	 * labeled alternative in {@link SysYParser#initializer}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitInitializerList(SysYParser.InitializerListContext ctx);
+	T visitInitializer(SysYParser.InitializerContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link SysYParser#functionDefinition}.
 	 * @param ctx the parse tree

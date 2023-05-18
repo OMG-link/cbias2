@@ -24,8 +24,8 @@ variableDefinition:
 	| Identifier (LBRACKET expression RBRACKET)* ASSIGN initializer;
 
 initializer:
-	expression # initializerExpression
-	| LBRACE (initializer (COMMA initializer)*)? RBRACE # initializerList
+	expression
+	| LBRACE (initializer (COMMA initializer)*)? RBRACE
 	;
 
 functionDefinition:

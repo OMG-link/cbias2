@@ -716,30 +716,9 @@ public class SysYParser extends Parser {
 
 	@SuppressWarnings("CheckReturnValue")
 	public static class InitializerContext extends ParserRuleContext {
-		public InitializerContext(ParserRuleContext parent, int invokingState) {
-			super(parent, invokingState);
-		}
-		@Override public int getRuleIndex() { return RULE_initializer; }
-	 
-		public InitializerContext() { }
-		public void copyFrom(InitializerContext ctx) {
-			super.copyFrom(ctx);
-		}
-	}
-	@SuppressWarnings("CheckReturnValue")
-	public static class InitializerExpressionContext extends InitializerContext {
 		public ExpressionContext expression() {
 			return getRuleContext(ExpressionContext.class,0);
 		}
-		public InitializerExpressionContext(InitializerContext ctx) { copyFrom(ctx); }
-		@Override
-		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
-			if ( visitor instanceof SysYVisitor) return ((SysYVisitor<? extends T>)visitor).visitInitializerExpression(this);
-			else return visitor.visitChildren(this);
-		}
-	}
-	@SuppressWarnings("CheckReturnValue")
-	public static class InitializerListContext extends InitializerContext {
 		public TerminalNode LBRACE() { return getToken(SysYParser.LBRACE, 0); }
 		public TerminalNode RBRACE() { return getToken(SysYParser.RBRACE, 0); }
 		public List<InitializerContext> initializer() {
@@ -752,10 +731,13 @@ public class SysYParser extends Parser {
 		public TerminalNode COMMA(int i) {
 			return getToken(SysYParser.COMMA, i);
 		}
-		public InitializerListContext(InitializerContext ctx) { copyFrom(ctx); }
+		public InitializerContext(ParserRuleContext parent, int invokingState) {
+			super(parent, invokingState);
+		}
+		@Override public int getRuleIndex() { return RULE_initializer; }
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
-			if ( visitor instanceof SysYVisitor) return ((SysYVisitor<? extends T>)visitor).visitInitializerList(this);
+			if ( visitor instanceof SysYVisitor) return ((SysYVisitor<? extends T>)visitor).visitInitializer(this);
 			else return visitor.visitChildren(this);
 		}
 	}
@@ -775,7 +757,6 @@ public class SysYParser extends Parser {
 			case Identifier:
 			case IntegerConstant:
 			case FloatingConstant:
-				_localctx = new InitializerExpressionContext(_localctx);
 				enterOuterAlt(_localctx, 1);
 				{
 				setState(144);
@@ -783,7 +764,6 @@ public class SysYParser extends Parser {
 				}
 				break;
 			case LBRACE:
-				_localctx = new InitializerListContext(_localctx);
 				enterOuterAlt(_localctx, 2);
 				{
 				setState(145);
