@@ -7,12 +7,9 @@ import cn.edu.bit.newnewcc.ir.type.IntegerType;
 import cn.edu.bit.newnewcc.ir.value.AbstractFunction;
 import cn.edu.bit.newnewcc.ir.value.BasicBlock;
 import cn.edu.bit.newnewcc.ir.value.Function;
-import cn.edu.bit.newnewcc.ir.value.Instruction;
 import org.antlr.v4.runtime.misc.Pair;
 
 import java.util.*;
-
-import static java.lang.Integer.max;
 
 /**
  * 函数以函数名作为唯一标识符加以区分
@@ -101,7 +98,7 @@ public class AsmFunction {
 
     //函数内部资源分配器
     private final StackAllocator stackAllocator = new StackAllocator();
-    private final RegisterAllocator registerAllocator = new RegisterAllocator();
+    private final IntRegisterAllocator intRegisterAllocator = new IntRegisterAllocator();
     private final FloatRegisterAllocator floatRegisterAllocator = new FloatRegisterAllocator();
 
     //资源对应的get方法
@@ -121,8 +118,8 @@ public class AsmFunction {
         return globalCode;
     }
 
-    public RegisterAllocator getRegisterAllocator() {
-        return registerAllocator;
+    public IntRegisterAllocator getRegisterAllocator() {
+        return intRegisterAllocator;
     }
 
     public FloatRegisterAllocator getFloatRegisterAllocator() {
@@ -180,7 +177,7 @@ public class AsmFunction {
                     res.add(new AsmLoad(ftmp, para));
                     res.add(new AsmStore(ftmp, freg));
                 } else {
-                    IntRegister tmp = registerAllocator.allocate();
+                    IntRegister tmp = intRegisterAllocator.allocate();
                     res.add(new AsmLoad(tmp, para));
                     res.add(new AsmStore(tmp, formalPara));
                 }
@@ -200,142 +197,4 @@ public class AsmFunction {
         //未完成
     }
 
-    public static class RegisterAllocator {
-        Map<Instruction, IntRegister> registerMap;
-        int total;
-
-        RegisterAllocator() {
-            total = 0;
-            registerMap = new HashMap<>();
-        }
-
-        IntRegister allocate(Instruction instruction) {
-            total -= 1;
-            IntRegister reg = new IntRegister(total);
-            registerMap.put(instruction, reg);
-            return reg;
-        }
-
-        IntRegister allocate() {
-            total -= 1;
-            return new IntRegister(total);
-        }
-
-        IntRegister get(Instruction instruction) {
-            return registerMap.get(instruction);
-        }
-
-        boolean contain(Instruction instruction) {
-            return registerMap.containsKey(instruction);
-        }
-    }
-
-    public static class FloatRegisterAllocator {
-        Map<Instruction, FloatRegister> registerMap;
-        int total;
-
-        FloatRegisterAllocator() {
-            total = 0;
-            registerMap = new HashMap<>();
-        }
-
-        FloatRegister allocate(Instruction instruction) {
-            total -= 1;
-            FloatRegister reg = new FloatRegister(total);
-            registerMap.put(instruction, reg);
-            return reg;
-        }
-
-        FloatRegister allocate() {
-            total -= 1;
-            return new FloatRegister(total);
-        }
-
-        FloatRegister get(Instruction instruction) {
-            return registerMap.get(instruction);
-        }
-
-        boolean contain(Instruction instruction) {
-            return registerMap.containsKey(instruction);
-        }
-    }
-
-    public static class StackAllocator {
-        private int top = 16, maxSize = 16, backSize = 0, backMaxSize = 0;
-
-        private boolean savedRa = false;
-
-        /**
-         * 进行函数调用前的准备，目前仅设置保存返回寄存器
-         */
-        public void callFunction() {
-            savedRa = true;
-            backSize = 0;
-        }
-
-        /**
-         * 在栈上申请一段长度为size的内存作为栈变量
-         *
-         * @param size 内存大小
-         * @return 指向栈上对应的地址
-         */
-        public StackVar push(int size) {
-            top += (size - top % size) % size;
-            top += size;
-            maxSize = max(maxSize, top);
-            return new StackVar(-top, size, true);
-        }
-
-        /**
-         * 释放大小为size的栈空间
-         *
-         * @param size 内存大小
-         */
-        public void pop(int size) {
-            top -= size;
-        }
-
-        public void push_back(StackVar stackVar) {
-            backSize += stackVar.getSize();
-            backMaxSize = max(backMaxSize, backSize);
-        }
-
-        public void add_padding() {
-            maxSize += backMaxSize;
-            maxSize += (16 - maxSize % 16) % 16;
-        }
-
-        /**
-         * 输出函数初始化栈帧的汇编代码
-         * <p>
-         * 注意，emit操作仅当maxSize初始化完成后进行，避免栈帧大小分配错误
-         */
-        public Collection<AsmInstruction> emitHead() {
-            add_padding();
-            List<AsmInstruction> res = new ArrayList<>();
-            IntRegister sp = new IntRegister("sp");
-            IntRegister ra = new IntRegister("ra");
-            IntRegister s0 = new IntRegister("s0");
-            res.add(new AsmAdd(sp, sp, new Immediate(-maxSize)));
-            if (savedRa) {
-                res.add(new AsmStore(ra, new Address(maxSize - 8, sp)));
-            }
-            res.add(new AsmStore(s0, new Address(maxSize - 16, sp)));
-            return res;
-        }
-
-        public Collection<AsmInstruction> emitTail() {
-            List<AsmInstruction> res = new ArrayList<>();
-            IntRegister sp = new IntRegister("sp");
-            IntRegister ra = new IntRegister("ra");
-            IntRegister s0 = new IntRegister("s0");
-            if (savedRa) {
-                res.add(new AsmLoad(ra, new Address(maxSize - 8, sp)));
-            }
-            res.add(new AsmLoad(s0, new Address(maxSize - 16, sp)));
-            res.add(new AsmAdd(sp, sp, new Immediate(maxSize)));
-            res.add(new AsmJump(new IntRegister("ra")));
-            return res;
-        }
-    }
 }
