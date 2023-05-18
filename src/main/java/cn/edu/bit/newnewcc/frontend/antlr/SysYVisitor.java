@@ -164,12 +164,6 @@ public interface SysYVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitExpression(SysYParser.ExpressionContext ctx);
 	/**
-	 * Visit a parse tree produced by {@link SysYParser#constantExpression}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitConstantExpression(SysYParser.ConstantExpressionContext ctx);
-	/**
 	 * Visit a parse tree produced by the {@code childLogicalAndExpression}
 	 * labeled alternative in {@link SysYParser#logicalOrExpression}.
 	 * @param ctx the parse tree

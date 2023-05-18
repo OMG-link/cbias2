@@ -10,18 +10,18 @@ constantDeclaration:
 typeSpecifier: type=(VOID | INT | FLOAT);
 
 constantDefinition:
-	Identifier (LBRACKET constantExpression RBRACKET)* ASSIGN constantInitializer;
+	Identifier (LBRACKET expression RBRACKET)* ASSIGN constantInitializer;
 
 constantInitializer:
-	constantExpression
+	expression
 	| LBRACE (constantInitializer (COMMA constantInitializer)*)? RBRACE;
 
 variableDeclaration:
 	typeSpecifier variableDefinition (COMMA variableDefinition)* SEMI;
 
 variableDefinition:
-	Identifier (LBRACKET constantExpression RBRACKET)*
-	| Identifier (LBRACKET constantExpression RBRACKET)* ASSIGN initializer;
+	Identifier (LBRACKET expression RBRACKET)*
+	| Identifier (LBRACKET expression RBRACKET)* ASSIGN initializer;
 
 initializer:
 	expression # initializerExpression
@@ -53,8 +53,6 @@ statement:
     ;
 
 expression: logicalOrExpression;
-
-constantExpression: logicalOrExpression;
 
 logicalOrExpression:
 	logicalAndExpression # childLogicalAndExpression
