@@ -746,16 +746,20 @@ public class Translator extends SysYBaseVisitor<Void> {
     public Void visitLValue(SysYParser.LValueContext ctx) {
         String name = ctx.Identifier().getText();
 
-        Value address = symbolTable.getVariable(name);
-        for (var expression : ctx.expression()) {
-            visit(expression);
-            address = new GetElementPtrInst(address, List.of(ConstInt.getInstance(0), result));
-            currentBasicBlock.addInstruction((Instruction) address);
-        }
-        resultAddress = address;
+        if (constantFoldingEnabled)
+            result = ((GlobalVariable) symbolTable.getVariable(name)).getInitialValue();
+        else {
+            Value address = symbolTable.getVariable(name);
+            for (var expression : ctx.expression()) {
+                visit(expression);
+                address = new GetElementPtrInst(address, List.of(ConstInt.getInstance(0), result));
+                currentBasicBlock.addInstruction((Instruction) address);
+            }
+            resultAddress = address;
 
-        result = new LoadInst(resultAddress);
-        currentBasicBlock.addInstruction((Instruction) result);
+            result = new LoadInst(resultAddress);
+            currentBasicBlock.addInstruction((Instruction) result);
+        }
 
         return null;
     }
