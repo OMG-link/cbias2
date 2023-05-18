@@ -77,7 +77,7 @@ public class Operand {
     public void setValue(Value value) {
         if (value != null) {
             if (type != null && value.getType() != type) {
-                throw new OperandTypeMismatchException(instruction, type, value.getType());
+                throw new OperandTypeMismatchException();
             }
         }
         if (this.value != null) {
