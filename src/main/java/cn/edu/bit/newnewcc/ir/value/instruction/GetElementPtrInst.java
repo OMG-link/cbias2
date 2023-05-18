@@ -96,8 +96,8 @@ public class GetElementPtrInst extends Instruction {
         builder.append(String.format(
                 "%s = getelementptr %s, %s %s",
                 getValueNameIR(),
+                ((PointerType) rootOperand.getType()).getBaseType().getTypeName(),
                 rootOperand.getType().getTypeName(),
-                PointerType.getInstance(rootOperand.getType()).getTypeName(),
                 getRootOperand().getValueNameIR()
         ));
         for (var indexOperand : indexOperands) {
