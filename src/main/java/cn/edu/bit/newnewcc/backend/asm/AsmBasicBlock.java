@@ -76,6 +76,15 @@ public class AsmBasicBlock {
             } else {
                 throw new RuntimeException("Error: addInst operand1 is not an int register");
             }
+        } else if (binaryInstruction instanceof IntegerSubInst integerSubInst) {
+            var subx = getValue(integerSubInst.getOperand1());
+            var suby = getValue(integerSubInst.getOperand2());
+            IntRegister register = function.getRegisterAllocator().allocateInt(integerSubInst);
+            if (subx instanceof IntRegister subrx) {
+                function.appendInstruction(new AsmSub(register, subrx, suby));
+            } else {
+                throw new RuntimeException("Error: subInst operand1 is not an int register");
+            }
         }
     }
 
