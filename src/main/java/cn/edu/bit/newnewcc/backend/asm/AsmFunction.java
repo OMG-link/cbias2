@@ -41,7 +41,8 @@ public class AsmFunction {
         {
             Register a0 = new IntRegister("a0");
             Register fa0 = new FloatRegister("fa0");
-            this.returnRegister = (baseFunction.getReturnType() instanceof FloatType) ? fa0 : (baseFunction.getReturnType() instanceof IntegerType ? a0 : null);
+            this.returnRegister = (baseFunction.getReturnType() instanceof FloatType) ?
+                    fa0 : (baseFunction.getReturnType() instanceof IntegerType ? a0 : null);
         }
 
         retBlockTag = new GlobalTag(functionName + "_ret", false);
