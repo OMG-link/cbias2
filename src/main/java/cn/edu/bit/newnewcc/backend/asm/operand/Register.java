@@ -27,12 +27,12 @@ public abstract class Register extends AsmOperand {
     Register(String name, RTYPE type) {
         super(TYPE.REG);
         this.name = name;
-        this.index = -1;
+        this.index = 0;
         this.rtype = type;
     }
 
     public boolean isVirtual() {
-        return index < 0;
+        return name == null && index < 0;
     }
 
     public int getIndex() {

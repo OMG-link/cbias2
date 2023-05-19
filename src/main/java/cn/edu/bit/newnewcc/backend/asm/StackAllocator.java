@@ -57,10 +57,14 @@ public class StackAllocator {
     }
 
     /**
-     * 将当前栈帧指针直接设为最大值，用于寄存器分配时存储额外寄存器
+     * 直接在栈帧顶部分配空间，用于寄存器分配时存储额外寄存器
      */
-    public void set_top() {
-        top = maxSize;
+    public StackVar push_top(int size) {
+        if (size >= 8 && top % 8 != 0) {
+            maxSize += 4;
+        }
+        maxSize += size;
+        return new StackVar(-maxSize, size, true);
     }
 
     public void push_back(StackVar stackVar) {
