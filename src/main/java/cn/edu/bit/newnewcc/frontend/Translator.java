@@ -380,11 +380,12 @@ public class Translator extends SysYBaseVisitor<Void> {
             if (symbolTable.getScopeDepth() > 0) {
                 var address = new AllocateInst(type);
                 currentFunction.getEntryBasicBlock().addInstruction(address);
-                String name = constantDefinition.Identifier().getText();
-                symbolTable.putLocalVariable(name, address);
 
                 Constant initialValue = makeConstant(constantDefinition.initializer(), type);
                 currentBasicBlock.addInstruction(new StoreInst(address, initialValue));
+
+                String name = constantDefinition.Identifier().getText();
+                symbolTable.putLocalVariable(name, address, initialValue);
             } else {
                 String name = constantDefinition.Identifier().getText();
 
@@ -396,6 +397,7 @@ public class Translator extends SysYBaseVisitor<Void> {
 
                 GlobalVariable globalVariable = new GlobalVariable(true, initialValue);
                 globalVariable.setValueName(name);
+
                 module.addGlobalVariable(globalVariable);
                 symbolTable.putGlobalVariable(name, globalVariable);
             }
@@ -422,7 +424,7 @@ public class Translator extends SysYBaseVisitor<Void> {
                 var address = new AllocateInst(type);
                 currentFunction.getEntryBasicBlock().addInstruction(address);
                 String name = variableDefinition.Identifier().getText();
-                symbolTable.putLocalVariable(name, address);
+                symbolTable.putLocalVariable(name, address, null);
 
                 if (variableDefinition.initializer() != null) {
                     currentBasicBlock.addInstruction(new StoreInst(address, type.getDefaultInitialization()));
@@ -493,7 +495,7 @@ public class Translator extends SysYBaseVisitor<Void> {
                     currentFunction.getEntryBasicBlock().addInstruction(address);
                     currentBasicBlock.addInstruction(new StoreInst(address, currentFunction.getFormalParameters().get(i)));
 
-                    symbolTable.putLocalVariable(parameter.getName(), address);
+                    symbolTable.putLocalVariable(parameter.getName(), address, null);
                 }
             }
         }
@@ -786,17 +788,28 @@ public class Translator extends SysYBaseVisitor<Void> {
     @Override
     public Void visitLValue(SysYParser.LValueContext ctx) {
         String name = ctx.Identifier().getText();
+        SymbolTable.Entry entry = symbolTable.getVariable(name);
 
-        Value address = symbolTable.getVariable(name);
+        List<Value> indices = new ArrayList<>();
         for (var expression : ctx.expression()) {
             visit(expression);
-            address = new GetElementPtrInst(address, List.of(ConstInt.getInstance(0), result));
-            currentBasicBlock.addInstruction((Instruction) address);
+            indices.add(result);
         }
-        resultAddress = address;
 
-        result = new LoadInst(resultAddress);
-        currentBasicBlock.addInstruction((Instruction) result);
+        resultAddress = entry.getAddress();
+        for (Value index : indices) {
+            resultAddress = new GetElementPtrInst(resultAddress, List.of(ConstInt.getInstance(0), index));
+            currentBasicBlock.addInstruction((Instruction) resultAddress);
+        }
+
+        if (entry.getConstantValue() != null && indices.stream().allMatch(index -> index instanceof ConstInt)) {
+            result = entry.getConstantValue();
+            for (Value index : indices)
+                result = ((ConstArray) result).getValueAt(((ConstInt) index).getValue());
+        } else {
+            result = new LoadInst(resultAddress);
+            currentBasicBlock.addInstruction((Instruction) result);
+        }
 
         return null;
     }
