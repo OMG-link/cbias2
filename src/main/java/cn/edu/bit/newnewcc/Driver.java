@@ -30,9 +30,8 @@ public class Driver {
             CommonTokenStream tokenStream = new CommonTokenStream(lexer);
             SysYParser parser = new SysYParser(tokenStream);
             ParseTree tree = parser.compilationUnit();
-            Translator visitor = new Translator();
-            visitor.visit(tree);
-            Module module = visitor.getModule();
+            Translator translator = new Translator();
+            Module module = translator.translate(tree);
 
             // 在IR层面优化代码
             IrPassManager.optimize(module, compilerOptions.getOptimizationLevel());

@@ -15,6 +15,7 @@ import cn.edu.bit.newnewcc.ir.value.constant.ConstInt;
 import cn.edu.bit.newnewcc.ir.value.constant.VoidValue;
 import cn.edu.bit.newnewcc.ir.value.instruction.*;
 import org.antlr.v4.runtime.Token;
+import org.antlr.v4.runtime.tree.ParseTree;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -67,7 +68,8 @@ public class Translator extends SysYBaseVisitor<Void> {
     private Value result;
     private Value resultAddress;
 
-    public Module getModule() {
+    public Module translate(ParseTree tree) {
+        visit(tree);
         return module;
     }
 
