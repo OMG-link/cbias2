@@ -104,8 +104,7 @@ public class AsmFunction {
 
     //函数内部资源分配器
     private final StackAllocator stackAllocator = new StackAllocator();
-    private final IntRegisterAllocator intRegisterAllocator = new IntRegisterAllocator();
-    private final FloatRegisterAllocator floatRegisterAllocator = new FloatRegisterAllocator();
+    private final RegisterAllocator registerAllocator = new RegisterAllocator();
 
     //资源对应的get方法
     public AsmBasicBlock getBasicBlock(BasicBlock block) {
@@ -124,12 +123,8 @@ public class AsmFunction {
         return globalCode;
     }
 
-    public IntRegisterAllocator getIntRegisterAllocator() {
-        return intRegisterAllocator;
-    }
-
-    public FloatRegisterAllocator getFloatRegisterAllocator() {
-        return floatRegisterAllocator;
+    public RegisterAllocator getRegisterAllocator() {
+        return registerAllocator;
     }
 
     public StackAllocator getStackAllocator() {
@@ -187,11 +182,11 @@ public class AsmFunction {
                 res.add(new AsmStore(reg, formalPara));
             } else {
                 if (formalPara instanceof FloatRegister freg) {
-                    FloatRegister ftmp = floatRegisterAllocator.allocate();
+                    FloatRegister ftmp = registerAllocator.allocateFloat();
                     res.add(new AsmLoad(ftmp, para));
                     res.add(new AsmStore(ftmp, freg));
                 } else {
-                    IntRegister tmp = intRegisterAllocator.allocate();
+                    IntRegister tmp = registerAllocator.allocateInt();
                     res.add(new AsmLoad(tmp, para));
                     res.add(new AsmStore(tmp, formalPara));
                 }

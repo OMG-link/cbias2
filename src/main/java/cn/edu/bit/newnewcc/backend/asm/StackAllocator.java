@@ -11,6 +11,9 @@ import java.util.*;
 
 import static java.lang.Integer.max;
 
+/**
+ * 栈空间分配器
+ */
 public class StackAllocator {
     private int top = 16, maxSize = 16, backSize = 0, backMaxSize = 0;
     private boolean savedRa = false;

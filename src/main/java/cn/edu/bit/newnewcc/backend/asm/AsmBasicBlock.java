@@ -10,12 +10,12 @@ import cn.edu.bit.newnewcc.ir.value.GlobalVariable;
 import cn.edu.bit.newnewcc.ir.value.Instruction;
 import cn.edu.bit.newnewcc.ir.value.constant.ConstFloat;
 import cn.edu.bit.newnewcc.ir.value.constant.ConstInt;
-import cn.edu.bit.newnewcc.ir.value.instruction.AllocateInst;
-import cn.edu.bit.newnewcc.ir.value.instruction.LoadInst;
-import cn.edu.bit.newnewcc.ir.value.instruction.ReturnInst;
-import cn.edu.bit.newnewcc.ir.value.instruction.StoreInst;
+import cn.edu.bit.newnewcc.ir.value.instruction.*;
 
 
+/**
+ * 汇编基本块
+ */
 public class AsmBasicBlock {
     private final GlobalTag blockTag;
     private final AsmFunction function;
@@ -27,6 +27,9 @@ public class AsmBasicBlock {
         this.irBlock = block;
     }
 
+    /**
+     * 生成基本块的汇编代码，向函数中输出指令
+     */
     void emitToFunction() {
         function.appendInstruction(new AsmTag(blockTag));
         for (Instruction instruction : irBlock.getInstructions()) {
@@ -34,20 +37,23 @@ public class AsmBasicBlock {
         }
     }
 
+    /**
+     * 获取一个ir value在汇编中对应的值（函数参数、寄存器、栈上变量、全局变量）
+     * @param value ir中的value
+     * @return 对应的汇编操作数
+     */
     AsmOperand getValue(Value value) {
         if (value instanceof GlobalVariable globalVariable) {
             AsmGlobalVariable asmGlobalVariable = function.getGlobalCode().getGlobalVariable(globalVariable);
-            IntRegister reg = function.getIntRegisterAllocator().allocate();
+            IntRegister reg = function.getRegisterAllocator().allocateInt();
             function.appendInstruction(new AsmLoad(reg, asmGlobalVariable.emitTag(true)));
             function.appendInstruction(new AsmAdd(reg, reg, asmGlobalVariable.emitTag(false)));
             return new Address(0, reg);
         } else if (value instanceof Function.FormalParameter formalParameter) {
             return function.getParameterByFormal(formalParameter);
         } else if (value instanceof Instruction instruction) {
-            if (function.getIntRegisterAllocator().contain(instruction)) {
-                return function.getIntRegisterAllocator().get(instruction);
-            } else if (function.getFloatRegisterAllocator().contain(instruction)) {
-                return function.getFloatRegisterAllocator().get(instruction);
+            if (function.getRegisterAllocator().contain(instruction)) {
+                return function.getRegisterAllocator().get(instruction);
             } else if (function.getStackAllocator().contain(instruction)) {
                 return function.getStackAllocator().get(instruction);
             } else {
@@ -60,6 +66,18 @@ public class AsmBasicBlock {
         throw new RuntimeException("Value type not found : " + value.getValueNameIR());
     }
 
+    void translateBinaryInstruction(BinaryInstruction binaryInstruction) {
+        if (binaryInstruction instanceof IntegerAddInst integerAddInst) {
+            var addx = getValue(integerAddInst.getOperand1());
+            var addy = getValue(integerAddInst.getOperand2());
+            IntRegister register = function.getRegisterAllocator().allocateInt(integerAddInst);
+            if (addx instanceof IntRegister addrx) {
+                function.appendInstruction(new AsmAdd(register, addrx, addy));
+            } else {
+                throw new RuntimeException("Error: addInst operand2 is not a register");
+            }
+        }
+    }
 
     void translate(Instruction instruction) {
         if (instruction instanceof ReturnInst returnInst) {
@@ -79,13 +97,19 @@ public class AsmBasicBlock {
             } else {
                 Register register;
                 if (storeInst.getValueOperand().getType() instanceof FloatType) {
-                    register = function.getFloatRegisterAllocator().allocate();
+                    register = function.getRegisterAllocator().allocateFloat();
                 } else {
-                    register = function.getIntRegisterAllocator().allocate();
+                    register = function.getRegisterAllocator().allocateInt();
                 }
                 function.appendInstruction(new AsmLoad(register, source));
                 function.appendInstruction(new AsmStore(register, address));
             }
+        } else if (instruction instanceof LoadInst loadInst) {
+            var address = getValue(loadInst.getAddressOperand());
+            Register register = function.getRegisterAllocator().allocate(loadInst);
+            function.appendInstruction(new AsmLoad(register, address));
+        } else if (instruction instanceof BinaryInstruction binaryInstruction) {
+            translateBinaryInstruction(binaryInstruction);
         }
     }
 }
