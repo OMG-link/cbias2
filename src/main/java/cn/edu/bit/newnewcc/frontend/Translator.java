@@ -9,6 +9,7 @@ import cn.edu.bit.newnewcc.ir.Type;
 import cn.edu.bit.newnewcc.ir.Value;
 import cn.edu.bit.newnewcc.ir.type.*;
 import cn.edu.bit.newnewcc.ir.value.*;
+import cn.edu.bit.newnewcc.ir.value.constant.ConstArray;
 import cn.edu.bit.newnewcc.ir.value.constant.ConstFloat;
 import cn.edu.bit.newnewcc.ir.value.constant.ConstInt;
 import cn.edu.bit.newnewcc.ir.value.constant.VoidValue;
@@ -131,6 +132,51 @@ public class Translator extends SysYBaseVisitor<Void> {
         }
 
         return parameters;
+    }
+
+    private Constant makeConstant(SysYParser.InitializerContext initializer, Type type) {
+        if (initializer.expression() != null) {
+            visit(initializer.expression());
+            Constant constant = (Constant) result;
+
+            if (constant.getType() != type)
+                constant = Constants.convertType(constant, type);
+
+            return constant;
+        }
+
+        return makeConstant(initializer.initializer(), (ArrayType) type);
+    }
+
+    private Constant makeConstant(List<SysYParser.InitializerContext> childInitializers, ArrayType type) {
+        List<Constant> elements = new ArrayList<>();
+        var listIterator = childInitializers.listIterator();
+
+        while (listIterator.hasNext()) {
+            var elementInitializer = listIterator.next();
+
+            if (elementInitializer.expression() != null && type.getBaseType() instanceof ArrayType) {
+                int count = Types.countElements(type.getBaseType());
+                List<SysYParser.InitializerContext> terminalInitializers = new ArrayList<>();
+                terminalInitializers.add(elementInitializer);
+
+                for (int i = 0; i < count - 1 && listIterator.hasNext(); ++i) {
+                    var nextElementInitializer = listIterator.next();
+
+                    if (nextElementInitializer.expression() != null)
+                        terminalInitializers.add(nextElementInitializer);
+                    else {
+                        listIterator.previous();
+                        break;
+                    }
+                }
+
+                elements.add(makeConstant(terminalInitializers, (ArrayType) type.getBaseType()));
+            } else
+                elements.add(makeConstant(elementInitializer, type.getBaseType()));
+        }
+
+        return new ConstArray(type.getBaseType(), type.getLength(), elements);
     }
 
     private void convertType(Value value, Type targetType) {
@@ -299,15 +345,19 @@ public class Translator extends SysYBaseVisitor<Void> {
         convertType(result, IntegerType.getI32());
     }
 
-    private void initializeVariable(SysYParser.InitializerContext initializer, Value address, List<Integer> shape) {
-        if (shape.isEmpty()) {
+    private void initializeVariable(SysYParser.InitializerContext initializer, Value address) {
+        if (initializer.expression() != null) {
             visit(initializer.expression());
+
+            if (result.getType() != ((PointerType) address.getType()).getBaseType())
+                convertType(result, ((PointerType) address.getType()).getBaseType());
+
             currentBasicBlock.addInstruction(new StoreInst(address, result));
         } else
-            initializeVariable(initializer.initializer(), address, shape);
+            initializeVariable(initializer.initializer(), address);
     }
 
-    private void initializeVariable(List<SysYParser.InitializerContext> childInitializers, Value address, List<Integer> shape) {
+    private void initializeVariable(List<SysYParser.InitializerContext> childInitializers, Value address) {
         var listIterator = childInitializers.listIterator();
         int index = 0;
 
@@ -317,8 +367,8 @@ public class Translator extends SysYBaseVisitor<Void> {
                     address, List.of(ConstInt.getInstance(0), ConstInt.getInstance(index++)));
             currentBasicBlock.addInstruction(elementAddress);
 
-            if (shape.size() > 1 && elementInitializer.expression() != null) {
-                int count = shape.stream().reduce(1, (a, b) -> a * b);
+            if (elementInitializer.expression() != null && ((PointerType) elementAddress.getType()).getBaseType() instanceof ArrayType) {
+                int count = Types.countElements(((PointerType) elementAddress.getType()).getBaseType());
                 List<SysYParser.InitializerContext> terminalInitializers = new ArrayList<>();
                 terminalInitializers.add(elementInitializer);
 
@@ -332,10 +382,9 @@ public class Translator extends SysYBaseVisitor<Void> {
                         break;
                     }
                 }
-
-                initializeVariable(terminalInitializers, elementAddress, shape.subList(1, shape.size()));
+                initializeVariable(terminalInitializers, elementAddress);
             } else
-                initializeVariable(elementInitializer, elementAddress, shape.subList(1, shape.size()));
+                initializeVariable(elementInitializer, elementAddress);
         }
     }
 
@@ -397,14 +446,14 @@ public class Translator extends SysYBaseVisitor<Void> {
 
                 if (variableDefinition.initializer() != null) {
                     currentBasicBlock.addInstruction(new StoreInst(address, type.getDefaultInitialization()));
-                    initializeVariable(variableDefinition.initializer(), address, Types.getShape(type));
+                    initializeVariable(variableDefinition.initializer(), address);
                 }
             } else {
-                Constant initialValue = type.getDefaultInitialization();
-                if (variableDefinition.initializer() != null) {
-                    visit(variableDefinition.initializer());
-                    initialValue = (Constant) result;
-                }
+                Constant initialValue;
+                if (variableDefinition.initializer() == null)
+                    initialValue = type.getDefaultInitialization();
+                else
+                    initialValue = makeConstant(variableDefinition.initializer(), type);
 
                 String name = variableDefinition.Identifier().getText();
 
