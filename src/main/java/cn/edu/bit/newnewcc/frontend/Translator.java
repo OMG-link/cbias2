@@ -510,11 +510,13 @@ public class Translator extends SysYBaseVisitor<Void> {
 
     @Override
     public Void visitAssignmentStatement(SysYParser.AssignmentStatementContext ctx) {
-        visit(ctx.expression());
-        Value value = result;
-
         visit(ctx.lValue());
         Value address = resultAddress;
+
+        visit(ctx.expression());
+        if (result.getType() != ((PointerType) address.getType()).getBaseType())
+            convertType(result, ((PointerType) address.getType()).getBaseType());
+        Value value = result;
 
         currentBasicBlock.addInstruction(new StoreInst(address, value));
 
