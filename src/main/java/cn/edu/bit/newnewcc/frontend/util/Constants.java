@@ -18,37 +18,43 @@ public final class Constants {
 
     public static Constant convertType(Constant constant, Type targetType) {
         if (constant.getType() == IntegerType.getI32() && targetType == FloatType.getFloat()) {
-            int value = ((ConstInt)constant).getValue();
-            return ConstFloat.getInstance((float)value);
+            int value = ((ConstInt) constant).getValue();
+            return ConstFloat.getInstance((float) value);
         }
         if (constant.getType() == FloatType.getFloat() && targetType == IntegerType.getI32()) {
-            float value = ((ConstFloat)constant).getValue();
-            return ConstInt.getInstance((int)value);
+            float value = ((ConstFloat) constant).getValue();
+            return ConstInt.getInstance((int) value);
         }
         throw new IllegalArgumentException();
     }
 
     public static Constant applyUnaryOperator(Constant operand, Operator operator) {
         if (operand.getType() == IntegerType.getI32()) {
-            int value = ((ConstInt)operand).getValue();
+            int value = ((ConstInt) operand).getValue();
+
             if (operator == Operator.LNOT)
                 return ConstInt.getInstance(value == 0 ? 1 : 0);
+
             return ConstInt.getInstance(switch (operator) {
                 case POS -> value;
                 case NEG -> -value;
                 default -> throw new IllegalArgumentException();
             });
         }
+
         if (operand.getType() == FloatType.getFloat()) {
-            float value = ((ConstFloat)operand).getValue();
+            float value = ((ConstFloat) operand).getValue();
+
             if (operator == Operator.LNOT)
                 return ConstInt.getInstance(value == 0 ? 1 : 0);
+
             return ConstFloat.getInstance(switch (operator) {
                 case POS -> value;
                 case NEG -> -value;
                 default -> throw new IllegalArgumentException();
             });
         }
+
         throw new IllegalArgumentException();
     }
 
@@ -61,8 +67,9 @@ public final class Constants {
             rightOperand = convertType(rightOperand, operandType);
 
         if (operandType == IntegerType.getI32()) {
-            int leftValue = ((ConstInt)leftOperand).getValue();
-            int rightValue = ((ConstInt)rightOperand).getValue();
+            int leftValue = ((ConstInt) leftOperand).getValue();
+            int rightValue = ((ConstInt) rightOperand).getValue();
+
             return ConstInt.getInstance(switch (operator) {
                 case ADD -> leftValue + rightValue;
                 case SUB -> leftValue - rightValue;
@@ -72,9 +79,11 @@ public final class Constants {
                 default -> throw new IllegalArgumentException();
             });
         }
+
         if (operandType == FloatType.getFloat()) {
-            float leftValue = ((ConstFloat)leftOperand).getValue();
-            float rightValue = ((ConstFloat)rightOperand).getValue();
+            float leftValue = ((ConstFloat) leftOperand).getValue();
+            float rightValue = ((ConstFloat) rightOperand).getValue();
+
             return ConstFloat.getInstance(switch (operator) {
                 case ADD -> leftValue + rightValue;
                 case SUB -> leftValue - rightValue;
@@ -84,6 +93,7 @@ public final class Constants {
                 default -> throw new IllegalArgumentException();
             });
         }
+
         throw new IllegalArgumentException();
     }
 }
