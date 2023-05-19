@@ -41,6 +41,8 @@ public final class Constants {
     public static Constant applyUnaryOperator(Constant operand, Operator operator) {
         if (operand.getType() == IntegerType.getI32()) {
             int value = ((ConstInt)operand).getValue();
+            if (operator == Operator.LNOT)
+                return ConstInt.getInstance(value == 0 ? 1 : 0);
             return ConstInt.getInstance(switch (operator) {
                 case POS -> value;
                 case NEG -> -value;
@@ -49,6 +51,8 @@ public final class Constants {
         }
         if (operand.getType() == FloatType.getFloat()) {
             float value = ((ConstFloat)operand).getValue();
+            if (operator == Operator.LNOT)
+                return ConstInt.getInstance(value == 0 ? 1 : 0);
             return ConstFloat.getInstance(switch (operator) {
                 case POS -> value;
                 case NEG -> -value;

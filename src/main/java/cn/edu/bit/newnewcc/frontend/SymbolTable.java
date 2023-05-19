@@ -45,4 +45,8 @@ public class SymbolTable {
     public void popScope() {
         scopeStack.pop();
     }
+
+    public int getScopeDepth() {
+        return scopeStack.size();
+    }
 }
