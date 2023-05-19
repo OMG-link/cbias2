@@ -87,7 +87,7 @@ public class BasicBlock extends Value {
      *
      * @return 前导指令集合
      */
-    public Collection<Instruction> getLeadingInstructions() {
+    public List<Instruction> getLeadingInstructions() {
         var list = new ArrayList<Instruction>();
         instructionList.getLeadingInstructions().forEachRemaining(list::add);
         return Collections.unmodifiableList(list);
@@ -98,7 +98,7 @@ public class BasicBlock extends Value {
      *
      * @return 主体指令集合
      */
-    public Collection<Instruction> getMainInstructions() {
+    public List<Instruction> getMainInstructions() {
         var list = new ArrayList<Instruction>();
         instructionList.getMainInstructions().forEachRemaining(list::add);
         return Collections.unmodifiableList(list);
@@ -120,7 +120,7 @@ public class BasicBlock extends Value {
      *
      * @return 所有指令的迭代器
      */
-    public Collection<Instruction> getInstructions() {
+    public List<Instruction> getInstructions() {
         var list = new ArrayList<Instruction>();
         instructionList.iterator().forEachRemaining(list::add);
         return Collections.unmodifiableList(list);
@@ -150,7 +150,7 @@ public class BasicBlock extends Value {
      *
      * @return 基本块的所有入口块的只读副本
      */
-    public Collection<BasicBlock> getEntryBlocks() {
+    public Set<BasicBlock> getEntryBlocks() {
         return Collections.unmodifiableSet(entryBlockSet);
     }
 
