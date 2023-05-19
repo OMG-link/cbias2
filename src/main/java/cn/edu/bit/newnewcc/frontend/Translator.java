@@ -198,7 +198,7 @@ public class Translator extends SysYBaseVisitor<Void> {
     }
 
     private void applyBinaryArithmeticOperator(Value leftOperand, Value rightOperand, Operator operator) {
-        Type operandType = Types.commonType(leftOperand.getType(), rightOperand.getType());
+        Type operandType = Types.getCommonType(leftOperand.getType(), rightOperand.getType());
 
         if (!leftOperand.getType().equals(operandType)) {
             convertType(leftOperand, operandType);
@@ -235,7 +235,7 @@ public class Translator extends SysYBaseVisitor<Void> {
     }
 
     private void applyBinaryRelationalOperator(Value leftOperand, Value rightOperand, Operator operator) {
-        Type operandType = Types.commonType(leftOperand.getType(), rightOperand.getType());
+        Type operandType = Types.getCommonType(leftOperand.getType(), rightOperand.getType());
 
         if (!leftOperand.getType().equals(operandType)) {
             convertType(leftOperand, operandType);
@@ -311,18 +311,42 @@ public class Translator extends SysYBaseVisitor<Void> {
         convertType(result, IntegerType.getI32());
     }
 
-    private void initializeVariable(SysYParser.InitializerContext ctx, Value address) {
-        if (ctx.expression() != null) {
-            visit(ctx.expression());
+    private void initializeVariable(SysYParser.InitializerContext initializer, Value address) {
+        if (initializer.expression() != null) {
+            visit(initializer.expression());
             currentBasicBlock.addInstruction(new StoreInst(address, result));
-        } else {
-            int index = 0;
-            for (var elementInitializer : ctx.initializer()) {
-                var elementAddress = new GetElementPtrInst(
-                        address, List.of(ConstInt.getInstance(0), ConstInt.getInstance(index++)));
-                currentBasicBlock.addInstruction(elementAddress);
+        } else
+            initializeVariable(initializer.initializer(), address);
+    }
+
+    private void initializeVariable(List<SysYParser.InitializerContext> childInitializers, Value address) {
+        var listIterator = childInitializers.listIterator();
+        int index = 0;
+
+        while (listIterator.hasNext()) {
+            var elementInitializer = listIterator.next();
+            var elementAddress = new GetElementPtrInst(
+                    address, List.of(ConstInt.getInstance(0), ConstInt.getInstance(index++)));
+            currentBasicBlock.addInstruction(elementAddress);
+
+            if (elementInitializer.expression() != null && ((PointerType) elementAddress.getType()).getBaseType() instanceof ArrayType) {
+                int count = Types.countElements(((PointerType) elementAddress.getType()).getBaseType());
+                List<SysYParser.InitializerContext> terminalInitializers = new ArrayList<>();
+                terminalInitializers.add(elementInitializer);
+
+                for (int i = 0; i < count - 1 && listIterator.hasNext(); ++i) {
+                    var nextElementInitializer = listIterator.next();
+
+                    if (nextElementInitializer.expression() != null)
+                        terminalInitializers.add(nextElementInitializer);
+                    else {
+                        listIterator.previous();
+                        break;
+                    }
+                }
+                initializeVariable(terminalInitializers, elementAddress);
+            } else
                 initializeVariable(elementInitializer, elementAddress);
-            }
         }
     }
 

@@ -59,7 +59,7 @@ public final class Constants {
     }
 
     public static Constant applyBinaryOperator(Constant leftOperand, Constant rightOperand, Operator operator) {
-        Type operandType = Types.commonType(leftOperand.getType(), rightOperand.getType());
+        Type operandType = Types.getCommonType(leftOperand.getType(), rightOperand.getType());
 
         if (!leftOperand.getType().equals(operandType))
             leftOperand = convertType(leftOperand, operandType);
