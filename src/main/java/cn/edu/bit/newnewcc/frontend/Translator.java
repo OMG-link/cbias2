@@ -307,15 +307,15 @@ public class Translator extends SysYBaseVisitor<Void> {
         convertType(result, IntegerType.getI32());
     }
 
-    private void initializeVariable(SysYParser.InitializerContext initializer, Value address) {
-        if (initializer.expression() != null) {
+    private void initializeVariable(SysYParser.InitializerContext initializer, Value address, List<Integer> shape) {
+        if (shape.isEmpty()) {
             visit(initializer.expression());
             currentBasicBlock.addInstruction(new StoreInst(address, result));
         } else
-            initializeVariable(initializer.initializer(), address);
+            initializeVariable(initializer.initializer(), address, shape);
     }
 
-    private void initializeVariable(List<SysYParser.InitializerContext> childInitializers, Value address) {
+    private void initializeVariable(List<SysYParser.InitializerContext> childInitializers, Value address, List<Integer> shape) {
         var listIterator = childInitializers.listIterator();
         int index = 0;
 
@@ -325,8 +325,8 @@ public class Translator extends SysYBaseVisitor<Void> {
                     address, List.of(ConstInt.getInstance(0), ConstInt.getInstance(index++)));
             currentBasicBlock.addInstruction(elementAddress);
 
-            if (elementInitializer.expression() != null && ((PointerType) elementAddress.getType()).getBaseType() instanceof ArrayType) {
-                int count = Types.countElements(((PointerType) elementAddress.getType()).getBaseType());
+            if (shape.size() > 1 && elementInitializer.expression() != null) {
+                int count = shape.stream().reduce(1, (a, b) -> a * b);
                 List<SysYParser.InitializerContext> terminalInitializers = new ArrayList<>();
                 terminalInitializers.add(elementInitializer);
 
@@ -340,9 +340,10 @@ public class Translator extends SysYBaseVisitor<Void> {
                         break;
                     }
                 }
-                initializeVariable(terminalInitializers, elementAddress);
+
+                initializeVariable(terminalInitializers, elementAddress, shape.subList(1, shape.size()));
             } else
-                initializeVariable(elementInitializer, elementAddress);
+                initializeVariable(elementInitializer, elementAddress, shape.subList(1, shape.size()));
         }
     }
 
@@ -404,7 +405,7 @@ public class Translator extends SysYBaseVisitor<Void> {
 
                 if (variableDefinition.initializer() != null) {
                     currentBasicBlock.addInstruction(new StoreInst(address, type.getDefaultInitialization()));
-                    initializeVariable(variableDefinition.initializer(), address);
+                    initializeVariable(variableDefinition.initializer(), address, Types.getShape(type));
                 }
             } else {
                 Constant initialValue = type.getDefaultInitialization();
