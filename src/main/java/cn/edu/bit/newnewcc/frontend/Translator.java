@@ -26,7 +26,6 @@ public class Translator extends SysYBaseVisitor<Void> {
     }
 
     private final SymbolTable symbolTable = new SymbolTable();
-    private final ConstantTable constantTable = new ConstantTable();
     private final ControlFlowStack controlFlowStack = new ControlFlowStack();
     private final Module module = new Module();
 
@@ -361,8 +360,6 @@ public class Translator extends SysYBaseVisitor<Void> {
                 visit(constantDefinition.constantInitializer());
                 Value initialValue = result;
                 currentBasicBlock.addInstruction(new StoreInst(address, initialValue));
-
-                constantTable.putLocalConstant(name, (Constant) initialValue);
             } else {
                 String name = constantDefinition.Identifier().getText();
 
@@ -373,8 +370,6 @@ public class Translator extends SysYBaseVisitor<Void> {
                     visit(constantDefinition.constantInitializer());
                     initialValue = (Constant) result;
                 }
-
-                constantTable.putGlobalConstant(name, initialValue);
 
                 GlobalVariable globalVariable = new GlobalVariable(true, initialValue);
                 globalVariable.setValueName(name);
@@ -464,7 +459,6 @@ public class Translator extends SysYBaseVisitor<Void> {
     @Override
     public Void visitCompoundStatement(SysYParser.CompoundStatementContext ctx) {
         symbolTable.pushScope();
-        constantTable.pushScope();
 
         if (ctx.getParent() instanceof SysYParser.FunctionDefinitionContext functionDefinition) {
             if (functionDefinition.parameterList() != null) {
@@ -486,7 +480,6 @@ public class Translator extends SysYBaseVisitor<Void> {
             for (var blockItem : ctx.blockItem())
                 visit(blockItem);
 
-        constantTable.popScope();
         symbolTable.popScope();
         return null;
     }
