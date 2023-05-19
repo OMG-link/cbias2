@@ -102,6 +102,7 @@ public class StackAllocator {
             res.add(new AsmStore(ra, new Address(maxSize - 8, sp)));
         }
         res.add(new AsmStore(s0, new Address(maxSize - 16, sp)));
+        res.add(new AsmAdd(s0, sp, new Immediate(maxSize)));
         return res;
     }
 
