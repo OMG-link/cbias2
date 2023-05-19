@@ -17,10 +17,14 @@ public class FloatRegister extends Register {
     }
 
     public String emit() {
-        if (index >= 0) {
-            return "f" + index;
-        } else {
+        if (name != null) {
             return name;
+        } else {
+            if (index >= 0) {
+                return "f" + index;
+            } else {
+                return "VRegFloat" + (-index);
+            }
         }
     }
 }

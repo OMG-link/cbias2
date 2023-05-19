@@ -24,10 +24,14 @@ public class IntRegister extends Register {
     }
 
     public String emit() {
-        if (index >= 0) {
-            return "x" + index;
-        } else {
+        if (name != null) {
             return name;
+        } else {
+            if (index >= 0) {
+                return "x" + index;
+            } else {
+                return "VRegInt" + (-index);
+            }
         }
     }
 }
