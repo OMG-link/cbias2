@@ -798,8 +798,15 @@ public class Translator extends SysYBaseVisitor<Void> {
 
         resultAddress = entry.getAddress();
         for (Value index : indices) {
-            resultAddress = new GetElementPtrInst(resultAddress, List.of(ConstInt.getInstance(0), index));
-            currentBasicBlock.addInstruction((Instruction) resultAddress);
+            if (((PointerType) resultAddress.getType()).getBaseType() instanceof PointerType) {
+                resultAddress = new LoadInst(resultAddress);
+                currentBasicBlock.addInstruction((Instruction) resultAddress);
+                resultAddress = new GetElementPtrInst(resultAddress, List.of(index));
+                currentBasicBlock.addInstruction((Instruction) resultAddress);
+            } else {
+                resultAddress = new GetElementPtrInst(resultAddress, List.of(ConstInt.getInstance(0), index));
+                currentBasicBlock.addInstruction((Instruction) resultAddress);
+            }
         }
 
         if (entry.getConstantValue() != null && indices.stream().allMatch(index -> index instanceof ConstInt)) {
@@ -808,6 +815,10 @@ public class Translator extends SysYBaseVisitor<Void> {
                 result = ((ConstArray) result).getValueAt(((ConstInt) index).getValue());
         } else {
             result = new LoadInst(resultAddress);
+            currentBasicBlock.addInstruction((Instruction) result);
+        }
+        if (result.getType() instanceof ArrayType) {
+            result = new GetElementPtrInst(resultAddress, List.of(ConstInt.getInstance(0), ConstInt.getInstance(0)));
             currentBasicBlock.addInstruction((Instruction) result);
         }
 
