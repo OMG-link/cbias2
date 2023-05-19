@@ -95,9 +95,9 @@ public class StackAllocator {
         IntRegister s0 = new IntRegister("s0");
         res.add(new AsmAdd(sp, sp, new Immediate(-maxSize)));
         if (savedRa) {
-            res.add(new AsmStore(ra, new Address(maxSize - 8, sp)));
+            res.add(new AsmStore(ra, new StackVar(maxSize - 8, 8, false)));
         }
-        res.add(new AsmStore(s0, new Address(maxSize - 16, sp)));
+        res.add(new AsmStore(s0, new StackVar(maxSize - 16, 8, false)));
         res.add(new AsmAdd(s0, sp, new Immediate(maxSize)));
         return res;
     }
@@ -108,9 +108,9 @@ public class StackAllocator {
         IntRegister ra = new IntRegister("ra");
         IntRegister s0 = new IntRegister("s0");
         if (savedRa) {
-            res.add(new AsmLoad(ra, new Address(maxSize - 8, sp)));
+            res.add(new AsmLoad(ra, new StackVar(maxSize - 8, 8, false)));
         }
-        res.add(new AsmLoad(s0, new Address(maxSize - 16, sp)));
+        res.add(new AsmLoad(s0, new StackVar(maxSize - 16, 8, false)));
         res.add(new AsmAdd(sp, sp, new Immediate(maxSize)));
         res.add(new AsmJump(new IntRegister("ra")));
         return res;
