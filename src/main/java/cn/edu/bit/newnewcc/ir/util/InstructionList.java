@@ -32,7 +32,7 @@ public class InstructionList implements Iterable<Instruction> {
 
     }
 
-    private static class InstructionIterator implements Iterator<Instruction> {
+    public static class InstructionIterator implements Iterator<Instruction> {
 
         private Node node;
         private final Node ending;
@@ -40,14 +40,18 @@ public class InstructionList implements Iterable<Instruction> {
         private InstructionIterator(Node node, Node ending) {
             this.node = node;
             this.ending = ending;
-            moveToNextValidNode();
+            if (!isValidNode()) moveToNextValidNode();
+        }
+
+        private boolean isValidNode() {
+            return node == null || node.instruction != null;
         }
 
         private void moveToNextValidNode() {
             do {
                 node = node.next;
                 if (node == ending) node = null;
-            } while (node != null && node.instruction == null);
+            } while (!isValidNode());
         }
 
         @Override
