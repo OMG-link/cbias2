@@ -74,8 +74,8 @@ public final class Constants {
                 case ADD -> leftValue + rightValue;
                 case SUB -> leftValue - rightValue;
                 case MUL -> leftValue * rightValue;
-                case DIV -> leftValue / rightValue;
-                case MOD -> leftValue % rightValue;
+                case DIV -> rightValue == 0 ? 0 : leftValue / rightValue;
+                case MOD -> rightValue == 0 ? 0 : leftValue % rightValue;
                 default -> throw new IllegalArgumentException();
             });
         }
