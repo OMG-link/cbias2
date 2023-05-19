@@ -176,17 +176,17 @@ fragment DecimalFloatingConstant:
 	FractionalConstant ExponentPart?
 	| Digit+ ExponentPart;
 
-fragment FractionalConstant: Digit+? '.' Digit+ | Digit+ '.';
+fragment FractionalConstant: Digit* '.' Digit+ | Digit+ '.';
 
 fragment ExponentPart: [eE] Sign? Digit+;
 
 fragment Sign: [+-];
 
 fragment HexadecimalFloatingConstant:
-	HexadecimalPrefix (HexFractionalConst | HexadecimalDigit+) BinaryExponentPart;
+	HexadecimalPrefix (HexadecimalFractionalConstant | HexadecimalDigit+) BinaryExponentPart;
 
-fragment HexFractionalConst:
-	HexadecimalDigit+? '.' HexadecimalDigit+
+fragment HexadecimalFractionalConstant:
+	HexadecimalDigit* '.' HexadecimalDigit+
 	| HexadecimalDigit+ '.';
 
 fragment BinaryExponentPart: [pP] Sign? Digit+;

@@ -18,6 +18,7 @@ import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.tree.ParseTree;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 public class Translator extends SysYBaseVisitor<Void> {
@@ -762,8 +763,16 @@ public class Translator extends SysYBaseVisitor<Void> {
 
         List<Value> arguments = new ArrayList<>();
         if (ctx.argumentExpressionList() != null) {
-            for (var expression : ctx.argumentExpressionList().expression()) {
+            var parameterTypeIterator = function.getParameterTypes().iterator();
+            var expressionIterator = ctx.argumentExpressionList().expression().iterator();
+
+            while (parameterTypeIterator.hasNext() && expressionIterator.hasNext()) {
+                Type parameterType = parameterTypeIterator.next();
+                var expression = expressionIterator.next();
+
                 visit(expression);
+                if (result.getType() != parameterType)
+                    convertType(result, parameterType);
                 arguments.add(result);
             }
         }
