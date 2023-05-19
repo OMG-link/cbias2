@@ -134,28 +134,26 @@ public class Translator extends SysYBaseVisitor<Void> {
     }
 
     private void convertType(Value value, Type targetType) {
-        Instruction instruction;
         if (value.getType() == IntegerType.getI32() && targetType == FloatType.getFloat())
-            instruction = new SignedIntegerToFloatInst(value, FloatType.getFloat());
+            result = new SignedIntegerToFloatInst(value, FloatType.getFloat());
         else if (value.getType() == FloatType.getFloat() && targetType == IntegerType.getI32())
-            instruction = new FloatToSignedIntegerInst(value, IntegerType.getI32());
+            result = new FloatToSignedIntegerInst(value, IntegerType.getI32());
         else if (value.getType() == IntegerType.getI32() && targetType == IntegerType.getI1())
-            instruction = new IntegerCompareInst(
+            result = new IntegerCompareInst(
                     IntegerType.getI32(), IntegerCompareInst.Condition.NE,
                     value, ConstInt.getInstance(0)
             );
         else if (value.getType() == FloatType.getFloat() && targetType == IntegerType.getI1())
-            instruction = new FloatCompareInst(
+            result = new FloatCompareInst(
                     FloatType.getFloat(), FloatCompareInst.Condition.ONE,
                     value, ConstFloat.getInstance(0)
             );
         else if (value.getType() == IntegerType.getI1() && targetType == IntegerType.getI32())
-            instruction = new ZeroExtensionInst(value, IntegerType.getI32());
+            result = new ZeroExtensionInst(value, IntegerType.getI32());
         else
             throw new IllegalArgumentException();
 
-        currentBasicBlock.addInstruction(instruction);
-        result = instruction;
+        currentBasicBlock.addInstruction((Instruction) result);
     }
 
     private void applyUnaryOperator(Value operand, Operator operator) {
@@ -164,9 +162,8 @@ public class Translator extends SysYBaseVisitor<Void> {
             return;
         }
 
-        Instruction instruction;
         if (operand.getType() == IntegerType.getI32())
-            instruction = switch (operator) {
+            result = switch (operator) {
                 case NEG -> new IntegerSubInst(IntegerType.getI32(), ConstInt.getInstance(0), operand);
                 case LNOT -> new IntegerCompareInst(
                         IntegerType.getI32(), IntegerCompareInst.Condition.EQ,
@@ -175,7 +172,7 @@ public class Translator extends SysYBaseVisitor<Void> {
                 default -> throw new IllegalArgumentException();
             };
         else if (operand.getType() == FloatType.getFloat())
-            instruction = switch (operator) {
+            result = switch (operator) {
                 case NEG -> new FloatNegateInst(FloatType.getFloat(), operand);
                 case LNOT -> new FloatCompareInst(
                         FloatType.getFloat(), FloatCompareInst.Condition.OEQ,
@@ -186,8 +183,7 @@ public class Translator extends SysYBaseVisitor<Void> {
         else
             throw new IllegalArgumentException();
 
-        currentBasicBlock.addInstruction(instruction);
-        result = instruction;
+        currentBasicBlock.addInstruction((Instruction) result);
 
         if (operator == Operator.LNOT)
             convertType(result, IntegerType.getI32());
@@ -205,9 +201,8 @@ public class Translator extends SysYBaseVisitor<Void> {
             rightOperand = result;
         }
 
-        Instruction instruction;
         if (operandType == IntegerType.getI32())
-            instruction = switch (operator) {
+            result = switch (operator) {
                 case ADD -> new IntegerAddInst(IntegerType.getI32(), leftOperand, rightOperand);
                 case SUB -> new IntegerSubInst(IntegerType.getI32(), leftOperand, rightOperand);
                 case MUL -> new IntegerMultiplyInst(IntegerType.getI32(), leftOperand, rightOperand);
@@ -216,7 +211,7 @@ public class Translator extends SysYBaseVisitor<Void> {
                 default -> throw new IllegalArgumentException();
             };
         else if (operandType == FloatType.getFloat())
-            instruction = switch (operator) {
+            result = switch (operator) {
                 case ADD -> new FloatAddInst(FloatType.getFloat(), leftOperand, rightOperand);
                 case SUB -> new FloatSubInst(FloatType.getFloat(), leftOperand, rightOperand);
                 case MUL -> new FloatMultiplyInst(FloatType.getFloat(), leftOperand, rightOperand);
@@ -226,8 +221,7 @@ public class Translator extends SysYBaseVisitor<Void> {
         else
             throw new IllegalArgumentException();
 
-        currentBasicBlock.addInstruction(instruction);
-        result = instruction;
+        currentBasicBlock.addInstruction((Instruction) result);
     }
 
     private void applyBinaryRelationalOperator(Value leftOperand, Value rightOperand, Operator operator) {
@@ -242,9 +236,8 @@ public class Translator extends SysYBaseVisitor<Void> {
             rightOperand = result;
         }
 
-        Instruction instruction;
         if (operandType == IntegerType.getI32())
-            instruction = switch (operator) {
+            result = switch (operator) {
                 case LT -> new IntegerCompareInst(
                         IntegerType.getI32(), IntegerCompareInst.Condition.SLT,
                         leftOperand, rightOperand
@@ -272,7 +265,7 @@ public class Translator extends SysYBaseVisitor<Void> {
                 default -> throw new IllegalArgumentException();
             };
         else if (operandType == FloatType.getFloat())
-            instruction = switch (operator) {
+            result = switch (operator) {
                 case LT -> new FloatCompareInst(
                         FloatType.getFloat(), FloatCompareInst.Condition.OLT,
                         leftOperand, rightOperand
@@ -302,8 +295,7 @@ public class Translator extends SysYBaseVisitor<Void> {
         else
             throw new IllegalArgumentException();
 
-        currentBasicBlock.addInstruction(instruction);
-        result = instruction;
+        currentBasicBlock.addInstruction((Instruction) result);
         convertType(result, IntegerType.getI32());
     }
 
