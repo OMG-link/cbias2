@@ -1,14 +1,14 @@
 package cn.edu.bit.newnewcc.backend.asm;
 
 import cn.edu.bit.newnewcc.ir.Module;
-import cn.edu.bit.newnewcc.ir.value.AbstractFunction;
+import cn.edu.bit.newnewcc.ir.value.BaseFunction;
 import cn.edu.bit.newnewcc.ir.value.GlobalVariable;
 
 import java.util.HashMap;
 import java.util.Map;
 
 public class AsmCode {
-    private Map<AbstractFunction, AsmFunction> functionMap = new HashMap<>();
+    private Map<BaseFunction, AsmFunction> functionMap = new HashMap<>();
     private Map<GlobalVariable, AsmGlobalVariable> globalVariableMap = new HashMap<>();
     //private Map<ConstFloat, GlobalTag> constFloatMap = new HashMap<>();
     //此处应维护一个浮点常量表，用于读取浮点常量

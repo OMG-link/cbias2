@@ -739,7 +739,7 @@ public class Translator extends SysYBaseVisitor<Void> {
     @Override
     public Void visitFunctionCallExpression(SysYParser.FunctionCallExpressionContext ctx) {
         String name = ctx.Identifier().getText();
-        AbstractFunction function = symbolTable.getFunction(name);
+        BaseFunction function = symbolTable.getFunction(name);
 
         List<Value> arguments = new ArrayList<>();
         if (ctx.argumentExpressionList() != null) {

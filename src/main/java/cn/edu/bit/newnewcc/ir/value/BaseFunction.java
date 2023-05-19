@@ -6,8 +6,8 @@ import cn.edu.bit.newnewcc.ir.type.FunctionType;
 
 import java.util.List;
 
-public abstract class AbstractFunction extends Value {
-    public AbstractFunction(FunctionType type) {
+public abstract class BaseFunction extends Value {
+    public BaseFunction(FunctionType type) {
         super(type);
     }
 

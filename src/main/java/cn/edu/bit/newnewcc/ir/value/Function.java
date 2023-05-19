@@ -11,7 +11,7 @@ import java.util.*;
 /**
  * 函数
  */
-public class Function extends AbstractFunction {
+public class Function extends BaseFunction {
 
     public class FormalParameter extends Value {
         public FormalParameter(Type type) {

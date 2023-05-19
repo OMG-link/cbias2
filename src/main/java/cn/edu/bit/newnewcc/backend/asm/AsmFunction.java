@@ -5,7 +5,7 @@ import cn.edu.bit.newnewcc.backend.asm.operand.*;
 import cn.edu.bit.newnewcc.ir.Value;
 import cn.edu.bit.newnewcc.ir.type.FloatType;
 import cn.edu.bit.newnewcc.ir.type.IntegerType;
-import cn.edu.bit.newnewcc.ir.value.AbstractFunction;
+import cn.edu.bit.newnewcc.ir.value.BaseFunction;
 import cn.edu.bit.newnewcc.ir.value.BasicBlock;
 import cn.edu.bit.newnewcc.ir.value.Function;
 import org.antlr.v4.runtime.misc.Pair;
@@ -30,12 +30,12 @@ public class AsmFunction {
         return basicBlocks.size() == 0;
     }
 
-    public AsmFunction(AbstractFunction abstractFunction, AsmCode code) {
+    public AsmFunction(BaseFunction baseFunction, AsmCode code) {
         this.globalCode = code;
         int intParameterId = 0, floatParameterId = 0;
-        this.functionName = abstractFunction.getValueName();
+        this.functionName = baseFunction.getValueName();
         retBlockTag = new GlobalTag(functionName + "_ret", false);
-        for (var parameterType : abstractFunction.getParameterTypes()) {
+        for (var parameterType : baseFunction.getParameterTypes()) {
             if (parameterType instanceof IntegerType) {
                 if (intParameterId < 8) {
                     formalParameters.add(new IntRegister(String.format("a%d", intParameterId)));
@@ -54,7 +54,7 @@ public class AsmFunction {
         }
 
         //生成具体函数的汇编代码
-        if (abstractFunction instanceof Function function) {
+        if (baseFunction instanceof Function function) {
             var functionParameterList = function.getFormalParameters();
             for (var i = 0; i < functionParameterList.size(); i++) {
                 formalParameterMap.put(functionParameterList.get(i), formalParameters.get(i));

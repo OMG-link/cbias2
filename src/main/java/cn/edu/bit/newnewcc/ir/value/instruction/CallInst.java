@@ -6,7 +6,7 @@ import cn.edu.bit.newnewcc.ir.exception.IllegalArgumentException;
 import cn.edu.bit.newnewcc.ir.exception.IndexOutOfBoundsException;
 import cn.edu.bit.newnewcc.ir.type.FunctionType;
 import cn.edu.bit.newnewcc.ir.type.VoidType;
-import cn.edu.bit.newnewcc.ir.value.AbstractFunction;
+import cn.edu.bit.newnewcc.ir.value.BaseFunction;
 import cn.edu.bit.newnewcc.ir.value.Instruction;
 
 import java.util.ArrayList;
@@ -46,7 +46,7 @@ public class CallInst extends Instruction {
      * @param function  被调用函数
      * @param arguments 实参列表
      */
-    public CallInst(AbstractFunction function, List<Value> arguments) {
+    public CallInst(BaseFunction function, List<Value> arguments) {
         super(function.getReturnType());
         this.calleeOperand = new Operand(this, function.getType(), function);
         if (arguments.size() != function.getParameterTypes().size()) {
@@ -75,8 +75,8 @@ public class CallInst extends Instruction {
      *
      * @return 被调用的函数
      */
-    public AbstractFunction getCallee() {
-        return (AbstractFunction) calleeOperand.getValue();
+    public BaseFunction getCallee() {
+        return (BaseFunction) calleeOperand.getValue();
     }
 
     /**
@@ -84,7 +84,7 @@ public class CallInst extends Instruction {
      *
      * @param function 被调用的函数
      */
-    public void setCallee(AbstractFunction function) {
+    public void setCallee(BaseFunction function) {
         calleeOperand.setValue(function);
     }
 

@@ -3,7 +3,7 @@ package cn.edu.bit.newnewcc.ir.value;
 import cn.edu.bit.newnewcc.ir.type.FunctionType;
 import lombok.NonNull;
 
-public class ExternalFunction extends AbstractFunction {
+public class ExternalFunction extends BaseFunction {
     public ExternalFunction(FunctionType type, @NonNull String functionName) {
         super(type);
         this.functionName = functionName;
