@@ -40,11 +40,11 @@ public interface SysYVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitConstantDefinition(SysYParser.ConstantDefinitionContext ctx);
 	/**
-	 * Visit a parse tree produced by {@link SysYParser#constantInitializer}.
+	 * Visit a parse tree produced by {@link SysYParser#initializer}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitConstantInitializer(SysYParser.ConstantInitializerContext ctx);
+	T visitInitializer(SysYParser.InitializerContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link SysYParser#variableDeclaration}.
 	 * @param ctx the parse tree
@@ -57,12 +57,6 @@ public interface SysYVisitor<T> extends ParseTreeVisitor<T> {
 	 * @return the visitor result
 	 */
 	T visitVariableDefinition(SysYParser.VariableDefinitionContext ctx);
-	/**
-	 * Visit a parse tree produced by {@link SysYParser#initializer}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitInitializer(SysYParser.InitializerContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link SysYParser#functionDefinition}.
 	 * @param ctx the parse tree

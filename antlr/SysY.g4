@@ -10,11 +10,11 @@ constantDeclaration:
 typeSpecifier: type=(VOID | INT | FLOAT);
 
 constantDefinition:
-	Identifier (LBRACKET expression RBRACKET)* ASSIGN constantInitializer;
+	Identifier (LBRACKET expression RBRACKET)* ASSIGN initializer;
 
-constantInitializer:
+initializer:
 	expression
-	| LBRACE (constantInitializer (COMMA constantInitializer)*)? RBRACE;
+	| LBRACE (initializer (COMMA initializer)*)? RBRACE;
 
 variableDeclaration:
 	typeSpecifier variableDefinition (COMMA variableDefinition)* SEMI;
@@ -22,11 +22,6 @@ variableDeclaration:
 variableDefinition:
 	Identifier (LBRACKET expression RBRACKET)*
 	| Identifier (LBRACKET expression RBRACKET)* ASSIGN initializer;
-
-initializer:
-	expression
-	| LBRACE (initializer (COMMA initializer)*)? RBRACE
-	;
 
 functionDefinition:
 	typeSpecifier Identifier LPAREN parameterList? RPAREN compoundStatement;

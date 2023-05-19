@@ -365,28 +365,34 @@ public class Translator extends SysYBaseVisitor<Void> {
 
     @Override
     public Void visitConstantDeclaration(SysYParser.ConstantDeclarationContext ctx) {
-        Type type = makeType(ctx.typeSpecifier().type);
+        Type baseType = makeType(ctx.typeSpecifier().type);
 
         for (var constantDefinition : ctx.constantDefinition()) {
+            Type type = baseType;
+
+            var listIterator = constantDefinition.expression()
+                    .listIterator(constantDefinition.expression().size());
+            while (listIterator.hasPrevious()) {
+                visit(listIterator.previous());
+                type = ArrayType.getInstance(((ConstInt) result).getValue(), type);
+            }
+
             if (symbolTable.getScopeDepth() > 0) {
                 var address = new AllocateInst(type);
                 currentFunction.getEntryBasicBlock().addInstruction(address);
                 String name = constantDefinition.Identifier().getText();
                 symbolTable.putLocalVariable(name, address);
 
-                visit(constantDefinition.constantInitializer());
-                Value initialValue = result;
+                Constant initialValue = makeConstant(constantDefinition.initializer(), type);
                 currentBasicBlock.addInstruction(new StoreInst(address, initialValue));
             } else {
                 String name = constantDefinition.Identifier().getText();
 
                 Constant initialValue;
-                if (constantDefinition.constantInitializer() == null)
+                if (constantDefinition.initializer() == null)
                     initialValue = type.getDefaultInitialization();
-                else {
-                    visit(constantDefinition.constantInitializer());
-                    initialValue = (Constant) result;
-                }
+                else
+                    initialValue = makeConstant(constantDefinition.initializer(), type);
 
                 GlobalVariable globalVariable = new GlobalVariable(true, initialValue);
                 globalVariable.setValueName(name);
@@ -409,7 +415,6 @@ public class Translator extends SysYBaseVisitor<Void> {
                     .listIterator(variableDefinition.expression().size());
             while (listIterator.hasPrevious()) {
                 visit(listIterator.previous());
-
                 type = ArrayType.getInstance(((ConstInt) result).getValue(), type);
             }
 
