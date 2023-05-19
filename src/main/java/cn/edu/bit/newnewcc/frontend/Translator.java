@@ -31,44 +31,17 @@ public class Translator extends SysYBaseVisitor<Void> {
     private final ControlFlowStack controlFlowStack = new ControlFlowStack();
     private final Module module = new Module();
 
-    {
-        List.of(
-                new ExternalFunction(
-                        FunctionType.getInstance(IntegerType.getI32(), List.of()),
-                        "getint"
-                ),
-                new ExternalFunction(
-                        FunctionType.getInstance(VoidType.getInstance(), List.of(IntegerType.getI32())),
-                        "putint"
-                ),
-                new ExternalFunction(
-                        FunctionType.getInstance(FloatType.getFloat(), List.of()),
-                        "getfloat"
-                ),
-                new ExternalFunction(
-                        FunctionType.getInstance(VoidType.getInstance(), List.of(FloatType.getFloat())),
-                        "putfloat"
-                ),
-                new ExternalFunction(
-                        FunctionType.getInstance(IntegerType.getI32(), List.of()),
-                        "getch"
-                ),
-                new ExternalFunction(
-                        FunctionType.getInstance(VoidType.getInstance(), List.of(IntegerType.getI32())),
-                        "putch"
-                )
-        ).forEach(externalFunction -> {
-            module.addExternalFunction(externalFunction);
-            symbolTable.putFunction(externalFunction.getValueName(), externalFunction);
-        });
-    }
-
     private Function currentFunction;
     private BasicBlock currentBasicBlock;
     private Value result;
     private Value resultAddress;
 
-    public Module translate(ParseTree tree) {
+    public Module translate(ParseTree tree, List<ExternalFunction> externalFunctions) {
+        for (ExternalFunction externalFunction : externalFunctions) {
+            module.addExternalFunction(externalFunction);
+            symbolTable.putFunction(externalFunction.getValueName(), externalFunction);
+        }
+
         visit(tree);
         return module;
     }
