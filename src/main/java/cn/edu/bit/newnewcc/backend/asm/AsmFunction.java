@@ -8,6 +8,7 @@ import cn.edu.bit.newnewcc.ir.type.IntegerType;
 import cn.edu.bit.newnewcc.ir.value.BaseFunction;
 import cn.edu.bit.newnewcc.ir.value.BasicBlock;
 import cn.edu.bit.newnewcc.ir.value.Function;
+import cn.edu.bit.newnewcc.ir.value.instruction.BinaryInstruction;
 import org.antlr.v4.runtime.misc.Pair;
 
 import java.util.*;
@@ -23,7 +24,7 @@ public class AsmFunction {
     private final Map<Value, AsmOperand> formalParameterMap = new HashMap<>();
     private final List<AsmBasicBlock> basicBlocks = new ArrayList<>();
     private final Map<BasicBlock, AsmBasicBlock> basicBlockMap = new HashMap<>();
-    private final List<AsmInstruction> instructionList = new LinkedList<>();
+    private List<AsmInstruction> instructionList = new ArrayList<>();
     private final GlobalTag retBlockTag;
     private final BaseFunction baseFunction;
     private final Register returnRegister;
@@ -72,11 +73,26 @@ public class AsmFunction {
             for (var i = 0; i < functionParameterList.size(); i++) {
                 formalParameterMap.put(functionParameterList.get(i), formalParameters.get(i));
             }
-            for (var block : function.getBasicBlocks()) {
-                AsmBasicBlock asmBlock = new AsmBasicBlock(this, block);
-                basicBlockMap.put(block, asmBlock);
-                basicBlocks.add(asmBlock);
+
+            //获得基本块的bfs序
+            Set<BasicBlock> visited = new HashSet<>();
+            Queue<BasicBlock> queue = new ArrayDeque<>();
+            BasicBlock startBlock = function.getEntryBasicBlock();
+            visited.add(startBlock);
+            queue.add(startBlock);
+            while (!queue.isEmpty()) {
+                BasicBlock nowBlock = queue.remove();
+                AsmBasicBlock asmBasicBlock = new AsmBasicBlock(this, nowBlock);
+                basicBlocks.add(asmBasicBlock);
+                basicBlockMap.put(nowBlock, asmBasicBlock);
+                for (var nextBlock : nowBlock.getExitBlocks()) {
+                    if (!visited.contains(nextBlock)) {
+                        visited.add(nextBlock);
+                        queue.add(nextBlock);
+                    }
+                }
             }
+
             for (var block : basicBlocks) {
                 block.emitToFunction();
             }
@@ -224,7 +240,103 @@ public class AsmFunction {
 
     //未分配寄存器的分配方法
     private void reAllocateRegister() {
-        //未完成
+        stackAllocator.set_top();
+        Map<Integer, Integer> lastLifeTime = new HashMap<>();
+        for (int i = 0; i < instructionList.size(); i++) {
+            AsmInstruction instruction = instructionList.get(i);
+            for (int j = 1; j <= 3; j++) {
+                AsmOperand op = instruction.getOperand(j);
+                if (op instanceof Register register) {
+                    if (register.isVirtual()) {
+                        Integer index = register.getIndex();
+                        lastLifeTime.put(index, i);
+                    }
+                }
+            }
+        }
+        List<AsmInstruction> newInstructionList = new ArrayList<>();
+
+        Map<Integer, AsmOperand> vregLocation = new HashMap<>();
+        Map<Register, Integer> registerPool = new HashMap<>();
+        Queue<StackVar> stackPool = new ArrayDeque<>();
+        for (int i = 0; i <= 31; i++) {
+            if ((6 <= i && i <= 7) || (28 <= i)) {
+                registerPool.put(new IntRegister(i), 0);
+            }
+        }
+        for (AsmInstruction instruction : instructionList) {
+            Set<Integer> nowUsed = new HashSet<>();
+            for (int j = 1; j <= 3; j++) {
+                AsmOperand op = instruction.getOperand(j);
+                if (op instanceof Register register && register.isVirtual()) {
+                    Integer index = register.getIndex();
+                    nowUsed.add(index);
+                }
+            }
+            for (int j = 1; j <= 3; j++) {
+                AsmOperand op = instruction.getOperand(j);
+                if (op instanceof Register register && register.isVirtual()) {
+                    int d = register.getIndex();
+                    if (!vregLocation.containsKey(d)) {
+                        for (var reg : registerPool.keySet()) {
+                            if (registerPool.get(reg) == 0) {
+                                registerPool.put(reg, d);
+                                vregLocation.put(d, reg);
+                                break;
+                            }
+                        }
+                        if (!vregLocation.containsKey(d)) {
+                            for (var reg : registerPool.keySet()) {
+                                if (!nowUsed.contains(registerPool.get(reg))) {
+                                    if (stackPool.isEmpty()) {
+                                        stackPool.add(stackAllocator.push(8));
+                                    }
+                                    StackVar tmp = stackPool.remove();
+                                    newInstructionList.add(new AsmStore(reg, tmp));
+                                    vregLocation.put(registerPool.get(reg), tmp);
+                                    vregLocation.put(d, reg);
+                                    registerPool.put(reg, d);
+                                    break;
+                                }
+                            }
+                        }
+                        //此处待优化
+                    }
+                    if (vregLocation.get(d) instanceof StackVar) {
+                        for (var reg : registerPool.keySet()) {
+                            if (registerPool.get(reg) == 0) {
+                                registerPool.put(reg, d);
+                                vregLocation.put(d, reg);
+                                break;
+                            }
+                        }
+                        if (vregLocation.get(d) instanceof StackVar) {
+                            for (var reg : registerPool.keySet()) {
+                                if (!nowUsed.contains(registerPool.get(reg))) {
+                                    if (stackPool.isEmpty()) {
+                                        stackPool.add(stackAllocator.push(8));
+                                    }
+                                    StackVar tmp = stackPool.remove();
+                                    newInstructionList.add(new AsmStore(reg, tmp));
+                                    vregLocation.put(registerPool.get(reg), tmp);
+                                    vregLocation.put(d, reg);
+                                    registerPool.put(reg, d);
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    if (vregLocation.get(d) instanceof Register vregnow) {
+                        register.setIndex(vregnow.getIndex());
+                    } else {
+                        throw new RuntimeException("not enough register");
+                    }
+                }
+            }
+            newInstructionList.add(instruction);
+            // 此处待优化部分：二元运算符的目标寄存器
+        }
+        this.instructionList = newInstructionList;
     }
 
 }

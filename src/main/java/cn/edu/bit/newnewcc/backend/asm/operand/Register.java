@@ -30,4 +30,16 @@ public abstract class Register extends AsmOperand {
         this.index = -1;
         this.rtype = type;
     }
+
+    public boolean isVirtual() {
+        return index < 0;
+    }
+
+    public int getIndex() {
+        return Math.abs(index);
+    }
+
+    public void setIndex(int idx) {
+        this.index = idx;
+    }
 }

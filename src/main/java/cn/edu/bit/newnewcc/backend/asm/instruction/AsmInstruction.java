@@ -32,6 +32,18 @@ public class AsmInstruction {
         this.operand3 = operand3;
     }
 
+    public AsmOperand getOperand(int index) {
+        if (index == 1) {
+            return this.operand1;
+        } else if (index == 2) {
+            return this.operand2;
+        } else if (index == 3) {
+            return this.operand3;
+        } else {
+            throw new RuntimeException("Asm Operand index error : " + index);
+        }
+    }
+
     /**
      * 指令输出函数，依次输出指令名称及参数
      */
