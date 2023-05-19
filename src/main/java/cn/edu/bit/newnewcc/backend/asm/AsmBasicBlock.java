@@ -4,13 +4,13 @@ import cn.edu.bit.newnewcc.backend.asm.instruction.*;
 import cn.edu.bit.newnewcc.backend.asm.operand.*;
 import cn.edu.bit.newnewcc.ir.Value;
 import cn.edu.bit.newnewcc.ir.type.FloatType;
-import cn.edu.bit.newnewcc.ir.value.BasicBlock;
-import cn.edu.bit.newnewcc.ir.value.Function;
-import cn.edu.bit.newnewcc.ir.value.GlobalVariable;
-import cn.edu.bit.newnewcc.ir.value.Instruction;
+import cn.edu.bit.newnewcc.ir.value.*;
 import cn.edu.bit.newnewcc.ir.value.constant.ConstFloat;
 import cn.edu.bit.newnewcc.ir.value.constant.ConstInt;
 import cn.edu.bit.newnewcc.ir.value.instruction.*;
+
+import java.util.ArrayList;
+import java.util.List;
 
 
 /**
@@ -70,9 +70,6 @@ public class AsmBasicBlock {
         if (binaryInstruction instanceof IntegerAddInst integerAddInst) {
             var addx = getValue(integerAddInst.getOperand1());
             var addy = getValue(integerAddInst.getOperand2());
-            System.out.println(integerAddInst.getOperand1());
-            System.out.println(integerAddInst.getOperand2());
-            System.out.println(addx);
             IntRegister register = function.getRegisterAllocator().allocateInt(integerAddInst);
             if (addx instanceof IntRegister addrx) {
                 function.appendInstruction(new AsmAdd(register, addrx, addy));
@@ -113,6 +110,14 @@ public class AsmBasicBlock {
             function.appendInstruction(new AsmLoad(register, address));
         } else if (instruction instanceof BinaryInstruction binaryInstruction) {
             translateBinaryInstruction(binaryInstruction);
+        } else if (instruction instanceof CallInst callInst) {
+            BaseFunction baseFunction = callInst.getCallee();
+            AsmFunction asmFunction = function.getGlobalCode().getFunction(baseFunction);
+            List<AsmOperand> parameters = new ArrayList<>();
+            for (int i = 0; i < asmFunction.getParameterSize(); i++) {
+                parameters.add(getValue(callInst.getArgumentAt(i)));
+            }
+            function.appendAllInstruction(function.call(asmFunction, parameters));
         }
     }
 }

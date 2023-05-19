@@ -25,6 +25,7 @@ public class AsmFunction {
     private final Map<BasicBlock, AsmBasicBlock> basicBlockMap = new HashMap<>();
     private final List<AsmInstruction> instructionList = new LinkedList<>();
     private final GlobalTag retBlockTag;
+    private final BaseFunction baseFunction;
 
     public boolean isExternal() {
         return basicBlocks.size() == 0;
@@ -34,6 +35,7 @@ public class AsmFunction {
         this.globalCode = code;
         int intParameterId = 0, floatParameterId = 0;
         this.functionName = baseFunction.getValueName();
+        this.baseFunction = baseFunction;
         retBlockTag = new GlobalTag(functionName + "_ret", false);
         for (var parameterType : baseFunction.getParameterTypes()) {
             if (parameterType instanceof IntegerType) {
@@ -52,7 +54,9 @@ public class AsmFunction {
                 floatParameterId += 1;
             }
         }
+    }
 
+    public void emitCode() {
         //生成具体函数的汇编代码
         if (baseFunction instanceof Function function) {
             var functionParameterList = function.getFormalParameters();
@@ -153,6 +157,10 @@ public class AsmFunction {
             return stackVar.flip();
         }
         return res;
+    }
+
+    public int getParameterSize() {
+        return formalParameters.size();
     }
 
 

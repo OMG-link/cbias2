@@ -8,8 +8,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class AsmCode {
-    private Map<BaseFunction, AsmFunction> functionMap = new HashMap<>();
-    private Map<GlobalVariable, AsmGlobalVariable> globalVariableMap = new HashMap<>();
+    private final Map<BaseFunction, AsmFunction> functionMap = new HashMap<>();
+    private final Map<GlobalVariable, AsmGlobalVariable> globalVariableMap = new HashMap<>();
     //private Map<ConstFloat, GlobalTag> constFloatMap = new HashMap<>();
     //此处应维护一个浮点常量表，用于读取浮点常量
 
@@ -30,6 +30,13 @@ public class AsmCode {
             AsmFunction asmFunction = new AsmFunction(function, this);
             functionMap.put(function, asmFunction);
         }
+        for (var asmFunction : functionMap.values()) {
+            asmFunction.emitCode();
+        }
+    }
+
+    AsmFunction getFunction(BaseFunction baseFunction) {
+        return functionMap.get(baseFunction);
     }
 
     public String emit() {
