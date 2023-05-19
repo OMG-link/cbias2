@@ -368,7 +368,7 @@ public class Translator extends SysYBaseVisitor<Void> {
 
                 Constant initialValue;
                 if (constantDefinition.constantInitializer() == null)
-                    initialValue = Constants.zero(type);
+                    initialValue = type.getDefaultInitialization();
                 else {
                     visit(constantDefinition.constantInitializer());
                     initialValue = (Constant) result;
@@ -408,11 +408,11 @@ public class Translator extends SysYBaseVisitor<Void> {
                 symbolTable.putLocalVariable(name, address);
 
                 if (variableDefinition.initializer() != null) {
-                    currentBasicBlock.addInstruction(new StoreInst(address, Constants.zero(type)));
+                    currentBasicBlock.addInstruction(new StoreInst(address, type.getDefaultInitialization()));
                     initializeVariable(variableDefinition.initializer(), address);
                 }
             } else {
-                Constant initialValue = Constants.zero(type);
+                Constant initialValue = type.getDefaultInitialization();
                 if (variableDefinition.initializer() != null) {
                     visit(variableDefinition.initializer());
                     initialValue = (Constant) result;

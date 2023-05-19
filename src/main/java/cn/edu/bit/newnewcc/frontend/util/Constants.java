@@ -16,16 +16,6 @@ public final class Constants {
     private Constants() {
     }
 
-    public static Constant zero(Type type) {
-        if (type == IntegerType.getI32())
-            return ConstInt.getInstance(0);
-        if (type == FloatType.getFloat())
-            return ConstFloat.getInstance(0);
-        if (type instanceof ArrayType arrayType)
-            return new ConstArray(arrayType.getBaseType(), arrayType.getLength(), List.of());
-        throw new IllegalArgumentException();
-    }
-
     public static Constant convertType(Constant constant, Type targetType) {
         if (constant.getType() == IntegerType.getI32() && targetType == FloatType.getFloat()) {
             int value = ((ConstInt)constant).getValue();
