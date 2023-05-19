@@ -118,6 +118,10 @@ public class AsmBasicBlock {
                 parameters.add(getValue(callInst.getArgumentAt(i)));
             }
             function.appendAllInstruction(function.call(asmFunction, parameters));
+            if (function.getReturnRegister() != null) {
+                Register register = function.getRegisterAllocator().allocate(callInst);
+                function.appendInstruction(new AsmLoad(register, function.getReturnRegister()));
+            }
         }
     }
 }

@@ -26,6 +26,7 @@ public class AsmFunction {
     private final List<AsmInstruction> instructionList = new LinkedList<>();
     private final GlobalTag retBlockTag;
     private final BaseFunction baseFunction;
+    private final Register returnRegister;
 
     public boolean isExternal() {
         return basicBlocks.size() == 0;
@@ -36,6 +37,13 @@ public class AsmFunction {
         int intParameterId = 0, floatParameterId = 0;
         this.functionName = baseFunction.getValueName();
         this.baseFunction = baseFunction;
+
+        {
+            Register a0 = new IntRegister("a0");
+            Register fa0 = new FloatRegister("fa0");
+            this.returnRegister = (baseFunction.getReturnType() instanceof FloatType) ? fa0 : (baseFunction.getReturnType() instanceof IntegerType ? a0 : null);
+        }
+
         retBlockTag = new GlobalTag(functionName + "_ret", false);
         for (var parameterType : baseFunction.getParameterTypes()) {
             if (parameterType instanceof IntegerType) {
@@ -161,6 +169,10 @@ public class AsmFunction {
 
     public int getParameterSize() {
         return formalParameters.size();
+    }
+
+    public Register getReturnRegister() {
+        return returnRegister;
     }
 
 
