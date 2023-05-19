@@ -70,11 +70,14 @@ public class AsmBasicBlock {
         if (binaryInstruction instanceof IntegerAddInst integerAddInst) {
             var addx = getValue(integerAddInst.getOperand1());
             var addy = getValue(integerAddInst.getOperand2());
+            System.out.println(integerAddInst.getOperand1());
+            System.out.println(integerAddInst.getOperand2());
+            System.out.println(addx);
             IntRegister register = function.getRegisterAllocator().allocateInt(integerAddInst);
             if (addx instanceof IntRegister addrx) {
                 function.appendInstruction(new AsmAdd(register, addrx, addy));
             } else {
-                throw new RuntimeException("Error: addInst operand2 is not a register");
+                throw new RuntimeException("Error: addInst operand1 is not an int register");
             }
         }
     }

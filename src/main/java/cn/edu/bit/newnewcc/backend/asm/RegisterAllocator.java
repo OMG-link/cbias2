@@ -27,9 +27,9 @@ public class RegisterAllocator {
     }
     public Register allocate(Instruction instruction) {
         if (instruction.getType() instanceof FloatType) {
-            return allocateInt(instruction);
-        } else {
             return allocateFloat(instruction);
+        } else {
+            return allocateInt(instruction);
         }
     }
     public boolean contain(Instruction instruction) {
