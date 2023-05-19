@@ -265,76 +265,98 @@ public class AsmFunction {
             }
         }
         for (AsmInstruction instruction : instructionList) {
-            Set<Integer> nowUsed = new HashSet<>();
-            for (int j = 1; j <= 3; j++) {
-                AsmOperand op = instruction.getOperand(j);
-                if (op instanceof Register register && register.isVirtual()) {
-                    Integer index = register.getIndex();
-                    nowUsed.add(index);
+            if (instruction instanceof AsmCall) {
+                List<Pair<Register, Integer>> registerSaved = new ArrayList<>();
+                for (var reg : registerPool.keySet()) {
+                    if (stackPool.isEmpty()) {
+                        stackPool.add(stackAllocator.push(8));
+                    }
+                    StackVar tmp = stackPool.remove();
+                    vregLocation.put(registerPool.get(reg), tmp);
+                    registerSaved.add(new Pair<>(reg, registerPool.get(reg)));
+                    registerPool.put(reg, 0);
+                    newInstructionList.add(new AsmStore(reg, tmp));
                 }
-            }
-            for (int j = 1; j <= 3; j++) {
-                AsmOperand op = instruction.getOperand(j);
-                if (op instanceof Register register && register.isVirtual()) {
-                    int d = register.getIndex();
-                    if (!vregLocation.containsKey(d)) {
-                        for (var reg : registerPool.keySet()) {
-                            if (registerPool.get(reg) == 0) {
-                                registerPool.put(reg, d);
-                                vregLocation.put(d, reg);
-                                break;
-                            }
-                        }
+                newInstructionList.add(instruction);
+                for (var p : registerSaved) {
+                    StackVar tmp = (StackVar) vregLocation.get(p.b);
+                    newInstructionList.add(new AsmLoad(p.a, tmp));
+                    vregLocation.put(p.b, p.a);
+                    registerPool.put(p.a, p.b);
+                    stackPool.add(tmp);
+                }
+            } else {
+                Set<Integer> nowUsed = new HashSet<>();
+                for (int j = 1; j <= 3; j++) {
+                    AsmOperand op = instruction.getOperand(j);
+                    if (op instanceof Register register && register.isVirtual()) {
+                        Integer index = register.getIndex();
+                        nowUsed.add(index);
+                    }
+                }
+                for (int j = 1; j <= 3; j++) {
+                    AsmOperand op = instruction.getOperand(j);
+                    if (op instanceof Register register && register.isVirtual()) {
+                        int d = register.getIndex();
                         if (!vregLocation.containsKey(d)) {
                             for (var reg : registerPool.keySet()) {
-                                if (!nowUsed.contains(registerPool.get(reg))) {
-                                    if (stackPool.isEmpty()) {
-                                        stackPool.add(stackAllocator.push(8));
-                                    }
-                                    StackVar tmp = stackPool.remove();
-                                    newInstructionList.add(new AsmStore(reg, tmp));
-                                    vregLocation.put(registerPool.get(reg), tmp);
-                                    vregLocation.put(d, reg);
+                                if (registerPool.get(reg) == 0) {
                                     registerPool.put(reg, d);
+                                    vregLocation.put(d, reg);
                                     break;
                                 }
                             }
-                        }
-                        //此处待优化
-                    }
-                    if (vregLocation.get(d) instanceof StackVar) {
-                        for (var reg : registerPool.keySet()) {
-                            if (registerPool.get(reg) == 0) {
-                                registerPool.put(reg, d);
-                                vregLocation.put(d, reg);
-                                break;
+                            if (!vregLocation.containsKey(d)) {
+                                for (var reg : registerPool.keySet()) {
+                                    if (!nowUsed.contains(registerPool.get(reg))) {
+                                        if (stackPool.isEmpty()) {
+                                            stackPool.add(stackAllocator.push(8));
+                                        }
+                                        StackVar tmp = stackPool.remove();
+                                        newInstructionList.add(new AsmStore(reg, tmp));
+                                        vregLocation.put(registerPool.get(reg), tmp);
+                                        vregLocation.put(d, reg);
+                                        registerPool.put(reg, d);
+                                        break;
+                                    }
+                                }
                             }
+                            //此处待优化
                         }
                         if (vregLocation.get(d) instanceof StackVar) {
                             for (var reg : registerPool.keySet()) {
-                                if (!nowUsed.contains(registerPool.get(reg))) {
-                                    if (stackPool.isEmpty()) {
-                                        stackPool.add(stackAllocator.push(8));
-                                    }
-                                    StackVar tmp = stackPool.remove();
-                                    newInstructionList.add(new AsmStore(reg, tmp));
-                                    vregLocation.put(registerPool.get(reg), tmp);
-                                    vregLocation.put(d, reg);
+                                if (registerPool.get(reg) == 0) {
                                     registerPool.put(reg, d);
+                                    vregLocation.put(d, reg);
                                     break;
                                 }
                             }
+                            if (vregLocation.get(d) instanceof StackVar) {
+                                for (var reg : registerPool.keySet()) {
+                                    if (!nowUsed.contains(registerPool.get(reg))) {
+                                        if (stackPool.isEmpty()) {
+                                            stackPool.add(stackAllocator.push(8));
+                                        }
+                                        StackVar tmp = stackPool.remove();
+                                        newInstructionList.add(new AsmStore(reg, tmp));
+                                        vregLocation.put(registerPool.get(reg), tmp);
+                                        vregLocation.put(d, reg);
+                                        registerPool.put(reg, d);
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                        if (vregLocation.get(d) instanceof Register vregnow) {
+                            register.setIndex(vregnow.getIndex());
+                        } else {
+                            throw new RuntimeException("not enough register");
                         }
                     }
-                    if (vregLocation.get(d) instanceof Register vregnow) {
-                        register.setIndex(vregnow.getIndex());
-                    } else {
-                        throw new RuntimeException("not enough register");
-                    }
                 }
+                newInstructionList.add(instruction);
+                // 此处待优化部分：二元运算符的目标寄存器
             }
-            newInstructionList.add(instruction);
-            // 此处待优化部分：二元运算符的目标寄存器
         }
         this.instructionList = newInstructionList;
     }
