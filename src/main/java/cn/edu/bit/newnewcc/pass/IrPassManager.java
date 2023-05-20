@@ -12,6 +12,7 @@ public class IrPassManager {
             case 1 -> {
                 MemoryToRegisterPass.optimizeModule(module);
                 PatternReplacementPass.optimizeModule(module);
+                ConstantFoldingPass.optimizeModule(module);
                 BranchSimplifyPass.optimizeModule(module);
                 DeadCodeEliminationPass.optimizeModule(module);
             }
