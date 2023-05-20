@@ -1,6 +1,7 @@
 package cn.edu.bit.newnewcc.ir.value.instruction;
 
 import cn.edu.bit.newnewcc.ir.Operand;
+import cn.edu.bit.newnewcc.ir.Type;
 import cn.edu.bit.newnewcc.ir.Value;
 import cn.edu.bit.newnewcc.ir.exception.IllegalArgumentException;
 import cn.edu.bit.newnewcc.ir.type.IntegerType;
@@ -47,6 +48,14 @@ public class ZeroExtensionInst extends Instruction {
         sourceOperand.setValue(value);
     }
 
+    public Type getSourceType() {
+        return sourceOperand.getType();
+    }
+
+    public Type getTargetType() {
+        return getType();
+    }
+
     @Override
     public List<Operand> getOperandList() {
         var list = new ArrayList<Operand>();
@@ -59,9 +68,9 @@ public class ZeroExtensionInst extends Instruction {
         return String.format(
                 "%s = zext %s %s to %s",
                 this.getValueNameIR(),
-                getSourceOperand().getTypeName(),
+                getSourceType().getTypeName(),
                 getSourceOperand().getValueNameIR(),
-                this.getTypeName()
+                getTargetType().getTypeName()
         );
     }
 }
