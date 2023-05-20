@@ -157,7 +157,7 @@ public class MemoryToRegisterPass {
         }
     }
 
-    public static void optimizeModule(Module module) {
+    public static void runOnModule(Module module) {
         module.getFunctions().forEach(function -> new MemoryToRegisterPass().transformMemoryToRegister(function));
     }
 }

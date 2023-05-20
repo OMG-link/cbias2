@@ -239,7 +239,7 @@ public class ConstantFoldingPass {
         return null;
     }
 
-    private static boolean optimizeBasicBlock(BasicBlock basicBlock) {
+    private static boolean runOnBasicBlock(BasicBlock basicBlock) {
         boolean changed = false;
         for (Instruction instruction : basicBlock.getInstructions()) {
             var foldedValue = foldInstruction(instruction);
@@ -252,22 +252,22 @@ public class ConstantFoldingPass {
         return changed;
     }
 
-    private static boolean optimizeFunction(Function function) {
+    private static boolean runOnFunction(Function function) {
         boolean changed = false;
         for (BasicBlock basicBlock : function.getBasicBlocks()) {
-            if (optimizeBasicBlock(basicBlock)) {
+            if (runOnBasicBlock(basicBlock)) {
                 changed = true;
             }
         }
         return changed;
     }
 
-    public static boolean optimizeModule(Module module) {
+    public static boolean runOnModule(Module module) {
         boolean mChanged = false;
         while (true) {
             boolean changed = false;
             for (Function function : module.getFunctions()) {
-                if (optimizeFunction(function)) {
+                if (runOnFunction(function)) {
                     changed = true;
                     mChanged = true;
                 }

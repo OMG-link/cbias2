@@ -13,7 +13,7 @@ import cn.edu.bit.newnewcc.ir.value.instruction.JumpInst;
  */
 public class BranchSimplifyPass {
 
-    private static boolean optimizeBasicBlock(BasicBlock basicBlock) {
+    private static boolean runOnBasicBlock(BasicBlock basicBlock) {
         if (basicBlock.getTerminateInstruction() instanceof BranchInst branchInst && branchInst.getCondition() instanceof ConstBool condition) {
             BasicBlock savedBlock, removedBlock;
             if (condition.getValue()) {
@@ -33,18 +33,18 @@ public class BranchSimplifyPass {
         }
     }
 
-    private static boolean optimizeFunction(Function function) {
+    private static boolean runOnFunction(Function function) {
         boolean changed = false;
         for (BasicBlock basicBlock : function.getBasicBlocks()) {
-            changed = changed | optimizeBasicBlock(basicBlock);
+            changed = changed | runOnBasicBlock(basicBlock);
         }
         return changed;
     }
 
-    public static boolean optimizeModule(Module module) {
+    public static boolean runOnModule(Module module) {
         boolean changed = false;
         for (Function function : module.getFunctions()) {
-            changed = changed | optimizeFunction(function);
+            changed = changed | runOnFunction(function);
         }
         return changed;
     }

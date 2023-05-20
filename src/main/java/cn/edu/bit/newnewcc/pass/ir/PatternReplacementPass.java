@@ -381,7 +381,7 @@ public class PatternReplacementPass {
         initialized = true;
     }
 
-    private static boolean optimizeBasicBlock(BasicBlock basicBlock) {
+    private static boolean runOnBasicBlock(BasicBlock basicBlock) {
         boolean bbChanged = false;
         while (true) {
             var list = basicBlock.getMainInstructions();
@@ -401,21 +401,21 @@ public class PatternReplacementPass {
         return bbChanged;
     }
 
-    private static boolean optimizeFunction(Function function) {
+    private static boolean runOnFunction(Function function) {
         boolean changed = false;
         for (BasicBlock basicBlock : function.getBasicBlocks()) {
-            changed = changed | optimizeBasicBlock(basicBlock);
+            changed = changed | runOnBasicBlock(basicBlock);
         }
         return changed;
     }
 
-    public static boolean optimizeModule(Module module) {
+    public static boolean runOnModule(Module module) {
         if (!initialized) {
             initialize();
         }
         boolean changed = false;
         for (Function function : module.getFunctions()) {
-            changed = changed | optimizeFunction(function);
+            changed = changed | runOnFunction(function);
         }
         return changed;
     }

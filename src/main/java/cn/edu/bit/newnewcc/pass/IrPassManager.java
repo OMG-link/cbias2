@@ -10,13 +10,13 @@ public class IrPassManager {
             case 0 -> {
             }
             case 1 -> {
-                MemoryToRegisterPass.optimizeModule(module);
+                MemoryToRegisterPass.runOnModule(module);
                 while (true) {
                     boolean changed = false;
-                    changed = changed | PatternReplacementPass.optimizeModule(module);
-                    changed = changed | ConstantFoldingPass.optimizeModule(module);
-                    changed = changed | BranchSimplifyPass.optimizeModule(module);
-                    changed = changed | DeadCodeEliminationPass.optimizeModule(module);
+                    changed = changed | PatternReplacementPass.runOnModule(module);
+                    changed = changed | ConstantFoldingPass.runOnModule(module);
+                    changed = changed | BranchSimplifyPass.runOnModule(module);
+                    changed = changed | DeadCodeEliminationPass.runOnModule(module);
                     if (!changed) break;
                 }
             }
