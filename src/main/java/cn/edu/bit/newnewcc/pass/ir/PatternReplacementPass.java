@@ -10,11 +10,9 @@ import cn.edu.bit.newnewcc.ir.type.IntegerType;
 import cn.edu.bit.newnewcc.ir.value.BasicBlock;
 import cn.edu.bit.newnewcc.ir.value.Function;
 import cn.edu.bit.newnewcc.ir.value.Instruction;
+import cn.edu.bit.newnewcc.ir.value.constant.ConstFloat;
 import cn.edu.bit.newnewcc.ir.value.constant.ConstInt;
-import cn.edu.bit.newnewcc.ir.value.instruction.CompareInst;
-import cn.edu.bit.newnewcc.ir.value.instruction.FloatCompareInst;
-import cn.edu.bit.newnewcc.ir.value.instruction.IntegerCompareInst;
-import cn.edu.bit.newnewcc.ir.value.instruction.ZeroExtensionInst;
+import cn.edu.bit.newnewcc.ir.value.instruction.*;
 
 import java.util.*;
 
@@ -112,10 +110,6 @@ public class PatternReplacementPass {
     }
 
     private abstract static class InstructionPattern {
-        /**
-         * 这条指令的符号
-         */
-        public Symbol instructionSymbol;
 
         /**
          * 替换后这条指令应该被哪个值代替的符号
@@ -130,9 +124,7 @@ public class PatternReplacementPass {
          * @throws MatchFailedException 当匹配失败时
          */
         public final void match(Instruction instruction, SymbolMap symbolMap) throws MatchFailedException {
-            instructionSymbol = new Symbol(instruction.getType());
             replaceSymbol = new Symbol(instruction.getType());
-            symbolMap.setValue(instructionSymbol, instruction);
             match_(instruction, symbolMap);
         }
 
@@ -279,7 +271,7 @@ public class PatternReplacementPass {
                             // 确定已知的值和等价关系
                             symbolMap.setValue(v1, compareInst.getOperand1());
                             symbolMap.setValue(v2, compareInst.getOperand2());
-                            symbolMap.setValue(o_inst1, instructionSymbol);
+                            symbolMap.setValue(o_inst1, instruction);
                             symbolMap.setValue(n_inst1, newCompareInst);
                         } else {
                             throw new MatchFailedException();
@@ -290,7 +282,7 @@ public class PatternReplacementPass {
                     @Override
                     protected void match_(Instruction instruction, SymbolMap symbolMap) throws MatchFailedException {
                         if (instruction instanceof ZeroExtensionInst zeroExtensionInst) {
-                            symbolMap.setValue(instructionSymbol, o_inst2);
+                            symbolMap.setValue(o_inst2, instruction);
                             symbolMap.setValue(o_inst1, zeroExtensionInst.getSourceOperand());
                         } else {
                             throw new MatchFailedException();
@@ -305,8 +297,79 @@ public class PatternReplacementPass {
                                 integerCompareInst.getOperand2() instanceof ConstInt operand2 &&
                                 operand2.getValue() == 0) {
                             symbolMap.setValue(replaceSymbol, n_inst1);
-                            symbolMap.setValue(instructionSymbol, o_inst3);
+                            symbolMap.setValue(o_inst3, instruction);
                             symbolMap.setValue(o_inst2, integerCompareInst.getOperand1());
+                        } else {
+                            throw new MatchFailedException();
+                        }
+                    }
+                });
+            }
+        });
+
+        // o_inst1 = mul|div v1 -1     -> n_inst1
+        // n_inst1 = sub 0 v1
+        codePatterns.add(new CodePattern() {
+            Symbol v1, o_inst1, n_inst1;
+
+            {
+                patternList.add(new InstructionPattern() {
+                    @Override
+                    protected void match_(Instruction instruction, SymbolMap symbolMap) throws MatchFailedException {
+                        if (instruction instanceof IntegerArithmeticInst integerArithmeticInst) {
+                            var type = integerArithmeticInst.getType();
+                            v1 = new Symbol(type);
+                            o_inst1 = new Symbol(type);
+                            n_inst1 = new Symbol(type);
+                            symbolMap.setValue(o_inst1, instruction);
+                            symbolMap.setValue(replaceSymbol, n_inst1);
+                            if (integerArithmeticInst instanceof IntegerMultiplyInst) {
+                                if (integerArithmeticInst.getOperand1() instanceof ConstInt constInt && constInt.getValue() == -1) {
+                                    symbolMap.setValue(v1, integerArithmeticInst.getOperand2());
+                                } else if (integerArithmeticInst.getOperand2() instanceof ConstInt constInt && constInt.getValue() == -1) {
+                                    symbolMap.setValue(v1, integerArithmeticInst.getOperand1());
+                                } else {
+                                    throw new MatchFailedException();
+                                }
+                            } else if (integerArithmeticInst instanceof IntegerSignedDivideInst) {
+                                if (integerArithmeticInst.getOperand2() instanceof ConstInt constInt && constInt.getValue() == -1) {
+                                    symbolMap.setValue(v1, integerArithmeticInst.getOperand1());
+                                } else {
+                                    throw new MatchFailedException();
+                                }
+                            } else {
+                                throw new MatchFailedException();
+                            }
+                            var newInst = new IntegerSubInst(type, type.getDefaultInitialization(), v1);
+                            newInstructions.add(newInst);
+                            symbolMap.setValue(n_inst1, newInst);
+                        } else if (instruction instanceof FloatArithmeticInst floatArithmeticInst) {
+                            var type = floatArithmeticInst.getType();
+                            v1 = new Symbol(type);
+                            o_inst1 = new Symbol(type);
+                            n_inst1 = new Symbol(type);
+                            symbolMap.setValue(o_inst1, instruction);
+                            symbolMap.setValue(replaceSymbol, n_inst1);
+                            if (floatArithmeticInst instanceof FloatMultiplyInst) {
+                                if (floatArithmeticInst.getOperand1() instanceof ConstFloat constFloat && constFloat.getValue() == -1) {
+                                    symbolMap.setValue(v1, floatArithmeticInst.getOperand2());
+                                } else if (floatArithmeticInst.getOperand2() instanceof ConstFloat constFloat && constFloat.getValue() == -1) {
+                                    symbolMap.setValue(v1, floatArithmeticInst.getOperand1());
+                                } else {
+                                    throw new MatchFailedException();
+                                }
+                            } else if (floatArithmeticInst instanceof FloatDivideInst) {
+                                if (floatArithmeticInst.getOperand2() instanceof ConstFloat constFloat && constFloat.getValue() == -1) {
+                                    symbolMap.setValue(v1, floatArithmeticInst.getOperand1());
+                                } else {
+                                    throw new MatchFailedException();
+                                }
+                            } else {
+                                throw new MatchFailedException();
+                            }
+                            var newInst = new FloatNegateInst(type, v1);
+                            newInstructions.add(newInst);
+                            symbolMap.setValue(n_inst1, newInst);
                         } else {
                             throw new MatchFailedException();
                         }
