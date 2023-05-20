@@ -16,6 +16,7 @@ public class IrPassManager {
                     changed = changed | PatternReplacementPass.runOnModule(module);
                     changed = changed | ConstantFoldingPass.runOnModule(module);
                     changed = changed | BranchSimplifyPass.runOnModule(module);
+                    changed = changed | BasicBlockMergePass.runOnModule(module);
                     changed = changed | DeadCodeEliminationPass.runOnModule(module);
                     if (!changed) break;
                 }
