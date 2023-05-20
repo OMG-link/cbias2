@@ -19,7 +19,7 @@ public class UnreachableCodeEliminationPass {
     private UnreachableCodeEliminationPass() {
     }
 
-    private static void __optimize__(Function function) {
+    private static void optimizeFunction(Function function) {
         var reachableBlocks = getReachableBlocks(function);
         var unreachableBlocks = getUnreachableBlocks(function, reachableBlocks);
         removeBlocks(unreachableBlocks);
@@ -83,8 +83,8 @@ public class UnreachableCodeEliminationPass {
         return visitedBlocks;
     }
 
-    public static void optimize(Module module) {
-        module.getFunctions().forEach(UnreachableCodeEliminationPass::__optimize__);
+    public static void optimizeModule(Module module) {
+        module.getFunctions().forEach(UnreachableCodeEliminationPass::optimizeFunction);
     }
 
 }

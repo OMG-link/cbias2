@@ -234,7 +234,7 @@ public class DeadCodeEliminationPass {
         return answer;
     }
 
-    public static void optimize(Module module) {
+    public static void optimizeModule(Module module) {
         var seInstructions = getSeInstructions(module);
         var validInstructions = getValidInstructions(module, seInstructions);
         removeInvalidInstruction(module, validInstructions);

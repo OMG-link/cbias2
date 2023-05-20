@@ -10,10 +10,10 @@ public class IrPassManager {
             case 0 -> {
             }
             case 1 -> {
-                MemoryToRegisterPass.optimize(module);
-                PatternReplacementPass.optimize(module);
-                BranchSimplifyPass.optimize(module);
-                DeadCodeEliminationPass.optimize(module);
+                MemoryToRegisterPass.optimizeModule(module);
+                PatternReplacementPass.optimizeModule(module);
+                BranchSimplifyPass.optimizeModule(module);
+                DeadCodeEliminationPass.optimizeModule(module);
             }
         }
         IrSemanticCheckPass.verify(module);

@@ -33,7 +33,7 @@ public class BranchSimplifyPass {
         function.getBasicBlocks().forEach(BranchSimplifyPass::optimizeBasicBlock);
     }
 
-    public static void optimize(Module module) {
+    public static void optimizeModule(Module module) {
         module.getFunctions().forEach(BranchSimplifyPass::optimizeFunction);
     }
 
