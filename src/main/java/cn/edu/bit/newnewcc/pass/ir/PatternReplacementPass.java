@@ -318,7 +318,8 @@ public class PatternReplacementPass {
         initialized = true;
     }
 
-    private static void optimizeBasicBlock(BasicBlock basicBlock) {
+    private static boolean optimizeBasicBlock(BasicBlock basicBlock) {
+        boolean bbChanged = false;
         while (true) {
             var list = basicBlock.getMainInstructions();
             boolean changed = false;
@@ -327,22 +328,32 @@ public class PatternReplacementPass {
                     if (codePattern.matches(list, i)) {
                         i = codePattern.replace(list, i);
                         changed = true;
+                        bbChanged = true;
                         break;
                     }
                 }
             }
             if (!changed) break;
         }
+        return bbChanged;
     }
 
-    private static void optimizeFunction(Function function) {
-        function.getBasicBlocks().forEach(PatternReplacementPass::optimizeBasicBlock);
+    private static boolean optimizeFunction(Function function) {
+        boolean changed = false;
+        for (BasicBlock basicBlock : function.getBasicBlocks()) {
+            changed = changed | optimizeBasicBlock(basicBlock);
+        }
+        return changed;
     }
 
-    public static void optimizeModule(Module module) {
+    public static boolean optimizeModule(Module module) {
         if (!initialized) {
             initialize();
         }
-        module.getFunctions().forEach(PatternReplacementPass::optimizeFunction);
+        boolean changed = false;
+        for (Function function : module.getFunctions()) {
+            changed = changed | optimizeFunction(function);
+        }
+        return changed;
     }
 }

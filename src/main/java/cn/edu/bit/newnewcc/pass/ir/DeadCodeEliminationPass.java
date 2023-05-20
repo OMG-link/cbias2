@@ -172,7 +172,7 @@ public class DeadCodeEliminationPass {
         return validInstructions;
     }
 
-    private static void removeInvalidInstruction(Module module, Collection<Instruction> validInstructions) {
+    private static boolean removeInvalidInstruction(Module module, Collection<Instruction> validInstructions) {
         var invalidInstructions = new ArrayList<Instruction>();
         var invalidBasicBlocks = new ArrayList<BasicBlock>();
         // 获取以上两个数组
@@ -218,6 +218,7 @@ public class DeadCodeEliminationPass {
         for (Instruction invalidInstruction : invalidInstructions) {
             invalidInstruction.waste();
         }
+        return invalidInstructions.size() > 0 || invalidBasicBlocks.size() > 0;
     }
 
     private static boolean isGlobalAddress(Value address) {
@@ -234,10 +235,10 @@ public class DeadCodeEliminationPass {
         return answer;
     }
 
-    public static void optimizeModule(Module module) {
+    public static boolean optimizeModule(Module module) {
         var seInstructions = getSeInstructions(module);
         var validInstructions = getValidInstructions(module, seInstructions);
-        removeInvalidInstruction(module, validInstructions);
+        return removeInvalidInstruction(module, validInstructions);
     }
 
 }

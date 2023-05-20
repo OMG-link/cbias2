@@ -262,15 +262,18 @@ public class ConstantFoldingPass {
         return changed;
     }
 
-    public static void optimizeModule(Module module) {
+    public static boolean optimizeModule(Module module) {
+        boolean mChanged = false;
         while (true) {
             boolean changed = false;
             for (Function function : module.getFunctions()) {
                 if (optimizeFunction(function)) {
                     changed = true;
+                    mChanged = true;
                 }
             }
             if (!changed) break;
         }
+        return mChanged;
     }
 }

@@ -13,7 +13,7 @@ import cn.edu.bit.newnewcc.ir.value.instruction.JumpInst;
  */
 public class BranchSimplifyPass {
 
-    private static void optimizeBasicBlock(BasicBlock basicBlock) {
+    private static boolean optimizeBasicBlock(BasicBlock basicBlock) {
         if (basicBlock.getTerminateInstruction() instanceof BranchInst branchInst && branchInst.getCondition() instanceof ConstBool condition) {
             BasicBlock savedBlock, removedBlock;
             if (condition.getValue()) {
@@ -27,15 +27,26 @@ public class BranchSimplifyPass {
             basicBlock.setTerminateInstruction(jumpInst);
             removedBlock.removeEntryFromPhi(basicBlock);
             branchInst.waste();
+            return true;
+        } else {
+            return false;
         }
     }
 
-    private static void optimizeFunction(Function function) {
-        function.getBasicBlocks().forEach(BranchSimplifyPass::optimizeBasicBlock);
+    private static boolean optimizeFunction(Function function) {
+        boolean changed = false;
+        for (BasicBlock basicBlock : function.getBasicBlocks()) {
+            changed = changed | optimizeBasicBlock(basicBlock);
+        }
+        return changed;
     }
 
-    public static void optimizeModule(Module module) {
-        module.getFunctions().forEach(BranchSimplifyPass::optimizeFunction);
+    public static boolean optimizeModule(Module module) {
+        boolean changed = false;
+        for (Function function : module.getFunctions()) {
+            changed = changed | optimizeFunction(function);
+        }
+        return changed;
     }
 
 }
