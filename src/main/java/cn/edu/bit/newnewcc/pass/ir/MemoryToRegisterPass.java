@@ -86,7 +86,7 @@ public class MemoryToRegisterPass {
             if (basicBlock == function.getEntryBasicBlock()) {
                 // 若运行到此处，说明原代码未初始化该变量就使用了它
                 // 此时应该产生一个ub，但是方便起见我们为其赋予默认初始值
-                lastDefineMap.put(basicBlock, allocateInst.getAllocatedType().getDefaultInitialization());
+                lastDefineMap.put(basicBlock, allocateInst.getAllocatedType().getZeroInitialization());
             } else {
                 var phiInstruction = new PhiInst(allocateInst.getAllocatedType());
                 basicBlock.addInstruction(phiInstruction);

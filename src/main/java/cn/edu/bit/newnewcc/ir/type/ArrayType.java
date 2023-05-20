@@ -67,7 +67,7 @@ public class ArrayType extends Type {
     private ConstArray defaultInitialization;
 
     @Override
-    public Constant getDefaultInitialization() {
+    public Constant getZeroInitialization() {
         if (defaultInitialization == null) {
             defaultInitialization = new ConstArray(baseType, length, new ArrayList<>());
         }

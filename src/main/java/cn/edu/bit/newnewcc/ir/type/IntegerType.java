@@ -24,7 +24,7 @@ public class IntegerType extends Type {
     }
 
     @Override
-    public Constant getDefaultInitialization() {
+    public Constant getZeroInitialization() {
         return ConstInt.getInstance(0);
     }
 

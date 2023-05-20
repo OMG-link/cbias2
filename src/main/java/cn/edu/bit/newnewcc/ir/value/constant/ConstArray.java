@@ -55,7 +55,7 @@ public class ConstArray extends Constant {
         if (index < valueList.size()) {
             return valueList.get(index);
         } else {
-            return getType().getBaseType().getDefaultInitialization();
+            return getType().getBaseType().getZeroInitialization();
         }
     }
 
@@ -79,7 +79,7 @@ public class ConstArray extends Constant {
                 if (i < valueList.size()) {
                     builder.append(valueList.get(i).getValueNameIR());
                 } else {
-                    builder.append(getType().getBaseType().getDefaultInitialization().getValueNameIR());
+                    builder.append(getType().getBaseType().getZeroInitialization().getValueNameIR());
                 }
             }
             builder.append(']');

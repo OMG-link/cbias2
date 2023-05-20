@@ -54,7 +54,7 @@ public class FunctionType extends Type {
     }
 
     @Override
-    public Constant getDefaultInitialization() {
+    public Constant getZeroInitialization() {
         throw new UnsupportedOperationException();
     }
 

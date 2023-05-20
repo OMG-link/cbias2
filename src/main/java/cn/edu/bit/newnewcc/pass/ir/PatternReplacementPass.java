@@ -340,7 +340,7 @@ public class PatternReplacementPass {
                             } else {
                                 throw new MatchFailedException();
                             }
-                            var newInst = new IntegerSubInst(type, type.getDefaultInitialization(), v1);
+                            var newInst = new IntegerSubInst(type, type.getZeroInitialization(), v1);
                             newInstructions.add(newInst);
                             symbolMap.setValue(n_inst1, newInst);
                         } else if (instruction instanceof FloatArithmeticInst floatArithmeticInst) {

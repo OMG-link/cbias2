@@ -10,11 +10,11 @@ import cn.edu.bit.newnewcc.ir.value.Constant;
 public abstract class Type {
 
     /**
-     * 获取该类型在未显式提供初始化值时，默认初始化的值
+     * 获取该类型零初始化的结果
      *
-     * @return 默认初始化值
+     * @return 零初始化值
      */
-    public abstract Constant getDefaultInitialization();
+    public abstract Constant getZeroInitialization();
 
     /**
      * 获取类型的名字

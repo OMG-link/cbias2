@@ -18,7 +18,7 @@ public class LabelType extends Type {
     }
 
     @Override
-    public Constant getDefaultInitialization() {
+    public Constant getZeroInitialization() {
         throw new UnsupportedOperationException();
     }
 

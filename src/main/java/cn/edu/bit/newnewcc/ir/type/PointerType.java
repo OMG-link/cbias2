@@ -31,7 +31,7 @@ public class PointerType extends Type {
     }
 
     @Override
-    public Constant getDefaultInitialization() {
+    public Constant getZeroInitialization() {
         throw new UnsupportedOperationException();
     }
 

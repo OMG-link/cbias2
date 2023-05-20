@@ -18,7 +18,6 @@ import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.tree.ParseTree;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 public class Translator extends SysYBaseVisitor<Void> {
@@ -392,7 +391,7 @@ public class Translator extends SysYBaseVisitor<Void> {
 
                 Constant initialValue;
                 if (constantDefinition.initializer() == null)
-                    initialValue = type.getDefaultInitialization();
+                    initialValue = type.getZeroInitialization();
                 else
                     initialValue = makeConstant(constantDefinition.initializer(), type);
 
@@ -428,13 +427,13 @@ public class Translator extends SysYBaseVisitor<Void> {
                 symbolTable.putLocalVariable(name, address, null);
 
                 if (variableDefinition.initializer() != null) {
-                    currentBasicBlock.addInstruction(new StoreInst(address, type.getDefaultInitialization()));
+                    currentBasicBlock.addInstruction(new StoreInst(address, type.getZeroInitialization()));
                     initializeVariable(variableDefinition.initializer(), address);
                 }
             } else {
                 Constant initialValue;
                 if (variableDefinition.initializer() == null)
-                    initialValue = type.getDefaultInitialization();
+                    initialValue = type.getZeroInitialization();
                 else
                     initialValue = makeConstant(variableDefinition.initializer(), type);
 

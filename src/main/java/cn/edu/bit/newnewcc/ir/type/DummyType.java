@@ -14,7 +14,7 @@ public class DummyType extends Type {
     }
 
     @Override
-    public Constant getDefaultInitialization() {
+    public Constant getZeroInitialization() {
         throw new UnsupportedOperationException();
     }
 

@@ -21,7 +21,7 @@ public class GlobalVariable extends Value {
      * @param type 全局变量的类型
      */
     public GlobalVariable(Type type) {
-        this(false, type.getDefaultInitialization());
+        this(false, type.getZeroInitialization());
     }
 
     /**

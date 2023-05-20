@@ -26,7 +26,7 @@ public class FloatType extends Type {
     }
 
     @Override
-    public Constant getDefaultInitialization() {
+    public Constant getZeroInitialization() {
         if (bitWidth != 32)
             throw new IllegalBitWidthException();
 
