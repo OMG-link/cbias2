@@ -23,10 +23,10 @@ public class BranchSimplifyPass {
                 savedBlock = branchInst.getFalseExit();
                 removedBlock = branchInst.getTrueExit();
             }
+            branchInst.waste();
             var jumpInst = new JumpInst(savedBlock);
             basicBlock.setTerminateInstruction(jumpInst);
             removedBlock.removeEntryFromPhi(basicBlock);
-            branchInst.waste();
             return true;
         } else {
             return false;

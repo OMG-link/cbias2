@@ -79,7 +79,9 @@ public class BasicBlock extends Value {
             getTerminateInstruction().getExits().forEach(exit -> exit.__removeEntryBlock__(this));
         }
         instructionList.setTerminateInstruction(terminateInstruction);
-        getTerminateInstruction().getExits().forEach(exit -> exit.__addEntryBlock__(this));
+        if (getTerminateInstruction() != null) {
+            getTerminateInstruction().getExits().forEach(exit -> exit.__addEntryBlock__(this));
+        }
     }
 
     /**

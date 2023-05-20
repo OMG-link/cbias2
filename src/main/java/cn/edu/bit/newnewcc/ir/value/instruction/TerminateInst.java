@@ -16,6 +16,11 @@ public abstract class TerminateInst extends Instruction {
     }
 
     @Override
+    public void removeFromBasicBlock() {
+        getBasicBlock().setTerminateInstruction(null);
+    }
+
+    @Override
     public VoidType getType() {
         return (VoidType) super.getType();
     }

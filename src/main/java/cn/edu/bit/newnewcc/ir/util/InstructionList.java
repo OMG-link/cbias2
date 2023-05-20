@@ -116,7 +116,7 @@ public class InstructionList implements Iterable<Instruction> {
 
     public void setTerminateInstruction(TerminateInst instruction) {
         removeNodeFromList(this.terminateInstructionNode);
-        this.terminateInstructionNode = instruction.__getInstructionListNode__();
+        this.terminateInstructionNode = (instruction == null ? new Node() : instruction.__getInstructionListNode__());
         insertAlphaAfterBeta(terminateInstructionNode, mainEnd);
     }
 
