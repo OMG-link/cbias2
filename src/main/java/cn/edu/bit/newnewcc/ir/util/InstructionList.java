@@ -171,6 +171,8 @@ public class InstructionList implements Iterable<Instruction> {
         var next = node.next;
         if (prev != null) prev.next = next;
         if (next != null) next.prev = prev;
+        node.prev = null;
+        node.next = null;
         node.list = null;
     }
 
