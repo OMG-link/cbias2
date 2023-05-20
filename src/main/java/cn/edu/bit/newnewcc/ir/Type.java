@@ -27,6 +27,11 @@ public abstract class Type {
 
     private String typeNameCache;
 
+    /**
+     * 获取类型在 LLVM IR 中的标识符
+     *
+     * @return 类型名
+     */
     public String getTypeName() {
         if (typeNameCache == null) {
             typeNameCache = getTypeName_();
