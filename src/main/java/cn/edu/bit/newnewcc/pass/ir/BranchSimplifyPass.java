@@ -3,7 +3,7 @@ package cn.edu.bit.newnewcc.pass.ir;
 import cn.edu.bit.newnewcc.ir.Module;
 import cn.edu.bit.newnewcc.ir.value.BasicBlock;
 import cn.edu.bit.newnewcc.ir.value.Function;
-import cn.edu.bit.newnewcc.ir.value.constant.ConstInt;
+import cn.edu.bit.newnewcc.ir.value.constant.ConstBool;
 import cn.edu.bit.newnewcc.ir.value.instruction.BranchInst;
 import cn.edu.bit.newnewcc.ir.value.instruction.JumpInst;
 
@@ -14,18 +14,19 @@ import cn.edu.bit.newnewcc.ir.value.instruction.JumpInst;
 public class BranchSimplifyPass {
 
     private static void optimizeBasicBlock(BasicBlock basicBlock) {
-        if (basicBlock.getTerminateInstruction() instanceof BranchInst branchInst && branchInst.getCondition() instanceof ConstInt condition) {
+        if (basicBlock.getTerminateInstruction() instanceof BranchInst branchInst && branchInst.getCondition() instanceof ConstBool condition) {
             BasicBlock savedBlock, removedBlock;
-            if (condition.getValue() == 0) {
-                savedBlock = branchInst.getFalseExit();
-                removedBlock = branchInst.getTrueExit();
-            } else {
+            if (condition.getValue()) {
                 savedBlock = branchInst.getTrueExit();
                 removedBlock = branchInst.getFalseExit();
+            } else {
+                savedBlock = branchInst.getFalseExit();
+                removedBlock = branchInst.getTrueExit();
             }
             var jumpInst = new JumpInst(savedBlock);
             basicBlock.setTerminateInstruction(jumpInst);
             removedBlock.removeEntryFromPhi(basicBlock);
+            branchInst.waste();
         }
     }
 
