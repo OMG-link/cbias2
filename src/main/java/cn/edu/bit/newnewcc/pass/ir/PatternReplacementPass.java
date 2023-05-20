@@ -11,7 +11,10 @@ import cn.edu.bit.newnewcc.ir.value.BasicBlock;
 import cn.edu.bit.newnewcc.ir.value.Function;
 import cn.edu.bit.newnewcc.ir.value.Instruction;
 import cn.edu.bit.newnewcc.ir.value.constant.ConstInt;
-import cn.edu.bit.newnewcc.ir.value.instruction.*;
+import cn.edu.bit.newnewcc.ir.value.instruction.CompareInst;
+import cn.edu.bit.newnewcc.ir.value.instruction.FloatCompareInst;
+import cn.edu.bit.newnewcc.ir.value.instruction.IntegerCompareInst;
+import cn.edu.bit.newnewcc.ir.value.instruction.ZeroExtensionInst;
 
 import java.util.*;
 
@@ -231,22 +234,6 @@ public class PatternReplacementPass {
 
     private static void initialize() {
         codePatterns = new ArrayList<>();
-
-        // o_inst1 = ADD ic1 ic2                -> ic1+ic2
-        codePatterns.add(new CodePattern() {{
-            patternList.add(new InstructionPattern() {
-                @Override
-                public void match_(Instruction instruction, SymbolMap symbolMap) throws MatchFailedException {
-                    if (instruction instanceof IntegerAddInst addInst &&
-                            addInst.getOperand1() instanceof ConstInt c1 &&
-                            addInst.getOperand2() instanceof ConstInt c2) {
-                        symbolMap.setValue(replaceSymbol, ConstInt.getInstance(c1.getValue() + c2.getValue()));
-                    } else {
-                        throw new MatchFailedException();
-                    }
-                }
-            });
-        }});
 
         // o_inst1 = cmp v1 v2                  -> n_inst1
         // o_inst2 = zext i1 o_inst1 to i32
