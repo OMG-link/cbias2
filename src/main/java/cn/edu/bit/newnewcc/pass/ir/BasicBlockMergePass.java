@@ -15,23 +15,28 @@ public class BasicBlockMergePass {
         while (prevBlock.getExitBlocks().size() == 1) {
             var nextBlock = prevBlock.getExitBlocks().iterator().next();
             if (nextBlock.getEntryBlocks().size() != 1) break;
-            prevBlock.getTerminateInstruction().waste();
-            var nextBlockTerminateInstruction = nextBlock.getTerminateInstruction();
-            nextBlockTerminateInstruction.removeFromBasicBlock();
-            prevBlock.setTerminateInstruction(nextBlockTerminateInstruction);
+            // 处理前导语句
             for (Instruction leadingInstruction : nextBlock.getLeadingInstructions()) {
                 if (leadingInstruction instanceof PhiInst phiInst) {
                     phiInst.replaceAllUsageTo(phiInst.getValue(prevBlock));
+                    phiInst.waste();
                 } else {
                     // 非函数入口块应当只包含 Phi 语句
                     // 函数入口块不会有任何入口，不会成为 next block
                     throw new IllegalStateException("Non-entry basic block contains non-phi instruction.");
                 }
             }
+            // 处理主体语句
             for (Instruction mainInstruction : nextBlock.getMainInstructions()) {
                 mainInstruction.removeFromBasicBlock();
                 prevBlock.addInstruction(mainInstruction);
             }
+            // 处理终止语句
+            prevBlock.getTerminateInstruction().waste();
+            var nextBlockTerminateInstruction = nextBlock.getTerminateInstruction();
+            nextBlockTerminateInstruction.removeFromBasicBlock();
+            prevBlock.setTerminateInstruction(nextBlockTerminateInstruction);
+            // 处理基本块
             nextBlock.replaceAllUsageTo(prevBlock);
             nextBlock.removeFromFunction();
             changed = true;
