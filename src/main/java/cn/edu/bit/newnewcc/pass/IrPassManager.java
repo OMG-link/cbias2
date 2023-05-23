@@ -6,7 +6,7 @@ import cn.edu.bit.newnewcc.pass.ir.*;
 public class IrPassManager {
 
     public static void optimize(Module module, int optimizeLevel) {
-        IrSemanticCheckPass.verify(module);
+        DeadCodeEliminationPass.runOnModule(module);
         switch (optimizeLevel) {
             case 0 -> {
             }
@@ -21,9 +21,9 @@ public class IrPassManager {
                     changed |= DeadCodeEliminationPass.runOnModule(module);
                     if (!changed) break;
                 }
-                IrSemanticCheckPass.verify(module);
             }
         }
+        IrSemanticCheckPass.verify(module);
     }
 
 }
