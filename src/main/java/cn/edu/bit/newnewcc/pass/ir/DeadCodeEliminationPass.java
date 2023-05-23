@@ -83,7 +83,7 @@ public class DeadCodeEliminationPass {
             if (addressTypeCache.containsKey(address)) return;
             if (pendingAddresses.contains(address)) return;
             pendingAddresses.add(address);
-            if (address instanceof GlobalVariable || address instanceof Function.FormalParameter) {
+            if (address instanceof GlobalVariable || address instanceof Function.FormalParameter || address instanceof LoadInst) {
                 addGlobalAddress(address);
             } else if (address instanceof AllocateInst) {
                 // 是局部变量，什么也不做
