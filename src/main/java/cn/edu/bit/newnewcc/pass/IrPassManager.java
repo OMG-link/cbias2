@@ -21,6 +21,7 @@ public class IrPassManager {
                     changed |= DeadCodeEliminationPass.runOnModule(module);
                     if (!changed) break;
                 }
+                IrSemanticCheckPass.verify(module);
             }
         }
     }
