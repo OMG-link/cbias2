@@ -4,7 +4,6 @@ import cn.edu.bit.newnewcc.ir.Module;
 import cn.edu.bit.newnewcc.ir.Operand;
 import cn.edu.bit.newnewcc.ir.Value;
 import cn.edu.bit.newnewcc.ir.exception.SemanticCheckFailedException;
-import cn.edu.bit.newnewcc.ir.type.VoidType;
 import cn.edu.bit.newnewcc.ir.value.BasicBlock;
 import cn.edu.bit.newnewcc.ir.value.Constant;
 import cn.edu.bit.newnewcc.ir.value.Function;
@@ -31,6 +30,7 @@ public class IrSemanticCheckPass {
     }
 
     private void verifyInstruction(Instruction instruction) {
+        // 检查操作数合法性
         for (Operand operand : instruction.getOperandList()) {
             if (!operand.hasValueBound()) {
                 throw new SemanticCheckFailedException("Operand has no value bound");
@@ -38,6 +38,12 @@ public class IrSemanticCheckPass {
             if (!(operand.getValue() instanceof Constant || localValues.contains(operand.getValue()))) {
                 System.out.println(instruction);
                 throw new SemanticCheckFailedException("Value bound cannot be used as an operand");
+            }
+        }
+        // 检查使用该语句值的语句合法性
+        for (Operand usage : instruction.getUsages()) {
+            if (!localValues.contains(usage.getInstruction())) {
+                throw new SemanticCheckFailedException("Value being used by a free instruction.");
             }
         }
     }
@@ -60,16 +66,12 @@ public class IrSemanticCheckPass {
         localValues.addAll(function.getFormalParameters());
         localValues.addAll(function.getBasicBlocks());
         for (BasicBlock basicBlock : function.getBasicBlocks()) {
-            for (Instruction instruction : basicBlock.getInstructions()) {
-                if (instruction.getType() != VoidType.getInstance()) {
-                    localValues.add(instruction);
-                }
-            }
+            localValues.addAll(basicBlock.getInstructions());
         }
         // 检查每个基本块是否正常
-        function.getBasicBlocks().forEach(basicBlock ->
-                verifyBasicBlock(basicBlock, basicBlock == function.getEntryBasicBlock())
-        );
+        for (BasicBlock basicBlock : function.getBasicBlocks()) {
+            verifyBasicBlock(basicBlock, basicBlock == function.getEntryBasicBlock());
+        }
         // 用 getExitBlocks 方法收集块入口列表
         basicBlockEntries = new HashMap<>();
         for (BasicBlock basicBlock : function.getBasicBlocks()) {
