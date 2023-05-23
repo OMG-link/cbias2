@@ -6,7 +6,7 @@ import cn.edu.bit.newnewcc.ir.value.GlobalVariable;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 /**
@@ -15,9 +15,9 @@ import java.util.Set;
  * 每个源文件构成一个模块
  */
 public class Module {
-    private final Set<Function> functions = new HashSet<>();
-    private final Set<ExternalFunction> externalFunctions = new HashSet<>();
-    private final Set<GlobalVariable> globalVariables = new HashSet<>();
+    private final Set<Function> functions = new LinkedHashSet<>();
+    private final Set<ExternalFunction> externalFunctions = new LinkedHashSet<>();
+    private final Set<GlobalVariable> globalVariables = new LinkedHashSet<>();
 
     public void addFunction(Function function) {
         functions.add(function);
