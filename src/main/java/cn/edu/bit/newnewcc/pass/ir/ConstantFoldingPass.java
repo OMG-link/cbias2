@@ -6,7 +6,6 @@ import cn.edu.bit.newnewcc.ir.exception.IllegalArgumentException;
 import cn.edu.bit.newnewcc.ir.exception.IllegalStateException;
 import cn.edu.bit.newnewcc.ir.type.IntegerType;
 import cn.edu.bit.newnewcc.ir.value.BasicBlock;
-import cn.edu.bit.newnewcc.ir.value.Constant;
 import cn.edu.bit.newnewcc.ir.value.Function;
 import cn.edu.bit.newnewcc.ir.value.Instruction;
 import cn.edu.bit.newnewcc.ir.value.constant.ConstBool;
@@ -20,15 +19,12 @@ import java.util.Set;
 /**
  * 常量折叠 <br>
  * 若指令的运算结果可以在编译期推导得出，则折叠该语句 <br>
- * <br>
- * 注：对于PHI语句，只折叠其结果为Constant的情况 <br>
  */
 public class ConstantFoldingPass {
 
     /**
      * 折叠语句 <br>
      * 若该语句的结果是定值，则返回该值；否则返回 null <br>
-     * 对于 Phi 语句，仅当其结果为 Constant 时才折叠 <br>
      * 对于 Call 语句，折叠在函数内联中进行 <br>
      *
      * @param instruction 待折叠的语句
@@ -209,15 +205,13 @@ public class ConstantFoldingPass {
             }
         } else if (instruction instanceof PhiInst phiInst) {
             // 此处用到了 ConstInt 和 ConstFloat 都是单例的性质
+            // 对于其他值，相等当且仅当内存对象相同
             Set<Value> valueSet = new HashSet<>();
             for (BasicBlock entry : phiInst.getEntrySet()) {
                 valueSet.add(phiInst.getValue(entry));
             }
             if (valueSet.size() == 1) {
-                var value = valueSet.iterator().next();
-                if (value instanceof Constant) {
-                    return value;
-                }
+                return valueSet.iterator().next();
             }
         } else if (instruction instanceof SignedIntegerToFloatInst signedIntegerToFloatInst) {
             var op = signedIntegerToFloatInst.getSourceOperand();
