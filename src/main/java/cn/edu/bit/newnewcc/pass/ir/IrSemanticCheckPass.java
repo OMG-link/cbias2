@@ -43,6 +43,11 @@ public class IrSemanticCheckPass {
         // 检查使用该语句值的语句合法性
         for (Operand usage : instruction.getUsages()) {
             if (!localValues.contains(usage.getInstruction())) {
+                System.out.printf("In %s, it is used by %s, which is in basic block %s.\n",
+                        instruction.getClass(),
+                        usage.getInstruction().getClass(),
+                        usage.getInstruction().getBasicBlock()
+                );
                 throw new SemanticCheckFailedException("Value being used by a free instruction.");
             }
         }
