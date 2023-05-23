@@ -32,6 +32,7 @@ public class BasicBlockMergePass {
                 mainInstruction.removeFromBasicBlock();
                 prevBlock.addInstruction(mainInstruction);
             }
+            nextBlock.replaceAllUsageTo(prevBlock);
             nextBlock.removeFromFunction();
             changed = true;
         }
