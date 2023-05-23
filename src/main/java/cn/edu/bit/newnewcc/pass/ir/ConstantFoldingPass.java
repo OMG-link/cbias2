@@ -210,6 +210,8 @@ public class ConstantFoldingPass {
             for (BasicBlock entry : phiInst.getEntrySet()) {
                 valueSet.add(phiInst.getValue(entry));
             }
+            // 值集合中包含自己时，自己的值对语句结果的唯一性不产生影响
+            valueSet.remove(phiInst);
             if (valueSet.size() == 1) {
                 return valueSet.iterator().next();
             }
