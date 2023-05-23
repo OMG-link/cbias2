@@ -36,7 +36,6 @@ public class IrSemanticCheckPass {
                 throw new SemanticCheckFailedException("Operand has no value bound");
             }
             if (!(operand.getValue() instanceof Constant || localValues.contains(operand.getValue()))) {
-                System.out.println(instruction);
                 throw new SemanticCheckFailedException("Value bound cannot be used as an operand");
             }
         }
