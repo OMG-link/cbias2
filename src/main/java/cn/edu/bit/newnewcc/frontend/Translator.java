@@ -18,9 +18,20 @@ import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.tree.ParseTree;
 
 import java.util.ArrayList;
+import java.util.Deque;
+import java.util.LinkedList;
 import java.util.List;
 
 public class Translator extends SysYBaseVisitor<Void> {
+    private interface ControlFlowContext {
+    }
+
+    @lombok.Value
+    private static class WhileContext implements ControlFlowContext {
+        BasicBlock testBlock;
+        BasicBlock doneBlock;
+    }
+
     @lombok.Value
     private static class Parameter {
         Type type;
@@ -28,7 +39,7 @@ public class Translator extends SysYBaseVisitor<Void> {
     }
 
     private final SymbolTable symbolTable = new SymbolTable();
-    private final ControlFlowStack controlFlowStack = new ControlFlowStack();
+    private final Deque<ControlFlowContext> controlFlowStack = new LinkedList<>();
     private final Module module = new Module();
 
     private Function currentFunction;
@@ -562,7 +573,7 @@ public class Translator extends SysYBaseVisitor<Void> {
         currentFunction.addBasicBlock(bodyBlock);
         currentFunction.addBasicBlock(doneBlock);
 
-        controlFlowStack.pushContext(new ControlFlowStack.WhileContext(testBlock, doneBlock));
+        controlFlowStack.push(new WhileContext(testBlock, doneBlock));
 
         currentBasicBlock.addInstruction(new JumpInst(testBlock));
 
@@ -582,13 +593,13 @@ public class Translator extends SysYBaseVisitor<Void> {
 
         currentBasicBlock = doneBlock;
 
-        controlFlowStack.popContext();
+        controlFlowStack.pop();
         return null;
     }
 
     @Override
     public Void visitBreakStatement(SysYParser.BreakStatementContext ctx) {
-        BasicBlock doneBlock = ((ControlFlowStack.WhileContext) controlFlowStack.getTopContext()).getDoneBlock();
+        BasicBlock doneBlock = ((WhileContext) controlFlowStack.element()).getDoneBlock();
         currentBasicBlock.addInstruction(new JumpInst(doneBlock));
 
         currentBasicBlock = new BasicBlock();
@@ -599,7 +610,7 @@ public class Translator extends SysYBaseVisitor<Void> {
 
     @Override
     public Void visitContinueStatement(SysYParser.ContinueStatementContext ctx) {
-        BasicBlock testBlock = ((ControlFlowStack.WhileContext) controlFlowStack.getTopContext()).getTestBlock();
+        BasicBlock testBlock = ((WhileContext) controlFlowStack.element()).getTestBlock();
         currentBasicBlock.addInstruction(new JumpInst(testBlock));
 
         currentBasicBlock = new BasicBlock();
