@@ -120,9 +120,9 @@ public class Translator extends SysYBaseVisitor<Void> {
         return parameters;
     }
 
-    private Constant makeConstant(SysYParser.InitializerContext initializer, Type type) {
-        if (initializer.expression() != null) {
-            visit(initializer.expression());
+    private Constant makeConstant(SysYParser.InitializerContext ctx, Type type) {
+        if (ctx.expression() != null) {
+            visit(ctx.expression());
             Constant constant = (Constant) result;
 
             if (constant.getType() != type)
@@ -131,7 +131,7 @@ public class Translator extends SysYBaseVisitor<Void> {
             return constant;
         }
 
-        return makeConstant(initializer.initializer(), (ArrayType) type);
+        return makeConstant(ctx.initializer(), (ArrayType) type);
     }
 
     private Constant makeConstant(List<SysYParser.InitializerContext> childInitializers, ArrayType type) {
