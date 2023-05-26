@@ -1,20 +1,17 @@
 package cn.edu.bit.newnewcc.ir.value.constant;
 
-import cn.edu.bit.newnewcc.ir.type.IntegerType;
-import cn.edu.bit.newnewcc.ir.value.Constant;
-
 import java.util.HashMap;
 import java.util.Map;
 
 /**
  * 整型常量
  */
-public class ConstInt extends Constant {
+public class ConstInt extends ConstInteger {
 
     private final int value;
 
     private ConstInt(int value) {
-        super(IntegerType.getI32());
+        super(32);
         this.value = value;
     }
 

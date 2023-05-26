@@ -1,14 +1,11 @@
 package cn.edu.bit.newnewcc.ir.value.constant;
 
-import cn.edu.bit.newnewcc.ir.type.IntegerType;
-import cn.edu.bit.newnewcc.ir.value.Constant;
-
-public class ConstBool extends Constant {
+public class ConstBool extends ConstInteger {
 
     private final boolean value;
 
     private ConstBool(boolean value) {
-        super(IntegerType.getI1());
+        super(1);
         this.value = value;
     }
 

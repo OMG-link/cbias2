@@ -1,6 +1,7 @@
 package cn.edu.bit.newnewcc.ir.type;
 
 import cn.edu.bit.newnewcc.ir.Type;
+import cn.edu.bit.newnewcc.ir.exception.IllegalArgumentException;
 import cn.edu.bit.newnewcc.ir.value.Constant;
 import cn.edu.bit.newnewcc.ir.value.constant.ConstInt;
 
@@ -44,11 +45,20 @@ public class IntegerType extends Type {
         private static final IntegerType INSTANCE = new IntegerType(32);
     }
 
+    public static IntegerType getInstance(int bitWidth) {
+        return switch (bitWidth) {
+            case 1 -> I1Holder.INSTANCE;
+            case 32 -> I32Holder.INSTANCE;
+            default ->
+                    throw new IllegalArgumentException(String.format("Bit width %d not suitable for integer type.", bitWidth));
+        };
+    }
+
     public static IntegerType getI1() {
-        return I1Holder.INSTANCE;
+        return getInstance(1);
     }
 
     public static IntegerType getI32() {
-        return I32Holder.INSTANCE;
+        return getInstance(32);
     }
 }
