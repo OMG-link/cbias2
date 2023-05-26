@@ -11,6 +11,7 @@ import cn.edu.bit.newnewcc.ir.value.Instruction;
 import cn.edu.bit.newnewcc.ir.value.constant.ConstBool;
 import cn.edu.bit.newnewcc.ir.value.constant.ConstFloat;
 import cn.edu.bit.newnewcc.ir.value.constant.ConstInt;
+import cn.edu.bit.newnewcc.ir.value.constant.ConstInteger;
 import cn.edu.bit.newnewcc.ir.value.instruction.*;
 
 import java.util.HashSet;
@@ -34,11 +35,14 @@ public class ConstantFoldingPass {
         if (instruction instanceof ArithmeticInst arithmeticInst) {
             var op1 = arithmeticInst.getOperand1();
             var op2 = arithmeticInst.getOperand2();
-            if (arithmeticInst instanceof IntegerArithmeticInst) {
+            if (arithmeticInst instanceof IntegerArithmeticInst integerArithmeticInst) {
                 if (arithmeticInst instanceof IntegerAddInst) {
                     // 1+2 = 3
                     if (op1 instanceof ConstInt constInt1 && op2 instanceof ConstInt constInt2) {
-                        return ConstInt.getInstance(constInt1.getValue() + constInt2.getValue());
+                        return ConstInteger.getInstance(
+                                integerArithmeticInst.getType().getBitWidth(),
+                                constInt1.getValue() + constInt2.getValue()
+                        );
                     }
                     // 0+x = x
                     if (op1 instanceof ConstInt constInt1 && constInt1.getValue() == 0) {
@@ -51,16 +55,29 @@ public class ConstantFoldingPass {
                 } else if (arithmeticInst instanceof IntegerSubInst) {
                     // 3-2 = 1
                     if (op1 instanceof ConstInt constInt1 && op2 instanceof ConstInt constInt2) {
-                        return ConstInt.getInstance(constInt1.getValue() - constInt2.getValue());
+                        return ConstInteger.getInstance(
+                                integerArithmeticInst.getType().getBitWidth(),
+                                constInt1.getValue() - constInt2.getValue()
+                        );
                     }
                     // x-0 = x
                     if (op2 instanceof ConstInt constInt2 && constInt2.getValue() == 0) {
                         return op1;
                     }
+                    // x-x = 0
+                    if (op1 == op2) {
+                        return ConstInteger.getInstance(
+                                integerArithmeticInst.getType().getBitWidth(),
+                                0
+                        );
+                    }
                 } else if (arithmeticInst instanceof IntegerMultiplyInst) {
                     // 2*3 = 6
                     if (op1 instanceof ConstInt constInt1 && op2 instanceof ConstInt constInt2) {
-                        return ConstInt.getInstance(constInt1.getValue() * constInt2.getValue());
+                        return ConstInteger.getInstance(
+                                integerArithmeticInst.getType().getBitWidth(),
+                                constInt1.getValue() * constInt2.getValue()
+                        );
                     }
                     // 1*x = x
                     if (op1 instanceof ConstInt constInt1 && constInt1.getValue() == 1) {
@@ -73,11 +90,21 @@ public class ConstantFoldingPass {
                 } else if (arithmeticInst instanceof IntegerSignedDivideInst) {
                     // 6/2 = 3
                     if (op1 instanceof ConstInt constInt1 && op2 instanceof ConstInt constInt2) {
-                        return ConstInt.getInstance(constInt1.getValue() / constInt2.getValue());
+                        return ConstInteger.getInstance(
+                                integerArithmeticInst.getType().getBitWidth(),
+                                constInt1.getValue() / constInt2.getValue()
+                        );
                     }
                     // x/1 = x
                     if (op2 instanceof ConstInt constInt2 && constInt2.getValue() == 1) {
                         return op1;
+                    }
+                    // x/x = 1
+                    if (op1 == op2) {
+                        return ConstInteger.getInstance(
+                                integerArithmeticInst.getType().getBitWidth(),
+                                1
+                        );
                     }
                 }
             } else if (arithmeticInst instanceof FloatArithmeticInst) {
@@ -103,6 +130,10 @@ public class ConstantFoldingPass {
                     if (op2 instanceof ConstFloat constFloat2 && constFloat2.getValue() == 0) {
                         return op1;
                     }
+                    // x-x = 0
+                    if (op1 == op2) {
+                        return ConstFloat.getInstance(0);
+                    }
                 } else if (arithmeticInst instanceof FloatMultiplyInst) {
                     // 2*3 = 6
                     if (op1 instanceof ConstFloat constFloat1 && op2 instanceof ConstFloat constFloat2) {
@@ -124,6 +155,10 @@ public class ConstantFoldingPass {
                     // x/1 = x
                     if (op2 instanceof ConstFloat constFloat2 && constFloat2.getValue() == 1) {
                         return op1;
+                    }
+                    // x/x = 1
+                    if (op1 == op2) {
+                        return ConstFloat.getInstance(1);
                     }
                 }
             } else {
