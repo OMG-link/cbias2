@@ -134,9 +134,9 @@ public class Translator extends SysYBaseVisitor<Void> {
         return makeConstant(ctx.initializer(), (ArrayType) type);
     }
 
-    private Constant makeConstant(List<SysYParser.InitializerContext> childInitializers, ArrayType type) {
+    private Constant makeConstant(List<SysYParser.InitializerContext> children, ArrayType type) {
         List<Constant> elements = new ArrayList<>();
-        var listIterator = childInitializers.listIterator();
+        var listIterator = children.listIterator();
 
         while (listIterator.hasNext()) {
             var elementInitializer = listIterator.next();
@@ -331,20 +331,20 @@ public class Translator extends SysYBaseVisitor<Void> {
         convertType(result, IntegerType.getI32());
     }
 
-    private void initializeVariable(SysYParser.InitializerContext initializer, Value address) {
-        if (initializer.expression() != null) {
-            visit(initializer.expression());
+    private void initializeVariable(SysYParser.InitializerContext ctx, Value address) {
+        if (ctx.expression() != null) {
+            visit(ctx.expression());
 
             if (result.getType() != ((PointerType) address.getType()).getBaseType())
                 convertType(result, ((PointerType) address.getType()).getBaseType());
 
             currentBasicBlock.addInstruction(new StoreInst(address, result));
         } else
-            initializeVariable(initializer.initializer(), address);
+            initializeVariable(ctx.initializer(), address);
     }
 
-    private void initializeVariable(List<SysYParser.InitializerContext> childInitializers, Value address) {
-        var listIterator = childInitializers.listIterator();
+    private void initializeVariable(List<SysYParser.InitializerContext> children, Value address) {
+        var listIterator = children.listIterator();
         int index = 0;
 
         while (listIterator.hasNext()) {
