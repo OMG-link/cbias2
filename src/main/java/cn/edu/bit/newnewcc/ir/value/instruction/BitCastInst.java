@@ -19,22 +19,31 @@ import java.util.List;
  */
 public class BitCastInst extends Instruction {
     private final Operand sourceOperand;
-    public BitCastInst(Type sourceType, Type targetType){
+
+    public BitCastInst(Type sourceType, Type targetType) {
         super(targetType);
-        this.sourceOperand = new Operand(this,sourceType,null);
+        this.sourceOperand = new Operand(this, sourceType, null);
     }
 
-    public BitCastInst(Value sourceValue, Type targetType){
+    public BitCastInst(Value sourceValue, Type targetType) {
         super(targetType);
-        this.sourceOperand = new Operand(this,sourceValue.getType(),sourceValue);
+        this.sourceOperand = new Operand(this, sourceValue.getType(), sourceValue);
     }
 
     public Value getSourceOperand() {
         return sourceOperand.getValue();
     }
 
-    public void setSourceOperand(Value value){
+    public void setSourceOperand(Value value) {
         sourceOperand.setValue(value);
+    }
+
+    public Type getSourceType() {
+        return sourceOperand.getType();
+    }
+
+    public Type getTargetType() {
+        return getType();
     }
 
     @Override
