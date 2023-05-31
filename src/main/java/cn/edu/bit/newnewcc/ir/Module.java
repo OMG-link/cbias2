@@ -1,5 +1,6 @@
 package cn.edu.bit.newnewcc.ir;
 
+import cn.edu.bit.newnewcc.ir.exception.IllegalArgumentException;
 import cn.edu.bit.newnewcc.ir.value.ExternalFunction;
 import cn.edu.bit.newnewcc.ir.value.Function;
 import cn.edu.bit.newnewcc.ir.value.GlobalVariable;
@@ -23,6 +24,14 @@ public class Module {
         functions.add(function);
     }
 
+    public void removeFunction(Function function) {
+        if (functions.contains(function)) {
+            functions.remove(function);
+        } else {
+            throw new IllegalArgumentException("Function not found in this module.");
+        }
+    }
+
     public Collection<Function> getFunctions() {
         return Collections.unmodifiableSet(functions);
     }
@@ -37,6 +46,14 @@ public class Module {
 
     public void addGlobalVariable(GlobalVariable globalVariable) {
         globalVariables.add(globalVariable);
+    }
+
+    public void removeGlobalVariable(GlobalVariable globalVariable) {
+        if (globalVariables.contains(globalVariable)) {
+            globalVariables.remove(globalVariable);
+        } else {
+            throw new IllegalArgumentException("Global variable not found in this module.");
+        }
     }
 
     public Collection<GlobalVariable> getGlobalVariables() {
