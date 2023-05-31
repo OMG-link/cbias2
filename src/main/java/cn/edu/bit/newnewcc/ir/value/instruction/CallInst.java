@@ -114,6 +114,10 @@ public class CallInst extends Instruction {
         argumentOperands.get(index).setValue(value);
     }
 
+    public int getArgumentSize() {
+        return argumentOperands.size();
+    }
+
     @Override
     public String toString() {
         // e.g. %1 = call double @sum(i32 1, float 2.000000e+00)
