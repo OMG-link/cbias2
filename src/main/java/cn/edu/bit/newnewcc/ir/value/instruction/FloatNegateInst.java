@@ -32,6 +32,11 @@ public class FloatNegateInst extends Instruction {
     }
 
     @Override
+    public FloatType getType() {
+        return (FloatType) super.getType();
+    }
+
+    @Override
     public String toString() {
         return String.format(
                 "%s = fneg %s %s",
