@@ -16,21 +16,21 @@ public class FloatCompareInst extends CompareInst {
     private final Condition condition;
 
     /**
-     * @param operandType 待比较数据的类型，必须是FloatType
-     * @param condition   比较的方法
+     * @param comparedType 待比较数据的类型，必须是FloatType
+     * @param condition    比较的方法
      */
-    public FloatCompareInst(FloatType operandType, Condition condition) {
-        this(operandType, condition, null, null);
+    public FloatCompareInst(FloatType comparedType, Condition condition) {
+        this(comparedType, condition, null, null);
     }
 
     /**
-     * @param operandType 待比较数据的类型，必须是FloatType
-     * @param condition   比较的方法
-     * @param operand1    操作数1
-     * @param operand2    操作数2
+     * @param comparedType 待比较数据的类型，必须是FloatType
+     * @param condition    比较的方法
+     * @param operand1     操作数1
+     * @param operand2     操作数2
      */
-    public FloatCompareInst(FloatType operandType, Condition condition, Value operand1, Value operand2) {
-        super(operandType);
+    public FloatCompareInst(FloatType comparedType, Condition condition, Value operand1, Value operand2) {
+        super(comparedType);
         this.condition = condition;
         setOperand1(operand1);
         setOperand2(operand2);
@@ -38,6 +38,11 @@ public class FloatCompareInst extends CompareInst {
 
     public Condition getCondition() {
         return condition;
+    }
+
+    @Override
+    public FloatType getComparedType() {
+        return (FloatType) super.getComparedType();
     }
 
     @Override

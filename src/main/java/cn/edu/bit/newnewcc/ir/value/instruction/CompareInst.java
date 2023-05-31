@@ -5,11 +5,15 @@ import cn.edu.bit.newnewcc.ir.type.IntegerType;
 
 public abstract class CompareInst extends BinaryInstruction {
 
-    private final Type operandType;
+    private final Type comparedType;
 
-    public CompareInst(Type operandType) {
-        super(IntegerType.getI1(), operandType, operandType);
-        this.operandType = operandType;
+    public CompareInst(Type comparedType) {
+        super(IntegerType.getI1(), comparedType, comparedType);
+        this.comparedType = comparedType;
+    }
+
+    public Type getComparedType() {
+        return comparedType;
     }
 
     @Override
@@ -18,7 +22,7 @@ public abstract class CompareInst extends BinaryInstruction {
                 "%s = %s %s %s, %s",
                 this.getValueNameIR(),
                 this.getInstName(),
-                this.operandType.getTypeName(),
+                this.comparedType.getTypeName(),
                 getOperand1().getValueNameIR(),
                 getOperand2().getValueNameIR()
         );
