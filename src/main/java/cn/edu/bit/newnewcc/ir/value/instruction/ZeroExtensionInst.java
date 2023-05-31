@@ -1,7 +1,6 @@
 package cn.edu.bit.newnewcc.ir.value.instruction;
 
 import cn.edu.bit.newnewcc.ir.Operand;
-import cn.edu.bit.newnewcc.ir.Type;
 import cn.edu.bit.newnewcc.ir.Value;
 import cn.edu.bit.newnewcc.ir.exception.IllegalArgumentException;
 import cn.edu.bit.newnewcc.ir.type.IntegerType;
@@ -48,12 +47,17 @@ public class ZeroExtensionInst extends Instruction {
         sourceOperand.setValue(value);
     }
 
-    public Type getSourceType() {
-        return sourceOperand.getType();
+    public IntegerType getSourceType() {
+        return (IntegerType) sourceOperand.getType();
     }
 
-    public Type getTargetType() {
+    public IntegerType getTargetType() {
         return getType();
+    }
+
+    @Override
+    public IntegerType getType() {
+        return (IntegerType) super.getType();
     }
 
     @Override
