@@ -35,16 +35,19 @@ public class PatternReplacementPass {
             super(type);
         }
 
-        private String name = "temp_symbol";
+        private String name;
 
         @Override
         public String getValueName() {
+            if (name == null) {
+                name = String.format("%s#%s", this.getClass(), UUID.randomUUID());
+            }
             return name;
         }
 
         @Override
         public String getValueNameIR() {
-            return name;
+            return '%' + name;
         }
 
         @Override
