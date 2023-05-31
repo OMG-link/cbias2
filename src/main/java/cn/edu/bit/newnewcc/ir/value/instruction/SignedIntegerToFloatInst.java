@@ -12,31 +12,44 @@ import java.util.List;
 
 /**
  * 有符号整数转浮点数指令
+ *
  * @see <a href="https://llvm.org/docs/LangRef.html#sitofp-to-instruction">LLVM IR文档</a>
  */
 public class SignedIntegerToFloatInst extends Instruction {
 
     private final Operand sourceOperand;
 
-    public SignedIntegerToFloatInst(IntegerType sourceType, FloatType targetType){
+    public SignedIntegerToFloatInst(IntegerType sourceType, FloatType targetType) {
         super(targetType);
-        this.sourceOperand = new Operand(this, sourceType,null);
+        this.sourceOperand = new Operand(this, sourceType, null);
     }
 
-    public SignedIntegerToFloatInst(Value sourceValue, FloatType targetType){
+    public SignedIntegerToFloatInst(Value sourceValue, FloatType targetType) {
         super(targetType);
-        if(!(sourceValue.getType() instanceof IntegerType)){
+        if (!(sourceValue.getType() instanceof IntegerType)) {
             throw new IllegalArgumentException("Source value must be of integer type");
         }
-        this.sourceOperand = new Operand(this,sourceValue.getType(),sourceValue);
+        this.sourceOperand = new Operand(this, sourceValue.getType(), sourceValue);
     }
 
     public Value getSourceOperand() {
         return sourceOperand.getValue();
     }
 
-    public void setSourceOperand(Value value){
+    public void setSourceOperand(Value value) {
         sourceOperand.setValue(value);
+    }
+
+    public IntegerType getSourceType() {
+        return (IntegerType) sourceOperand.getType();
+    }
+
+    public FloatType getTargetType() {
+        return getType();
+    }
+
+    public FloatType getType() {
+        return (FloatType) super.getType();
     }
 
     @Override
