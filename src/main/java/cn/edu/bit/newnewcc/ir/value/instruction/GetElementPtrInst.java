@@ -70,6 +70,16 @@ public class GetElementPtrInst extends Instruction {
     }
 
     /**
+     * 获取某个下标的值
+     *
+     * @param index 下标
+     * @return 值
+     */
+    public Value getIndexAt(int index) {
+        return indexOperands.get(index).getValue();
+    }
+
+    /**
      * 设置某个下标的值
      *
      * @param index 下标
@@ -80,6 +90,15 @@ public class GetElementPtrInst extends Instruction {
             throw new IndexOutOfBoundsException(index, 0, indexOperands.size());
         }
         indexOperands.get(index).setValue(value);
+    }
+
+    /**
+     * 获取下标列表的大小
+     *
+     * @return 下标列表的大小
+     */
+    public int getIndicesSize() {
+        return indexOperands.size();
     }
 
     @Override
