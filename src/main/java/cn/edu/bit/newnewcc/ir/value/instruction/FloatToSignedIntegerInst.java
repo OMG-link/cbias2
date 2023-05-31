@@ -26,15 +26,28 @@ public class FloatToSignedIntegerInst extends Instruction {
         if(!(sourceValue.getType() instanceof FloatType)){
             throw new IllegalArgumentException("Source value must be of floating point type");
         }
-        this.sourceOperand = new Operand(this,sourceValue.getType(),sourceValue);
+        this.sourceOperand = new Operand(this, sourceValue.getType(), sourceValue);
     }
 
     public Value getSourceOperand() {
         return sourceOperand.getValue();
     }
 
-    public void setSourceOperand(Value value){
+    public void setSourceOperand(Value value) {
         sourceOperand.setValue(value);
+    }
+
+    public FloatType getSourceType() {
+        return (FloatType) sourceOperand.getType();
+    }
+
+    public IntegerType getTargetType() {
+        return getType();
+    }
+
+    @Override
+    public IntegerType getType() {
+        return (IntegerType) super.getType();
     }
 
     @Override
