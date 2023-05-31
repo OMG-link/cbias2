@@ -89,6 +89,19 @@ public class CallInst extends Instruction {
     }
 
     /**
+     * 获取实参列表（的副本）
+     *
+     * @return 实参列表
+     */
+    public List<Value> getArgumentList() {
+        var list = new ArrayList<Value>();
+        for (Operand argumentOperand : argumentOperands) {
+            list.add(argumentOperand.getValue());
+        }
+        return list;
+    }
+
+    /**
      * 获取call指令中填入的实参
      *
      * @param index 实参在参数列表中的下标(0-index)
