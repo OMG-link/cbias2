@@ -6,7 +6,10 @@ import cn.edu.bit.newnewcc.ir.exception.IllegalArgumentException;
 import cn.edu.bit.newnewcc.ir.type.FunctionType;
 import cn.edu.bit.newnewcc.ir.util.NameAllocator;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedHashSet;
+import java.util.List;
 
 /**
  * 函数
@@ -136,7 +139,7 @@ public class Function extends BaseFunction {
     /**
      * @return 形参列表（只读）
      */
-    public List<Value> getFormalParameters() {
+    public List<FormalParameter> getFormalParameters() {
         return Collections.unmodifiableList(formalParameters);
     }
 
