@@ -241,9 +241,7 @@ public class ConstantFoldingPass {
             // 此处用到了 ConstInt 和 ConstFloat 都是单例的性质
             // 对于其他值，相等当且仅当内存对象相同
             Set<Value> valueSet = new HashSet<>();
-            for (BasicBlock entry : phiInst.getEntrySet()) {
-                valueSet.add(phiInst.getValue(entry));
-            }
+            phiInst.forEach((basicBlock, value) -> valueSet.add(value));
             // 值集合中包含自己时，自己的值对语句结果的唯一性不产生影响
             valueSet.remove(phiInst);
             if (valueSet.size() == 1) {

@@ -90,9 +90,7 @@ public class DeadCodeEliminationPass {
             } else if (address instanceof GetElementPtrInst getElementPtrInst) {
                 judgeAddress(getElementPtrInst.getRootOperand());
             } else if (address instanceof PhiInst phiInst) {
-                for (BasicBlock block : phiInst.getEntrySet()) {
-                    judgeAddress(phiInst.getValue(block));
-                }
+                phiInst.forEach((basicBlock, value) -> judgeAddress(value));
             } else {
                 throw new IllegalArgumentException(String.format("Cannot analysis variable of type %s.", address.getClass()));
             }

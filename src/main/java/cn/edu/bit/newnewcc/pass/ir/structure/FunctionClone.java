@@ -72,7 +72,7 @@ public class FunctionClone {
     }
 
     private static boolean isGlobalValue(Value value) {
-        return value instanceof GlobalVariable || value instanceof BaseFunction;
+        return value instanceof GlobalVariable || value instanceof BaseFunction || value instanceof Constant;
     }
 
     private Value getReplacedValue(Value value) {
@@ -208,12 +208,10 @@ public class FunctionClone {
             return new LoadInst(getReplacedValue(loadInst.getAddressOperand()));
         } else if (instruction instanceof PhiInst phiInst) {
             var clonedPhiInst = new PhiInst(phiInst.getType());
-            for (BasicBlock entryBlock : phiInst.getEntrySet()) {
-                clonedPhiInst.setValue(
-                        (BasicBlock) getReplacedValue(entryBlock),
-                        getReplacedValue(phiInst.getValue(entryBlock))
-                );
-            }
+            phiInst.forEach((entryBlock, value) -> clonedPhiInst.setValue(
+                    (BasicBlock) getReplacedValue(entryBlock),
+                    getReplacedValue(value)
+            ));
             return clonedPhiInst;
         } else if (instruction instanceof ReturnInst) {
             return new JumpInst(returnBlock);
@@ -240,14 +238,14 @@ public class FunctionClone {
     private void doFunctionClone() {
         // 构建占位符
         for (BasicBlock basicBlock : function.getBasicBlocks()) {
-            valueMap.put(basicBlock, new Symbol(basicBlock.getType()));
+            valueMap.put(basicBlock, new BasicBlock());
             for (Instruction instruction : basicBlock.getInstructions()) {
                 valueMap.put(instruction, new Symbol(instruction.getType()));
             }
         }
         // 构建函数体
         for (BasicBlock basicBlock : function.getBasicBlocks()) {
-            var clonedBlock = new BasicBlock();
+            var clonedBlock = (BasicBlock) getReplacedValue(basicBlock);
             setValueMapKv(basicBlock, clonedBlock);
             for (Instruction instruction : basicBlock.getInstructions()) {
                 var clonedInstruction = cloneInstruction(instruction);
