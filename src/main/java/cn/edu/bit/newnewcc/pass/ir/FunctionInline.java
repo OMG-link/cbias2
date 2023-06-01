@@ -84,7 +84,8 @@ public class FunctionInline {
         List<Function> functions = new ArrayList<>(module.getFunctions());
         functions.sort((function1, function2) -> Integer.compare(propertyMap.get(function1).size, propertyMap.get(function2).size));
         for (Function inlinedFunction : functions) {
-            if (propertyMap.get(inlinedFunction).callees.contains(inlinedFunction)) continue;
+            if (propertyMap.get(inlinedFunction).callees.contains(inlinedFunction) || inlinedFunction.getValueName().equals("main"))
+                continue;
             inlineFunction(inlinedFunction);
             module.removeFunction(inlinedFunction);
             changed = true;
