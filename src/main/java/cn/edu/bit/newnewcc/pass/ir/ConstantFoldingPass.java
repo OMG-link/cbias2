@@ -4,7 +4,6 @@ import cn.edu.bit.newnewcc.ir.Module;
 import cn.edu.bit.newnewcc.ir.Value;
 import cn.edu.bit.newnewcc.ir.exception.IllegalArgumentException;
 import cn.edu.bit.newnewcc.ir.exception.IllegalStateException;
-import cn.edu.bit.newnewcc.ir.type.IntegerType;
 import cn.edu.bit.newnewcc.ir.value.BasicBlock;
 import cn.edu.bit.newnewcc.ir.value.Function;
 import cn.edu.bit.newnewcc.ir.value.Instruction;
@@ -257,7 +256,8 @@ public class ConstantFoldingPass {
             }
         } else if (instruction instanceof ZeroExtensionInst zeroExtensionInst) {
             var op = zeroExtensionInst.getSourceOperand();
-            if (op instanceof ConstInt constInt && zeroExtensionInst.getTargetType() instanceof IntegerType targetType) {
+            if (op instanceof ConstInt constInt) {
+                var targetType = zeroExtensionInst.getTargetType();
                 if (targetType.getBitWidth() == 1) {
                     return ConstBool.getInstance(constInt.getValue() != 0);
                 } else if (targetType.getBitWidth() == 32) {
