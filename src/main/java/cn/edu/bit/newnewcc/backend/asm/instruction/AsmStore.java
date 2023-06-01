@@ -25,6 +25,10 @@ public class AsmStore extends AsmInstruction {
                 if (stackVar.getSize() == 8) {
                     setInstructionName("sd");
                 }
+            } else if (goal.isRegister()) {
+                setInstructionName("c.mv");
+                setOperand1(goal);
+                setOperand2(source);
             }
         } else {
             setInstructionName("fsw");
@@ -33,6 +37,10 @@ public class AsmStore extends AsmInstruction {
                 if (stackVar.getSize() == 8) {
                     setInstructionName("fsd");
                 }
+            } else if (goal.isRegister()) {
+                setInstructionName("fmv.d.x");
+                setOperand1(goal);
+                setOperand2(source);
             }
         }
     }

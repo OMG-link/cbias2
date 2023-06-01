@@ -12,8 +12,8 @@ public class AsmSub extends AsmBinaryInstruction {
      * 汇编加指令
      *
      * @param goal    结果存储的寄存器
-     * @param source1 源寄存器1，存储第一个加数
-     * @param source2 源2，存储第二个加数，可能为寄存器或立即数
+     * @param source1 源寄存器1，存储被减数
+     * @param source2 源2，存储减数，可能为寄存器或立即数
      */
     public AsmSub(IntRegister goal, IntRegister source1, AsmOperand source2) {
         super("sub", goal, source1, source2);

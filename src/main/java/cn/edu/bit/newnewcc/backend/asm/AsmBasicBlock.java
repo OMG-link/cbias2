@@ -85,6 +85,36 @@ public class AsmBasicBlock {
             } else {
                 throw new RuntimeException("Error: subInst operand1 is not an int register");
             }
+        } else if (binaryInstruction instanceof IntegerMultiplyInst integerMultiplyInst) {
+            var mulx = getValue(integerMultiplyInst.getOperand1());
+            var muly = getValue(integerMultiplyInst.getOperand2());
+            IntRegister register = function.getRegisterAllocator().allocateInt(integerMultiplyInst);
+            if (mulx instanceof IntRegister mulrx) {
+                if (muly instanceof IntRegister mulry) {
+                    function.appendInstruction(new AsmMul(register, mulrx, mulry));
+                } else {
+                    IntRegister tmpry = function.getRegisterAllocator().allocateInt();
+                    function.appendInstruction(new AsmLoad(tmpry, muly));
+                    function.appendInstruction(new AsmMul(register, mulrx, tmpry));
+                }
+            } else {
+                throw new RuntimeException("Error: multiplyInst operand1 is not an int register");
+            }
+        } else if (binaryInstruction instanceof IntegerSignedDivideInst integerSignedDivideInst) {
+            var divx = getValue(integerSignedDivideInst.getOperand1());
+            var divy = getValue(integerSignedDivideInst.getOperand2());
+            IntRegister register = function.getRegisterAllocator().allocateInt();
+            if (divx instanceof IntRegister divrx) {
+                if (divy instanceof IntRegister divry) {
+                    function.appendInstruction(new AsmSignedIntegerDivide(register, divrx, divry));
+                } else {
+                    IntRegister tmpry = function.getRegisterAllocator().allocateInt();
+                    function.appendInstruction(new AsmLoad(tmpry, divy));
+                    function.appendInstruction(new AsmSignedIntegerDivide(register, divrx, tmpry));
+                }
+            } else {
+                throw new RuntimeException("Error: multiplyInst operand1 is not an int register");
+            }
         }
     }
 

@@ -39,7 +39,7 @@ public class AsmLoad extends AsmInstruction {
                     setInstructionName("li");
                 }
             } else if (source.isRegister() && ((Register) source).isInt()) {
-                setInstructionName("mv");
+                setInstructionName("c.mv");
             }
         } else {
             setInstructionName("flw");
