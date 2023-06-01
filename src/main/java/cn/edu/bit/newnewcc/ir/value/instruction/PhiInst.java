@@ -104,7 +104,7 @@ public class PhiInst extends Instruction {
 
     public void setValue(BasicBlock basicBlock, Value value) {
         if (!hasEntry(basicBlock)) {
-            throw new IllegalArgumentException("Basic block given is not an entry of this phi.");
+            throw new IllegalArgumentException("Basic block given is not an entry of this phi. (Maybe you want to use addEntry)");
         }
         entryMap.get(basicBlockOperandMap.get(basicBlock)).setValue(value);
     }
