@@ -4,8 +4,12 @@ import cn.edu.bit.newnewcc.ir.Type;
 import cn.edu.bit.newnewcc.ir.Value;
 import cn.edu.bit.newnewcc.ir.exception.IllegalArgumentException;
 import cn.edu.bit.newnewcc.ir.exception.IllegalStateException;
-import cn.edu.bit.newnewcc.ir.value.*;
+import cn.edu.bit.newnewcc.ir.value.BaseFunction;
+import cn.edu.bit.newnewcc.ir.value.BasicBlock;
+import cn.edu.bit.newnewcc.ir.value.Function;
+import cn.edu.bit.newnewcc.ir.value.Instruction;
 import cn.edu.bit.newnewcc.ir.value.instruction.*;
+import cn.edu.bit.newnewcc.pass.ir.util.UtilFunctions;
 
 import java.util.*;
 
@@ -71,12 +75,8 @@ public class FunctionClone {
         return returnValue;
     }
 
-    private static boolean isGlobalValue(Value value) {
-        return value instanceof GlobalVariable || value instanceof BaseFunction || value instanceof Constant;
-    }
-
     private Value getReplacedValue(Value value) {
-        if (isGlobalValue(value)) {
+        if (UtilFunctions.isGlobalValue(value)) {
             return value;
         } else {
             if (!valueMap.containsKey(value)) {
