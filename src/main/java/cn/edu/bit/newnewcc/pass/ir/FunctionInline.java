@@ -46,9 +46,11 @@ public class FunctionInline {
         }
     }
 
-    private void inlineFunction(Function function) {
-        for (Operand usage : function.getUsages()) {
-            if (!(usage.getInstruction() instanceof CallInst callInst && callInst.getCallee() == function)) continue;
+    private void inlineFunction(Function inlinedFunction) {
+        for (Operand usage : inlinedFunction.getUsages()) {
+            if (!(usage.getInstruction() instanceof CallInst callInst && callInst.getCallee() == inlinedFunction))
+                continue;
+            var function = callInst.getBasicBlock().getFunction();
             // 将原有基本块按照 call 指令的位置拆分为两个
             var blockAlpha = callInst.getBasicBlock();
             var blockBeta = new BasicBlock();
@@ -69,11 +71,13 @@ public class FunctionInline {
                 }
             }
             // 插入内联后的函数
-            var clonedFunction = new FunctionClone(function, callInst.getArgumentList(), blockBeta);
+            var clonedFunction = new FunctionClone(inlinedFunction, callInst.getArgumentList(), blockBeta);
             blockAlpha.setTerminateInstruction(new JumpInst(clonedFunction.getEntryBlock()));
+            function.addBasicBlock(blockBeta);
             for (BasicBlock clonedBlock : clonedFunction.getBasicBlocks()) {
                 function.addBasicBlock(clonedBlock);
             }
+            blockBeta.addInstruction(clonedFunction.getReturnValue());
             callInst.replaceAllUsageTo(clonedFunction.getReturnValue());
         }
     }
