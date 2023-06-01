@@ -208,7 +208,7 @@ public class FunctionClone {
             return new LoadInst(getReplacedValue(loadInst.getAddressOperand()));
         } else if (instruction instanceof PhiInst phiInst) {
             var clonedPhiInst = new PhiInst(phiInst.getType());
-            phiInst.forEach((entryBlock, value) -> clonedPhiInst.setValue(
+            phiInst.forEach((entryBlock, value) -> clonedPhiInst.addEntry(
                     (BasicBlock) getReplacedValue(entryBlock),
                     getReplacedValue(value)
             ));
@@ -251,8 +251,9 @@ public class FunctionClone {
                 var clonedInstruction = cloneInstruction(instruction);
                 setValueMapKv(instruction, clonedInstruction);
                 if (instruction instanceof ReturnInst returnInst) {
-                    returnValue.setValue(clonedBlock, getReplacedValue(returnInst.getReturnValue()));
+                    returnValue.addEntry(clonedBlock, getReplacedValue(returnInst.getReturnValue()));
                 }
+                // 放置语句到合适的位置
                 if (instruction instanceof AllocateInst) {
                     returnBlock.getFunction().getEntryBasicBlock().addInstruction(clonedInstruction);
                 } else {
