@@ -5,11 +5,11 @@ import cn.edu.bit.newnewcc.ir.Operand;
 import cn.edu.bit.newnewcc.ir.Value;
 import cn.edu.bit.newnewcc.ir.exception.SemanticCheckFailedException;
 import cn.edu.bit.newnewcc.ir.value.BasicBlock;
-import cn.edu.bit.newnewcc.ir.value.Constant;
 import cn.edu.bit.newnewcc.ir.value.Function;
 import cn.edu.bit.newnewcc.ir.value.Instruction;
 import cn.edu.bit.newnewcc.ir.value.instruction.AllocateInst;
 import cn.edu.bit.newnewcc.ir.value.instruction.PhiInst;
+import cn.edu.bit.newnewcc.pass.ir.util.UtilFunctions;
 
 import java.util.*;
 
@@ -35,7 +35,7 @@ public class IrSemanticCheckPass {
             if (!operand.hasValueBound()) {
                 throw new SemanticCheckFailedException("Operand has no value bound");
             }
-            if (!(operand.getValue() instanceof Constant || localValues.contains(operand.getValue()))) {
+            if (!(UtilFunctions.isGlobalValue(operand.getValue()) || localValues.contains(operand.getValue()))) {
                 throw new SemanticCheckFailedException("Value bound cannot be used as an operand");
             }
         }
