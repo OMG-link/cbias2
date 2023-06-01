@@ -15,6 +15,7 @@ public class IrPassManager {
                 while (true) {
                     boolean changed = false;
                     changed |= PatternReplacementPass.runOnModule(module);
+                    changed |= FunctionInline.runOnModule(module);
                     changed |= ConstantFoldingPass.runOnModule(module);
                     changed |= BranchSimplifyPass.runOnModule(module);
                     changed |= BasicBlockMergePass.runOnModule(module);
