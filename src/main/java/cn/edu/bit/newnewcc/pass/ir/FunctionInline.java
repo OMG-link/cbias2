@@ -5,6 +5,7 @@ import cn.edu.bit.newnewcc.ir.Operand;
 import cn.edu.bit.newnewcc.ir.value.BasicBlock;
 import cn.edu.bit.newnewcc.ir.value.Function;
 import cn.edu.bit.newnewcc.ir.value.Instruction;
+import cn.edu.bit.newnewcc.ir.value.instruction.AllocateInst;
 import cn.edu.bit.newnewcc.ir.value.instruction.CallInst;
 import cn.edu.bit.newnewcc.ir.value.instruction.JumpInst;
 import cn.edu.bit.newnewcc.ir.value.instruction.PhiInst;
@@ -79,6 +80,9 @@ public class FunctionInline {
             }
             blockBeta.addInstruction(clonedFunction.getReturnValue());
             callInst.replaceAllUsageTo(clonedFunction.getReturnValue());
+            for (AllocateInst allocateInstruction : clonedFunction.getAllocateInstructions()) {
+                function.getEntryBasicBlock().addInstruction(allocateInstruction);
+            }
         }
     }
 

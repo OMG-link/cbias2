@@ -49,8 +49,11 @@ public class FunctionClone {
     private final Function function;
     private final Map<Value, Value> valueMap = new HashMap<>();
     private final BasicBlock returnBlock;
+
+    /// 需要外部处理的值
     private final List<BasicBlock> basicBlocks = new ArrayList<>();
     private final PhiInst returnValue;
+    private final List<AllocateInst> allocateInstructions = new ArrayList<>();
 
     public FunctionClone(Function function, List<Value> arguments, BasicBlock returnBlock) {
         this.function = function;
@@ -73,6 +76,10 @@ public class FunctionClone {
 
     public PhiInst getReturnValue() {
         return returnValue;
+    }
+
+    public List<AllocateInst> getAllocateInstructions() {
+        return allocateInstructions;
     }
 
     private Value getReplacedValue(Value value) {
@@ -255,7 +262,7 @@ public class FunctionClone {
                 }
                 // 放置语句到合适的位置
                 if (instruction instanceof AllocateInst) {
-                    returnBlock.getFunction().getEntryBasicBlock().addInstruction(clonedInstruction);
+                    allocateInstructions.add((AllocateInst) clonedInstruction);
                 } else {
                     clonedBlock.addInstruction(clonedInstruction);
                 }
