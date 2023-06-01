@@ -129,13 +129,13 @@ public class FunctionClone {
                     getReplacedValue(floatCompareInst.getOperand2())
             );
         } else if (instruction instanceof FloatDivideInst floatDivideInst) {
-            return new FloatAddInst(
+            return new FloatDivideInst(
                     floatDivideInst.getType(),
                     getReplacedValue(floatDivideInst.getOperand1()),
                     getReplacedValue(floatDivideInst.getOperand2())
             );
         } else if (instruction instanceof FloatMultiplyInst floatMultiplyInst) {
-            return new FloatAddInst(
+            return new FloatMultiplyInst(
                     floatMultiplyInst.getType(),
                     getReplacedValue(floatMultiplyInst.getOperand1()),
                     getReplacedValue(floatMultiplyInst.getOperand2())
@@ -143,10 +143,10 @@ public class FunctionClone {
         } else if (instruction instanceof FloatNegateInst floatNegateInst) {
             return new FloatNegateInst(
                     floatNegateInst.getType(),
-                    floatNegateInst.getOperand1()
+                    getReplacedValue(floatNegateInst.getOperand1())
             );
         } else if (instruction instanceof FloatSubInst floatSubInst) {
-            return new FloatAddInst(
+            return new FloatSubInst(
                     floatSubInst.getType(),
                     getReplacedValue(floatSubInst.getOperand1()),
                     getReplacedValue(floatSubInst.getOperand2())
@@ -179,25 +179,25 @@ public class FunctionClone {
                     getReplacedValue(integerCompareInst.getOperand2())
             );
         } else if (instruction instanceof IntegerMultiplyInst integerMultiplyInst) {
-            return new IntegerAddInst(
+            return new IntegerMultiplyInst(
                     integerMultiplyInst.getType(),
                     getReplacedValue(integerMultiplyInst.getOperand1()),
                     getReplacedValue(integerMultiplyInst.getOperand2())
             );
         } else if (instruction instanceof IntegerSignedDivideInst integerSignedDivideInst) {
-            return new IntegerAddInst(
+            return new IntegerSignedDivideInst(
                     integerSignedDivideInst.getType(),
                     getReplacedValue(integerSignedDivideInst.getOperand1()),
                     getReplacedValue(integerSignedDivideInst.getOperand2())
             );
         } else if (instruction instanceof IntegerSignedRemainderInst integerSignedRemainderInst) {
-            return new IntegerAddInst(
+            return new IntegerSignedRemainderInst(
                     integerSignedRemainderInst.getType(),
                     getReplacedValue(integerSignedRemainderInst.getOperand1()),
                     getReplacedValue(integerSignedRemainderInst.getOperand2())
             );
         } else if (instruction instanceof IntegerSubInst integerSubInst) {
-            return new IntegerAddInst(
+            return new IntegerSubInst(
                     integerSubInst.getType(),
                     getReplacedValue(integerSubInst.getOperand1()),
                     getReplacedValue(integerSubInst.getOperand2())
