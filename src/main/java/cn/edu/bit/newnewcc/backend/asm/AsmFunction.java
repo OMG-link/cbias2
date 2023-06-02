@@ -193,7 +193,7 @@ public class AsmFunction {
 
 
     //调用另一个函数的汇编代码
-    Collection<AsmInstruction> call(AsmFunction calledFunction, List<AsmOperand> parameters) {
+    Collection<AsmInstruction> call(AsmFunction calledFunction, List<AsmOperand> parameters, Register returnRegister) {
         stackAllocator.callFunction();
         List<AsmInstruction> res = new ArrayList<>();
         //参数数量不匹配
@@ -212,7 +212,7 @@ public class AsmFunction {
                 stackAllocator.push_back((StackVar)formalPara);
             }
 
-            //将参数存储到形参对应为止
+            //将参数存储到形参对应位置
             var para = parameters.get(i);
             if (para instanceof Register reg) {
                 res.add(new AsmStore(reg, formalPara));
@@ -229,6 +229,9 @@ public class AsmFunction {
             }
         }
         res.add(new AsmCall(calledFunction.getFunctionName()));
+        if (returnRegister != null) {
+            res.add(new AsmLoad(returnRegister, calledFunction.getReturnRegister()));
+        }
         //执行完成后恢复寄存器现场
         for (var p : pushList) {
             res.add(new AsmLoad(p.b, p.a));
