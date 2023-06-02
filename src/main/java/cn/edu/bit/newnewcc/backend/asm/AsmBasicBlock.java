@@ -103,7 +103,7 @@ public class AsmBasicBlock {
         } else if (binaryInstruction instanceof IntegerSignedDivideInst integerSignedDivideInst) {
             var divx = getValue(integerSignedDivideInst.getOperand1());
             var divy = getValue(integerSignedDivideInst.getOperand2());
-            IntRegister register = function.getRegisterAllocator().allocateInt();
+            IntRegister register = function.getRegisterAllocator().allocateInt(integerSignedDivideInst);
             if (divx instanceof IntRegister divrx) {
                 if (divy instanceof IntRegister divry) {
                     function.appendInstruction(new AsmSignedIntegerDivide(register, divrx, divry));
@@ -113,7 +113,22 @@ public class AsmBasicBlock {
                     function.appendInstruction(new AsmSignedIntegerDivide(register, divrx, tmpry));
                 }
             } else {
-                throw new RuntimeException("Error: multiplyInst operand1 is not an int register");
+                throw new RuntimeException("Error: divideInst operand1 is not an int register");
+            }
+        } else if (binaryInstruction instanceof IntegerSignedRemainderInst integerSignedRemainderInst) {
+            var divx = getValue(integerSignedRemainderInst.getOperand1());
+            var divy = getValue(integerSignedRemainderInst.getOperand2());
+            IntRegister register = function.getRegisterAllocator().allocateInt(integerSignedRemainderInst);
+            if (divx instanceof IntRegister divrx) {
+                if (divy instanceof IntRegister divry) {
+                    function.appendInstruction(new AsmSignedIntegerRemainder(register, divrx, divry));
+                } else {
+                    IntRegister tmpry = function.getRegisterAllocator().allocateInt();
+                    function.appendInstruction(new AsmLoad(tmpry, divy));
+                    function.appendInstruction(new AsmSignedIntegerRemainder(register, divrx, tmpry));
+                }
+            } else {
+                throw new RuntimeException("Error: remainderInst operand1 is not an int register");
             }
         }
     }
