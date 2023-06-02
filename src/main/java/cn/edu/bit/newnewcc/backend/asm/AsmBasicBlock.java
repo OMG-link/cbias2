@@ -181,6 +181,14 @@ public class AsmBasicBlock {
         }
     }
 
+    void translateBranchInst(BranchInst branchInst) {
+        var condition = getOperandToIntRegister(getValue(branchInst.getCondition()));
+        var trueTag = function.getBasicBlock(branchInst.getTrueExit()).blockTag;
+        var falseTag = function.getBasicBlock(branchInst.getFalseExit()).blockTag;
+        function.appendInstruction(new AsmJump(trueTag, AsmJump.JUMPTYPE.NEZ, condition, null));
+        function.appendInstruction(new AsmJump(falseTag, AsmJump.JUMPTYPE.NON, null, null));
+    }
+
     void translate(Instruction instruction) {
         if (instruction instanceof ReturnInst returnInst) {
             var ret = getValue(returnInst.getReturnValue());
@@ -222,6 +230,15 @@ public class AsmBasicBlock {
                 returnRegister = function.getRegisterAllocator().allocate(callInst);
             }
             function.appendAllInstruction(function.call(asmFunction, parameters, returnRegister));
+        } else if (instruction instanceof ZeroExtensionInst zeroExtensionInst) {
+            var source = getValue(zeroExtensionInst.getSourceOperand());
+            var result = function.getRegisterAllocator().allocateInt(zeroExtensionInst);
+            function.appendInstruction(new AsmLoad(result, source));
+        } else if (instruction instanceof BranchInst branchInst) {
+            translateBranchInst(branchInst);
+        } else if (instruction instanceof JumpInst jumpInst) {
+            var jumptag = function.getBasicBlock(jumpInst.getExit()).blockTag;
+            function.appendInstruction(new AsmJump(jumptag, AsmJump.JUMPTYPE.NON, null, null));
         }
     }
 }
