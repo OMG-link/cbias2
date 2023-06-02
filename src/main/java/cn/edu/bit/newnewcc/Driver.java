@@ -1,6 +1,7 @@
 package cn.edu.bit.newnewcc;
 
 import cn.edu.bit.newnewcc.backend.asm.AsmCode;
+import cn.edu.bit.newnewcc.frontend.Preprocessor;
 import cn.edu.bit.newnewcc.frontend.SysYExternalFunctions;
 import cn.edu.bit.newnewcc.frontend.Translator;
 import cn.edu.bit.newnewcc.frontend.antlr.SysYLexer;
@@ -16,6 +17,8 @@ import org.antlr.v4.runtime.tree.ParseTree;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 public class Driver {
     private final CompilerOptions compilerOptions;
@@ -26,13 +29,15 @@ public class Driver {
 
     public void launch() throws IOException {
         for (String inputFileName : compilerOptions.getInputFileNames()) {
-            CharStream input = CharStreams.fromFileName(inputFileName);
+            String code = Files.readString(Path.of(inputFileName));
+            String preprocessedCode = Preprocessor.preprocess(code);
+            CharStream input = CharStreams.fromString(preprocessedCode);
             SysYLexer lexer = new SysYLexer(input);
             CommonTokenStream tokenStream = new CommonTokenStream(lexer);
             SysYParser parser = new SysYParser(tokenStream);
             ParseTree tree = parser.compilationUnit();
             Translator translator = new Translator();
-            Module module = translator.translate(tree, SysYExternalFunctions.get());
+            Module module = translator.translate(tree, SysYExternalFunctions.EXTERNAL_FUNCTIONS);
 
             // 在IR层面优化代码
             IrPassManager.optimize(module, compilerOptions.getOptimizationLevel());
