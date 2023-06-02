@@ -23,6 +23,10 @@ public class Address extends AsmOperand {
         return offset;
     }
 
+    public Register getRegister() {
+        return baseAddress;
+    }
+
     public String emit() {
         return String.format("%d(%s)", offset, baseAddress.emit());
     }

@@ -8,7 +8,6 @@ import cn.edu.bit.newnewcc.ir.type.IntegerType;
 import cn.edu.bit.newnewcc.ir.value.BaseFunction;
 import cn.edu.bit.newnewcc.ir.value.BasicBlock;
 import cn.edu.bit.newnewcc.ir.value.Function;
-import cn.edu.bit.newnewcc.ir.value.instruction.BinaryInstruction;
 import org.antlr.v4.runtime.misc.Pair;
 
 import java.util.*;
@@ -238,6 +237,27 @@ public class AsmFunction {
         return res;
     }
 
+    boolean includeRegister(AsmOperand op) {
+        if (op instanceof Register) {
+            return true;
+        } else {
+            return op instanceof Address;
+        }
+    }
+
+    Register getIncludedRegister(AsmOperand op) {
+        if (!includeRegister(op)) {
+            throw new RuntimeException("get Register from operand not with register");
+        }
+        if (op instanceof Register register) {
+            return register;
+        } else if (op instanceof Address address) {
+            return address.getRegister();
+        } else {
+            throw new RuntimeException("get Register from operand not with register");
+        }
+    }
+
     //未分配寄存器的分配方法
     private void reAllocateRegister() {
         Map<Integer, Integer> lastLifeTime = new HashMap<>();
@@ -245,7 +265,8 @@ public class AsmFunction {
             AsmInstruction instruction = instructionList.get(i);
             for (int j = 1; j <= 3; j++) {
                 AsmOperand op = instruction.getOperand(j);
-                if (op instanceof Register register) {
+                if (includeRegister(op)) {
+                    Register register = getIncludedRegister(op);
                     if (register.isVirtual()) {
                         Integer index = register.getIndex();
                         lastLifeTime.put(index, i);
@@ -256,123 +277,49 @@ public class AsmFunction {
 
         List<AsmInstruction> newInstructionList = new ArrayList<>();
 
-        Map<Integer, AsmOperand> vregLocation = new HashMap<>();
-        Map<Register, Integer> registerPool = new HashMap<>();
-        Queue<StackVar> stackPool = new ArrayDeque<>();
+        //存储该指令执行结束后生命周期结束的寄存器
         List<List<Integer>> registerRecycleList = new ArrayList<>(instructionList.size());
+        //寄存器分配器
+        RegisterControl registerController = new RegisterControl(this, newInstructionList, stackAllocator);
+
+        //在虚拟寄存器生命周期结束时加入回收列表
         for (int i = 0; i < instructionList.size(); i++) {
             registerRecycleList.add(i, new ArrayList<>());
         }
         for (var vregIndex : lastLifeTime.keySet()) {
             registerRecycleList.get(lastLifeTime.get(vregIndex)).add(vregIndex);
         }
-        for (int i = 0; i <= 31; i++) {
-            if ((6 <= i && i <= 7) || (28 <= i)) {
-                registerPool.put(new IntRegister(i), 0);
-            }
-        }
+
         for (int i = 0; i < instructionList.size(); i++) {
             AsmInstruction instruction = instructionList.get(i);
+
+            //函数调用指令需要特殊处理
             if (instruction instanceof AsmCall) {
-                List<Pair<Register, Integer>> registerSaved = new ArrayList<>();
-                for (var reg : registerPool.keySet()) {
-                    if (registerPool.get(reg) != 0) {
-                        int vregId = registerPool.get(reg);
-                        if (stackPool.isEmpty()) {
-                            stackPool.add(stackAllocator.push_top(8));
-                        }
-                        StackVar tmp = stackPool.remove();
-                        vregLocation.put(vregId, tmp);
-                        registerSaved.add(new Pair<>(reg, vregId));
-                        registerPool.put(reg, 0);
-                        newInstructionList.add(new AsmStore(reg, tmp));
-                    }
-                }
-                newInstructionList.add(instruction);
-                for (var p : registerSaved) {
-                    StackVar tmp = (StackVar) vregLocation.get(p.b);
-                    newInstructionList.add(new AsmLoad(p.a, tmp));
-                    vregLocation.put(p.b, p.a);
-                    registerPool.put(p.a, p.b);
-                    stackPool.add(tmp);
-                }
+                registerController.call(instruction);
             } else {
-                Set<Integer> nowUsed = new HashSet<>();
+                registerController.resetLevel();
+                //普通使用了寄存器的指令
                 for (int j = 1; j <= 3; j++) {
                     AsmOperand op = instruction.getOperand(j);
-                    if (op instanceof Register register && register.isVirtual()) {
-                        Integer index = register.getIndex();
-                        nowUsed.add(index);
+                    if (includeRegister(op)) {
+                        Register register = getIncludedRegister(op);
+                        if (register.isVirtual()) {
+                            registerController.setVregLevelMax(register.getIndex());
+                        }
                     }
                 }
                 for (int j = 1; j <= 3; j++) {
                     AsmOperand op = instruction.getOperand(j);
-                    if (op instanceof Register register && register.isVirtual()) {
-                        int d = register.getIndex();
-                        if (!vregLocation.containsKey(d)) {
-                            for (var reg : registerPool.keySet()) {
-                                if (registerPool.get(reg) == 0) {
-                                    registerPool.put(reg, d);
-                                    vregLocation.put(d, reg);
-                                    break;
-                                }
-                            }
-                            if (!vregLocation.containsKey(d)) {
-                                for (var reg : registerPool.keySet()) {
-                                    if (!nowUsed.contains(registerPool.get(reg))) {
-                                        if (stackPool.isEmpty()) {
-                                            stackPool.add(stackAllocator.push_top(8));
-                                        }
-                                        StackVar tmp = stackPool.remove();
-                                        newInstructionList.add(new AsmStore(reg, tmp));
-                                        vregLocation.put(registerPool.get(reg), tmp);
-                                        vregLocation.put(d, reg);
-                                        registerPool.put(reg, d);
-                                        break;
-                                    }
-                                }
-                            }
-                        }
-                        if (vregLocation.get(d) instanceof StackVar) {
-                            for (var reg : registerPool.keySet()) {
-                                if (registerPool.get(reg) == 0) {
-                                    registerPool.put(reg, d);
-                                    vregLocation.put(d, reg);
-                                    break;
-                                }
-                            }
-                            if (vregLocation.get(d) instanceof StackVar) {
-                                for (var reg : registerPool.keySet()) {
-                                    if (!nowUsed.contains(registerPool.get(reg))) {
-                                        if (stackPool.isEmpty()) {
-                                            stackPool.add(stackAllocator.push_top(8));
-                                        }
-                                        StackVar tmp = stackPool.remove();
-                                        newInstructionList.add(new AsmStore(reg, tmp));
-                                        vregLocation.put(registerPool.get(reg), tmp);
-                                        vregLocation.put(d, reg);
-                                        registerPool.put(reg, d);
-                                        break;
-                                    }
-                                }
-                            }
-                        }
-                        if (vregLocation.get(d) instanceof Register vregnow) {
-                            register.setIndex(vregnow.getIndex());
-                        } else {
-                            throw new RuntimeException("not enough register");
+                    if (includeRegister(op)) {
+                        Register register = getIncludedRegister(op);
+                        if (register.isVirtual()) {
+                            instruction.setOperandRegister(j, registerController.allocateRegister(register.getIndex()));
                         }
                     }
                 }
                 newInstructionList.add(instruction);
                 for (var freeVregId : registerRecycleList.get(i)) {
-                    AsmOperand resource = vregLocation.get(freeVregId);
-                    if (resource instanceof Register recycleRegister) {
-                        registerPool.put(recycleRegister, 0);
-                    } else if (resource instanceof StackVar recycleStackVar) {
-                        stackPool.add(recycleStackVar);
-                    }
-                    vregLocation.put(freeVregId, null);
+                    registerController.recycle(freeVregId);
                 }
                 // 此处待优化部分：二元运算符的目标寄存器
             }
