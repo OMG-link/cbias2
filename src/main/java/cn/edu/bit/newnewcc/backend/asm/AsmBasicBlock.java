@@ -120,11 +120,9 @@ public class AsmBasicBlock {
 
     void translate(Instruction instruction) {
         if (instruction instanceof ReturnInst returnInst) {
-            var ret = returnInst.getReturnValue();
-            if (ret instanceof ConstInt retInt) {
-                function.appendInstruction(new AsmLoad(new IntRegister("a0"), new Immediate(retInt.getValue())));
-                function.appendInstruction(new AsmJump(function.getRetBlockTag(), AsmJump.JUMPTYPE.NON, null, null));
-            }
+            var ret = getValue(returnInst.getReturnValue());
+            function.appendInstruction(new AsmLoad(new IntRegister("a0"), ret));
+            function.appendInstruction(new AsmJump(function.getRetBlockTag(), AsmJump.JUMPTYPE.NON, null, null));
         } else if (instruction instanceof AllocateInst allocateInst) {
             var sz = allocateInst.getAllocatedType().getSize();
             function.getStackAllocator().allocate(instruction, Math.toIntExact(sz));
