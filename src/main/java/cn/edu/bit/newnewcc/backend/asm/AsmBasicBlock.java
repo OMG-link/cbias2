@@ -147,34 +147,30 @@ public class AsmBasicBlock {
     void translateCompareInst(CompareInst compareInst) {
         if (compareInst instanceof IntegerCompareInst integerCompareInst) {
             var rop1 = getOperandToIntRegister(getValue(integerCompareInst.getOperand1()));
-            var op2 = getValue(integerCompareInst.getOperand2());
+            var rop2 = getOperandToIntRegister(getValue(integerCompareInst.getOperand2()));
             var result = function.getRegisterAllocator().allocateInt(integerCompareInst);
-            IntRegister rop2, tmp;
+            IntRegister tmp;
             switch (integerCompareInst.getCondition()) {
                 case EQ -> {
                     tmp = function.getRegisterAllocator().allocateInt();
-                    function.appendInstruction(new AsmSub(tmp, rop1, op2));
+                    function.appendInstruction(new AsmSub(tmp, rop1, rop2));
                     function.appendInstruction(new AsmIntegerCompare(result, tmp, null, AsmIntegerCompare.Condition.SEQZ));
                 }
                 case NE -> {
                     tmp = function.getRegisterAllocator().allocateInt();
-                    function.appendInstruction(new AsmSub(tmp, rop1, op2));
+                    function.appendInstruction(new AsmSub(tmp, rop1, rop2));
                     function.appendInstruction(new AsmIntegerCompare(result, tmp, null, AsmIntegerCompare.Condition.SNEZ));
                 }
-                case SLT -> function.appendInstruction(new AsmIntegerCompare(result, rop1, op2, AsmIntegerCompare.Condition.SLT));
+                case SLT -> function.appendInstruction(new AsmIntegerCompare(result, rop1, rop2, AsmIntegerCompare.Condition.SLT));
                 case SLE -> {
                     tmp = function.getRegisterAllocator().allocateInt();
-                    rop2 = getOperandToIntRegister(op2);
                     function.appendInstruction(new AsmIntegerCompare(tmp, rop2, rop1, AsmIntegerCompare.Condition.SLT));
                     function.appendInstruction(new AsmIntegerCompare(result, tmp, null, AsmIntegerCompare.Condition.SEQZ));
                 }
-                case SGT -> {
-                    rop2 = getOperandToIntRegister(op2);
-                    function.appendInstruction(new AsmIntegerCompare(result, rop2, rop1, AsmIntegerCompare.Condition.SLT));
-                }
+                case SGT -> function.appendInstruction(new AsmIntegerCompare(result, rop2, rop1, AsmIntegerCompare.Condition.SLT));
                 case SGE -> {
                     tmp = function.getRegisterAllocator().allocateInt();
-                    function.appendInstruction(new AsmIntegerCompare(tmp, rop1, op2, AsmIntegerCompare.Condition.SLT));
+                    function.appendInstruction(new AsmIntegerCompare(tmp, rop1, rop2, AsmIntegerCompare.Condition.SLT));
                     function.appendInstruction(new AsmIntegerCompare(result, tmp, null, AsmIntegerCompare.Condition.SEQZ));
                 }
             }
