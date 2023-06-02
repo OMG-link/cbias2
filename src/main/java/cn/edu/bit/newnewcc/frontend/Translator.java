@@ -182,6 +182,8 @@ public class Translator extends SysYBaseVisitor<Void> {
             );
         else if (value.getType() == IntegerType.getI1() && targetType == IntegerType.getI32())
             result = new ZeroExtensionInst(value, IntegerType.getI32());
+        else if (value.getType() instanceof PointerType && targetType instanceof PointerType)
+            result = new BitCastInst(value, targetType);
         else
             throw new IllegalArgumentException();
 
