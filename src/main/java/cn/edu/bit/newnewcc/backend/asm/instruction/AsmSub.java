@@ -19,7 +19,7 @@ public class AsmSub extends AsmBinaryInstruction {
         super("sub", goal, source1, source2);
         if (source2.isImmediate()) {
             setInstructionName("addi");
-            setOperand2(new Immediate(-((Immediate)source2).getValue()));
+            setOperand3(new Immediate(-((Immediate)source2).getValue()));
         }
     }
 }
