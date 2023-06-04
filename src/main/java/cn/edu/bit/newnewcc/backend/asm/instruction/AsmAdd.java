@@ -16,7 +16,7 @@ public class AsmAdd extends AsmBinaryInstruction {
      */
     public AsmAdd(IntRegister goal, IntRegister source1, AsmOperand source2) {
         super("addw", goal, source1, source2);
-        if (source2.isImmediate() || source2.isGlobalTag() || source2.isAddress()) {
+        if (source2.isImmediate() || source2.isGlobalTag() || source2.isAddressTag()) {
             setInstructionName("addi");
         }
     }

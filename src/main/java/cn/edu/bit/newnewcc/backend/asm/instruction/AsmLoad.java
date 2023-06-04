@@ -22,7 +22,7 @@ public class AsmLoad extends AsmInstruction {
     public AsmLoad(Register goal, AsmOperand source) {
         super("lw", goal, source, null);
         if (goal.isInt()) {
-            if (source.isImmediate()) {
+            if (source.isImmediate() || source.isAddressTag()) {
                 setInstructionName("li");
             } else if (source.isStackVar()) {
                 StackVar stackVar = (StackVar) source;

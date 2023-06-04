@@ -1,6 +1,6 @@
 package cn.edu.bit.newnewcc.backend.asm.instruction;
 
-import cn.edu.bit.newnewcc.backend.asm.operand.Address;
+import cn.edu.bit.newnewcc.backend.asm.operand.AddressContent;
 import cn.edu.bit.newnewcc.backend.asm.operand.AsmOperand;
 import cn.edu.bit.newnewcc.backend.asm.operand.IntRegister;
 import cn.edu.bit.newnewcc.backend.asm.operand.Register;
@@ -39,20 +39,20 @@ public class AsmInstruction {
         if (j == 1) {
             if (operand1.isRegister()) {
                 operand1 = register;
-            } else if (operand1 instanceof Address address) {
-                operand1 = new Address(address.getOffset(), (IntRegister) register);
+            } else if (operand1 instanceof AddressContent addressContent) {
+                operand1 = new AddressContent(addressContent.getOffset(), (IntRegister) register);
             }
         } else if (j == 2) {
             if (operand2.isRegister()) {
                 operand2 = register;
-            } else if (operand2 instanceof Address address) {
-                operand2 = new Address(address.getOffset(), (IntRegister) register);
+            } else if (operand2 instanceof AddressContent addressContent) {
+                operand2 = new AddressContent(addressContent.getOffset(), (IntRegister) register);
             }
         } else if (j == 3) {
             if (operand3.isRegister()) {
                 operand3 = register;
-            } else if (operand3 instanceof Address address) {
-                operand3 = new Address(address.getOffset(), (IntRegister) register);
+            } else if (operand3 instanceof AddressContent addressContent) {
+                operand3 = new AddressContent(addressContent.getOffset(), (IntRegister) register);
             }
         } else {
             throw new RuntimeException("get error operand index");

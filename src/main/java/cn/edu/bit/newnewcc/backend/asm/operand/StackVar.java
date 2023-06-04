@@ -5,7 +5,7 @@ package cn.edu.bit.newnewcc.backend.asm.operand;
  */
 public class StackVar extends AsmOperand {
 
-    Address address;
+    AddressContent addressContent;
     int size;
     boolean isS0;
 
@@ -19,19 +19,19 @@ public class StackVar extends AsmOperand {
         super(TYPE.SVAR);
         this.isS0 = isS0;
         if (isS0) {
-            this.address = new Address(offset, new IntRegister("s0"));
+            this.addressContent = new AddressContent(offset, new IntRegister("s0"));
         } else {
-            this.address = new Address(offset, new IntRegister("sp"));
+            this.addressContent = new AddressContent(offset, new IntRegister("sp"));
         }
         this.size = size;
     }
 
     public StackVar flip() {
-        return new StackVar(this.address.getOffset(), this.size, !this.isS0);
+        return new StackVar(this.addressContent.getOffset(), this.size, !this.isS0);
     }
 
-    public Address getAddress() {
-        return this.address;
+    public AddressContent getAddress() {
+        return this.addressContent;
     }
 
     public int getSize() {
@@ -40,6 +40,6 @@ public class StackVar extends AsmOperand {
 
     @Override
     public String emit() {
-        return address.emit();
+        return addressContent.emit();
     }
 }

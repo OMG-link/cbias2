@@ -51,14 +51,14 @@ public class AsmFunction {
                 if (intParameterId < 8) {
                     formalParameters.add(new IntRegister(String.format("a%d", intParameterId)));
                 } else {
-                    formalParameters.add(new StackVar((intParameterId - 8) * 4, 4, false));
+                    formalParameters.add(new StackVar((long)(intParameterId - 8) * 4, 4, false));
                 }
                 intParameterId += 1;
             } else if (parameterType instanceof FloatType) {
                 if (floatParameterId < 8) {
                     formalParameters.add(new FloatRegister(String.format("fa%d", intParameterId)));
                 } else {
-                    formalParameters.add(new StackVar((floatParameterId - 8) * 4, 4, false));
+                    formalParameters.add(new StackVar((long)(floatParameterId - 8) * 4, 4, false));
                 }
                 floatParameterId += 1;
             }
@@ -244,7 +244,7 @@ public class AsmFunction {
         if (op instanceof Register) {
             return true;
         } else {
-            return op instanceof Address;
+            return op instanceof AddressContent;
         }
     }
 
@@ -254,8 +254,8 @@ public class AsmFunction {
         }
         if (op instanceof Register register) {
             return register;
-        } else if (op instanceof Address address) {
-            return address.getRegister();
+        } else if (op instanceof AddressContent addressContent) {
+            return addressContent.getRegister();
         } else {
             throw new RuntimeException("get Register from operand not with register");
         }
