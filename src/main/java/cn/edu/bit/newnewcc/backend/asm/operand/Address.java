@@ -4,7 +4,7 @@ package cn.edu.bit.newnewcc.backend.asm.operand;
  * 地址操作数，被表示为基址+偏移量的形式
  */
 public class Address extends AsmOperand {
-    private final int offset;
+    private final long offset;
     private final IntRegister baseAddress;
 
     /**
@@ -13,13 +13,13 @@ public class Address extends AsmOperand {
      * @param offset      偏移量
      * @param baseAddress 基址寄存器
      */
-    public Address(int offset, IntRegister baseAddress) {
+    public Address(long offset, IntRegister baseAddress) {
         super(TYPE.ADDR);
         this.offset = offset;
         this.baseAddress = baseAddress;
     }
 
-    public int getOffset() {
+    public long getOffset() {
         return offset;
     }
 
@@ -29,5 +29,9 @@ public class Address extends AsmOperand {
 
     public String emit() {
         return String.format("%d(%s)", offset, baseAddress.emit());
+    }
+
+    AddressTag getAddressTag() {
+        return new AddressTag(offset, baseAddress);
     }
 }

@@ -11,6 +11,8 @@ public abstract class AsmOperand {
         return type == TYPE.ADDR;
     }
 
+    public boolean isAddressTag() { return type == TYPE.ADDT;}
+
     public boolean isStackVar() {
         return type == TYPE.SVAR;
     }
@@ -21,6 +23,7 @@ public abstract class AsmOperand {
         IMM,
         REG,
         ADDR,
+        ADDT,
         GTAG,
         SVAR
     }

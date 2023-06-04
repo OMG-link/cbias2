@@ -15,7 +15,7 @@ public class StackVar extends AsmOperand {
      * @param offset 变量在栈帧中的偏移量
      * @param size   变量占据的大小
      */
-    public StackVar(int offset, int size, boolean isS0) {
+    public StackVar(long offset, int size, boolean isS0) {
         super(TYPE.SVAR);
         this.isS0 = isS0;
         if (isS0) {
