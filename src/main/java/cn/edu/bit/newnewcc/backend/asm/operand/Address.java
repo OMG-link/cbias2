@@ -8,6 +8,15 @@ public abstract class Address extends AsmOperand {
         this.offset = offset;
         this.baseAddress = baseAddress;
     }
+
+    public Address replaceBaseRegister(IntRegister newBaseRegister) {
+        if (isAddressContent()) {
+            return new AddressContent(offset, newBaseRegister);
+        } else {
+            return new AddressTag(offset, newBaseRegister);
+        }
+    }
+
     public AddressContent getAddress() {
         return new AddressContent(offset, baseAddress);
     }

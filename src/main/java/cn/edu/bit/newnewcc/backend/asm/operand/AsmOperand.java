@@ -7,8 +7,8 @@ public abstract class AsmOperand {
         return type == TYPE.GTAG;
     }
 
-    public boolean isAddress() {
-        return type == TYPE.ADDR;
+    public boolean isAddressContent() {
+        return type == TYPE.ADDC;
     }
 
     public boolean isAddressTag() { return type == TYPE.ADDT;}
@@ -22,7 +22,7 @@ public abstract class AsmOperand {
     public enum TYPE {
         IMM,
         REG,
-        ADDR,
+        ADDC,
         ADDT,
         GTAG,
         SVAR
