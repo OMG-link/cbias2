@@ -11,7 +11,7 @@ public class AddressTag extends AsmOperand {
         this.offset = offset;
         this.baseAddress = baseAddress;
     }
-    Address getAddress() {
+    public Address getAddress() {
         return new Address(offset, baseAddress);
     }
     public String emit() {
