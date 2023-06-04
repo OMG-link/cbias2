@@ -2,14 +2,17 @@ package cn.edu.bit.newnewcc.backend.asm;
 
 import cn.edu.bit.newnewcc.backend.asm.instruction.*;
 import cn.edu.bit.newnewcc.backend.asm.operand.*;
+import cn.edu.bit.newnewcc.backend.asm.util.ConstArrayTools;
 import cn.edu.bit.newnewcc.ir.Value;
 import cn.edu.bit.newnewcc.ir.type.FloatType;
 import cn.edu.bit.newnewcc.ir.value.*;
+import cn.edu.bit.newnewcc.ir.value.constant.ConstArray;
 import cn.edu.bit.newnewcc.ir.value.constant.ConstInt;
 import cn.edu.bit.newnewcc.ir.value.instruction.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.IntConsumer;
 
 
 /**
@@ -148,18 +151,47 @@ public class AsmBasicBlock {
 
     void translateStoreInst(StoreInst storeInst) {
         var address = getValue(storeInst.getAddressOperand());
-        var source = getValue(storeInst.getValueOperand());
-        if (source instanceof Register register) {
-            function.appendInstruction(new AsmStore(register, address));
+        var valueOperand = storeInst.getValueOperand();
+        if (valueOperand instanceof ConstArray constArray) {
+            java.util.function.Function<Integer, Address> getAddress = (Integer tmpInt) -> {
+                if (address instanceof Address addressTmp) {
+                    return addressTmp;
+                } else if (address instanceof StackVar stackVar) {
+                    return stackVar.getAddress();
+                } else {
+                    throw new RuntimeException("store ConstArray to non pointer");
+                }
+            };
+            final Address addressStore = getAddress.apply(1);
+            ConstArrayTools.workOnArray(constArray, 0, (Integer offset, Constant item) -> {
+                if (item instanceof ConstInt constInt) {
+                    Address goal = addressStore.addOffset(offset);
+                    Immediate source = new Immediate(constInt.getValue());
+                    IntRegister tmp = function.getRegisterAllocator().allocateInt();
+                    function.appendInstruction(new AsmLoad(tmp, source));
+                    function.appendInstruction(new AsmStore(tmp, goal));
+                }
+            }, (Integer offset, Integer length) -> {
+                for (int i = 0; i < length; i += 4) {
+                    Address goal = addressStore.addOffset(offset);
+                    function.appendInstruction(new AsmStore(new IntRegister("zero"), goal));
+                    offset += 4;
+                }
+            });
         } else {
-            Register register;
-            if (storeInst.getValueOperand().getType() instanceof FloatType) {
-                register = function.getRegisterAllocator().allocateFloat();
+            var source = getValue(valueOperand);
+            if (source instanceof Register register) {
+                function.appendInstruction(new AsmStore(register, address));
             } else {
-                register = function.getRegisterAllocator().allocateInt();
+                Register register;
+                if (storeInst.getValueOperand().getType() instanceof FloatType) {
+                    register = function.getRegisterAllocator().allocateFloat();
+                } else {
+                    register = function.getRegisterAllocator().allocateInt();
+                }
+                function.appendInstruction(new AsmLoad(register, source));
+                function.appendInstruction(new AsmStore(register, address));
             }
-            function.appendInstruction(new AsmLoad(register, source));
-            function.appendInstruction(new AsmStore(register, address));
         }
     }
 

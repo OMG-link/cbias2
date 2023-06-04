@@ -17,14 +17,23 @@ public class ConstArrayTools {
             return 4 * arrayValue.getLength();
         }
     }
+
+    /**
+     * 处理ConstArray相关的操作
+     * @param arrayValue ConstArray值
+     * @param offset 当前处理到数组的偏移量，通常传入0
+     * @param workItem 对数组中单个元素进行的操作，传入参数为(offset, item)
+     * @param workZeroSegment 对数组中一段0值进行的操作，传入参数为(offset, length)
+     * @return 返回访问数组的总大小
+     */
     public static int workOnArray(ConstArray arrayValue, int offset, BiConsumer<Integer, Constant> workItem, BiConsumer<Integer, Integer> workZeroSegment) {
         int length = arrayValue.getLength();
-        if (length == 0) {
+        int filledLength = arrayValue.getInitializedLength();
+        if (filledLength == 0) {
             int totalLength = getArraySize(arrayValue);
             workZeroSegment.accept(offset, totalLength);
             return totalLength;
         }
-        int filledLength = arrayValue.getInitializedLength();
         Constant firstValue = arrayValue.getValueAt(0);
         if (!(firstValue instanceof ConstArray)) {
             for (int i = 0; i < arrayValue.getInitializedLength(); i++) {
