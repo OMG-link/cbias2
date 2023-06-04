@@ -1,6 +1,7 @@
 package cn.edu.bit.newnewcc.backend.asm;
 
 import cn.edu.bit.newnewcc.backend.asm.operand.GlobalTag;
+import cn.edu.bit.newnewcc.backend.asm.util.ConstArrayTools;
 import cn.edu.bit.newnewcc.ir.value.Constant;
 import cn.edu.bit.newnewcc.ir.value.GlobalVariable;
 import cn.edu.bit.newnewcc.ir.value.constant.ConstArray;
@@ -51,35 +52,14 @@ public class AsmGlobalVariable {
         }
     }
 
-    private int getArrayValues(ConstArray arrayValue) {
-        int length = arrayValue.getLength();
-        Constant firstValue = arrayValue.getValueAt(0);
-        if (firstValue instanceof ConstInt) {
-            for (int i = 0; i < arrayValue.getInitializedLength(); i++) {
-                ConstInt arrayItem = (ConstInt) arrayValue.getValueAt(i);
+    private void getArrayValues(ConstArray arrayValue) {
+        ConstArrayTools.workOnArray1D(arrayValue, 0, (Integer offset, Constant item) -> {
+            if (item instanceof ConstInt arrayItem) {
+                this.valueList.add(new ValueTag(arrayItem.getValue()));
+            } else if (item instanceof ConstFloat arrayItem) {
                 this.valueList.add(new ValueTag(arrayItem.getValue()));
             }
-            this.valueList.add(new ValueTag(ValueTag.Tag.ZERO, 4L * (length - arrayValue.getInitializedLength())));
-            return 4 * length;
-        } else if (firstValue instanceof ConstFloat) {
-            for (int i = 0; i < arrayValue.getInitializedLength(); i++) {
-                ConstFloat arrayItem = (ConstFloat) arrayValue.getValueAt(i);
-                this.valueList.add(new ValueTag(arrayItem.getValue()));
-            }
-            this.valueList.add(new ValueTag(ValueTag.Tag.ZERO, 4L * (length - arrayValue.getInitializedLength())));
-            return 4 * length;
-        } else {
-            int arrayItemSize = 0;
-            for (int i = 0; i < arrayValue.getInitializedLength(); i++) {
-                ConstArray arrayItem = (ConstArray) arrayValue.getValueAt(i);
-                int sonArraySize = getArrayValues(arrayItem);
-                if (arrayItemSize == 0) {
-                    arrayItemSize = sonArraySize;
-                }
-            }
-            this.valueList.add(new ValueTag(ValueTag.Tag.ZERO, (long) arrayItemSize * (length - arrayValue.getInitializedLength())));
-            return arrayItemSize * length;
-        }
+        }, (Integer offset, Integer length) -> this.valueList.add(new ValueTag(ValueTag.Tag.ZERO, length)));
     }
 
     private boolean isConstant() {
