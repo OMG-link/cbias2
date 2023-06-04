@@ -31,7 +31,7 @@ public class ConstArrayTools {
                 workItem.accept(offset, arrayValue.getValueAt(i));
             }
             if (filledLength < length) {
-                workZeroSegment.accept(offset + filledLength, 4 * (length - filledLength));
+                workZeroSegment.accept(offset + 4 * filledLength, 4 * (length - filledLength));
             }
             return 4 * length;
         } else {
