@@ -66,75 +66,6 @@ public class AsmBasicBlock {
         throw new RuntimeException("Value type not found : " + value.getValueNameIR());
     }
 
-    void translateBinaryInstruction(BinaryInstruction binaryInstruction) {
-        if (binaryInstruction instanceof IntegerAddInst integerAddInst) {
-            var addx = getValue(integerAddInst.getOperand1());
-            var addy = getValue(integerAddInst.getOperand2());
-            IntRegister register = function.getRegisterAllocator().allocateInt(integerAddInst);
-            if (addx instanceof IntRegister addrx) {
-                function.appendInstruction(new AsmAdd(register, addrx, addy));
-            } else {
-                throw new RuntimeException("Error: addInst operand1 is not an int register");
-            }
-        } else if (binaryInstruction instanceof IntegerSubInst integerSubInst) {
-            var subx = getValue(integerSubInst.getOperand1());
-            var suby = getValue(integerSubInst.getOperand2());
-            IntRegister register = function.getRegisterAllocator().allocateInt(integerSubInst);
-            if (subx instanceof IntRegister subrx) {
-                function.appendInstruction(new AsmSub(register, subrx, suby));
-            } else {
-                throw new RuntimeException("Error: subInst operand1 is not an int register");
-            }
-        } else if (binaryInstruction instanceof IntegerMultiplyInst integerMultiplyInst) {
-            var mulx = getValue(integerMultiplyInst.getOperand1());
-            var muly = getValue(integerMultiplyInst.getOperand2());
-            IntRegister register = function.getRegisterAllocator().allocateInt(integerMultiplyInst);
-            if (mulx instanceof IntRegister mulrx) {
-                if (muly instanceof IntRegister mulry) {
-                    function.appendInstruction(new AsmMul(register, mulrx, mulry));
-                } else {
-                    IntRegister tmpry = function.getRegisterAllocator().allocateInt();
-                    function.appendInstruction(new AsmLoad(tmpry, muly));
-                    function.appendInstruction(new AsmMul(register, mulrx, tmpry));
-                }
-            } else {
-                throw new RuntimeException("Error: multiplyInst operand1 is not an int register");
-            }
-        } else if (binaryInstruction instanceof IntegerSignedDivideInst integerSignedDivideInst) {
-            var divx = getValue(integerSignedDivideInst.getOperand1());
-            var divy = getValue(integerSignedDivideInst.getOperand2());
-            IntRegister register = function.getRegisterAllocator().allocateInt(integerSignedDivideInst);
-            if (divx instanceof IntRegister divrx) {
-                if (divy instanceof IntRegister divry) {
-                    function.appendInstruction(new AsmSignedIntegerDivide(register, divrx, divry));
-                } else {
-                    IntRegister tmpry = function.getRegisterAllocator().allocateInt();
-                    function.appendInstruction(new AsmLoad(tmpry, divy));
-                    function.appendInstruction(new AsmSignedIntegerDivide(register, divrx, tmpry));
-                }
-            } else {
-                throw new RuntimeException("Error: divideInst operand1 is not an int register");
-            }
-        } else if (binaryInstruction instanceof IntegerSignedRemainderInst integerSignedRemainderInst) {
-            var divx = getValue(integerSignedRemainderInst.getOperand1());
-            var divy = getValue(integerSignedRemainderInst.getOperand2());
-            IntRegister register = function.getRegisterAllocator().allocateInt(integerSignedRemainderInst);
-            if (divx instanceof IntRegister divrx) {
-                if (divy instanceof IntRegister divry) {
-                    function.appendInstruction(new AsmSignedIntegerRemainder(register, divrx, divry));
-                } else {
-                    IntRegister tmpry = function.getRegisterAllocator().allocateInt();
-                    function.appendInstruction(new AsmLoad(tmpry, divy));
-                    function.appendInstruction(new AsmSignedIntegerRemainder(register, divrx, tmpry));
-                }
-            } else {
-                throw new RuntimeException("Error: remainderInst operand1 is not an int register");
-            }
-        } else if (binaryInstruction instanceof CompareInst compareInst) {
-            translateCompareInst(compareInst);
-        }
-    }
-
     IntRegister getOperandToIntRegister(AsmOperand operand) {
         if (operand instanceof IntRegister intRegister) {
             return intRegister;
@@ -142,6 +73,37 @@ public class AsmBasicBlock {
         IntRegister res = function.getRegisterAllocator().allocateInt();
         function.appendInstruction(new AsmLoad(res, operand));
         return res;
+    }
+
+    void translateBinaryInstruction(BinaryInstruction binaryInstruction) {
+        if (binaryInstruction instanceof IntegerAddInst integerAddInst) {
+            var addx = getOperandToIntRegister(getValue(integerAddInst.getOperand1()));
+            var addy = getValue(integerAddInst.getOperand2());
+            IntRegister register = function.getRegisterAllocator().allocateInt(integerAddInst);
+            function.appendInstruction(new AsmAdd(register, addx, addy));
+        } else if (binaryInstruction instanceof IntegerSubInst integerSubInst) {
+            var subx = getOperandToIntRegister(getValue(integerSubInst.getOperand1()));
+            var suby = getValue(integerSubInst.getOperand2());
+            IntRegister register = function.getRegisterAllocator().allocateInt(integerSubInst);
+            function.appendInstruction(new AsmSub(register, subx, suby));
+        } else if (binaryInstruction instanceof IntegerMultiplyInst integerMultiplyInst) {
+            var mulx = getOperandToIntRegister(getValue(integerMultiplyInst.getOperand1()));
+            var muly = getOperandToIntRegister(getValue(integerMultiplyInst.getOperand2()));
+            IntRegister register = function.getRegisterAllocator().allocateInt(integerMultiplyInst);
+            function.appendInstruction(new AsmMul(register, mulx, muly));
+        } else if (binaryInstruction instanceof IntegerSignedDivideInst integerSignedDivideInst) {
+            var divx = getOperandToIntRegister(getValue(integerSignedDivideInst.getOperand1()));
+            var divy = getOperandToIntRegister(getValue(integerSignedDivideInst.getOperand2()));
+            IntRegister register = function.getRegisterAllocator().allocateInt(integerSignedDivideInst);
+            function.appendInstruction(new AsmSignedIntegerDivide(register, divx, divy));
+        } else if (binaryInstruction instanceof IntegerSignedRemainderInst integerSignedRemainderInst) {
+            var divx = getOperandToIntRegister(getValue(integerSignedRemainderInst.getOperand1()));
+            var divy = getOperandToIntRegister(getValue(integerSignedRemainderInst.getOperand2()));
+            IntRegister register = function.getRegisterAllocator().allocateInt(integerSignedRemainderInst);
+            function.appendInstruction(new AsmSignedIntegerRemainder(register, divx, divy));
+        } else if (binaryInstruction instanceof CompareInst compareInst) {
+            translateCompareInst(compareInst);
+        }
     }
 
     void translateCompareInst(CompareInst compareInst) {
@@ -185,6 +147,37 @@ public class AsmBasicBlock {
         function.appendInstruction(new AsmJump(falseTag, AsmJump.JUMPTYPE.NON, null, null));
     }
 
+    void translateStoreInst(StoreInst storeInst) {
+        var address = getValue(storeInst.getAddressOperand());
+        var source = getValue(storeInst.getValueOperand());
+        if (source instanceof Register register) {
+            function.appendInstruction(new AsmStore(register, address));
+        } else {
+            Register register;
+            if (storeInst.getValueOperand().getType() instanceof FloatType) {
+                register = function.getRegisterAllocator().allocateFloat();
+            } else {
+                register = function.getRegisterAllocator().allocateInt();
+            }
+            function.appendInstruction(new AsmLoad(register, source));
+            function.appendInstruction(new AsmStore(register, address));
+        }
+    }
+
+    void translateCallInst(CallInst callInst) {
+        BaseFunction baseFunction = callInst.getCallee();
+        AsmFunction asmFunction = function.getGlobalCode().getFunction(baseFunction);
+        List<AsmOperand> parameters = new ArrayList<>();
+        for (int i = 0; i < asmFunction.getParameterSize(); i++) {
+            parameters.add(getValue(callInst.getArgumentAt(i)));
+        }
+        Register returnRegister = null;
+        if (asmFunction.getReturnRegister() != null) {
+            returnRegister = function.getRegisterAllocator().allocate(callInst);
+        }
+        function.appendAllInstruction(function.call(asmFunction, parameters, returnRegister));
+    }
+
     void translate(Instruction instruction) {
         if (instruction instanceof ReturnInst returnInst) {
             var ret = getValue(returnInst.getReturnValue());
@@ -193,39 +186,10 @@ public class AsmBasicBlock {
         } else if (instruction instanceof AllocateInst allocateInst) {
             var sz = allocateInst.getAllocatedType().getSize();
             function.getStackAllocator().allocate(instruction, Math.toIntExact(sz));
-        } else if (instruction instanceof StoreInst storeInst) {
-            var address = getValue(storeInst.getAddressOperand());
-            var source = getValue(storeInst.getValueOperand());
-            if (source instanceof Register register) {
-                function.appendInstruction(new AsmStore(register, address));
-            } else {
-                Register register;
-                if (storeInst.getValueOperand().getType() instanceof FloatType) {
-                    register = function.getRegisterAllocator().allocateFloat();
-                } else {
-                    register = function.getRegisterAllocator().allocateInt();
-                }
-                function.appendInstruction(new AsmLoad(register, source));
-                function.appendInstruction(new AsmStore(register, address));
-            }
         } else if (instruction instanceof LoadInst loadInst) {
             var address = getValue(loadInst.getAddressOperand());
             Register register = function.getRegisterAllocator().allocate(loadInst);
             function.appendInstruction(new AsmLoad(register, address));
-        } else if (instruction instanceof BinaryInstruction binaryInstruction) {
-            translateBinaryInstruction(binaryInstruction);
-        } else if (instruction instanceof CallInst callInst) {
-            BaseFunction baseFunction = callInst.getCallee();
-            AsmFunction asmFunction = function.getGlobalCode().getFunction(baseFunction);
-            List<AsmOperand> parameters = new ArrayList<>();
-            for (int i = 0; i < asmFunction.getParameterSize(); i++) {
-                parameters.add(getValue(callInst.getArgumentAt(i)));
-            }
-            Register returnRegister = null;
-            if (asmFunction.getReturnRegister() != null) {
-                returnRegister = function.getRegisterAllocator().allocate(callInst);
-            }
-            function.appendAllInstruction(function.call(asmFunction, parameters, returnRegister));
         } else if (instruction instanceof ZeroExtensionInst zeroExtensionInst) {
             var source = getValue(zeroExtensionInst.getSourceOperand());
             var result = function.getRegisterAllocator().allocateInt(zeroExtensionInst);
@@ -233,8 +197,14 @@ public class AsmBasicBlock {
         } else if (instruction instanceof BranchInst branchInst) {
             translateBranchInst(branchInst);
         } else if (instruction instanceof JumpInst jumpInst) {
-            var jumptag = function.getBasicBlock(jumpInst.getExit()).blockTag;
-            function.appendInstruction(new AsmJump(jumptag, AsmJump.JUMPTYPE.NON, null, null));
+            var jumpTag = function.getBasicBlock(jumpInst.getExit()).blockTag;
+            function.appendInstruction(new AsmJump(jumpTag, AsmJump.JUMPTYPE.NON, null, null));
+        } else if (instruction instanceof StoreInst storeInst) {
+            translateStoreInst(storeInst);
+        } else if (instruction instanceof BinaryInstruction binaryInstruction) {
+            translateBinaryInstruction(binaryInstruction);
+        } else if (instruction instanceof CallInst callInst) {
+            translateCallInst(callInst);
         }
     }
 }
