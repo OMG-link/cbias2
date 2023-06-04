@@ -15,7 +15,7 @@ public class AsmAdd extends AsmBinaryInstruction {
      * @param source2 源2，存储第二个加数，可能为寄存器或立即数
      */
     public AsmAdd(IntRegister goal, IntRegister source1, AsmOperand source2) {
-        super("addw", goal, source1, source2);
+        super("add", goal, source1, source2);
         if (source2.isImmediate() || source2.isGlobalTag() || source2.isAddressTag()) {
             setInstructionName("addi");
         }
