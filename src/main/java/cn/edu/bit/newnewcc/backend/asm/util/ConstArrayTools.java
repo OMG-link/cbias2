@@ -17,7 +17,7 @@ public class ConstArrayTools {
             return 4 * arrayValue.getLength();
         }
     }
-    public static int workOnArray1D(ConstArray arrayValue, int offset, BiConsumer<Integer, Constant> workItem, BiConsumer<Integer, Integer> workZeroSegment) {
+    public static int workOnArray(ConstArray arrayValue, int offset, BiConsumer<Integer, Constant> workItem, BiConsumer<Integer, Integer> workZeroSegment) {
         int length = arrayValue.getLength();
         if (length == 0) {
             int totalLength = getArraySize(arrayValue);
@@ -38,7 +38,7 @@ public class ConstArrayTools {
             int arrayItemSize = 0;
             for (int i = 0; i < arrayValue.getInitializedLength(); i++) {
                 ConstArray arrayItem = (ConstArray) arrayValue.getValueAt(i);
-                int sonArraySize = workOnArray1D(arrayItem, offset, workItem, workZeroSegment);
+                int sonArraySize = workOnArray(arrayItem, offset, workItem, workZeroSegment);
                 if (arrayItemSize == 0) {
                     arrayItemSize = sonArraySize;
                 }

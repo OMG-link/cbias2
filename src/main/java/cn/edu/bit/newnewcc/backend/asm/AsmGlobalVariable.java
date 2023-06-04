@@ -53,7 +53,7 @@ public class AsmGlobalVariable {
     }
 
     private void getArrayValues(ConstArray arrayValue) {
-        ConstArrayTools.workOnArray1D(arrayValue, 0, (Integer offset, Constant item) -> {
+        ConstArrayTools.workOnArray(arrayValue, 0, (Integer offset, Constant item) -> {
             if (item instanceof ConstInt arrayItem) {
                 this.valueList.add(new ValueTag(arrayItem.getValue()));
             } else if (item instanceof ConstFloat arrayItem) {
