@@ -163,17 +163,17 @@ public class AsmBasicBlock {
                 }
             };
             final Address addressStore = getAddress.apply(1);
-            ConstArrayTools.workOnArray(constArray, 0, (Integer offset, Constant item) -> {
+            ConstArrayTools.workOnArray(constArray, 0, (Long offset, Constant item) -> {
                 if (item instanceof ConstInt constInt) {
-                    Address goal = addressStore.addOffset(offset);
+                    Address goal = addressStore.addOffset(offset).getAddressContent();
                     Immediate source = new Immediate(constInt.getValue());
                     IntRegister tmp = function.getRegisterAllocator().allocateInt();
                     function.appendInstruction(new AsmLoad(tmp, source));
                     function.appendInstruction(new AsmStore(tmp, goal));
                 }
-            }, (Integer offset, Integer length) -> {
-                for (int i = 0; i < length; i += 4) {
-                    Address goal = addressStore.addOffset(offset);
+            }, (Long offset, Long length) -> {
+                for (long i = 0; i < length; i += 4) {
+                    Address goal = addressStore.addOffset(offset).getAddressContent();
                     function.appendInstruction(new AsmStore(new IntRegister("zero"), goal));
                     offset += 4;
                 }
@@ -237,6 +237,9 @@ public class AsmBasicBlock {
         function.getStackAllocator().allocate(allocateInst, Math.toIntExact(sz));
     }
 
+    void translateGetElementPtrInst(GetElementPtrInst getElementPtrInst) {
+    }
+
     void translate(Instruction instruction) {
         if (instruction instanceof ReturnInst returnInst) {
             translateReturnInst(returnInst);
@@ -256,6 +259,8 @@ public class AsmBasicBlock {
             translateBinaryInstruction(binaryInstruction);
         } else if (instruction instanceof CallInst callInst) {
             translateCallInst(callInst);
+        } else if (instruction instanceof GetElementPtrInst getElementPtrInst) {
+            translateGetElementPtrInst(getElementPtrInst);
         }
     }
 }

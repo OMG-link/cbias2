@@ -17,7 +17,7 @@ public abstract class Address extends AsmOperand {
         }
     }
 
-    public Address addOffset(Integer offsetDiff) {
+    public Address addOffset(long offsetDiff) {
         if (isAddressContent()) {
             return new AddressContent(offset + offsetDiff, baseAddress);
         } else {
@@ -25,7 +25,7 @@ public abstract class Address extends AsmOperand {
         }
     }
 
-    public AddressContent getAddress() {
+    public AddressContent getAddressContent() {
         return new AddressContent(offset, baseAddress);
     }
 

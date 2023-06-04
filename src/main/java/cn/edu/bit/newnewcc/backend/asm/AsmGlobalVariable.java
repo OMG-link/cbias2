@@ -53,13 +53,13 @@ public class AsmGlobalVariable {
     }
 
     private void getArrayValues(ConstArray arrayValue) {
-        ConstArrayTools.workOnArray(arrayValue, 0, (Integer offset, Constant item) -> {
+        ConstArrayTools.workOnArray(arrayValue, 0, (Long offset, Constant item) -> {
             if (item instanceof ConstInt arrayItem) {
                 this.valueList.add(new ValueTag(arrayItem.getValue()));
             } else if (item instanceof ConstFloat arrayItem) {
                 this.valueList.add(new ValueTag(arrayItem.getValue()));
             }
-        }, (Integer offset, Integer length) -> this.valueList.add(new ValueTag(ValueTag.Tag.ZERO, length)));
+        }, (Long offset, Long length) -> this.valueList.add(new ValueTag(ValueTag.Tag.ZERO, length)));
     }
 
     private boolean isConstant() {
