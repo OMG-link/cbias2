@@ -209,27 +209,47 @@ public class AsmBasicBlock {
         function.appendAllInstruction(function.call(asmFunction, parameters, returnRegister));
     }
 
+    void translateJumpInst(JumpInst jumpInst) {
+        var jumpTag = function.getBasicBlock(jumpInst.getExit()).blockTag;
+        function.appendInstruction(new AsmJump(jumpTag, AsmJump.JUMPTYPE.NON, null, null));
+    }
+
+    void translateZeroExtensionInst(ZeroExtensionInst zeroExtensionInst) {
+        var source = getValue(zeroExtensionInst.getSourceOperand());
+        var result = function.getRegisterAllocator().allocateInt(zeroExtensionInst);
+        function.appendInstruction(new AsmLoad(result, source));
+    }
+
+    void translateLoadInst(LoadInst loadInst) {
+        var address = getValue(loadInst.getAddressOperand());
+        Register register = function.getRegisterAllocator().allocate(loadInst);
+        function.appendInstruction(new AsmLoad(register, address));
+    }
+
+    void translateReturnInst(ReturnInst returnInst) {
+        var ret = getValue(returnInst.getReturnValue());
+        function.appendInstruction(new AsmLoad(new IntRegister("a0"), ret));
+        function.appendInstruction(new AsmJump(function.getRetBlockTag(), AsmJump.JUMPTYPE.NON, null, null));
+    }
+
+    void translateAllocateInst(AllocateInst allocateInst) {
+        var sz = allocateInst.getAllocatedType().getSize();
+        function.getStackAllocator().allocate(allocateInst, Math.toIntExact(sz));
+    }
+
     void translate(Instruction instruction) {
         if (instruction instanceof ReturnInst returnInst) {
-            var ret = getValue(returnInst.getReturnValue());
-            function.appendInstruction(new AsmLoad(new IntRegister("a0"), ret));
-            function.appendInstruction(new AsmJump(function.getRetBlockTag(), AsmJump.JUMPTYPE.NON, null, null));
+            translateReturnInst(returnInst);
         } else if (instruction instanceof AllocateInst allocateInst) {
-            var sz = allocateInst.getAllocatedType().getSize();
-            function.getStackAllocator().allocate(instruction, Math.toIntExact(sz));
+            translateAllocateInst(allocateInst);
         } else if (instruction instanceof LoadInst loadInst) {
-            var address = getValue(loadInst.getAddressOperand());
-            Register register = function.getRegisterAllocator().allocate(loadInst);
-            function.appendInstruction(new AsmLoad(register, address));
+            translateLoadInst(loadInst);
         } else if (instruction instanceof ZeroExtensionInst zeroExtensionInst) {
-            var source = getValue(zeroExtensionInst.getSourceOperand());
-            var result = function.getRegisterAllocator().allocateInt(zeroExtensionInst);
-            function.appendInstruction(new AsmLoad(result, source));
+            translateZeroExtensionInst(zeroExtensionInst);
         } else if (instruction instanceof BranchInst branchInst) {
             translateBranchInst(branchInst);
         } else if (instruction instanceof JumpInst jumpInst) {
-            var jumpTag = function.getBasicBlock(jumpInst.getExit()).blockTag;
-            function.appendInstruction(new AsmJump(jumpTag, AsmJump.JUMPTYPE.NON, null, null));
+            translateJumpInst(jumpInst);
         } else if (instruction instanceof StoreInst storeInst) {
             translateStoreInst(storeInst);
         } else if (instruction instanceof BinaryInstruction binaryInstruction) {
