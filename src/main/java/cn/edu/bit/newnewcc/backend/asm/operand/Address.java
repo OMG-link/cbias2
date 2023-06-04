@@ -41,7 +41,7 @@ public abstract class Address extends AsmOperand {
         return offset;
     }
 
-    public Register getRegister() {
+    public IntRegister getRegister() {
         return baseAddress;
     }
 }

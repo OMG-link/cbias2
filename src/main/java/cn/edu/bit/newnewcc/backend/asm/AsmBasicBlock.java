@@ -40,7 +40,7 @@ public class AsmBasicBlock {
     }
 
     /**
-     * 获取一个ir value在汇编中对应的值（函数参数、寄存器、栈上变量、全局变量）
+     * 获取一个ir value在汇编中对应的值（函数参数、寄存器、栈上变量、全局变量、地址）
      * @param value ir中的value
      * @return 对应的汇编操作数
      */
@@ -58,6 +58,8 @@ public class AsmBasicBlock {
                 return function.getRegisterAllocator().get(instruction);
             } else if (function.getStackAllocator().contain(instruction)) {
                 return function.getStackAllocator().get(instruction);
+            } else if (function.getAddressAllocator().contain(instruction)) {
+                return function.getAddressAllocator().get(instruction);
             } else {
                 throw new RuntimeException("Value not found : " + value.getValueNameIR());
             }
@@ -71,10 +73,24 @@ public class AsmBasicBlock {
     IntRegister getOperandToIntRegister(AsmOperand operand) {
         if (operand instanceof IntRegister intRegister) {
             return intRegister;
+        } else if (operand instanceof AddressTag addressTag) {
+            if (addressTag.getOffset() == 0) {
+                return addressTag.getRegister();
+            }
         }
         IntRegister res = function.getRegisterAllocator().allocateInt();
         function.appendInstruction(new AsmLoad(res, operand));
         return res;
+    }
+
+    AddressTag getOperandToAddressTag(AsmOperand operand) {
+        if (operand instanceof Address address) {
+            return address.getAddressTag();
+        } else if (operand instanceof StackVar stackVar) {
+            return stackVar.getAddress().getAddressTag();
+        } else {
+            throw new RuntimeException("address not found!");
+        }
     }
 
     void translateBinaryInstruction(BinaryInstruction binaryInstruction) {
@@ -238,6 +254,37 @@ public class AsmBasicBlock {
     }
 
     void translateGetElementPtrInst(GetElementPtrInst getElementPtrInst) {
+        AddressTag baseAddress = getOperandToAddressTag(getValue(getElementPtrInst.getRootOperand()));
+        long offset = 0;
+        var rootType = getElementPtrInst.getRootOperand().getType();
+        IntRegister offsetR = null;
+        for (int i = 0; i < getElementPtrInst.getIndicesSize(); i++) {
+            var index = getValue(getElementPtrInst.getIndexAt(i));
+            long baseSize = GetElementPtrInst.inferDereferencedType(rootType, i).getSize();
+            if (index instanceof Immediate immediate) {
+                offset += immediate.getValue() * baseSize;
+            } else {
+                IntRegister tmp = getOperandToIntRegister(index);
+                IntRegister muly = getOperandToIntRegister(new Immediate(Math.toIntExact(baseSize)));
+                function.appendInstruction(new AsmMul(tmp, tmp, muly));
+                if (offsetR == null) {
+                    offsetR = function.getRegisterAllocator().allocateInt();
+                    function.appendInstruction(new AsmLoad(offsetR, tmp));
+                } else {
+                    function.appendInstruction(new AsmAdd(offsetR, offsetR, tmp));
+                }
+            }
+        }
+        AddressContent result;
+        if (offsetR == null) {
+            result = baseAddress.addOffset(offset).getAddressContent();
+        } else {
+            IntRegister baseRegister = baseAddress.getRegister();
+            function.appendInstruction(new AsmAdd(offsetR, offsetR, baseRegister));
+            offset += baseAddress.getOffset();
+            result = new AddressContent(offset, offsetR);
+        }
+        function.getAddressAllocator().allocate(getElementPtrInst, result);
     }
 
     void translate(Instruction instruction) {

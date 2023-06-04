@@ -133,6 +133,7 @@ public class AsmFunction {
     //函数内部资源分配器
     private final StackAllocator stackAllocator = new StackAllocator();
     private final RegisterAllocator registerAllocator = new RegisterAllocator();
+    private final AddressAllocator addressAllocator = new AddressAllocator();
 
     //资源对应的get方法
     public AsmBasicBlock getBasicBlock(BasicBlock block) {
@@ -157,6 +158,10 @@ public class AsmFunction {
 
     public StackAllocator getStackAllocator() {
         return stackAllocator;
+    }
+
+    public AddressAllocator getAddressAllocator() {
+        return addressAllocator;
     }
 
     /**
