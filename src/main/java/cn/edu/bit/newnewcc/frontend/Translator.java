@@ -539,8 +539,8 @@ public class Translator extends SysYBaseVisitor<Void> {
 
     @Override
     public Void visitIfStatement(SysYParser.IfStatementContext ctx) {
-        var currentTrueExitBackup = currentTrueExit;
-        var currentFalseExitBackup = currentFalseExit;
+        var savedCurrentTrueExit = currentTrueExit;
+        var savedCurrentFalseExit = currentFalseExit;
 
         BasicBlock thenBlock = new BasicBlock();
         BasicBlock elseBlock = new BasicBlock();
@@ -570,15 +570,15 @@ public class Translator extends SysYBaseVisitor<Void> {
 
         currentBasicBlock = doneBlock;
 
-        currentTrueExit = currentTrueExitBackup;
-        currentFalseExit = currentFalseExitBackup;
+        currentTrueExit = savedCurrentTrueExit;
+        currentFalseExit = savedCurrentFalseExit;
         return null;
     }
 
     @Override
     public Void visitWhileStatement(SysYParser.WhileStatementContext ctx) {
-        var currentTrueExitBackup = currentTrueExit;
-        var currentFalseExitBackup = currentFalseExit;
+        var savedCurrentTrueExit = currentTrueExit;
+        var savedCurrentFalseExit = currentFalseExit;
 
         BasicBlock testBlock = new BasicBlock();
         BasicBlock bodyBlock = new BasicBlock();
@@ -613,8 +613,8 @@ public class Translator extends SysYBaseVisitor<Void> {
 
         controlFlowStack.pop();
 
-        currentTrueExit = currentTrueExitBackup;
-        currentFalseExit = currentFalseExitBackup;
+        currentTrueExit = savedCurrentTrueExit;
+        currentFalseExit = savedCurrentFalseExit;
         return null;
     }
 
@@ -663,7 +663,7 @@ public class Translator extends SysYBaseVisitor<Void> {
 
         currentFunction.addBasicBlock(falseBlock);
 
-        var currentFalseExitBackup = currentFalseExit;
+        var savedCurrentFalseExit = currentFalseExit;
         currentFalseExit = falseBlock;
 
         visit(ctx.logicalOrExpression());
@@ -673,7 +673,7 @@ public class Translator extends SysYBaseVisitor<Void> {
         currentBasicBlock.addInstruction(new BranchInst(result, currentTrueExit, currentFalseExit));
 
         currentBasicBlock = falseBlock;
-        currentFalseExit = currentFalseExitBackup;
+        currentFalseExit = savedCurrentFalseExit;
 
         visit(ctx.logicalAndExpression());
         if (result.getType() != IntegerType.getI1())
@@ -688,7 +688,7 @@ public class Translator extends SysYBaseVisitor<Void> {
 
         currentFunction.addBasicBlock(trueBlock);
 
-        var currentTrueExitBackup = currentTrueExit;
+        var savedCurrentTrueExit = currentTrueExit;
         currentTrueExit = trueBlock;
 
         visit(ctx.logicalAndExpression());
@@ -698,7 +698,7 @@ public class Translator extends SysYBaseVisitor<Void> {
         currentBasicBlock.addInstruction(new BranchInst(result, currentTrueExit, currentFalseExit));
 
         currentBasicBlock = trueBlock;
-        currentTrueExit = currentTrueExitBackup;
+        currentTrueExit = savedCurrentTrueExit;
 
         visit(ctx.equalityExpression());
         if (result.getType() != IntegerType.getI1())
