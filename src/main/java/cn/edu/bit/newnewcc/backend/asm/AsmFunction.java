@@ -329,7 +329,8 @@ public class AsmFunction {
                     if (op instanceof RegisterReplaceable registerReplaceableOp) {
                         Register register = registerReplaceableOp.getRegister();
                         if (register.isVirtual()) {
-                            instruction.replaceOperand(j, registerReplaceableOp.replaceRegister(register));
+                            instruction.replaceOperand(
+                                    j, registerReplaceableOp.replaceRegister(registerController.allocateRegister(register.getIndex())));
                         }
                     }
                 }
