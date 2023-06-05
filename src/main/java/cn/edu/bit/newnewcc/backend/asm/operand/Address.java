@@ -25,6 +25,14 @@ public abstract class Address extends AsmOperand {
         }
     }
 
+    public Address setOffset(long newOffset) {
+        if (isAddressContent()) {
+            return new AddressContent(newOffset, baseAddress);
+        } else {
+            return new AddressTag(newOffset, baseAddress);
+        }
+    }
+
     public AddressContent getAddressContent() {
         return new AddressContent(offset, baseAddress);
     }

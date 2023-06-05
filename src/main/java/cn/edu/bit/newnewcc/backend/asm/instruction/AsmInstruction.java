@@ -32,7 +32,19 @@ public class AsmInstruction {
         this.operand3 = operand3;
     }
 
+    public void replaceOperand(int index, AsmOperand operand) {
+        assert (1 <= index && index <= 3);
+        if (index == 1) {
+            this.operand1 = operand;
+        } else if (index == 2) {
+            this.operand2 = operand;
+        } else {
+            this.operand3 = operand;
+        }
+    }
+
     public void setOperandRegister(int j, Register register) {
+        assert(1 <= j && j <= 3);
         if (j == 1) {
             if (operand1.isRegister()) {
                 operand1 = register;
@@ -45,17 +57,20 @@ public class AsmInstruction {
             } else if (operand2 instanceof Address address) {
                 operand2 = address.replaceBaseRegister((IntRegister) register);
             }
-        } else if (j == 3) {
+        } else {
             if (operand3.isRegister()) {
                 operand3 = register;
             } else if (operand3 instanceof Address address) {
                 operand3 = address.replaceBaseRegister((IntRegister) register);
             }
-        } else {
-            throw new RuntimeException("get error operand index");
         }
     }
 
+    /**
+     * 获取第index个参数
+     * @param index 下标（1 <= index <= 3）
+     * @return 参数值
+     */
     public AsmOperand getOperand(int index) {
         if (index == 1) {
             return this.operand1;
