@@ -365,7 +365,7 @@ public class AsmFunction {
             for (int j = 1; j <= 3; j++) {
                 AsmOperand operand = inst.getOperand(j);
                 if (operand instanceof ExStackVarAdd operandAdd) {
-                    inst.replaceOperand(j, operandAdd.add(stackAllocator.getExSize()));
+                    inst.replaceOperand(j, operandAdd.add(-stackAllocator.getExSize()));
                 }
             }
         }
