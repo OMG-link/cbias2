@@ -58,12 +58,14 @@ public class StackAllocator {
     /**
      * 直接在栈帧顶部分配空间，用于寄存器分配时存储额外寄存器
      */
-    public StackVar push_top(int size) {
-        if (size >= 8 && top % 8 != 0) {
-            maxSize += 4;
-        }
-        maxSize += size;
-        return new StackVar(-maxSize, size, true);
+    int exSize = 8;
+    public int getExSize() {
+        return exSize;
+    }
+    public StackVar push_ex() {
+        maxSize += 8;
+        exSize += 8;
+        return new StackVar(-exSize - 16, 8, true);
     }
 
     public void push_back(StackVar stackVar) {

@@ -96,6 +96,7 @@ public class AsmFunction {
             for (var block : basicBlocks) {
                 block.emitToFunction();
             }
+            reAllocateStackVar();
             reAllocateRegister();
         }
     }
@@ -358,6 +359,14 @@ public class AsmFunction {
                     registerController.recycle(freeVregId);
                 }
                 // 此处待优化部分：二元运算符的目标寄存器
+            }
+        }
+        for (var inst : newInstructionList) {
+            for (int j = 1; j <= 3; j++) {
+                AsmOperand operand = inst.getOperand(j);
+                if (operand instanceof ExStackVarAdd operandAdd) {
+                    inst.replaceOperand(j, operandAdd.add(stackAllocator.getExSize()));
+                }
             }
         }
         this.instructionList = newInstructionList;

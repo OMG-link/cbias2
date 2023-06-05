@@ -19,7 +19,7 @@ class StackPool {
 
     StackVar pop() {
         if (queue.isEmpty()) {
-            return allocator.push_top(8);
+            return allocator.push_ex();
         }
         return queue.remove();
     }
