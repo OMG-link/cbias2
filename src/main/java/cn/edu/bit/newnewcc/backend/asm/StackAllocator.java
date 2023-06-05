@@ -59,7 +59,7 @@ public class StackAllocator {
     /**
      * 直接在栈帧顶部分配空间，用于寄存器分配时存储额外寄存器
      */
-    int exSize = 8;
+    int exSize = 0;
     public int getExSize() {
         return exSize;
     }

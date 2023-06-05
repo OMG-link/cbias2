@@ -91,7 +91,7 @@ public class AsmBasicBlock {
             function.appendInstruction(new AsmLoad(tmp, ExStackVarOffset.transform(stackVar, now.getOffset())));
             function.appendInstruction(new AsmAdd(tmp, tmp, now.getRegister()));
         } else {
-            function.appendInstruction(new AsmAdd(tmp, now.getRegister(), new Immediate(Math.toIntExact(now.getOffset()))));
+            function.appendInstruction(new AsmAdd(tmp, now.getRegister(), ExStackVarOffset.transform(stackVar, Math.toIntExact(now.getOffset()))));
         }
         return now.replaceBaseRegister(tmp).setOffset(0).getAddressTag();
     }
