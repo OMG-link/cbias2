@@ -3,7 +3,7 @@ package cn.edu.bit.newnewcc.backend.asm.operand;
 /**
  * 栈变量在汇编中的表现完全为栈帧寄存器s0+地址偏移量的形式组成，但需要存储变量在栈上所占据的大小
  */
-public class StackVar extends AsmOperand {
+public class StackVar extends AsmOperand implements RegisterReplaceable {
 
     Address address;
     int size;
@@ -56,5 +56,15 @@ public class StackVar extends AsmOperand {
     @Override
     public String emit() {
         return address.emit();
+    }
+
+    @Override
+    public StackVar replaceRegister(Register register) {
+        return new StackVar(address.replaceRegister(register), size, isS0);
+    }
+
+    @Override
+    public Register getRegister() {
+        return getAddress().getRegister();
     }
 }

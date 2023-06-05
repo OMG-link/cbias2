@@ -43,29 +43,6 @@ public class AsmInstruction {
         }
     }
 
-    public void setOperandRegister(int j, Register register) {
-        assert(1 <= j && j <= 3);
-        if (j == 1) {
-            if (operand1.isRegister()) {
-                operand1 = register;
-            } else if (operand1 instanceof Address address) {
-                operand1 = address.replaceBaseRegister((IntRegister) register);
-            }
-        } else if (j == 2) {
-            if (operand2.isRegister()) {
-                operand2 = register;
-            } else if (operand2 instanceof Address address) {
-                operand2 = address.replaceBaseRegister((IntRegister) register);
-            }
-        } else {
-            if (operand3.isRegister()) {
-                operand3 = register;
-            } else if (operand3 instanceof Address address) {
-                operand3 = address.replaceBaseRegister((IntRegister) register);
-            }
-        }
-    }
-
     /**
      * 获取第index个参数
      * @param index 下标（1 <= index <= 3）

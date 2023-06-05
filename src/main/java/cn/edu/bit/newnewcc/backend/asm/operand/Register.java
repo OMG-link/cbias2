@@ -1,6 +1,6 @@
 package cn.edu.bit.newnewcc.backend.asm.operand;
 
-public abstract class Register extends AsmOperand {
+public abstract class Register extends AsmOperand implements RegisterReplaceable {
     String name;
     int index;
     RTYPE rtype;
@@ -41,5 +41,15 @@ public abstract class Register extends AsmOperand {
 
     public void setIndex(int idx) {
         this.index = idx;
+    }
+
+    @Override
+    public Register getRegister() {
+        return this;
+    }
+
+    @Override
+    public Register replaceRegister(Register register) {
+        return register;
     }
 }

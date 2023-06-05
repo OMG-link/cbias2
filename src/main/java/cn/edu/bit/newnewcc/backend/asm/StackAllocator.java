@@ -4,6 +4,7 @@ import cn.edu.bit.newnewcc.backend.asm.instruction.*;
 import cn.edu.bit.newnewcc.backend.asm.operand.Immediate;
 import cn.edu.bit.newnewcc.backend.asm.operand.IntRegister;
 import cn.edu.bit.newnewcc.backend.asm.operand.StackVar;
+import cn.edu.bit.newnewcc.backend.asm.util.ImmediateTools;
 import cn.edu.bit.newnewcc.ir.value.Instruction;
 
 import java.util.*;
@@ -98,12 +99,19 @@ public class StackAllocator {
         IntRegister sp = new IntRegister("sp");
         IntRegister ra = new IntRegister("ra");
         IntRegister s0 = new IntRegister("s0");
-        res.add(new AsmAdd(sp, sp, new Immediate(-maxSize)));
+        IntRegister t0 = new IntRegister("t0");
         if (savedRa) {
-            res.add(new AsmStore(ra, new StackVar(maxSize - 8, 8, false)));
+            res.add(new AsmStore(ra, new StackVar(-8, 8, false)));
         }
-        res.add(new AsmStore(s0, new StackVar(maxSize - 16, 8, false)));
-        res.add(new AsmAdd(s0, sp, new Immediate(maxSize)));
+        res.add(new AsmStore(s0, new StackVar(-16, 8, false)));
+        if (ImmediateTools.bitlengthNotInLimit(maxSize)) {
+            res.add(new AsmLoad(t0, new Immediate(maxSize)));
+            res.add(new AsmSub(sp, sp, t0));
+            res.add(new AsmAdd(s0, sp, t0));
+        } else {
+            res.add(new AsmAdd(sp, sp, new Immediate(-maxSize)));
+            res.add(new AsmAdd(s0, sp, new Immediate(maxSize)));
+        }
         return res;
     }
 
@@ -112,11 +120,17 @@ public class StackAllocator {
         IntRegister sp = new IntRegister("sp");
         IntRegister ra = new IntRegister("ra");
         IntRegister s0 = new IntRegister("s0");
-        if (savedRa) {
-            res.add(new AsmLoad(ra, new StackVar(maxSize - 8, 8, false)));
+        IntRegister t0 = new IntRegister("t0");
+        if (ImmediateTools.bitlengthNotInLimit(maxSize)) {
+            res.add(new AsmLoad(t0, new Immediate(maxSize)));
+            res.add(new AsmAdd(sp, sp, t0));
+        } else {
+            res.add(new AsmAdd(sp, sp, new Immediate(maxSize)));
         }
-        res.add(new AsmLoad(s0, new StackVar(maxSize - 16, 8, false)));
-        res.add(new AsmAdd(sp, sp, new Immediate(maxSize)));
+        if (savedRa) {
+            res.add(new AsmLoad(ra, new StackVar(-8, 8, false)));
+        }
+        res.add(new AsmLoad(s0, new StackVar(-16, 8, false)));
         res.add(new AsmJump(new IntRegister("ra")));
         return res;
     }

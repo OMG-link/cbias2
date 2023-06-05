@@ -247,27 +247,6 @@ public class AsmFunction {
         return res;
     }
 
-    boolean includeRegister(AsmOperand op) {
-        if (op instanceof Register) {
-            return true;
-        } else {
-            return op instanceof AddressContent;
-        }
-    }
-
-    Register getIncludedRegister(AsmOperand op) {
-        if (!includeRegister(op)) {
-            throw new RuntimeException("get Register from operand not with register");
-        }
-        if (op instanceof Register register) {
-            return register;
-        } else if (op instanceof AddressContent addressContent) {
-            return addressContent.getRegister();
-        } else {
-            throw new RuntimeException("get Register from operand not with register");
-        }
-    }
-
     /**
      * 重新分配栈偏移量的过程，避免offset超出11位导致汇编错误
      */
@@ -302,8 +281,8 @@ public class AsmFunction {
             AsmInstruction instruction = instructionList.get(i);
             for (int j = 1; j <= 3; j++) {
                 AsmOperand op = instruction.getOperand(j);
-                if (includeRegister(op)) {
-                    Register register = getIncludedRegister(op);
+                if (op instanceof RegisterReplaceable registerReplaceableOp) {
+                    Register register = registerReplaceableOp.getRegister();
                     if (register.isVirtual()) {
                         Integer index = register.getIndex();
                         lastLifeTime.put(index, i);
@@ -338,8 +317,8 @@ public class AsmFunction {
                 //普通使用了寄存器的指令
                 for (int j = 1; j <= 3; j++) {
                     AsmOperand op = instruction.getOperand(j);
-                    if (includeRegister(op)) {
-                        Register register = getIncludedRegister(op);
+                    if (op instanceof RegisterReplaceable registerReplaceableOp) {
+                        Register register = registerReplaceableOp.getRegister();
                         if (register.isVirtual()) {
                             registerController.setVregLevelMax(register.getIndex());
                         }
@@ -347,10 +326,10 @@ public class AsmFunction {
                 }
                 for (int j = 1; j <= 3; j++) {
                     AsmOperand op = instruction.getOperand(j);
-                    if (includeRegister(op)) {
-                        Register register = getIncludedRegister(op);
+                    if (op instanceof RegisterReplaceable registerReplaceableOp) {
+                        Register register = registerReplaceableOp.getRegister();
                         if (register.isVirtual()) {
-                            instruction.setOperandRegister(j, registerController.allocateRegister(register.getIndex()));
+                            instruction.replaceOperand(j, registerReplaceableOp.replaceRegister(register));
                         }
                     }
                 }

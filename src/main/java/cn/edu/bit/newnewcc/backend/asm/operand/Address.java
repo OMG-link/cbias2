@@ -1,6 +1,6 @@
 package cn.edu.bit.newnewcc.backend.asm.operand;
 
-public abstract class Address extends AsmOperand {
+public abstract class Address extends AsmOperand implements RegisterReplaceable {
     protected final long offset;
     protected final IntRegister baseAddress;
     Address(TYPE type, long offset, IntRegister baseAddress) {
@@ -49,7 +49,18 @@ public abstract class Address extends AsmOperand {
         return offset;
     }
 
+    @Override
     public IntRegister getRegister() {
         return baseAddress;
     }
+
+    @Override
+    public Address replaceRegister(Register register) {
+        if (register instanceof IntRegister intRegister) {
+            return replaceBaseRegister(intRegister);
+        } else {
+            throw new RuntimeException("put float register into address");
+        }
+    }
+
 }
