@@ -251,6 +251,7 @@ public class AsmBasicBlock {
 
     void translateAllocateInst(AllocateInst allocateInst) {
         var sz = allocateInst.getAllocatedType().getSize();
+        sz += (4 - sz % 4) % 4;
         function.getStackAllocator().allocate(allocateInst, Math.toIntExact(sz));
     }
 
@@ -262,14 +263,14 @@ public class AsmBasicBlock {
         IntRegister offsetR = null;
         for (int i = 0; i < getElementPtrInst.getIndicesSize(); i++) {
             var index = getValue(getElementPtrInst.getIndexAt(i));
-            long baseSize = ((PointerType) GetElementPtrInst.inferDereferencedType(rootType, i)).getBaseType().getSize();
+            long baseSize = ((PointerType) GetElementPtrInst.inferDereferencedType(rootType, i + 1)).getBaseType().getSize();
             if (index instanceof Immediate immediate) {
                 offset += immediate.getValue() * baseSize;
             }
         }
         for (int i = 0; i < getElementPtrInst.getIndicesSize(); i++) {
             var index = getValue(getElementPtrInst.getIndexAt(i));
-            long baseSize = ((PointerType) GetElementPtrInst.inferDereferencedType(rootType, i)).getBaseType().getSize();
+            long baseSize = ((PointerType) GetElementPtrInst.inferDereferencedType(rootType, i + 1)).getBaseType().getSize();
             if (!(index instanceof Immediate)) {
                 IntRegister tmp = getOperandToIntRegister(index);
                 IntRegister muly = getOperandToIntRegister(new Immediate(Math.toIntExact(baseSize)));

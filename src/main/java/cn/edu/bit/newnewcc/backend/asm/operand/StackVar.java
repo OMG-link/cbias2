@@ -26,11 +26,15 @@ public class StackVar extends AsmOperand {
         this.size = size;
     }
 
-    public StackVar(Address address, int size) {
+    protected StackVar(Address address, int size, boolean isS0Based) {
         super(TYPE.SVAR);
         this.address = address;
         this.size = size;
-        this.isS0 = false;
+        this.isS0 = isS0Based;
+    }
+
+    public boolean isS0Based() {
+        return this.isS0;
     }
 
     public StackVar flip() {
@@ -39,15 +43,6 @@ public class StackVar extends AsmOperand {
 
     public Address getAddress() {
         return this.address;
-    }
-
-    /**
-     * 仅用于立即数检查的范围替换中使用
-     * @param newAddress 栈变量的新地址
-     * @return 返回替换后的新栈变量
-     */
-    public StackVar replaceAddress(Address newAddress) {
-        return new StackVar(newAddress, size);
     }
 
     public int getSize() {

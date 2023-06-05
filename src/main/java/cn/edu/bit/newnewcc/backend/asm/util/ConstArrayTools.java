@@ -19,6 +19,7 @@ public class ConstArrayTools {
         if (filledLength == 0) {
             long totalLength = arrayValue.getType().getSize();
             workZeroSegment.accept(offset, totalLength);
+            return;
         }
         Constant firstValue = arrayValue.getValueAt(0);
         if (!(firstValue instanceof ConstArray)) {

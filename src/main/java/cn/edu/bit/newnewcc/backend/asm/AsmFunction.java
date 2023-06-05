@@ -267,6 +267,34 @@ public class AsmFunction {
         }
     }
 
+    /**
+     * 重新分配栈偏移量的过程，避免offset超出11位导致汇编错误
+     * 带有Ex前缀的Operand仅在此过程和寄存器分配过程中使用
+     */
+    private void reAllocateStackVar() {
+        List<AsmInstruction> newInstructionList = new ArrayList<>();
+        for (var inst : instructionList) {
+            for (int j = 1; j <= 3; j++) {
+                AsmOperand operand = inst.getOperand(j);
+                if (operand instanceof StackVar stackVar) {
+                    Address stackAddress = stackVar.getAddress();
+                    if (ImmediateTools.bitlengthNotInLimit(stackAddress.getOffset() - 80)) {
+                        ExStackVarOffset offset = ExStackVarOffset.transform(stackAddress.getOffset());
+                        IntRegister tmp = registerAllocator.allocateInt();
+                        newInstructionList.add(new AsmLoad(tmp, offset));
+                        newInstructionList.add(new AsmAdd(tmp, tmp, stackAddress.getRegister()));
+                        Address now = new AddressContent(0, tmp);
+                        inst.replaceOperand(j, ExStackVarContent.transform(stackVar, now));
+                    } else {
+                        inst.replaceOperand(j, ExStackVarContent.transform(stackVar));
+                    }
+                }
+            }
+            newInstructionList.add(inst);
+        }
+        this.instructionList = newInstructionList;
+    }
+
     //未分配寄存器的分配方法
     private void reAllocateRegister() {
         Map<Integer, Integer> lastLifeTime = new HashMap<>();
