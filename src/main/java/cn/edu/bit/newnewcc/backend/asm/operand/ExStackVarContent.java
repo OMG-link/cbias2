@@ -1,7 +1,7 @@
 package cn.edu.bit.newnewcc.backend.asm.operand;
 
 /**
- * 栈变量内容，专用于栈帧重新分配过程，禁止在其他部分使用！
+ * 栈变量内容，专用于栈帧重新分配过程.
  */
 public class ExStackVarContent extends StackVar implements ExStackVarAdd {
     boolean isS0Based;

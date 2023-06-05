@@ -84,11 +84,23 @@ public class AsmBasicBlock {
         return res;
     }
 
+    AddressTag transformStackVarToAddressTag(StackVar stackVar) {
+        IntRegister tmp = function.getRegisterAllocator().allocateInt();
+        Address now = stackVar.getAddress();
+        if (ImmediateTools.stackOffsetNotInLimit(now.getOffset())) {
+            function.appendInstruction(new AsmLoad(tmp, ExStackVarOffset.transform(stackVar, now.getOffset())));
+            function.appendInstruction(new AsmAdd(tmp, tmp, now.getRegister()));
+        } else {
+            function.appendInstruction(new AsmAdd(tmp, now.getRegister(), new Immediate(Math.toIntExact(now.getOffset()))));
+        }
+        return now.replaceBaseRegister(tmp).setOffset(0).getAddressTag();
+    }
+
     AddressTag getOperandToAddressTag(AsmOperand operand) {
         if (operand instanceof Address address) {
             return address.getAddressTag();
         } else if (operand instanceof StackVar stackVar) {
-            return stackVar.getAddress().getAddressTag();
+            return transformStackVarToAddressTag(stackVar);
         } else {
             throw new RuntimeException("address not found!");
         }
@@ -174,7 +186,7 @@ public class AsmBasicBlock {
                 if (address instanceof Address addressTmp) {
                     return addressTmp;
                 } else if (address instanceof StackVar stackVar) {
-                    return stackVar.getAddress();
+                    return transformStackVarToAddressTag(stackVar);
                 } else {
                     throw new RuntimeException("store ConstArray to non pointer");
                 }
