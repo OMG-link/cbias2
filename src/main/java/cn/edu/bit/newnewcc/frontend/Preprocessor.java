@@ -9,11 +9,11 @@ public class Preprocessor {
 
         for (int i = 0; i < lines.length; ++i) {
             lines[i] = lines[i].replaceAll(
-                "(?<=[^A-Za-z_]|^)starttime\\s*\\(\\)",
+                "(?<=[^A-Za-z_]|^)starttime\\s*\\(\\s*\\)",
                 "_sysy_starttime(" + (i + 1) + ")"
             );
             lines[i] = lines[i].replaceAll(
-                "(?<=[^A-Za-z_]|^)stoptime\\s*\\(\\)",
+                "(?<=[^A-Za-z_]|^)stoptime\\s*\\(\\s*\\)",
                 "_sysy_stoptime(" + (i + 1) + ")"
             );
         }

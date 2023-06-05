@@ -30,8 +30,8 @@ public class Driver {
     public void launch() throws IOException {
         for (String inputFileName : compilerOptions.getInputFileNames()) {
             String code = Files.readString(Path.of(inputFileName));
-            String preprocessedCode = Preprocessor.preprocess(code);
-            CharStream input = CharStreams.fromString(preprocessedCode);
+            code = Preprocessor.preprocess(code);
+            CharStream input = CharStreams.fromString(code);
             SysYLexer lexer = new SysYLexer(input);
             CommonTokenStream tokenStream = new CommonTokenStream(lexer);
             SysYParser parser = new SysYParser(tokenStream);
