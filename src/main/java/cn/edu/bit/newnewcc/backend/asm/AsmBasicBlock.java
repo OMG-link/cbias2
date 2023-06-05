@@ -3,8 +3,10 @@ package cn.edu.bit.newnewcc.backend.asm;
 import cn.edu.bit.newnewcc.backend.asm.instruction.*;
 import cn.edu.bit.newnewcc.backend.asm.operand.*;
 import cn.edu.bit.newnewcc.backend.asm.util.ConstArrayTools;
+import cn.edu.bit.newnewcc.backend.asm.util.ImmediateTools;
 import cn.edu.bit.newnewcc.ir.Value;
 import cn.edu.bit.newnewcc.ir.type.FloatType;
+import cn.edu.bit.newnewcc.ir.type.PointerType;
 import cn.edu.bit.newnewcc.ir.value.*;
 import cn.edu.bit.newnewcc.ir.value.constant.ConstArray;
 import cn.edu.bit.newnewcc.ir.value.constant.ConstInt;
@@ -12,7 +14,6 @@ import cn.edu.bit.newnewcc.ir.value.instruction.*;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.IntConsumer;
 
 
 /**
@@ -255,36 +256,48 @@ public class AsmBasicBlock {
 
     void translateGetElementPtrInst(GetElementPtrInst getElementPtrInst) {
         AddressTag baseAddress = getOperandToAddressTag(getValue(getElementPtrInst.getRootOperand()));
-        long offset = 0;
+        long offset = baseAddress.getOffset();
+        IntRegister baseRegister = baseAddress.getRegister();
         var rootType = getElementPtrInst.getRootOperand().getType();
         IntRegister offsetR = null;
         for (int i = 0; i < getElementPtrInst.getIndicesSize(); i++) {
             var index = getValue(getElementPtrInst.getIndexAt(i));
-            long baseSize = GetElementPtrInst.inferDereferencedType(rootType, i).getSize();
+            long baseSize = ((PointerType) GetElementPtrInst.inferDereferencedType(rootType, i)).getBaseType().getSize();
             if (index instanceof Immediate immediate) {
                 offset += immediate.getValue() * baseSize;
-            } else {
+            }
+        }
+        for (int i = 0; i < getElementPtrInst.getIndicesSize(); i++) {
+            var index = getValue(getElementPtrInst.getIndexAt(i));
+            long baseSize = ((PointerType) GetElementPtrInst.inferDereferencedType(rootType, i)).getBaseType().getSize();
+            if (!(index instanceof Immediate)) {
                 IntRegister tmp = getOperandToIntRegister(index);
                 IntRegister muly = getOperandToIntRegister(new Immediate(Math.toIntExact(baseSize)));
                 function.appendInstruction(new AsmMul(tmp, tmp, muly));
                 if (offsetR == null) {
                     offsetR = function.getRegisterAllocator().allocateInt();
-                    function.appendInstruction(new AsmLoad(offsetR, tmp));
+                    if (ImmediateTools.bitlengthNotInLimit(offset)) {
+                        function.appendInstruction(new AsmLoad(offsetR, new Immediate(Math.toIntExact(offset))));
+                        function.appendInstruction(new AsmAdd(offsetR, offsetR, tmp));
+                        offset = 0;
+                    } else {
+                        function.appendInstruction(new AsmLoad(offsetR, tmp));
+                    }
                 } else {
                     function.appendInstruction(new AsmAdd(offsetR, offsetR, tmp));
                 }
             }
         }
-        AddressContent result;
-        if (offsetR == null) {
-            result = baseAddress.addOffset(offset).getAddressContent();
-        } else {
-            IntRegister baseRegister = baseAddress.getRegister();
+        if (offsetR != null) {
             function.appendInstruction(new AsmAdd(offsetR, offsetR, baseRegister));
-            offset += baseAddress.getOffset();
-            result = new AddressContent(offset, offsetR);
+            baseRegister = offsetR;
+        } else if (ImmediateTools.bitlengthNotInLimit(offset)) {
+            IntRegister tmp = getOperandToIntRegister(new Immediate(Math.toIntExact(offset)));
+            function.appendInstruction(new AsmAdd(tmp, baseRegister, tmp));
+            offset = 0;
+            baseRegister = tmp;
         }
-        function.getAddressAllocator().allocate(getElementPtrInst, result);
+        function.getAddressAllocator().allocate(getElementPtrInst, new AddressContent(offset, baseRegister));
     }
 
     void translate(Instruction instruction) {
