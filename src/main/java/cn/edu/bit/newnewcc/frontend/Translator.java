@@ -46,6 +46,7 @@ public class Translator extends SysYBaseVisitor<Void> {
     private BasicBlock currentBasicBlock;
     private Value result;
     private Value resultAddress;
+    private BasicBlock currentTrueExit, currentFalseExit;
 
     public Module translate(ParseTree tree, List<ExternalFunction> externalFunctions) {
         for (ExternalFunction externalFunction : externalFunctions) {
@@ -538,9 +539,15 @@ public class Translator extends SysYBaseVisitor<Void> {
 
     @Override
     public Void visitIfStatement(SysYParser.IfStatementContext ctx) {
+        var currentTrueExitBackup = currentTrueExit;
+        var currentFalseExitBackup = currentFalseExit;
+
         BasicBlock thenBlock = new BasicBlock();
         BasicBlock elseBlock = new BasicBlock();
         BasicBlock doneBlock = new BasicBlock();
+
+        currentTrueExit = thenBlock;
+        currentFalseExit = elseBlock;
 
         currentFunction.addBasicBlock(thenBlock);
         currentFunction.addBasicBlock(elseBlock);
@@ -550,7 +557,7 @@ public class Translator extends SysYBaseVisitor<Void> {
         if (result.getType() != IntegerType.getI1())
             convertType(result, IntegerType.getI1());
 
-        currentBasicBlock.addInstruction(new BranchInst(result, thenBlock, elseBlock));
+        currentBasicBlock.addInstruction(new BranchInst(result, currentTrueExit, currentFalseExit));
 
         currentBasicBlock = thenBlock;
         visit(ctx.statement(0));
@@ -562,14 +569,23 @@ public class Translator extends SysYBaseVisitor<Void> {
         currentBasicBlock.addInstruction(new JumpInst(doneBlock));
 
         currentBasicBlock = doneBlock;
+
+        currentTrueExit = currentTrueExitBackup;
+        currentFalseExit = currentFalseExitBackup;
         return null;
     }
 
     @Override
     public Void visitWhileStatement(SysYParser.WhileStatementContext ctx) {
+        var currentTrueExitBackup = currentTrueExit;
+        var currentFalseExitBackup = currentFalseExit;
+
         BasicBlock testBlock = new BasicBlock();
         BasicBlock bodyBlock = new BasicBlock();
         BasicBlock doneBlock = new BasicBlock();
+
+        currentTrueExit = bodyBlock;
+        currentFalseExit = doneBlock;
 
         currentFunction.addBasicBlock(testBlock);
         currentFunction.addBasicBlock(bodyBlock);
@@ -585,7 +601,7 @@ public class Translator extends SysYBaseVisitor<Void> {
         if (result.getType() != IntegerType.getI1())
             convertType(result, IntegerType.getI1());
 
-        currentBasicBlock.addInstruction(new BranchInst(result, bodyBlock, doneBlock));
+        currentBasicBlock.addInstruction(new BranchInst(result, currentTrueExit, currentFalseExit));
 
         currentBasicBlock = bodyBlock;
 
@@ -596,6 +612,9 @@ public class Translator extends SysYBaseVisitor<Void> {
         currentBasicBlock = doneBlock;
 
         controlFlowStack.pop();
+
+        currentTrueExit = currentTrueExitBackup;
+        currentFalseExit = currentFalseExitBackup;
         return null;
     }
 
@@ -641,34 +660,24 @@ public class Translator extends SysYBaseVisitor<Void> {
     @Override
     public Void visitBinaryLogicalOrExpression(SysYParser.BinaryLogicalOrExpressionContext ctx) {
         BasicBlock falseBlock = new BasicBlock();
-        BasicBlock doneBlock = new BasicBlock();
 
         currentFunction.addBasicBlock(falseBlock);
-        currentFunction.addBasicBlock(doneBlock);
 
-        var address = new AllocateInst(IntegerType.getI1());
-        currentFunction.getEntryBasicBlock().addInstruction(address);
+        var currentFalseExitBackup = currentFalseExit;
+        currentFalseExit = falseBlock;
 
         visit(ctx.logicalOrExpression());
         if (result.getType() != IntegerType.getI1())
             convertType(result, IntegerType.getI1());
 
-        currentBasicBlock.addInstruction(new StoreInst(address, result));
-        currentBasicBlock.addInstruction(new BranchInst(result, doneBlock, falseBlock));
+        currentBasicBlock.addInstruction(new BranchInst(result, currentTrueExit, currentFalseExit));
 
         currentBasicBlock = falseBlock;
+        currentFalseExit = currentFalseExitBackup;
 
         visit(ctx.logicalAndExpression());
         if (result.getType() != IntegerType.getI1())
             convertType(result, IntegerType.getI1());
-
-        currentBasicBlock.addInstruction(new StoreInst(address, result));
-        currentBasicBlock.addInstruction(new JumpInst(doneBlock));
-
-        currentBasicBlock = doneBlock;
-
-        result = new LoadInst(address);
-        currentBasicBlock.addInstruction((Instruction) result);
 
         return null;
     }
@@ -676,34 +685,24 @@ public class Translator extends SysYBaseVisitor<Void> {
     @Override
     public Void visitBinaryLogicalAndExpression(SysYParser.BinaryLogicalAndExpressionContext ctx) {
         BasicBlock trueBlock = new BasicBlock();
-        BasicBlock doneBlock = new BasicBlock();
 
         currentFunction.addBasicBlock(trueBlock);
-        currentFunction.addBasicBlock(doneBlock);
 
-        var address = new AllocateInst(IntegerType.getI1());
-        currentFunction.getEntryBasicBlock().addInstruction(address);
+        var currentTrueExitBackup = currentTrueExit;
+        currentTrueExit = trueBlock;
 
         visit(ctx.logicalAndExpression());
         if (result.getType() != IntegerType.getI1())
             convertType(result, IntegerType.getI1());
 
-        currentBasicBlock.addInstruction(new StoreInst(address, result));
-        currentBasicBlock.addInstruction(new BranchInst(result, trueBlock, doneBlock));
+        currentBasicBlock.addInstruction(new BranchInst(result, currentTrueExit, currentFalseExit));
 
         currentBasicBlock = trueBlock;
+        currentTrueExit = currentTrueExitBackup;
 
         visit(ctx.equalityExpression());
         if (result.getType() != IntegerType.getI1())
             convertType(result, IntegerType.getI1());
-
-        currentBasicBlock.addInstruction(new StoreInst(address, result));
-        currentBasicBlock.addInstruction(new JumpInst(doneBlock));
-
-        currentBasicBlock = doneBlock;
-
-        result = new LoadInst(address);
-        currentBasicBlock.addInstruction((Instruction) result);
 
         return null;
     }
