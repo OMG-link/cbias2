@@ -12,10 +12,12 @@ public final class Types {
     public static Type getCommonType(Type firstType, Type secondType) {
         if (firstType.equals(secondType)) return firstType;
         if (firstType instanceof IntegerType && secondType instanceof IntegerType)
-            return IntegerType.getInstance(
-                Math.max(((IntegerType) firstType).getBitWidth(), ((IntegerType) secondType).getBitWidth()));
-        if (firstType instanceof IntegerType && secondType == FloatType.getFloat()) return FloatType.getFloat();
-        if (firstType == FloatType.getFloat() && secondType instanceof IntegerType) return FloatType.getFloat();
+            if (((IntegerType) firstType).getBitWidth() >= ((IntegerType) secondType).getBitWidth())
+                return firstType;
+            else
+                return secondType;
+        if (firstType instanceof IntegerType && secondType == FloatType.getFloat()) return secondType;
+        if (firstType == FloatType.getFloat() && secondType instanceof IntegerType) return firstType;
         throw new IllegalArgumentException();
     }
 
