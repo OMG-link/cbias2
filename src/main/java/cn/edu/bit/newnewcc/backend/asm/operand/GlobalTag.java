@@ -65,6 +65,9 @@ public class GlobalTag extends AsmOperand {
     public boolean isHighSegment() {
         return segment == SEGMENT.HIGH;
     }
+    public boolean isLowSegment() {
+        return segment == SEGMENT.LOW;
+    }
 
     public String emit() {
         if (baseAddress == null) {

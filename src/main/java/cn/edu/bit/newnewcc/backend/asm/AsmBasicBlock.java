@@ -11,6 +11,7 @@ import cn.edu.bit.newnewcc.ir.type.PointerType;
 import cn.edu.bit.newnewcc.ir.type.VoidType;
 import cn.edu.bit.newnewcc.ir.value.*;
 import cn.edu.bit.newnewcc.ir.value.constant.ConstArray;
+import cn.edu.bit.newnewcc.ir.value.constant.ConstFloat;
 import cn.edu.bit.newnewcc.ir.value.constant.ConstInt;
 import cn.edu.bit.newnewcc.ir.value.instruction.*;
 
@@ -74,6 +75,8 @@ public class AsmBasicBlock {
                 return tmp;
             }
             return new Immediate(constInt.getValue());
+        } else if (value instanceof ConstFloat constFloat) {
+            return function.transConstFloat(constFloat.getValue());
         }
         //浮点立即数留待补充
         throw new RuntimeException("Value type not found : " + value.getValueNameIR());

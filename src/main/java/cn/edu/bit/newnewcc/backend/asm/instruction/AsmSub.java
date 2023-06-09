@@ -1,6 +1,7 @@
 package cn.edu.bit.newnewcc.backend.asm.instruction;
 
 import cn.edu.bit.newnewcc.backend.asm.operand.AsmOperand;
+import cn.edu.bit.newnewcc.backend.asm.operand.FloatRegister;
 import cn.edu.bit.newnewcc.backend.asm.operand.Immediate;
 import cn.edu.bit.newnewcc.backend.asm.operand.IntRegister;
 
@@ -21,5 +22,8 @@ public class AsmSub extends AsmBinaryInstruction {
             setInstructionName("addi");
             setOperand3(new Immediate(-((Immediate)source2).getValue()));
         }
+    }
+    public AsmSub(FloatRegister goal, FloatRegister source1, FloatRegister source2) {
+        super("fsub.s", goal, source1, source2);
     }
 }

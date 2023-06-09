@@ -32,13 +32,8 @@ public class AsmStore extends AsmInstruction {
             }
         } else {
             setInstructionName("fsw");
-            if (goal.isStackVar()) {
-                StackVar stackVar = (StackVar) goal;
-                if (stackVar.getSize() == 8) {
-                    setInstructionName("fsd");
-                }
-            } else if (goal.isRegister()) {
-                setInstructionName("fmv.d.x");
+            if (goal.isRegister()) {
+                setInstructionName("fmv.s");
                 setOperand1(goal);
                 setOperand2(source);
             }

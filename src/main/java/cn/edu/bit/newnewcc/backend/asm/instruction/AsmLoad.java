@@ -35,8 +35,10 @@ public class AsmLoad extends AsmInstruction {
                 GlobalTag globalTag = (GlobalTag) source;
                 if (globalTag.isHighSegment()) {
                     setInstructionName("lui");
-                } else {
+                } else if (globalTag.isLowSegment()) {
                     setInstructionName("li");
+                } else {
+                    setInstructionName("la");
                 }
             } else if (source.isRegister() && ((Register) source).isInt()) {
                 setInstructionName("c.mv");
@@ -45,17 +47,8 @@ public class AsmLoad extends AsmInstruction {
             }
         } else {
             setInstructionName("flw");
-            if (source.isImmediate()) {
-                setInstructionName("fli");
-            } else if (source.isStackVar()) {
-                StackVar stackVar = (StackVar) source;
-                if (stackVar.getSize() == 8) {
-                    setInstructionName("fld");
-                } else if (stackVar.getSize() == 4) {
-                    setInstructionName("flw");
-                }
-            } else if (source.isRegister() && ((Register) source).isFloat()) {
-                setInstructionName("fmv.d.x");
+            if (source.isRegister() && ((Register) source).isFloat()) {
+                setInstructionName("fmv.s");
             }
         }
     }

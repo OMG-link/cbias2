@@ -3,10 +3,7 @@ package cn.edu.bit.newnewcc.backend.asm;
 import cn.edu.bit.newnewcc.backend.asm.instruction.AsmInstruction;
 import cn.edu.bit.newnewcc.backend.asm.instruction.AsmLoad;
 import cn.edu.bit.newnewcc.backend.asm.instruction.AsmStore;
-import cn.edu.bit.newnewcc.backend.asm.operand.AsmOperand;
-import cn.edu.bit.newnewcc.backend.asm.operand.IntRegister;
-import cn.edu.bit.newnewcc.backend.asm.operand.Register;
-import cn.edu.bit.newnewcc.backend.asm.operand.StackVar;
+import cn.edu.bit.newnewcc.backend.asm.operand.*;
 import org.antlr.v4.runtime.misc.Pair;
 
 import java.util.ArrayList;
@@ -36,6 +33,9 @@ class RegisterControl {
                 Register register = new IntRegister(i);
                 registerPool.put(register, 0);
                 registerLevel.put(register, 0);
+                Register fregister = new FloatRegister(i);
+                registerPool.put(fregister, 0);
+                registerLevel.put(fregister, 0);
             }
         }
     }
@@ -66,11 +66,11 @@ class RegisterControl {
         }
     }
 
-    Register getRegister() {
+    Register getRegister(Register.RTYPE rtype) {
         Register ret = null;
         Integer minLevel = LevelMax;
         for (var register : registerPool.keySet()) {
-            if (registerLevel.get(register) < minLevel) {
+            if (register.getType() == rtype && registerLevel.get(register) < minLevel) {
                 minLevel = registerLevel.get(register);
                 ret = register;
             }
@@ -97,16 +97,17 @@ class RegisterControl {
         }
     }
 
-    public Register allocateRegister(Integer index) {
+    public Register allocateRegister(Register virtualRegister) {
         Register register = null;
+        int index = virtualRegister.getIndex();
         if (!vregLocation.containsKey(index)) {
-            register = getRegister();
+            register = getRegister(virtualRegister.getType());
         } else {
             var container = vregLocation.get(index);
             if (container instanceof Register rtmp) {
                 register = rtmp;
             } else if (container instanceof StackVar) {
-                register = getRegister();
+                register = getRegister(virtualRegister.getType());
                 if (register == null) {
                     throw new RuntimeException("register not enough!");
                 }

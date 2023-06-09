@@ -1,6 +1,7 @@
 package cn.edu.bit.newnewcc.backend.asm.instruction;
 
 import cn.edu.bit.newnewcc.backend.asm.operand.AsmOperand;
+import cn.edu.bit.newnewcc.backend.asm.operand.FloatRegister;
 import cn.edu.bit.newnewcc.backend.asm.operand.IntRegister;
 
 /**
@@ -19,5 +20,8 @@ public class AsmAdd extends AsmBinaryInstruction {
         if (source2.isImmediate() || source2.isGlobalTag() || source2.isAddressTag()) {
             setInstructionName("addi");
         }
+    }
+    public AsmAdd(FloatRegister goal, FloatRegister source1, FloatRegister source2) {
+        super("fadd.s", goal, source1, source2);
     }
 }

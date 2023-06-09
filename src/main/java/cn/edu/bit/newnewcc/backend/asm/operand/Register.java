@@ -17,6 +17,10 @@ public abstract class Register extends AsmOperand implements RegisterReplaceable
         return rtype == RTYPE.FLOAT;
     }
 
+    public RTYPE getType() {
+        return rtype;
+    }
+
     Register(int index, RTYPE type) {
         super(TYPE.REG);
         this.name = null;

@@ -8,23 +8,19 @@ import java.util.Map;
 
 public class FloatRegisterAllocator {
     Map<Instruction, FloatRegister> registerMap;
-    int total;
 
     public FloatRegisterAllocator() {
-        total = 0;
         registerMap = new HashMap<>();
     }
 
-    public FloatRegister allocate(Instruction instruction) {
-        total -= 1;
-        FloatRegister reg = new FloatRegister(total);
+    public FloatRegister allocate(Instruction instruction, int index) {
+        FloatRegister reg = new FloatRegister(index);
         registerMap.put(instruction, reg);
         return reg;
     }
 
-    public FloatRegister allocate() {
-        total -= 1;
-        return new FloatRegister(total);
+    public FloatRegister allocate(int index) {
+        return new FloatRegister(index);
     }
 
     public FloatRegister get(Instruction instruction) {

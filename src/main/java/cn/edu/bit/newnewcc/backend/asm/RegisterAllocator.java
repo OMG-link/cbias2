@@ -12,18 +12,21 @@ import cn.edu.bit.newnewcc.ir.value.Instruction;
 public class RegisterAllocator {
     private final FloatRegisterAllocator floatRegisterAllocator = new FloatRegisterAllocator();
     private final IntRegisterAllocator intRegisterAllocator = new IntRegisterAllocator();
-    public RegisterAllocator() {}
+    int total;
+    public RegisterAllocator() {
+        total = 0;
+    }
     public IntRegister allocateInt() {
-        return intRegisterAllocator.allocate();
+        return intRegisterAllocator.allocate(--total);
     }
     public FloatRegister allocateFloat() {
-        return floatRegisterAllocator.allocate();
+        return floatRegisterAllocator.allocate(--total);
     }
     public IntRegister allocateInt(Instruction instruction) {
-        return intRegisterAllocator.allocate(instruction);
+        return intRegisterAllocator.allocate(instruction, --total);
     }
     public FloatRegister allocateFloat(Instruction instruction) {
-        return floatRegisterAllocator.allocate(instruction);
+        return floatRegisterAllocator.allocate(instruction, --total);
     }
     public Register allocate(Instruction instruction) {
         if (instruction.getType() instanceof FloatType) {
