@@ -118,6 +118,16 @@ public class AsmBasicBlock {
         return res;
     }
 
+    FloatRegister getOperandToFloatRegister(AsmOperand operand) {
+        if (operand instanceof FloatRegister floatRegister) {
+            return floatRegister;
+        } else {
+            FloatRegister tmp = function.getRegisterAllocator().allocateFloat();
+            function.appendInstruction(new AsmLoad(tmp, operand));
+            return tmp;
+        }
+    }
+
     AddressTag transformStackVarToAddressTag(StackVar stackVar) {
         IntRegister tmp = function.getRegisterAllocator().allocateInt();
         Address now = stackVar.getAddress();
@@ -180,39 +190,84 @@ public class AsmBasicBlock {
             function.appendInstruction(new AsmSignedIntegerRemainder(register, divx, divy));
         } else if (binaryInstruction instanceof CompareInst compareInst) {
             translateCompareInst(compareInst);
+        } else if (binaryInstruction instanceof FloatAddInst floatAddInst) {
+            var rx = getOperandToFloatRegister(getValue(floatAddInst.getOperand1()));
+            var ry = getOperandToFloatRegister(getValue(floatAddInst.getOperand2()));
+            FloatRegister result = function.getRegisterAllocator().allocateFloat(floatAddInst);
+            function.appendInstruction(new AsmAdd(result, rx, ry));
+        } else if (binaryInstruction instanceof FloatSubInst floatSubInst) {
+            var rx = getOperandToFloatRegister(getValue(floatSubInst.getOperand1()));
+            var ry = getOperandToFloatRegister(getValue(floatSubInst.getOperand2()));
+            FloatRegister result = function.getRegisterAllocator().allocateFloat(floatSubInst);
+            function.appendInstruction(new AsmSub(result, rx, ry));
+        } else if (binaryInstruction instanceof FloatMultiplyInst floatMultiplyInst) {
+            var rx = getOperandToFloatRegister(getValue(floatMultiplyInst.getOperand1()));
+            var ry = getOperandToFloatRegister(getValue(floatMultiplyInst.getOperand2()));
+            FloatRegister result = function.getRegisterAllocator().allocateFloat(floatMultiplyInst);
+            function.appendInstruction(new AsmMul(result, rx, ry));
+        } else if (binaryInstruction instanceof FloatDivideInst floatDivideInst) {
+            var rx = getOperandToFloatRegister(getValue(floatDivideInst.getOperand1()));
+            var ry = getOperandToFloatRegister(getValue(floatDivideInst.getOperand2()));
+            FloatRegister result = function.getRegisterAllocator().allocateFloat(floatDivideInst);
+            function.appendInstruction(new AsmFloatDivide(result, rx, ry));
         }
     }
 
     void translateCompareInst(CompareInst compareInst) {
         if (compareInst instanceof IntegerCompareInst integerCompareInst) {
-            var rop1 = getOperandToIntRegister(getValue(integerCompareInst.getOperand1()));
-            var rop2 = getOperandToIntRegister(getValue(integerCompareInst.getOperand2()));
-            var result = function.getRegisterAllocator().allocateInt(integerCompareInst);
-            IntRegister tmp;
-            switch (integerCompareInst.getCondition()) {
-                case EQ -> {
-                    tmp = function.getRegisterAllocator().allocateInt();
-                    function.appendInstruction(new AsmSub(tmp, rop1, rop2));
-                    function.appendInstruction(new AsmIntegerCompare(result, tmp, null, AsmIntegerCompare.Condition.SEQZ));
-                }
-                case NE -> {
-                    tmp = function.getRegisterAllocator().allocateInt();
-                    function.appendInstruction(new AsmSub(tmp, rop1, rop2));
-                    function.appendInstruction(new AsmIntegerCompare(result, tmp, null, AsmIntegerCompare.Condition.SNEZ));
-                }
-                case SLT -> function.appendInstruction(new AsmIntegerCompare(result, rop1, rop2, AsmIntegerCompare.Condition.SLT));
-                case SLE -> {
-                    tmp = function.getRegisterAllocator().allocateInt();
-                    function.appendInstruction(new AsmIntegerCompare(tmp, rop2, rop1, AsmIntegerCompare.Condition.SLT));
-                    function.appendInstruction(new AsmIntegerCompare(result, tmp, null, AsmIntegerCompare.Condition.SEQZ));
-                }
-                case SGT -> function.appendInstruction(new AsmIntegerCompare(result, rop2, rop1, AsmIntegerCompare.Condition.SLT));
-                case SGE -> {
-                    tmp = function.getRegisterAllocator().allocateInt();
-                    function.appendInstruction(new AsmIntegerCompare(tmp, rop1, rop2, AsmIntegerCompare.Condition.SLT));
-                    function.appendInstruction(new AsmIntegerCompare(result, tmp, null, AsmIntegerCompare.Condition.SEQZ));
-                }
+            translateIntegerCompareInst(integerCompareInst);
+        } else if (compareInst instanceof FloatCompareInst floatCompareInst) {
+            translateFloatCompareInst(floatCompareInst);
+        }
+    }
+
+    void translateIntegerCompareInst(IntegerCompareInst integerCompareInst) {
+        var rop1 = getOperandToIntRegister(getValue(integerCompareInst.getOperand1()));
+        var rop2 = getOperandToIntRegister(getValue(integerCompareInst.getOperand2()));
+        var result = function.getRegisterAllocator().allocateInt(integerCompareInst);
+        IntRegister tmp;
+        switch (integerCompareInst.getCondition()) {
+            case EQ -> {
+                tmp = function.getRegisterAllocator().allocateInt();
+                function.appendInstruction(new AsmSub(tmp, rop1, rop2));
+                function.appendInstruction(new AsmIntegerCompare(result, tmp, null, AsmIntegerCompare.Condition.SEQZ));
             }
+            case NE -> {
+                tmp = function.getRegisterAllocator().allocateInt();
+                function.appendInstruction(new AsmSub(tmp, rop1, rop2));
+                function.appendInstruction(new AsmIntegerCompare(result, tmp, null, AsmIntegerCompare.Condition.SNEZ));
+            }
+            case SLT -> function.appendInstruction(new AsmIntegerCompare(result, rop1, rop2, AsmIntegerCompare.Condition.SLT));
+            case SLE -> {
+                tmp = function.getRegisterAllocator().allocateInt();
+                function.appendInstruction(new AsmIntegerCompare(tmp, rop2, rop1, AsmIntegerCompare.Condition.SLT));
+                function.appendInstruction(new AsmIntegerCompare(result, tmp, null, AsmIntegerCompare.Condition.SEQZ));
+            }
+            case SGT -> function.appendInstruction(new AsmIntegerCompare(result, rop2, rop1, AsmIntegerCompare.Condition.SLT));
+            case SGE -> {
+                tmp = function.getRegisterAllocator().allocateInt();
+                function.appendInstruction(new AsmIntegerCompare(tmp, rop1, rop2, AsmIntegerCompare.Condition.SLT));
+                function.appendInstruction(new AsmIntegerCompare(result, tmp, null, AsmIntegerCompare.Condition.SEQZ));
+            }
+        }
+    }
+
+    void translateFloatCompareInst(FloatCompareInst floatCompareInst) {
+        var result = function.getRegisterAllocator().allocateInt(floatCompareInst);
+        var op1 = getOperandToFloatRegister(getValue(floatCompareInst.getOperand1()));
+        var op2 = getOperandToFloatRegister(getValue(floatCompareInst.getOperand2()));
+        IntRegister tmp;
+        switch (floatCompareInst.getCondition()) {
+            case OLE -> function.appendInstruction(new AsmFloatCompare(result, op1, op2, AsmFloatCompare.Condition.OLE));
+            case OEQ -> function.appendInstruction(new AsmFloatCompare(result, op1, op2, AsmFloatCompare.Condition.OEQ));
+            case OLT -> function.appendInstruction(new AsmFloatCompare(result, op1, op2, AsmFloatCompare.Condition.OLT));
+            case ONE -> {
+                tmp = function.getRegisterAllocator().allocateInt();
+                function.appendInstruction(new AsmFloatCompare(tmp, op1, op2, AsmFloatCompare.Condition.OEQ));
+                function.appendInstruction(new AsmIntegerCompare(result, tmp, null, AsmIntegerCompare.Condition.SEQZ));
+            }
+            case OGE -> function.appendInstruction(new AsmFloatCompare(result, op2, op1, AsmFloatCompare.Condition.OLE));
+            case OGT -> function.appendInstruction(new AsmFloatCompare(result, op2, op1, AsmFloatCompare.Condition.OLT));
         }
     }
 
@@ -364,27 +419,54 @@ public class AsmBasicBlock {
         function.getAddressAllocator().allocate(getElementPtrInst, new AddressContent(offset, baseRegister));
     }
 
+    void translateFloatNegateInst(FloatNegateInst floatNegateInst) {
+        FloatRegister result = function.getRegisterAllocator().allocateFloat(floatNegateInst);
+        FloatRegister source = getOperandToFloatRegister(getValue(floatNegateInst.getOperand1()));
+        function.appendInstruction(new AsmFloatNegate(result, source));
+    }
+
+    void translateFloatToSignedIntegerInst(FloatToSignedIntegerInst floatToSignedIntegerInst) {
+        IntRegister result = function.getRegisterAllocator().allocateInt(floatToSignedIntegerInst);
+        FloatRegister source = getOperandToFloatRegister(getValue(floatToSignedIntegerInst.getSourceOperand()));
+        function.appendInstruction(new AsmTransFloatInt(result, source));
+    }
+    void translateSignedIntegerToFloatInst(SignedIntegerToFloatInst signedIntegerToFloatInst) {
+        FloatRegister result = function.getRegisterAllocator().allocateFloat(signedIntegerToFloatInst);
+        IntRegister source = getOperandToIntRegister(getValue(signedIntegerToFloatInst.getSourceOperand()));
+        function.appendInstruction(new AsmTransFloatInt(result, source));
+    }
+
     void translate(Instruction instruction) {
-        if (instruction instanceof ReturnInst returnInst) {
-            translateReturnInst(returnInst);
-        } else if (instruction instanceof AllocateInst allocateInst) {
-            translateAllocateInst(allocateInst);
-        } else if (instruction instanceof LoadInst loadInst) {
-            translateLoadInst(loadInst);
-        } else if (instruction instanceof ZeroExtensionInst zeroExtensionInst) {
-            translateZeroExtensionInst(zeroExtensionInst);
-        } else if (instruction instanceof BranchInst branchInst) {
-            translateBranchInst(branchInst);
-        } else if (instruction instanceof JumpInst jumpInst) {
-            translateJumpInst(jumpInst);
-        } else if (instruction instanceof StoreInst storeInst) {
-            translateStoreInst(storeInst);
-        } else if (instruction instanceof BinaryInstruction binaryInstruction) {
-            translateBinaryInstruction(binaryInstruction);
-        } else if (instruction instanceof CallInst callInst) {
-            translateCallInst(callInst);
-        } else if (instruction instanceof GetElementPtrInst getElementPtrInst) {
-            translateGetElementPtrInst(getElementPtrInst);
+        try {
+            if (instruction instanceof ReturnInst returnInst) {
+                translateReturnInst(returnInst);
+            } else if (instruction instanceof AllocateInst allocateInst) {
+                translateAllocateInst(allocateInst);
+            } else if (instruction instanceof LoadInst loadInst) {
+                translateLoadInst(loadInst);
+            } else if (instruction instanceof ZeroExtensionInst zeroExtensionInst) {
+                translateZeroExtensionInst(zeroExtensionInst);
+            } else if (instruction instanceof BranchInst branchInst) {
+                translateBranchInst(branchInst);
+            } else if (instruction instanceof JumpInst jumpInst) {
+                translateJumpInst(jumpInst);
+            } else if (instruction instanceof StoreInst storeInst) {
+                translateStoreInst(storeInst);
+            } else if (instruction instanceof BinaryInstruction binaryInstruction) {
+                translateBinaryInstruction(binaryInstruction);
+            } else if (instruction instanceof CallInst callInst) {
+                translateCallInst(callInst);
+            } else if (instruction instanceof GetElementPtrInst getElementPtrInst) {
+                translateGetElementPtrInst(getElementPtrInst);
+            } else if (instruction instanceof FloatNegateInst floatNegateInst) {
+                translateFloatNegateInst(floatNegateInst);
+            } else if (instruction instanceof FloatToSignedIntegerInst floatToSignedIntegerInst) {
+                translateFloatToSignedIntegerInst(floatToSignedIntegerInst);
+            } else if (instruction instanceof SignedIntegerToFloatInst signedIntegerToFloatInst) {
+                translateSignedIntegerToFloatInst(signedIntegerToFloatInst);
+            }
+        } catch (RuntimeException exception) {
+            throw new RuntimeException("get exception at instruction " + instruction + "\n" + "basic block : " + blockTag.emit() + "\n" + exception.getMessage());
         }
     }
 }

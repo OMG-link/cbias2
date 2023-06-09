@@ -10,13 +10,18 @@ import java.util.Map;
 public class AsmCode {
     private final Map<BaseFunction, AsmFunction> functionMap = new HashMap<>();
     private final Map<GlobalVariable, AsmGlobalVariable> globalVariableMap = new HashMap<>();
-    //private Map<ConstFloat, GlobalTag> constFloatMap = new HashMap<>();
-    //此处应维护一个浮点常量表，用于读取浮点常量
+    private final Map<Float, AsmConstantFloat> constFloatMap = new HashMap<>();
 
     public AsmGlobalVariable getGlobalVariable(GlobalVariable key) {
         return globalVariableMap.get(key);
     }
 
+    AsmConstantFloat getConstFloat(float value) {
+        if (!constFloatMap.containsKey(value)) {
+            constFloatMap.put(value, new AsmConstantFloat(value));
+        }
+        return constFloatMap.get(value);
+    }
     public AsmCode(Module module) {
         for (var globalVariable : module.getGlobalVariables()) {
             AsmGlobalVariable variable = new AsmGlobalVariable(globalVariable);
@@ -50,6 +55,11 @@ public class AsmCode {
             if (!fvar.isExternal()) {
                 res.append(fvar.emit());
             }
+        }
+        res.append(".section .rodata\n");
+        for (var constFloat : constFloatMap.keySet()) {
+            var constFloatTag = constFloatMap.get(constFloat);
+            res.append(constFloatTag.emit()).append('\n');
         }
         return res.toString();
     }

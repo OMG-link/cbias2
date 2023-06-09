@@ -26,7 +26,6 @@ public class AsmFunction {
     private final List<AsmBasicBlock> basicBlocks = new ArrayList<>();
     private final Map<BasicBlock, AsmBasicBlock> basicBlockMap = new HashMap<>();
     private List<AsmInstruction> instructionList = new ArrayList<>();
-    private final Map<Float, AsmConstantFloat> constFloatMap = new HashMap<>();
     private final GlobalTag retBlockTag;
     private final BaseFunction baseFunction;
     private final Register returnRegister;
@@ -73,12 +72,10 @@ public class AsmFunction {
     }
 
     FloatRegister transConstFloat(Float value) {
-        if (!constFloatMap.containsKey(value)) {
-            constFloatMap.put(value, new AsmConstantFloat(this, value));
-        }
+        var constantFloat = globalCode.getConstFloat(value);
         IntRegister rAddress = registerAllocator.allocateInt();
         FloatRegister tmp = registerAllocator.allocateFloat();
-        appendInstruction(new AsmLoad(rAddress, constFloatMap.get(value).getConstantTag()));
+        appendInstruction(new AsmLoad(rAddress, constantFloat.getConstantTag()));
         appendInstruction(new AsmLoad(tmp, new AddressContent(0, rAddress)));
         return tmp;
     }
@@ -135,10 +132,6 @@ public class AsmFunction {
             res.append(inst.emit());
         }
         res.append(String.format(".size %s, .-%s\n", functionName, functionName));
-        for (var constFloat : constFloatMap.keySet()) {
-            var constFloatTag = constFloatMap.get(constFloat);
-            res.append(constFloatTag.emit()).append('\n');
-        }
         return res.toString();
     }
 
@@ -370,7 +363,9 @@ public class AsmFunction {
                 }
             }
         }
-        this.instructionList = newInstructionList;
+        this.instructionList = registerController.emitHead();
+        this.instructionList.addAll(newInstructionList);
+        this.instructionList.addAll(registerController.emitTail());
     }
 
 }

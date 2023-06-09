@@ -12,30 +12,67 @@ import java.util.List;
 import java.util.Map;
 
 class RegisterControl {
+    public enum TYPE {
+        PRESERVED, UNPRESERVED
+    }
     private final AsmFunction function;
     //每个虚拟寄存器的值当前存储的位置
     Map<Integer, AsmOperand> vregLocation = new HashMap<>();
     //每个寄存器当前存储着哪个虚拟寄存器的内容
     Map<Register, Integer> registerPool = new HashMap<>();
+    //寄存器在调用过程中保留与否，保留的寄存器需要在函数头尾额外保存
+    Map<Register, TYPE> registerPreservedType = new HashMap<>();
+    Map<Register, StackVar> preservedRegisterSaved = new HashMap<>();
     Map<Register, Integer> registerLevel = new HashMap<>();
     static final int LevelMax = 255;
     //在栈中存储用于临时存储的寄存器内容
     StackPool stackPool;
     List<AsmInstruction> newInstructionList;
 
+    public List<AsmInstruction> emitHead() {
+        List<AsmInstruction> res = new ArrayList<>();
+        for (var register : preservedRegisterSaved.keySet()) {
+            res.add(new AsmStore(register, preservedRegisterSaved.get(register)));
+        }
+        return res;
+    }
+    public List<AsmInstruction> emitTail() {
+        List<AsmInstruction> res = new ArrayList<>();
+        for (var register : preservedRegisterSaved.keySet()) {
+            res.add(new AsmLoad(register, preservedRegisterSaved.get(register)));
+        }
+        return res;
+    }
+
     public RegisterControl(AsmFunction function, List<AsmInstruction> newInstructionList, StackAllocator allocator) {
         this.function = function;
         stackPool = new StackPool(allocator);
         this.newInstructionList = newInstructionList;
-        //加入目前可使用的六个寄存器
+        //加入目前可使用的寄存器
         for (int i = 0; i <= 31; i++) {
             if ((6 <= i && i <= 7) || (28 <= i)) {
                 Register register = new IntRegister(i);
                 registerPool.put(register, 0);
                 registerLevel.put(register, 0);
-                Register fregister = new FloatRegister(i);
-                registerPool.put(fregister, 0);
-                registerLevel.put(fregister, 0);
+                registerPreservedType.put(register, TYPE.UNPRESERVED);
+            }
+            if (i == 9 || (18 <= i && i <= 27)) {
+                Register register = new IntRegister(i);
+                registerPool.put(register, 0);
+                registerLevel.put(register, 0);
+                registerPreservedType.put(register, TYPE.PRESERVED);
+            }
+            if ((8 <= i && i <= 9) || (18 <= i && i <= 27)) {
+                Register register = new FloatRegister(i);
+                registerPool.put(register, 0);
+                registerLevel.put(register, 0);
+                registerPreservedType.put(register, TYPE.PRESERVED);
+            }
+            if (i <= 7 || 28 <= i) {
+                Register register = new FloatRegister(i);
+                registerPool.put(register, 0);
+                registerLevel.put(register, 0);
+                registerPreservedType.put(register, TYPE.UNPRESERVED);
             }
         }
     }
@@ -77,6 +114,10 @@ class RegisterControl {
         }
         if (ret != null) {
             freeRegister(ret);
+            if (registerPreservedType.get(ret) == TYPE.PRESERVED
+                    && !preservedRegisterSaved.containsKey(ret)) {
+                preservedRegisterSaved.put(ret, stackPool.pop());
+            }
         }
         return ret;
     }
@@ -84,9 +125,13 @@ class RegisterControl {
     public void resetLevel() {
         for (var register : registerLevel.keySet()) {
             if (registerPool.get(register) == 0) {
-                registerLevel.put(register, 0);
+                if (registerPreservedType.get(register) == TYPE.PRESERVED) {
+                    registerLevel.put(register, 1);
+                } else {
+                    registerLevel.put(register, 0);
+                }
             } else {
-                registerLevel.put(register, 1);
+                registerLevel.put(register, 2);
             }
         }
     }

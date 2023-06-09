@@ -5,8 +5,8 @@ import cn.edu.bit.newnewcc.backend.asm.operand.GlobalTag;
 public class AsmConstantFloat {
     private final String constantName;
     private final ValueTag tag;
-    public AsmConstantFloat(AsmFunction function, float value) {
-        constantName = function.getFunctionName() + "constant_float_" + "_" + Float.floatToIntBits(value);
+    public AsmConstantFloat(float value) {
+        constantName = "constant_float_" + "_" + Integer.toUnsignedString(Float.floatToIntBits(value));
         tag = new ValueTag(value);
     }
     GlobalTag getConstantTag() {
