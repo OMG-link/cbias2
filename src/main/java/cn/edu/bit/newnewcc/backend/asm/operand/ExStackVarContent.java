@@ -17,7 +17,7 @@ public class ExStackVarContent extends StackVar implements ExStackVarAdd {
 
     @Override
     public AsmOperand add(int diff) {
-        if (isS0Based()) {
+        if (isS0Based() && address.getOffset() < 0) {
             return new ExStackVarContent(getAddress().addOffset(diff), getSize(), true);
         } else {
             return this;

@@ -6,6 +6,7 @@ import cn.edu.bit.newnewcc.backend.asm.util.ImmediateTools;
 import cn.edu.bit.newnewcc.ir.Value;
 import cn.edu.bit.newnewcc.ir.type.FloatType;
 import cn.edu.bit.newnewcc.ir.type.IntegerType;
+import cn.edu.bit.newnewcc.ir.type.PointerType;
 import cn.edu.bit.newnewcc.ir.value.BaseFunction;
 import cn.edu.bit.newnewcc.ir.value.BasicBlock;
 import cn.edu.bit.newnewcc.ir.value.Function;
@@ -47,19 +48,23 @@ public class AsmFunction {
         }
 
         retBlockTag = new GlobalTag(functionName + "_ret", false);
+        int stackSize = 0;
         for (var parameterType : baseFunction.getParameterTypes()) {
-            if (parameterType instanceof IntegerType) {
+            if (parameterType instanceof IntegerType || parameterType instanceof PointerType) {
+                int needSize = parameterType instanceof IntegerType ? 4 : 8;
                 if (intParameterId < 8) {
                     formalParameters.add(new IntRegister(String.format("a%d", intParameterId)));
                 } else {
-                    formalParameters.add(new StackVar((long)(intParameterId - 8) * 4, 4, false));
+                    formalParameters.add(new StackVar(stackSize, needSize, false));
+                    stackSize += needSize;
                 }
                 intParameterId += 1;
             } else if (parameterType instanceof FloatType) {
                 if (floatParameterId < 8) {
                     formalParameters.add(new FloatRegister(String.format("fa%d", intParameterId)));
                 } else {
-                    formalParameters.add(new StackVar((long)(floatParameterId - 8) * 4, 4, false));
+                    formalParameters.add(new StackVar(stackSize, 4, false));
+                    stackSize += 4;
                 }
                 floatParameterId += 1;
             }

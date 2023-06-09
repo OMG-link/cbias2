@@ -22,7 +22,7 @@ public class AsmLoad extends AsmInstruction {
     public AsmLoad(Register goal, AsmOperand source) {
         super("lw", goal, source, null);
         if (goal.isInt()) {
-            if (source.isImmediate() || source.isAddressTag()) {
+            if (source.isImmediate()) {
                 setInstructionName("li");
             } else if (source.isStackVar()) {
                 StackVar stackVar = (StackVar) source;
@@ -40,6 +40,8 @@ public class AsmLoad extends AsmInstruction {
                 }
             } else if (source.isRegister() && ((Register) source).isInt()) {
                 setInstructionName("c.mv");
+            } else if (source.isAddressTag()) {
+                throw new RuntimeException("cannot load address to register by one instruction");
             }
         } else {
             setInstructionName("flw");

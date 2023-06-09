@@ -4,9 +4,11 @@ import cn.edu.bit.newnewcc.backend.asm.instruction.*;
 import cn.edu.bit.newnewcc.backend.asm.operand.*;
 import cn.edu.bit.newnewcc.backend.asm.util.ConstArrayTools;
 import cn.edu.bit.newnewcc.backend.asm.util.ImmediateTools;
+import cn.edu.bit.newnewcc.ir.Type;
 import cn.edu.bit.newnewcc.ir.Value;
 import cn.edu.bit.newnewcc.ir.type.FloatType;
 import cn.edu.bit.newnewcc.ir.type.PointerType;
+import cn.edu.bit.newnewcc.ir.type.VoidType;
 import cn.edu.bit.newnewcc.ir.value.*;
 import cn.edu.bit.newnewcc.ir.value.constant.ConstArray;
 import cn.edu.bit.newnewcc.ir.value.constant.ConstInt;
@@ -65,19 +67,48 @@ public class AsmBasicBlock {
                 throw new RuntimeException("Value not found : " + value.getValueNameIR());
             }
         } else if (value instanceof ConstInt constInt) {
+            var intValue = constInt.getValue();
+            if (ImmediateTools.bitlengthNotInLimit(intValue)) {
+                IntRegister tmp = function.getRegisterAllocator().allocateInt();
+                function.appendInstruction(new AsmLoad(tmp, new Immediate(intValue)));
+                return tmp;
+            }
             return new Immediate(constInt.getValue());
         }
         //浮点立即数留待补充
         throw new RuntimeException("Value type not found : " + value.getValueNameIR());
     }
 
+    AsmOperand getValueByType(Value value, Type type) {
+        var result = getValue(value);
+        if (type instanceof PointerType && result instanceof Address address) {
+            return getAddressToIntRegister(address.getAddressTag());
+        } else {
+            return result;
+        }
+    }
+
+    IntRegister getAddressToIntRegister(Address addressTag) {
+        if (addressTag.getOffset() == 0) {
+            return addressTag.getRegister();
+        } else {
+            int offset = Math.toIntExact(addressTag.getOffset());
+            var tmp = function.getRegisterAllocator().allocateInt();
+            if (ImmediateTools.bitlengthNotInLimit(offset)) {
+                function.appendInstruction(new AsmLoad(tmp, new Immediate(offset)));
+                function.appendInstruction(new AsmAdd(tmp, tmp, addressTag.getRegister()));
+            } else {
+                function.appendInstruction(new AsmAdd(tmp, addressTag.getRegister(), new Immediate(offset)));
+            }
+            return tmp;
+        }
+    }
+
     IntRegister getOperandToIntRegister(AsmOperand operand) {
         if (operand instanceof IntRegister intRegister) {
             return intRegister;
         } else if (operand instanceof AddressTag addressTag) {
-            if (addressTag.getOffset() == 0) {
-                return addressTag.getRegister();
-            }
+            return getAddressToIntRegister(addressTag);
         }
         IntRegister res = function.getRegisterAllocator().allocateInt();
         function.appendInstruction(new AsmLoad(res, operand));
@@ -98,12 +129,24 @@ public class AsmBasicBlock {
 
     AddressTag getOperandToAddressTag(AsmOperand operand) {
         if (operand instanceof Address address) {
-            return address.getAddressTag();
+            var offset = address.getOffset();
+            if (ImmediateTools.bitlengthNotInLimit(offset)) {
+                var tmp = getAddressToIntRegister(address);
+                return new AddressTag(0, tmp);
+            } else {
+                return address.getAddressTag();
+            }
         } else if (operand instanceof StackVar stackVar) {
             return transformStackVarToAddressTag(stackVar);
+        } else if (operand instanceof IntRegister intRegister) {
+            return new AddressTag(0, intRegister);
         } else {
             throw new RuntimeException("address not found!");
         }
+    }
+
+    AddressContent getOperandToAddressContent(AsmOperand operand) {
+        return getOperandToAddressTag(operand).getAddressContent();
     }
 
     void translateBinaryInstruction(BinaryInstruction binaryInstruction) {
@@ -194,7 +237,7 @@ public class AsmBasicBlock {
             final Address addressStore = getAddress.apply(1);
             ConstArrayTools.workOnArray(constArray, 0, (Long offset, Constant item) -> {
                 if (item instanceof ConstInt constInt) {
-                    Address goal = addressStore.addOffset(offset).getAddressContent();
+                    Address goal = getOperandToAddressContent(addressStore.addOffset(offset));
                     Immediate source = new Immediate(constInt.getValue());
                     IntRegister tmp = function.getRegisterAllocator().allocateInt();
                     function.appendInstruction(new AsmLoad(tmp, source));
@@ -202,7 +245,7 @@ public class AsmBasicBlock {
                 }
             }, (Long offset, Long length) -> {
                 for (long i = 0; i < length; i += 4) {
-                    Address goal = addressStore.addOffset(offset).getAddressContent();
+                    Address goal = getOperandToAddressContent(addressStore.addOffset(offset));
                     function.appendInstruction(new AsmStore(new IntRegister("zero"), goal));
                     offset += 4;
                 }
@@ -228,8 +271,9 @@ public class AsmBasicBlock {
         BaseFunction baseFunction = callInst.getCallee();
         AsmFunction asmFunction = function.getGlobalCode().getFunction(baseFunction);
         List<AsmOperand> parameters = new ArrayList<>();
+        var typeList = baseFunction.getParameterTypes();
         for (int i = 0; i < asmFunction.getParameterSize(); i++) {
-            parameters.add(getValue(callInst.getArgumentAt(i)));
+            parameters.add(getValueByType(callInst.getArgumentAt(i), typeList.get(i)));
         }
         Register returnRegister = null;
         if (asmFunction.getReturnRegister() != null) {
@@ -256,13 +300,17 @@ public class AsmBasicBlock {
     }
 
     void translateReturnInst(ReturnInst returnInst) {
-        var ret = getValue(returnInst.getReturnValue());
-        function.appendInstruction(new AsmLoad(new IntRegister("a0"), ret));
+        var returnValue = returnInst.getReturnValue();
+        if (!(returnValue.getType() instanceof VoidType)) {
+            var ret = getValue(returnInst.getReturnValue());
+            function.appendInstruction(new AsmLoad(new IntRegister("a0"), ret));
+        }
         function.appendInstruction(new AsmJump(function.getRetBlockTag(), AsmJump.JUMPTYPE.NON, null, null));
     }
 
     void translateAllocateInst(AllocateInst allocateInst) {
-        var sz = allocateInst.getAllocatedType().getSize();
+        var allocatedType = allocateInst.getAllocatedType();
+        var sz = (allocatedType instanceof PointerType) ? 8 : allocatedType.getSize();
         sz += (4 - sz % 4) % 4;
         function.getStackAllocator().allocate(allocateInst, Math.toIntExact(sz));
     }
