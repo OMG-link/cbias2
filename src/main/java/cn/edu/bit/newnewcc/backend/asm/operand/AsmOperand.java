@@ -25,7 +25,8 @@ public abstract class AsmOperand {
         ADDC,
         ADDT,
         GTAG,
-        SVAR
+        SVAR,
+        NON
     }
 
     public boolean isImmediate() {

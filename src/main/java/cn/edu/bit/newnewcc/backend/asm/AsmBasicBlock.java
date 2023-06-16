@@ -7,6 +7,7 @@ import cn.edu.bit.newnewcc.backend.asm.util.ImmediateTools;
 import cn.edu.bit.newnewcc.ir.Type;
 import cn.edu.bit.newnewcc.ir.Value;
 import cn.edu.bit.newnewcc.ir.type.FloatType;
+import cn.edu.bit.newnewcc.ir.type.IntegerType;
 import cn.edu.bit.newnewcc.ir.type.PointerType;
 import cn.edu.bit.newnewcc.ir.type.VoidType;
 import cn.edu.bit.newnewcc.ir.value.*;
@@ -359,9 +360,12 @@ public class AsmBasicBlock {
 
     void translateReturnInst(ReturnInst returnInst) {
         var returnValue = returnInst.getReturnValue();
-        if (!(returnValue.getType() instanceof VoidType)) {
+        if (returnValue.getType() instanceof IntegerType) {
             var ret = getValue(returnInst.getReturnValue());
-            function.appendInstruction(new AsmLoad(new IntRegister("a0"), ret));
+            function.appendInstruction(new AsmLoad(function.getReturnRegister(), ret));
+        } else if (returnValue.getType() instanceof FloatType) {
+            var ret = getOperandToFloatRegister(getValue(returnInst.getReturnValue()));
+            function.appendInstruction(new AsmLoad(function.getReturnRegister(), ret));
         }
         function.appendInstruction(new AsmJump(function.getRetBlockTag(), AsmJump.JUMPTYPE.NON, null, null));
     }

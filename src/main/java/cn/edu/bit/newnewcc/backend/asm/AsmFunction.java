@@ -61,7 +61,7 @@ public class AsmFunction {
                 intParameterId += 1;
             } else if (parameterType instanceof FloatType) {
                 if (floatParameterId < 8) {
-                    formalParameters.add(new FloatRegister(String.format("fa%d", intParameterId)));
+                    formalParameters.add(new FloatRegister(String.format("fa%d", floatParameterId)));
                 } else {
                     formalParameters.add(new StackVar(stackSize, 4, false));
                     stackSize += 4;
