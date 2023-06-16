@@ -15,7 +15,7 @@ public class Main {
             switch (args[i]) {
                 case "-o" -> outputFilename = args[++i];
                 case "-O0" -> optimizeLevel = 0;
-                case "-O1" -> optimizeLevel = 1;
+                case "-O1", "-O2" -> optimizeLevel = 1;
                 case "-S" -> emitAssembly = true;
                 case "--emit-llvm" -> emitLLVM = true;
                 default -> inputFilenames.add(args[i]);
