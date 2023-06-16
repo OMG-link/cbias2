@@ -3,7 +3,6 @@ package cn.edu.bit.newnewcc.ir.type;
 import cn.edu.bit.newnewcc.ir.Type;
 import cn.edu.bit.newnewcc.ir.value.Constant;
 import cn.edu.bit.newnewcc.ir.value.constant.ConstArray;
-import lombok.Value;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -98,10 +97,28 @@ public class ArrayType extends Type {
     }
 
     private static class Cache {
-        @Value
         private static class Key {
             int length;
             Type baseType;
+
+            public Key(int length, Type baseType) {
+                this.length = length;
+                this.baseType = baseType;
+            }
+
+            @Override
+            public boolean equals(Object o) {
+                if (this == o) return true;
+                if (o == null || getClass() != o.getClass()) return false;
+                Key key = (Key) o;
+                return length == key.length && Objects.equals(baseType, key.baseType);
+            }
+
+            @Override
+            public int hashCode() {
+                return Objects.hash(length, baseType);
+            }
+
         }
 
         private static final Map<Key, ArrayType> cache = new HashMap<>();

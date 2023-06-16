@@ -17,25 +17,72 @@ import cn.edu.bit.newnewcc.ir.value.instruction.*;
 import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.tree.ParseTree;
 
-import java.util.ArrayList;
-import java.util.Deque;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
 public class Translator extends SysYBaseVisitor<Void> {
     private interface ControlFlowContext {
     }
 
-    @lombok.Value
     private static class WhileContext implements ControlFlowContext {
         BasicBlock testBlock;
         BasicBlock doneBlock;
+
+        public WhileContext(BasicBlock testBlock, BasicBlock doneBlock) {
+            this.testBlock = testBlock;
+            this.doneBlock = doneBlock;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            WhileContext that = (WhileContext) o;
+            return Objects.equals(testBlock, that.testBlock) && Objects.equals(doneBlock, that.doneBlock);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(testBlock, doneBlock);
+        }
+
+        public BasicBlock getTestBlock() {
+            return testBlock;
+        }
+
+        public BasicBlock getDoneBlock() {
+            return doneBlock;
+        }
     }
 
-    @lombok.Value
     private static class Parameter {
         Type type;
         String name;
+
+        public Parameter(Type type, String name) {
+            this.type = type;
+            this.name = name;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            Parameter parameter = (Parameter) o;
+            return Objects.equals(type, parameter.type) && Objects.equals(name, parameter.name);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(type, name);
+        }
+
+        public Type getType() {
+            return type;
+        }
+
+        public String getName() {
+            return name;
+        }
     }
 
     private final SymbolTable symbolTable = new SymbolTable();

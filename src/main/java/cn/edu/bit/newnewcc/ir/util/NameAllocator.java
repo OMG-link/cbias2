@@ -1,7 +1,6 @@
 package cn.edu.bit.newnewcc.ir.util;
 
 import cn.edu.bit.newnewcc.ir.value.Function;
-import lombok.NonNull;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -24,7 +23,7 @@ public class NameAllocator {
      * @param function 局部变量所属的函数
      * @return 一个纯数字的名字
      */
-    public static @NonNull String getLvName(Function function) {
+    public static String getLvName(Function function) {
         if (lvAllocateState == null) {
             lvAllocateState = new HashMap<>();
         }
@@ -43,7 +42,7 @@ public class NameAllocator {
      *
      * @return 一个纯数字的名字
      */
-    public static @NonNull String getGvName() {
+    public static String getGvName() {
         return String.valueOf(gvAllocateState++);
     }
 

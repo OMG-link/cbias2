@@ -2,7 +2,6 @@ package cn.edu.bit.newnewcc.ir.type;
 
 import cn.edu.bit.newnewcc.ir.Type;
 import cn.edu.bit.newnewcc.ir.value.Constant;
-import lombok.Value;
 
 import java.util.*;
 
@@ -78,10 +77,28 @@ public class FunctionType extends Type {
     }
 
     private static class Cache {
-        @Value
         private static class Key {
             Type returnType;
             List<Type> parameterTypes;
+
+            public Key(Type returnType, List<Type> parameterTypes) {
+                this.returnType = returnType;
+                this.parameterTypes = parameterTypes;
+            }
+
+            @Override
+            public boolean equals(Object o) {
+                if (this == o) return true;
+                if (o == null || getClass() != o.getClass()) return false;
+                Key key = (Key) o;
+                return Objects.equals(returnType, key.returnType) && Objects.equals(parameterTypes, key.parameterTypes);
+            }
+
+            @Override
+            public int hashCode() {
+                return Objects.hash(returnType, parameterTypes);
+            }
+
         }
 
         private static final Map<Key, FunctionType> cache = new HashMap<>();

@@ -1,10 +1,9 @@
 package cn.edu.bit.newnewcc.ir.value;
 
 import cn.edu.bit.newnewcc.ir.type.FunctionType;
-import lombok.NonNull;
 
 public class ExternalFunction extends BaseFunction {
-    public ExternalFunction(FunctionType type, @NonNull String functionName) {
+    public ExternalFunction(FunctionType type, String functionName) {
         super(type);
         this.functionName = functionName;
     }
@@ -22,7 +21,7 @@ public class ExternalFunction extends BaseFunction {
     }
 
     @Override
-    public void setValueName(@NonNull String valueName) {
+    public void setValueName(String valueName) {
         functionName = valueName;
     }
 }
