@@ -1,6 +1,7 @@
 package cn.edu.bit.newnewcc.ir.value.constant;
 
 import cn.edu.bit.newnewcc.ir.Type;
+import cn.edu.bit.newnewcc.ir.exception.IllegalArgumentException;
 import cn.edu.bit.newnewcc.ir.exception.IndexOutOfBoundsException;
 import cn.edu.bit.newnewcc.ir.type.ArrayType;
 import cn.edu.bit.newnewcc.ir.value.Constant;
@@ -21,10 +22,13 @@ public class ConstArray extends Constant {
     /**
      * @param baseType        数组的基类。若想定义高维数组，请使用“数组的数组”
      * @param length          数组的实际长度
-     * @param initializerList 数组已初始化部分的长度。未初始化部分将被初始化为0。
+     * @param initializerList 数组已初始化的部分。未初始化部分将被初始化为0。
      */
     public ConstArray(Type baseType, int length, List<Constant> initializerList) {
         super(ArrayType.getInstance(length, baseType));
+        if (initializerList.size() > length) {
+            throw new IllegalArgumentException();
+        }
         this.length = length;
         this.valueList = initializerList;
     }
