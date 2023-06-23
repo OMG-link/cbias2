@@ -10,16 +10,22 @@ import cn.edu.bit.newnewcc.backend.asm.operand.IntRegister;
  */
 public class AsmSub extends AsmBinaryInstruction {
     /**
-     * 汇编加指令
+     * 汇编减指令
      *
      * @param goal    结果存储的寄存器
      * @param source1 源寄存器1，存储被减数
      * @param source2 源2，存储减数，可能为寄存器或立即数
      */
-    public AsmSub(IntRegister goal, IntRegister source1, AsmOperand source2) {
+    public AsmSub(IntRegister goal, IntRegister source1, AsmOperand source2, int bitLength) {
         super("sub", goal, source1, source2);
+        if (bitLength == 32) {
+            setInstructionName("subw");
+        }
         if (source2.isImmediate()) {
             setInstructionName("addi");
+            if (bitLength == 32) {
+                setInstructionName("addiw");
+            }
             setOperand3(new Immediate(-((Immediate)source2).getValue()));
         }
     }

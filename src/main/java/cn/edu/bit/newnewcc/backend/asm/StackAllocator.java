@@ -106,7 +106,7 @@ public class StackAllocator {
         res.add(new AsmStore(s0, new StackVar(-16, 8, false)));
         if (ImmediateTools.bitlengthNotInLimit(maxSize)) {
             res.add(new AsmLoad(t0, new Immediate(maxSize)));
-            res.add(new AsmSub(sp, sp, t0));
+            res.add(new AsmSub(sp, sp, t0, 64));
             res.add(new AsmAdd(s0, sp, t0));
         } else {
             res.add(new AsmAdd(sp, sp, new Immediate(-maxSize)));

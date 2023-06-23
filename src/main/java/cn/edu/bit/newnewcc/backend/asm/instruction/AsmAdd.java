@@ -21,6 +21,18 @@ public class AsmAdd extends AsmBinaryInstruction {
             setInstructionName("addi");
         }
     }
+    public AsmAdd(IntRegister goal, IntRegister source1, AsmOperand source2, int bitLength) {
+        super("add", goal, source1, source2);
+        if (bitLength == 32) {
+            setInstructionName("addw");
+        }
+        if (source2.isImmediate() || source2.isGlobalTag() || source2.isAddressTag()) {
+            setInstructionName("addi");
+            if (bitLength == 32) {
+                setInstructionName("addiw");
+            }
+        }
+    }
     public AsmAdd(FloatRegister goal, FloatRegister source1, FloatRegister source2) {
         super("fadd.s", goal, source1, source2);
     }

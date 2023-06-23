@@ -161,20 +161,23 @@ public class AsmBasicBlock {
 
     void translateBinaryInstruction(BinaryInstruction binaryInstruction) {
         if (binaryInstruction instanceof IntegerAddInst integerAddInst) {
+            int bitLength = integerAddInst.getType().getBitWidth();
             var addx = getOperandToIntRegister(getValue(integerAddInst.getOperand1()));
             var addy = getValue(integerAddInst.getOperand2());
             IntRegister register = function.getRegisterAllocator().allocateInt(integerAddInst);
-            function.appendInstruction(new AsmAdd(register, addx, addy));
+            function.appendInstruction(new AsmAdd(register, addx, addy, bitLength));
         } else if (binaryInstruction instanceof IntegerSubInst integerSubInst) {
+            int bitLength = integerSubInst.getType().getBitWidth();
             var subx = getOperandToIntRegister(getValue(integerSubInst.getOperand1()));
             var suby = getValue(integerSubInst.getOperand2());
             IntRegister register = function.getRegisterAllocator().allocateInt(integerSubInst);
-            function.appendInstruction(new AsmSub(register, subx, suby));
+            function.appendInstruction(new AsmSub(register, subx, suby, bitLength));
         } else if (binaryInstruction instanceof IntegerMultiplyInst integerMultiplyInst) {
+            int bitLength = integerMultiplyInst.getType().getBitWidth();
             var mulx = getOperandToIntRegister(getValue(integerMultiplyInst.getOperand1()));
             var muly = getOperandToIntRegister(getValue(integerMultiplyInst.getOperand2()));
             IntRegister register = function.getRegisterAllocator().allocateInt(integerMultiplyInst);
-            function.appendInstruction(new AsmMul(register, mulx, muly));
+            function.appendInstruction(new AsmMul(register, mulx, muly, bitLength));
         } else if (binaryInstruction instanceof IntegerSignedDivideInst integerSignedDivideInst) {
             var divx = getOperandToIntRegister(getValue(integerSignedDivideInst.getOperand1()));
             var divy = getOperandToIntRegister(getValue(integerSignedDivideInst.getOperand2()));
@@ -223,15 +226,16 @@ public class AsmBasicBlock {
         var rop2 = getOperandToIntRegister(getValue(integerCompareInst.getOperand2()));
         var result = function.getRegisterAllocator().allocateInt(integerCompareInst);
         IntRegister tmp;
+        int bitLength = Math.toIntExact(integerCompareInst.getOperand1().getType().getSize() * 8);
         switch (integerCompareInst.getCondition()) {
             case EQ -> {
                 tmp = function.getRegisterAllocator().allocateInt();
-                function.appendInstruction(new AsmSub(tmp, rop1, rop2));
+                function.appendInstruction(new AsmSub(tmp, rop1, rop2, bitLength));
                 function.appendInstruction(new AsmIntegerCompare(result, tmp, null, AsmIntegerCompare.Condition.SEQZ));
             }
             case NE -> {
                 tmp = function.getRegisterAllocator().allocateInt();
-                function.appendInstruction(new AsmSub(tmp, rop1, rop2));
+                function.appendInstruction(new AsmSub(tmp, rop1, rop2, bitLength));
                 function.appendInstruction(new AsmIntegerCompare(result, tmp, null, AsmIntegerCompare.Condition.SNEZ));
             }
             case SLT -> function.appendInstruction(new AsmIntegerCompare(result, rop1, rop2, AsmIntegerCompare.Condition.SLT));
@@ -392,7 +396,7 @@ public class AsmBasicBlock {
             if (!(index instanceof Immediate)) {
                 IntRegister tmp = getOperandToIntRegister(index);
                 IntRegister muly = getOperandToIntRegister(new Immediate(Math.toIntExact(baseSize)));
-                function.appendInstruction(new AsmMul(tmp, tmp, muly));
+                function.appendInstruction(new AsmMul(tmp, tmp, muly, 64));
                 if (offsetR == null) {
                     offsetR = function.getRegisterAllocator().allocateInt();
                     if (ImmediateTools.bitlengthNotInLimit(offset)) {

@@ -7,6 +7,6 @@ import cn.edu.bit.newnewcc.backend.asm.operand.IntRegister;
  */
 public class AsmSignedIntegerRemainder extends AsmBinaryInstruction {
     public AsmSignedIntegerRemainder(IntRegister goal, IntRegister rsource1, IntRegister rsource2) {
-        super("rem", goal, rsource1, rsource2);
+        super("remw", goal, rsource1, rsource2);
     }
 }
