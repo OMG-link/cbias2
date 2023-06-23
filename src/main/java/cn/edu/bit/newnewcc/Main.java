@@ -6,7 +6,7 @@ import java.util.List;
 
 public class Main {
     public static void main(String[] args) throws IOException {
-        String outputFilename = "a.out";
+        String outputFilename = null;
         int optimizeLevel = 0;
         boolean emitAssembly = false;
         boolean emitLLVM = false;
@@ -31,10 +31,5 @@ public class Main {
                 )
         );
         driver.launch();
-    }
-
-    private static void error(String message) {
-        System.err.println(message);
-        System.exit(1);
     }
 }
