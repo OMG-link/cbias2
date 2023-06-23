@@ -5,6 +5,10 @@ import cn.edu.bit.newnewcc.ir.type.ArrayType;
 import cn.edu.bit.newnewcc.ir.type.FloatType;
 import cn.edu.bit.newnewcc.ir.type.IntegerType;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
 public final class Types {
     private Types() {
     }
@@ -21,10 +25,12 @@ public final class Types {
         throw new IllegalArgumentException();
     }
 
-    public static int countElements(Type type) {
-        if (type instanceof ArrayType arrayType)
-            return arrayType.getLength() * countElements(arrayType.getBaseType());
-        else
-            return 1;
+    public static List<Integer> getShape(Type type) {
+        List<Integer> shape = new ArrayList<>();
+        while (type instanceof ArrayType) {
+            shape.add(((ArrayType) type).getLength());
+            type = ((ArrayType) type).getBaseType();
+        }
+        return Collections.unmodifiableList(shape);
     }
 }

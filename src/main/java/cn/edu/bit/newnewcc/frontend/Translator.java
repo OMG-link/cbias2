@@ -168,9 +168,21 @@ public class Translator extends SysYBaseVisitor<Void> {
         return parameters;
     }
 
-    private Constant makeConstant(SysYParser.InitializerContext ctx, Type type) {
-        if (ctx.expression() != null) {
-            visit(ctx.expression());
+    private Node makeTree(SysYParser.InitializerContext ctx) {
+        if (ctx.expression() != null)
+            return new TerminalNode(ctx.expression());
+
+        Node node = new Node();
+
+        for (var initializer : ctx.initializer())
+            node.addChild(makeTree(initializer));
+
+        return node;
+    }
+
+    private Constant makeConstant(Node node, Type type) {
+        if (node instanceof TerminalNode) {
+            visit((SysYParser.ExpressionContext) ((TerminalNode) node).getValue());
             Constant constant = (Constant) result;
 
             if (constant.getType() != type)
@@ -179,38 +191,12 @@ public class Translator extends SysYBaseVisitor<Void> {
             return constant;
         }
 
-        return makeConstant(ctx.initializer(), (ArrayType) type);
-    }
-
-    private Constant makeConstant(List<SysYParser.InitializerContext> children, ArrayType type) {
         List<Constant> elements = new ArrayList<>();
-        var listIterator = children.listIterator();
 
-        while (listIterator.hasNext()) {
-            var elementInitializer = listIterator.next();
+        for (Node child : node.getChildren())
+            elements.add(makeConstant(child, ((ArrayType) type).getBaseType()));
 
-            if (elementInitializer.expression() != null && type.getBaseType() instanceof ArrayType) {
-                int count = Types.countElements(type.getBaseType());
-                List<SysYParser.InitializerContext> terminalInitializers = new ArrayList<>();
-                terminalInitializers.add(elementInitializer);
-
-                for (int i = 0; i < count - 1 && listIterator.hasNext(); ++i) {
-                    var nextElementInitializer = listIterator.next();
-
-                    if (nextElementInitializer.expression() != null)
-                        terminalInitializers.add(nextElementInitializer);
-                    else {
-                        listIterator.previous();
-                        break;
-                    }
-                }
-
-                elements.add(makeConstant(terminalInitializers, (ArrayType) type.getBaseType()));
-            } else
-                elements.add(makeConstant(elementInitializer, type.getBaseType()));
-        }
-
-        return new ConstArray(type.getBaseType(), type.getLength(), elements);
+        return new ConstArray(((ArrayType) type).getBaseType(), ((ArrayType) type).getLength(), elements);
     }
 
     private void convertType(Value value, Type targetType) {
@@ -381,46 +367,22 @@ public class Translator extends SysYBaseVisitor<Void> {
         convertType(result, IntegerType.getI32());
     }
 
-    private void initializeVariable(SysYParser.InitializerContext ctx, Value address) {
-        if (ctx.expression() != null) {
-            visit(ctx.expression());
+    private void initializeVariable(Node node, Value address) {
+        if (node instanceof TerminalNode) {
+            visit((SysYParser.ExpressionContext) ((TerminalNode) node).getValue());
 
             if (result.getType() != ((PointerType) address.getType()).getBaseType())
                 convertType(result, ((PointerType) address.getType()).getBaseType());
 
             currentBasicBlock.addInstruction(new StoreInst(address, result));
-        } else
-            initializeVariable(ctx.initializer(), address);
-    }
-
-    private void initializeVariable(List<SysYParser.InitializerContext> children, Value address) {
-        var listIterator = children.listIterator();
-        int index = 0;
-
-        while (listIterator.hasNext()) {
-            var elementInitializer = listIterator.next();
-            var elementAddress = new GetElementPtrInst(
+        } else {
+            int index = 0;
+            for (Node child : node.getChildren()) {
+                var childAddress = new GetElementPtrInst(
                     address, List.of(ConstInt.getInstance(0), ConstInt.getInstance(index++)));
-            currentBasicBlock.addInstruction(elementAddress);
-
-            if (elementInitializer.expression() != null && ((PointerType) elementAddress.getType()).getBaseType() instanceof ArrayType) {
-                int count = Types.countElements(((PointerType) elementAddress.getType()).getBaseType());
-                List<SysYParser.InitializerContext> terminalInitializers = new ArrayList<>();
-                terminalInitializers.add(elementInitializer);
-
-                for (int i = 0; i < count - 1 && listIterator.hasNext(); ++i) {
-                    var nextElementInitializer = listIterator.next();
-
-                    if (nextElementInitializer.expression() != null)
-                        terminalInitializers.add(nextElementInitializer);
-                    else {
-                        listIterator.previous();
-                        break;
-                    }
-                }
-                initializeVariable(terminalInitializers, elementAddress);
-            } else
-                initializeVariable(elementInitializer, elementAddress);
+                currentBasicBlock.addInstruction(childAddress);
+                initializeVariable(child, childAddress);
+            }
         }
     }
 
@@ -442,7 +404,9 @@ public class Translator extends SysYBaseVisitor<Void> {
                 var address = new AllocateInst(type);
                 currentFunction.getEntryBasicBlock().addInstruction(address);
 
-                Constant initialValue = makeConstant(constantDefinition.initializer(), type);
+                Constant initialValue = makeConstant(
+                    TreeNormalizer.normalize(makeTree(constantDefinition.initializer()), Types.getShape(type)),
+                    type);
                 currentBasicBlock.addInstruction(new StoreInst(address, initialValue));
 
                 String name = constantDefinition.Identifier().getText();
@@ -454,7 +418,9 @@ public class Translator extends SysYBaseVisitor<Void> {
                 if (constantDefinition.initializer() == null)
                     initialValue = type.getZeroInitialization();
                 else
-                    initialValue = makeConstant(constantDefinition.initializer(), type);
+                    initialValue = makeConstant(
+                        TreeNormalizer.normalize(makeTree(constantDefinition.initializer()), Types.getShape(type)),
+                        type);
 
                 GlobalVariable globalVariable = new GlobalVariable(true, initialValue);
                 globalVariable.setValueName(name);
@@ -489,14 +455,18 @@ public class Translator extends SysYBaseVisitor<Void> {
 
                 if (variableDefinition.initializer() != null) {
                     currentBasicBlock.addInstruction(new StoreInst(address, type.getZeroInitialization()));
-                    initializeVariable(variableDefinition.initializer(), address);
+                    initializeVariable(
+                        TreeNormalizer.normalize(makeTree(variableDefinition.initializer()), Types.getShape(type)),
+                        address);
                 }
             } else {
                 Constant initialValue;
                 if (variableDefinition.initializer() == null)
                     initialValue = type.getZeroInitialization();
                 else
-                    initialValue = makeConstant(variableDefinition.initializer(), type);
+                    initialValue = makeConstant(
+                        TreeNormalizer.normalize(makeTree(variableDefinition.initializer()), Types.getShape(type)),
+                        type);
 
                 String name = variableDefinition.Identifier().getText();
 
