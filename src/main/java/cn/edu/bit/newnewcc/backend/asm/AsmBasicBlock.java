@@ -132,12 +132,8 @@ public class AsmBasicBlock {
     AddressTag transformStackVarToAddressTag(StackVar stackVar) {
         IntRegister tmp = function.getRegisterAllocator().allocateInt();
         Address now = stackVar.getAddress();
-        if (ImmediateTools.stackOffsetNotInLimit(now.getOffset())) {
-            function.appendInstruction(new AsmLoad(tmp, ExStackVarOffset.transform(stackVar, now.getOffset())));
-            function.appendInstruction(new AsmAdd(tmp, tmp, now.getRegister()));
-        } else {
-            function.appendInstruction(new AsmAdd(tmp, now.getRegister(), ExStackVarOffset.transform(stackVar, Math.toIntExact(now.getOffset()))));
-        }
+        function.appendInstruction(new AsmLoad(tmp, ExStackVarOffset.transform(stackVar, now.getOffset())));
+        function.appendInstruction(new AsmAdd(tmp, tmp, now.getRegister()));
         return now.replaceBaseRegister(tmp).setOffset(0).getAddressTag();
     }
 

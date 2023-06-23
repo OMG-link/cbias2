@@ -271,16 +271,12 @@ public class AsmFunction {
                 AsmOperand operand = inst.getOperand(j);
                 if (operand instanceof StackVar stackVar) {
                     Address stackAddress = stackVar.getAddress();
-                    if (ImmediateTools.stackOffsetNotInLimit(stackAddress.getOffset())) {
-                        ExStackVarOffset offset = ExStackVarOffset.transform(stackVar, stackAddress.getOffset());
-                        IntRegister tmp = registerAllocator.allocateInt();
-                        newInstructionList.add(new AsmLoad(tmp, offset));
-                        newInstructionList.add(new AsmAdd(tmp, tmp, stackAddress.getRegister()));
-                        Address now = new AddressContent(0, tmp);
-                        inst.replaceOperand(j, ExStackVarContent.transform(stackVar, now));
-                    } else {
-                        inst.replaceOperand(j, ExStackVarContent.transform(stackVar));
-                    }
+                    ExStackVarOffset offset = ExStackVarOffset.transform(stackVar, stackAddress.getOffset());
+                    IntRegister tmp = registerAllocator.allocateInt();
+                    newInstructionList.add(new AsmLoad(tmp, offset));
+                    newInstructionList.add(new AsmAdd(tmp, tmp, stackAddress.getRegister()));
+                    Address now = new AddressContent(0, tmp);
+                    inst.replaceOperand(j, ExStackVarContent.transform(stackVar, now));
                 }
             }
             newInstructionList.add(inst);
