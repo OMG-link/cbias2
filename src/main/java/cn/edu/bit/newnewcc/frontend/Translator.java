@@ -32,19 +32,6 @@ public class Translator extends SysYBaseVisitor<Void> {
             this.doneBlock = doneBlock;
         }
 
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
-            WhileContext that = (WhileContext) o;
-            return Objects.equals(testBlock, that.testBlock) && Objects.equals(doneBlock, that.doneBlock);
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hash(testBlock, doneBlock);
-        }
-
         public BasicBlock getTestBlock() {
             return testBlock;
         }
@@ -61,19 +48,6 @@ public class Translator extends SysYBaseVisitor<Void> {
         public Parameter(Type type, String name) {
             this.type = type;
             this.name = name;
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
-            Parameter parameter = (Parameter) o;
-            return Objects.equals(type, parameter.type) && Objects.equals(name, parameter.name);
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hash(type, name);
         }
 
         public Type getType() {
