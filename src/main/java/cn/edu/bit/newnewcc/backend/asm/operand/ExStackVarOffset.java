@@ -15,7 +15,7 @@ public class ExStackVarOffset extends Immediate implements ExStackVarAdd {
 
     @Override
     public AsmOperand add(int diff) {
-        if (isS0Based) {
+        if (getValue() < 0) {
             return new ExStackVarOffset(getValue() + diff, true);
         } else {
             return this;
