@@ -6,10 +6,7 @@ import cn.edu.bit.newnewcc.backend.asm.instruction.AsmStore;
 import cn.edu.bit.newnewcc.backend.asm.operand.*;
 import org.antlr.v4.runtime.misc.Pair;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 class RegisterControl {
     public enum TYPE {
@@ -123,15 +120,16 @@ class RegisterControl {
     }
 
     public void resetLevel() {
+        Random r = new Random();
         for (var register : registerLevel.keySet()) {
             if (registerPool.get(register) == 0) {
                 if (registerPreservedType.get(register) == TYPE.PRESERVED) {
-                    registerLevel.put(register, 1);
+                    registerLevel.put(register, r.nextInt(10, 20));
                 } else {
-                    registerLevel.put(register, 0);
+                    registerLevel.put(register, r.nextInt(0, 10));
                 }
             } else {
-                registerLevel.put(register, 2);
+                registerLevel.put(register, 20);
             }
         }
     }
@@ -184,7 +182,7 @@ class RegisterControl {
         List<Pair<Register, StackVar>> pushList = new ArrayList<>();
         for (var register : registerPool.keySet()) {
             Integer index = registerPool.get(register);
-            if (index != 0) {
+            if (registerPreservedType.get(register) != TYPE.PRESERVED && index != 0) {
                 StackVar tmp = stackPool.pop();
                 newInstructionList.add(new AsmStore(register, tmp));
                 pushList.add(new Pair<>(register, tmp));

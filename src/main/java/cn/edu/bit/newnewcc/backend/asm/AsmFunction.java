@@ -129,7 +129,6 @@ public class AsmFunction {
         for (var inst : instructionList) {
             res.append(inst.emit());
         }
-        res.append((new AsmTag(retBlockTag)).emit());
         for (var inst : stackAllocator.emitTail()) {
             res.append(inst.emit());
         }
@@ -363,6 +362,7 @@ public class AsmFunction {
         }
         this.instructionList = registerController.emitHead();
         this.instructionList.addAll(newInstructionList);
+        this.instructionList.add(new AsmTag(retBlockTag));
         this.instructionList.addAll(registerController.emitTail());
     }
 
