@@ -35,10 +35,15 @@ public abstract class Register extends AsmOperand implements RegisterReplaceable
         this.rtype = type;
     }
 
+    public abstract Register replaceIndex(int index);
+
     public boolean isVirtual() {
         return name == null && index < 0;
     }
 
+    /**
+     * 获取寄存器下标的**绝对值**
+     */
     public int getIndex() {
         return Math.abs(index);
     }

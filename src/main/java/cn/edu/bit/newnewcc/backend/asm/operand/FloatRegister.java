@@ -27,5 +27,10 @@ public class FloatRegister extends Register {
             }
         }
     }
+
+    @Override
+    public Register replaceIndex(int index) {
+        return new FloatRegister(-index);
+    }
 }
 

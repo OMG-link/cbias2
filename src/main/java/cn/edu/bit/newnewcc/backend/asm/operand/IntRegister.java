@@ -38,4 +38,9 @@ public class IntRegister extends Register {
             }
         }
     }
+
+    @Override
+    public Register replaceIndex(int index) {
+        return new IntRegister(-index);
+    }
 }

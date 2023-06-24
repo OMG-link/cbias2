@@ -110,9 +110,10 @@ public class AsmFunction {
             for (var block : basicBlocks) {
                 block.emitToFunction();
             }
+            asmOptimizerBeforeRegisterAllocate();
             reAllocateStackVar();
             reAllocateRegister();
-            asmOptimizer();
+            asmOptimizerAfterRegisterAllocate();
         }
     }
 
@@ -365,7 +366,65 @@ public class AsmFunction {
         this.instructionList.addAll(registerController.emitTail());
     }
 
-    private void asmOptimizer() {
+    //寄存器分配前的优化器，用于合并重复虚拟寄存器
+    private void asmOptimizerBeforeRegisterAllocate() {
+        class DSU {
+            final Map<Integer, Integer> fa = new HashMap<>();
+            public DSU() {}
+            public int getfa(int v) {
+                if (!fa.containsKey(v)) {
+                    fa.put(v, v);
+                }
+                if (fa.get(v) == v) {
+                    return v;
+                }
+                return getfa(fa.get(v));
+            }
+            public void merge(int u, int v) {
+                u = getfa(u);
+                v = getfa(v);
+                if (u != v) {
+                    fa.put(u, v);
+                }
+            }
+        }
+        DSU dsu = new DSU();
+        for (AsmInstruction iMov : instructionList) {
+            if (iMov instanceof AsmLoad || iMov instanceof AsmStore) {
+                if (iMov.getOperand(1) instanceof Register r1 && iMov.getOperand(2) instanceof Register r2) {
+                    if (r1.isVirtual() && r2.isVirtual() && r1.getType() == r2.getType()) {
+                        dsu.merge(r1.getIndex(), r2.getIndex());
+                    }
+                }
+            }
+        }
+        for (AsmInstruction inst : instructionList) {
+            for (int j = 1; j <= 3; j++) {
+                var op = inst.getOperand(j);
+                if (op instanceof RegisterReplaceable registerReplaceable) {
+                    var reg = registerReplaceable.getRegister();
+                    if (reg.isVirtual()) {
+                        var replaceReg = reg.replaceIndex(dsu.getfa(reg.getIndex()));
+                        inst.replaceOperand(j, registerReplaceable.replaceRegister(replaceReg));
+                    }
+                }
+            }
+        }
+        List<AsmInstruction> newInstructionList = new ArrayList<>();
+        for (AsmInstruction iMov : instructionList) {
+            if (iMov instanceof AsmLoad || iMov instanceof AsmStore) {
+                if (iMov.getOperand(1) instanceof Register r1 && iMov.getOperand(2) instanceof Register r2) {
+                    if (r1.getIndex() == r2.getIndex()) {
+                        continue;
+                    }
+                }
+            }
+            newInstructionList.add(iMov);
+        }
+        instructionList = newInstructionList;
+    }
+
+    private void asmOptimizerAfterRegisterAllocate() {
         List<AsmInstruction> newInstructionList = new ArrayList<>();
         for (int i = 0; i < instructionList.size(); i++) {
             //这个部分是将额外生成的栈空间地址重新转换为普通寻址的过程，必须首先进行该优化
