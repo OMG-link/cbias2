@@ -23,6 +23,10 @@ public class IntRegister extends Register {
         super(name, RTYPE.INT);
     }
 
+    public boolean isS0() {
+        return name != null && name.equals("s0");
+    }
+
     public String emit() {
         if (name != null) {
             return name;

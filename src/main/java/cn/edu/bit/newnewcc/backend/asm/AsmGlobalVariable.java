@@ -74,6 +74,10 @@ public class AsmGlobalVariable {
         }
     }
 
+    public GlobalTag emitNoSegmentTag() {
+        return new GlobalTag(globalVariableName, true);
+    }
+
     private String getSectionStr() {
         if (this.isConstant) {
             if (this.isSmallSection) {

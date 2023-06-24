@@ -112,6 +112,7 @@ public class AsmFunction {
             }
             reAllocateStackVar();
             reAllocateRegister();
+            asmOptimizer();
         }
     }
 
@@ -362,6 +363,42 @@ public class AsmFunction {
         this.instructionList = registerController.emitHead();
         this.instructionList.addAll(newInstructionList);
         this.instructionList.addAll(registerController.emitTail());
+    }
+
+    private void asmOptimizer() {
+        List<AsmInstruction> newInstructionList = new ArrayList<>();
+        for (int i = 0; i < instructionList.size(); i++) {
+            //这个部分是将额外生成的栈空间地址重新转换为普通寻址的过程，必须首先进行该优化
+            if (i + 2 < instructionList.size()) {
+                var iLi = instructionList.get(i);
+                var iAdd = instructionList.get(i + 1);
+                var iMov = instructionList.get(i + 2);
+                if (iLi instanceof AsmLoad && iLi.getOperand(2) instanceof Immediate offset) {
+                    int offsetVal = offset.getValue();
+                    if (!ImmediateTools.bitlengthNotInLimit(offsetVal)) {
+                        if (iAdd instanceof AsmAdd && iAdd.getOperand(3) instanceof IntRegister baseRegister && baseRegister.isS0()) {
+                            if (iMov instanceof AsmLoad iLoad && iLoad.getOperand(2) instanceof StackVar stackVar) {
+                                if (stackVar.getRegister() == iLi.getOperand(1) && stackVar.getAddress().getOffset() == 0) {
+                                    StackVar now = new StackVar(offsetVal, stackVar.getSize(), true);
+                                    newInstructionList.add(new AsmLoad((Register) iLoad.getOperand(1), now));
+                                    i += 2;
+                                    continue;
+                                }
+                            } else if (iMov instanceof AsmStore iStore && iStore.getOperand(2) instanceof StackVar stackVar) {
+                                if (stackVar.getRegister() == iLi.getOperand(1) && stackVar.getAddress().getOffset() == 0) {
+                                    StackVar now = new StackVar(offsetVal, stackVar.getSize(), true);
+                                    newInstructionList.add(new AsmStore((Register) iStore.getOperand(1), now));
+                                    i += 2;
+                                    continue;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            newInstructionList.add(instructionList.get(i));
+        }
+        instructionList = newInstructionList;
     }
 
 }

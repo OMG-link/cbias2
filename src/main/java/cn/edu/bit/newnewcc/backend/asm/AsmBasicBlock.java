@@ -53,8 +53,7 @@ public class AsmBasicBlock {
         if (value instanceof GlobalVariable globalVariable) {
             AsmGlobalVariable asmGlobalVariable = function.getGlobalCode().getGlobalVariable(globalVariable);
             IntRegister reg = function.getRegisterAllocator().allocateInt();
-            function.appendInstruction(new AsmLoad(reg, asmGlobalVariable.emitTag(true)));
-            function.appendInstruction(new AsmAdd(reg, reg, asmGlobalVariable.emitTag(false)));
+            function.appendInstruction(new AsmLoad(reg, asmGlobalVariable.emitNoSegmentTag()));
             return new AddressContent(0, reg);
         } else if (value instanceof Function.FormalParameter formalParameter) {
             return function.getParameterByFormal(formalParameter);
