@@ -74,6 +74,9 @@ public class AsmInstruction {
                 }
             }
         }
+        if (!(this instanceof AsmTag)) {
+            res = '\t' + res;
+        }
         return res + "\n";
     }
 }
