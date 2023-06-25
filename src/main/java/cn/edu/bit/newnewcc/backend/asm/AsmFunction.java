@@ -3,6 +3,7 @@ package cn.edu.bit.newnewcc.backend.asm;
 import cn.edu.bit.newnewcc.backend.asm.instruction.*;
 import cn.edu.bit.newnewcc.backend.asm.operand.*;
 import cn.edu.bit.newnewcc.backend.asm.util.ImmediateTools;
+import cn.edu.bit.newnewcc.backend.asm.util.Pair;
 import cn.edu.bit.newnewcc.ir.Value;
 import cn.edu.bit.newnewcc.ir.type.FloatType;
 import cn.edu.bit.newnewcc.ir.type.IntegerType;
@@ -10,9 +11,11 @@ import cn.edu.bit.newnewcc.ir.type.PointerType;
 import cn.edu.bit.newnewcc.ir.value.BaseFunction;
 import cn.edu.bit.newnewcc.ir.value.BasicBlock;
 import cn.edu.bit.newnewcc.ir.value.Function;
-import org.antlr.v4.runtime.misc.Pair;
 
 import java.util.*;
+
+import static java.lang.Math.max;
+import static java.lang.Math.min;
 
 /**
  * 函数以函数名作为唯一标识符加以区分
@@ -140,6 +143,10 @@ public class AsmFunction {
     //向函数添加指令的方法
     public void appendInstruction(AsmInstruction instruction) {
         instructionList.add(instruction);
+    }
+
+    public int getInstructionListSize() {
+        return instructionList.size();
     }
 
     public void appendAllInstruction(Collection<AsmInstruction> instructions) {
@@ -285,9 +292,28 @@ public class AsmFunction {
         this.instructionList = newInstructionList;
     }
 
+    //虚拟寄存器生命周期的设置过程
+    Map<Integer, Pair<Integer, Integer>> lifeTime = new HashMap<>();
+    Stack<Pair<Integer, BasicBlock>> lifeToBlockEnd = new Stack<>();
+    public void setVregLifeTimeBlockEnd(Integer index, BasicBlock block) {
+        lifeToBlockEnd.push(new Pair<>(index, block));
+    }
+    public void refreshBlockEndVreg() {
+        while (!lifeToBlockEnd.empty()) {
+            var x = lifeToBlockEnd.pop();
+            setVregLifeTime(x.a, basicBlockMap.get(x.b).getBlockEnd());
+        }
+    }
+    public void setVregLifeTime(Integer index, int t) {
+        if (!lifeTime.containsKey(index)) {
+            lifeTime.put(index, new Pair<>(t, t));
+        }
+        var x = lifeTime.get(index);
+        lifeTime.put(index, new Pair<>(min(x.a, t), max(x.b, t)));
+    }
+
     //未分配寄存器的分配方法
     private void reAllocateRegister() {
-        Map<Integer, Integer> lastLifeTime = new HashMap<>();
         for (int i = 0; i < instructionList.size(); i++) {
             AsmInstruction instruction = instructionList.get(i);
             for (int j = 1; j <= 3; j++) {
@@ -295,8 +321,7 @@ public class AsmFunction {
                 if (op instanceof RegisterReplaceable registerReplaceableOp) {
                     Register register = registerReplaceableOp.getRegister();
                     if (register.isVirtual()) {
-                        Integer index = register.getIndex();
-                        lastLifeTime.put(index, i);
+                        setVregLifeTime(register.getIndex(), i);
                     }
                 }
             }
@@ -313,8 +338,8 @@ public class AsmFunction {
         for (int i = 0; i < instructionList.size(); i++) {
             registerRecycleList.add(i, new ArrayList<>());
         }
-        for (var vregIndex : lastLifeTime.keySet()) {
-            registerRecycleList.get(lastLifeTime.get(vregIndex)).add(vregIndex);
+        for (var vregIndex : lifeTime.keySet()) {
+            registerRecycleList.get(lifeTime.get(vregIndex).b).add(vregIndex);
         }
 
         for (int i = 0; i < instructionList.size(); i++) {

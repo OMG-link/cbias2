@@ -27,6 +27,7 @@ public class AsmBasicBlock {
     private final GlobalTag blockTag;
     private final AsmFunction function;
     private final BasicBlock irBlock;
+    int blockStart, blockEnd;
 
     public AsmBasicBlock(AsmFunction function, BasicBlock block) {
         this.function = function;
@@ -38,10 +39,21 @@ public class AsmBasicBlock {
      * 生成基本块的汇编代码，向函数中输出指令
      */
     void emitToFunction() {
+        blockStart = function.getInstructionListSize();
+        translatePhiInstructions(irBlock.getInstructions());
         function.appendInstruction(new AsmTag(blockTag));
         for (Instruction instruction : irBlock.getInstructions()) {
             translate(instruction);
         }
+        blockEnd = function.getInstructionListSize() - 1;
+        function.refreshBlockEndVreg();
+    }
+
+    public int getBlockEnd() {
+        return blockEnd;
+    }
+    public int getBlockStart() {
+        return blockStart;
     }
 
     /**
@@ -156,6 +168,15 @@ public class AsmBasicBlock {
 
     AddressContent getOperandToAddressContent(AsmOperand operand) {
         return getOperandToAddressTag(operand).getAddressContent();
+    }
+
+    void translatePhiInstructions(List<Instruction> instructionList) {
+        for (var inst : instructionList) {
+            if (!(inst instanceof PhiInst)) {
+                break;
+            }
+            // 待完成
+        }
     }
 
     void translateBinaryInstruction(BinaryInstruction binaryInstruction) {

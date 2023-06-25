@@ -53,13 +53,13 @@ class RegisterControl {
                 registerLevel.put(register, 0);
                 registerPreservedType.put(register, TYPE.UNPRESERVED);
             }
-            if (i == 9 || (18 <= i && i <= 27)) {
+            if (18 <= i && i <= 27) {
                 Register register = new IntRegister(i);
                 registerPool.put(register, 0);
                 registerLevel.put(register, 0);
                 registerPreservedType.put(register, TYPE.PRESERVED);
             }
-            if ((8 <= i && i <= 9) || (18 <= i && i <= 27)) {
+            if (18 <= i && i <= 27) {
                 Register register = new FloatRegister(i);
                 registerPool.put(register, 0);
                 registerLevel.put(register, 0);
