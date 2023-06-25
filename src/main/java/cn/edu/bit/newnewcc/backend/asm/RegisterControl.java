@@ -1,5 +1,6 @@
 package cn.edu.bit.newnewcc.backend.asm;
 
+import cn.edu.bit.newnewcc.backend.asm.instruction.AsmCall;
 import cn.edu.bit.newnewcc.backend.asm.instruction.AsmInstruction;
 import cn.edu.bit.newnewcc.backend.asm.instruction.AsmLoad;
 import cn.edu.bit.newnewcc.backend.asm.instruction.AsmStore;
@@ -14,17 +15,14 @@ class RegisterControl {
     }
     private final AsmFunction function;
     //每个虚拟寄存器的值当前存储的位置
-    Map<Integer, AsmOperand> vregLocation = new HashMap<>();
+    private final Map<Integer, AsmOperand> vregLocation = new HashMap<>();
     //每个寄存器当前存储着哪个虚拟寄存器的内容
-    Map<Register, Integer> registerPool = new HashMap<>();
+    private final Map<Register, Integer> registerPool = new HashMap<>();
     //寄存器在调用过程中保留与否，保留的寄存器需要在函数头尾额外保存
-    Map<Register, TYPE> registerPreservedType = new HashMap<>();
-    Map<Register, StackVar> preservedRegisterSaved = new HashMap<>();
-    Map<Register, Integer> registerLevel = new HashMap<>();
-    static final int LevelMax = 255;
+    private final Map<Register, TYPE> registerPreservedType = new HashMap<>();
+    private final Map<Register, StackVar> preservedRegisterSaved = new HashMap<>();
     //在栈中存储用于临时存储的寄存器内容
     StackPool stackPool;
-    List<AsmInstruction> newInstructionList;
 
     public List<AsmInstruction> emitHead() {
         List<AsmInstruction> res = new ArrayList<>();
@@ -41,134 +39,171 @@ class RegisterControl {
         return res;
     }
 
-    public RegisterControl(AsmFunction function, List<AsmInstruction> newInstructionList, StackAllocator allocator) {
+    public RegisterControl(AsmFunction function, StackAllocator allocator) {
         this.function = function;
         stackPool = new StackPool(allocator);
-        this.newInstructionList = newInstructionList;
         //加入目前可使用的寄存器
         for (int i = 0; i <= 31; i++) {
             if ((6 <= i && i <= 7) || (28 <= i)) {
                 Register register = new IntRegister(i);
                 registerPool.put(register, 0);
-                registerLevel.put(register, 0);
                 registerPreservedType.put(register, TYPE.UNPRESERVED);
             }
-            if (18 <= i && i <= 27) {
+            if (i == 9 || (18 <= i && i <= 27)) {
                 Register register = new IntRegister(i);
                 registerPool.put(register, 0);
-                registerLevel.put(register, 0);
                 registerPreservedType.put(register, TYPE.PRESERVED);
             }
             if (18 <= i && i <= 27) {
                 Register register = new FloatRegister(i);
                 registerPool.put(register, 0);
-                registerLevel.put(register, 0);
                 registerPreservedType.put(register, TYPE.PRESERVED);
             }
             if (i <= 7 || 28 <= i) {
                 Register register = new FloatRegister(i);
                 registerPool.put(register, 0);
-                registerLevel.put(register, 0);
                 registerPreservedType.put(register, TYPE.UNPRESERVED);
             }
         }
     }
 
-    boolean isStoredInRegister(Integer index) {
-        if (!vregLocation.containsKey(index)) {
-            return false;
-        }
-        AsmOperand container = vregLocation.get(index);
-        return container instanceof Register;
-    }
-
-    Register getStoredRegister(Integer index) {
-        return (Register) (vregLocation.get(index));
-    }
-
-    void setLevel(Register register, int level) {
-        registerLevel.put(register, level);
-    }
-
-    void freeRegister(Register register) {
-        Integer index = registerPool.get(register);
-        if (index != 0) {
-            StackVar tmp = stackPool.pop();
-            newInstructionList.add(new AsmStore(register, tmp));
-            vregLocation.put(index, tmp);
-            registerPool.put(register, 0);
-        }
-    }
-
-    Register getRegister(Register.RTYPE rtype) {
-        Register ret = null;
-        Integer minLevel = LevelMax;
-        for (var register : registerPool.keySet()) {
-            if (register.getType() == rtype && registerLevel.get(register) < minLevel) {
-                minLevel = registerLevel.get(register);
-                ret = register;
+    void allocateVreg(Register vreg) {
+        var index = vreg.getIndex();
+        for (var reg : registerPool.keySet()) {
+            if (reg.getType() == vreg.getType() && registerPool.get(reg) == 0) {
+                registerPool.put(reg, vreg.getIndex());
+                vregLocation.put(vreg.getIndex(), reg);
+                if (registerPreservedType.get(reg) == TYPE.PRESERVED) {
+                    preservedRegisterSaved.put(reg, stackPool.pop());
+                }
+                return;
             }
         }
-        if (ret != null) {
-            freeRegister(ret);
-            if (registerPreservedType.get(ret) == TYPE.PRESERVED
-                    && !preservedRegisterSaved.containsKey(ret)) {
-                preservedRegisterSaved.put(ret, stackPool.pop());
+        Register spillReg = null;
+        int maxR = function.getLifeTimeController().getLifeTime(index).b;
+        for (var reg : registerPool.keySet()) {
+            if (reg.getType() == vreg.getType()) {
+                int original = registerPool.get(reg);
+                int regR = function.getLifeTimeController().getLifeTime(original).b;
+                if (regR > maxR) {
+                    maxR = regR;
+                    spillReg = reg;
+                }
             }
         }
-        return ret;
+        if (spillReg != null) {
+            int original = registerPool.get(spillReg);
+            vregLocation.put(original, stackPool.pop());
+            registerPool.put(spillReg, index);
+            vregLocation.put(index, spillReg);
+            return;
+        }
+        vregLocation.put(index, stackPool.pop());
     }
 
-    public void resetLevel() {
-        Random r = new Random();
-        for (var register : registerLevel.keySet()) {
-            if (registerPool.get(register) == 0) {
-                if (registerPreservedType.get(register) == TYPE.PRESERVED) {
-                    registerLevel.put(register, r.nextInt(10, 20));
-                } else {
-                    registerLevel.put(register, r.nextInt(0, 10));
+    void linearScanRegAllocate(List<AsmInstruction> instructionList) {
+        List<Register> vregList = new ArrayList<>();
+        List<Pair<Integer, Integer>> recycleList = new ArrayList<>();
+        for (var index : function.getLifeTimeController().getKeySet()) {
+            vregList.add(function.getRegisterAllocator().get(index));
+            recycleList.add(new Pair<>(index, function.getLifeTimeController().getLifeTime(index).b));
+        }
+        vregList.sort((a, b) -> {
+            var lifeTimeA = function.getLifeTimeController().getLifeTime(a.getIndex());
+            var lifeTimeB = function.getLifeTimeController().getLifeTime(b.getIndex());
+            if (Objects.equals(lifeTimeA.a, lifeTimeB.a)) {
+                return lifeTimeA.b - lifeTimeB.b;
+            }
+            return lifeTimeA.a - lifeTimeB.a;
+        });
+        recycleList.sort(Comparator.comparingInt(a -> a.b));
+        int recycleHead = 0;
+        for (var vreg : vregList) {
+            var lifeTime = function.getLifeTimeController().getLifeTime(vreg.getIndex());
+            while (recycleHead < recycleList.size() && recycleList.get(recycleHead).b < lifeTime.a) {
+                recycle(recycleList.get(recycleHead).a);
+                recycleHead += 1;
+            }
+            allocateVreg(vreg);
+        }
+    }
+
+    Set<Register> getUsedRegisters(AsmInstruction inst) {
+        Set<Register> used = new HashSet<>();
+        for (int j = 1; j <= 3; j++) {
+            if (inst.getOperand(j) instanceof RegisterReplaceable registerReplaceable) {
+                Register vreg = registerReplaceable.getRegister();
+                if (vreg.isVirtual()) {
+                    if (vregLocation.get(vreg.getIndex()) instanceof Register register) {
+                        used.add(register);
+                    }
+                }
+            }
+        }
+        return used;
+    }
+
+    Register getExRegister(Set<Register> used, Register vreg) {
+        for (var reg : registerPool.keySet()) {
+            if (reg.getType() == vreg.getType() && !used.contains(reg)) {
+                used.add(reg);
+                return reg;
+            }
+        }
+        return null;
+    }
+
+    List<AsmInstruction> spillRegisters(List<AsmInstruction> instructionList) {
+        List<AsmInstruction> newInstList = new ArrayList<>();
+        for (var inst : instructionList) {
+            Map<Register, StackVar> registerSaveMap = new HashMap<>();
+            var used = getUsedRegisters(inst);
+            for (int j = 1; j <= 3; j++) {
+                if (inst.getOperand(j) instanceof RegisterReplaceable registerReplaceable) {
+                    var vreg = registerReplaceable.getRegister();
+                    if (vreg.isVirtual()) {
+                        Register physicRegister = null;
+                        if (vregLocation.get(vreg.getIndex()) instanceof StackVar stackVar) {
+                            physicRegister = getExRegister(used, vreg);
+                            var tmp = stackPool.pop();
+                            registerSaveMap.put(physicRegister, tmp);
+                            newInstList.add(new AsmStore(physicRegister, tmp));
+                            newInstList.add(new AsmLoad(physicRegister, stackVar));
+                        } else if (vregLocation.get(vreg.getIndex()) instanceof Register register) {
+                            physicRegister = register;
+                        }
+                        inst.replaceOperand(j, registerReplaceable.replaceRegister(physicRegister));
+                    }
+                }
+            }
+            if (inst instanceof AsmCall) {
+                Map<Register, StackVar> callSaved = new HashMap<>();
+                for (var reg : registerPool.keySet()) {
+                    if (registerPool.get(reg) != 0 && registerPreservedType.get(reg) != TYPE.PRESERVED) {
+                        var tmp = stackPool.pop();
+                        callSaved.put(reg, tmp);
+                        newInstList.add(new AsmStore(reg, tmp));
+                    }
+                }
+                newInstList.add(inst);
+                for (var reg : callSaved.keySet()) {
+                    var tmp = callSaved.get(reg);
+                    newInstList.add(new AsmLoad(reg, tmp));
+                    stackPool.push(tmp);
                 }
             } else {
-                registerLevel.put(register, 20);
+                newInstList.add(inst);
+            }
+            for (var reg : registerSaveMap.keySet()) {
+                var tmp = registerSaveMap.get(reg);
+                newInstList.add(new AsmLoad(reg, tmp));
+                stackPool.push(tmp);
             }
         }
+        return newInstList;
     }
 
-    public void setVregLevelMax(Integer index) {
-        if (isStoredInRegister(index)) {
-            setLevel(getStoredRegister(index), LevelMax);
-        }
-    }
-
-    public Register allocateRegister(Register virtualRegister) {
-        Register register = null;
-        int index = virtualRegister.getIndex();
-        if (!vregLocation.containsKey(index)) {
-            register = getRegister(virtualRegister.getType());
-        } else {
-            var container = vregLocation.get(index);
-            if (container instanceof Register rtmp) {
-                register = rtmp;
-            } else if (container instanceof StackVar) {
-                register = getRegister(virtualRegister.getType());
-                if (register == null) {
-                    throw new RuntimeException("register not enough!");
-                }
-                newInstructionList.add(new AsmLoad(register, container));
-                stackPool.push((StackVar) container);
-            }
-        }
-        if (register != null) {
-            setLevel(register, LevelMax);
-            vregLocation.put(index, register);
-            registerPool.put(register, index);
-        } else {
-            throw new RuntimeException("register allocate null");
-        }
-        return register;
-    }
-
-    public void recycle(Integer index) {
+    void recycle(Integer index) {
         var container = vregLocation.get(index);
         if (container instanceof Register register) {
             registerPool.put(register, 0);
@@ -176,22 +211,5 @@ class RegisterControl {
             stackPool.push(stackVar);
         }
         vregLocation.remove(index);
-    }
-
-    public void call(AsmInstruction instruction) {
-        List<Pair<Register, StackVar>> pushList = new ArrayList<>();
-        for (var register : registerPool.keySet()) {
-            Integer index = registerPool.get(register);
-            if (registerPreservedType.get(register) != TYPE.PRESERVED && index != 0) {
-                StackVar tmp = stackPool.pop();
-                newInstructionList.add(new AsmStore(register, tmp));
-                pushList.add(new Pair<>(register, tmp));
-            }
-        }
-        newInstructionList.add(instruction);
-        for (var p : pushList) {
-            newInstructionList.add(new AsmLoad(p.a, p.b));
-            stackPool.push(p.b);
-        }
     }
 }

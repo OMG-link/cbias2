@@ -6,27 +6,39 @@ import cn.edu.bit.newnewcc.backend.asm.operand.Register;
 import cn.edu.bit.newnewcc.ir.type.FloatType;
 import cn.edu.bit.newnewcc.ir.value.Instruction;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * 寄存器分配器，内部包含整数分配和浮点数寄存器分配功能，分配出的寄存器均为虚拟寄存器（下标为负数）
  */
 public class RegisterAllocator {
     private final FloatRegisterAllocator floatRegisterAllocator = new FloatRegisterAllocator();
     private final IntRegisterAllocator intRegisterAllocator = new IntRegisterAllocator();
+    private final Map<Integer, Register> vregMap = new HashMap<>();
     int total;
     public RegisterAllocator() {
         total = 0;
     }
     public IntRegister allocateInt() {
-        return intRegisterAllocator.allocate(--total);
+        var reg = intRegisterAllocator.allocate(--total);
+        vregMap.put(total, reg);
+        return reg;
     }
     public FloatRegister allocateFloat() {
-        return floatRegisterAllocator.allocate(--total);
+        var reg = floatRegisterAllocator.allocate(--total);
+        vregMap.put(total, reg);
+        return reg;
     }
     public IntRegister allocateInt(Instruction instruction) {
-        return intRegisterAllocator.allocate(instruction, --total);
+        var reg = intRegisterAllocator.allocate(instruction, --total);
+        vregMap.put(total, reg);
+        return reg;
     }
     public FloatRegister allocateFloat(Instruction instruction) {
-        return floatRegisterAllocator.allocate(instruction, --total);
+        var reg = floatRegisterAllocator.allocate(instruction, --total);
+        vregMap.put(total, reg);
+        return reg;
     }
     public Register allocate(Instruction instruction) {
         if (instruction.getType() instanceof FloatType) {
@@ -47,5 +59,8 @@ public class RegisterAllocator {
         } else {
             throw new RuntimeException("instruction to register not found");
         }
+    }
+    public Register get(Integer index) {
+        return vregMap.get(-index);
     }
 }

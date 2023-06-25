@@ -153,11 +153,11 @@ public class AsmFunction {
         instructionList.addAll(instructions);
     }
 
-
     //函数内部资源分配器
     private final StackAllocator stackAllocator = new StackAllocator();
     private final RegisterAllocator registerAllocator = new RegisterAllocator();
     private final AddressAllocator addressAllocator = new AddressAllocator();
+    private final LifeTimeController lifeTimeController = new LifeTimeController(this);
 
     //资源对应的get方法
     public AsmBasicBlock getBasicBlock(BasicBlock block) {
@@ -186,6 +186,10 @@ public class AsmFunction {
 
     public AddressAllocator getAddressAllocator() {
         return addressAllocator;
+    }
+
+    public LifeTimeController getLifeTimeController() {
+        return lifeTimeController;
     }
 
     /**
@@ -292,91 +296,15 @@ public class AsmFunction {
         this.instructionList = newInstructionList;
     }
 
-    //虚拟寄存器生命周期的设置过程
-    Map<Integer, Pair<Integer, Integer>> lifeTime = new HashMap<>();
-    Stack<Pair<Integer, BasicBlock>> lifeToBlockEnd = new Stack<>();
-    public void setVregLifeTimeBlockEnd(Integer index, BasicBlock block) {
-        lifeToBlockEnd.push(new Pair<>(index, block));
-    }
-    public void refreshBlockEndVreg() {
-        while (!lifeToBlockEnd.empty()) {
-            var x = lifeToBlockEnd.pop();
-            setVregLifeTime(x.a, basicBlockMap.get(x.b).getBlockEnd());
-        }
-    }
-    public void setVregLifeTime(Integer index, int t) {
-        if (!lifeTime.containsKey(index)) {
-            lifeTime.put(index, new Pair<>(t, t));
-        }
-        var x = lifeTime.get(index);
-        lifeTime.put(index, new Pair<>(min(x.a, t), max(x.b, t)));
-    }
 
     //未分配寄存器的分配方法
     private void reAllocateRegister() {
-        for (int i = 0; i < instructionList.size(); i++) {
-            AsmInstruction instruction = instructionList.get(i);
-            for (int j = 1; j <= 3; j++) {
-                AsmOperand op = instruction.getOperand(j);
-                if (op instanceof RegisterReplaceable registerReplaceableOp) {
-                    Register register = registerReplaceableOp.getRegister();
-                    if (register.isVirtual()) {
-                        setVregLifeTime(register.getIndex(), i);
-                    }
-                }
-            }
-        }
+        lifeTimeController.refreshAllVreg(instructionList);
 
-        List<AsmInstruction> newInstructionList = new ArrayList<>();
+        RegisterControl registerController = new RegisterControl(this, stackAllocator);
+        registerController.linearScanRegAllocate(instructionList);
+        var newInstructionList = registerController.spillRegisters(instructionList);
 
-        //存储该指令执行结束后生命周期结束的寄存器
-        List<List<Integer>> registerRecycleList = new ArrayList<>(instructionList.size());
-        //寄存器分配器
-        RegisterControl registerController = new RegisterControl(this, newInstructionList, stackAllocator);
-
-        //在虚拟寄存器生命周期结束时加入回收列表
-        for (int i = 0; i < instructionList.size(); i++) {
-            registerRecycleList.add(i, new ArrayList<>());
-        }
-        for (var vregIndex : lifeTime.keySet()) {
-            registerRecycleList.get(lifeTime.get(vregIndex).b).add(vregIndex);
-        }
-
-        for (int i = 0; i < instructionList.size(); i++) {
-            AsmInstruction instruction = instructionList.get(i);
-
-            //函数调用指令需要特殊处理
-            if (instruction instanceof AsmCall) {
-                registerController.call(instruction);
-            } else {
-                registerController.resetLevel();
-                //普通使用了寄存器的指令
-                for (int j = 1; j <= 3; j++) {
-                    AsmOperand op = instruction.getOperand(j);
-                    if (op instanceof RegisterReplaceable registerReplaceableOp) {
-                        Register register = registerReplaceableOp.getRegister();
-                        if (register.isVirtual()) {
-                            registerController.setVregLevelMax(register.getIndex());
-                        }
-                    }
-                }
-                for (int j = 1; j <= 3; j++) {
-                    AsmOperand op = instruction.getOperand(j);
-                    if (op instanceof RegisterReplaceable registerReplaceableOp) {
-                        Register register = registerReplaceableOp.getRegister();
-                        if (register.isVirtual()) {
-                            instruction.replaceOperand(
-                                    j, registerReplaceableOp.replaceRegister(registerController.allocateRegister(register)));
-                        }
-                    }
-                }
-                newInstructionList.add(instruction);
-                for (var freeVregId : registerRecycleList.get(i)) {
-                    registerController.recycle(freeVregId);
-                }
-                // 此处待优化部分：二元运算符的目标寄存器
-            }
-        }
         for (var inst : newInstructionList) {
             for (int j = 1; j <= 3; j++) {
                 AsmOperand operand = inst.getOperand(j);

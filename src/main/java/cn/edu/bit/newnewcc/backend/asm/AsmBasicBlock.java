@@ -46,7 +46,6 @@ public class AsmBasicBlock {
             translate(instruction);
         }
         blockEnd = function.getInstructionListSize() - 1;
-        function.refreshBlockEndVreg();
     }
 
     public int getBlockEnd() {
