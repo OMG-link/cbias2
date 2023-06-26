@@ -35,10 +35,11 @@ public class LifeTimeController {
     }
 
     public void refreshBlockEndVreg() {
+        /*
         while (!lifeToBlockEnd.empty()) {
             var x = lifeToBlockEnd.pop();
             setVregLifeTime(x.a, function.getBasicBlock(x.b).getBlockEnd());
-        }
+        }*/
     }
 
     public void setVregLifeTime(Integer index, int t) {
