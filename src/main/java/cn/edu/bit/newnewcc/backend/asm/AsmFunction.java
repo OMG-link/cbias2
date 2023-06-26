@@ -406,7 +406,6 @@ public class AsmFunction {
             };
             //这个部分是将额外生成的栈空间地址重新转换为普通寻址的过程，必须首先进行该优化
             if (oldInstructionList.size() > 1) {
-                // 该优化可能存在问题，具体save load的指令省略有待重写
                 {
                     var iSv = oldInstructionList.get(0);
                     var iLd = oldInstructionList.get(1);
@@ -414,7 +413,8 @@ public class AsmFunction {
                         var iSvOp2 = iSv.getOperand(2);
                         var iLdOp2 = iLd.getOperand(2);
                         if (!(iSvOp2 instanceof ExStackVarContent) && iSvOp2.equals(iLdOp2)) {
-                            popx.accept(2);
+                            newInstructionList.addLast(oldInstructionList.removeFirst());
+                            popx.accept(1);
                             Register source = (Register) iSv.getOperand(1);
                             Register destination = (Register) iLd.getOperand(1);
                             if (!source.equals(destination)) {
