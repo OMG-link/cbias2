@@ -21,7 +21,5 @@ public abstract class RegisterControl {
         stackPool = new StackPool(allocator);
     }
 
-    public abstract void VritualRegAllocateToPhysics();
-
     public abstract List<AsmInstruction> spillRegisters(List<AsmInstruction> instructionList);
 }

@@ -104,8 +104,7 @@ class LinearScanRegisterControl extends RegisterControl{
     /**
      * 进行两次线性扫描，第一次分配寄存器并进行spill操作，第二次为spill操作后的寄存器分配栈空间
      */
-    @Override
-    public void VritualRegAllocateToPhysics() {
+    private void vritualRegAllocateToPhysics() {
         List<Register> vregList = new ArrayList<>();
         List<Pair<Integer, Integer>> recycleList = new ArrayList<>();
         for (var index : function.getLifeTimeController().getKeySet()) {
@@ -185,6 +184,7 @@ class LinearScanRegisterControl extends RegisterControl{
 
     @Override
     public List<AsmInstruction> spillRegisters(List<AsmInstruction> instructionList) {
+        vritualRegAllocateToPhysics();
         registerPool.replaceAll((r, v) -> 0);
         List<AsmInstruction> newInstList = new ArrayList<>();
         List<List<Pair<Integer, Integer>>> callSavedRegisters = new ArrayList<>();
