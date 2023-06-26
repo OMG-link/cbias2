@@ -42,7 +42,7 @@ public class LifeTimeController {
         }*/
     }
 
-    public void setVregLifeTime(Integer index, int t) {
+    private void setVregLifeTime(Integer index, int t) {
         if (!lifeTime.containsKey(index)) {
             lifeTime.put(index, new Pair<>(t, t));
         }
@@ -51,6 +51,7 @@ public class LifeTimeController {
     }
 
     public void refreshAllVreg(List<AsmInstruction> instructionList) {
+        refreshBlockEndVreg();
         for (int i = 0; i < instructionList.size(); i++) {
             AsmInstruction instruction = instructionList.get(i);
             for (int j = 1; j <= 3; j++) {
