@@ -116,7 +116,7 @@ public class AsmFunction {
             asmOptimizerBeforeRegisterAllocate();
             //reAllocateStackVar();
             reAllocateRegister();
-            asmOptimizerAfterRegisterAllocate();
+            //asmOptimizerAfterRegisterAllocate();
         }
     }
 
@@ -203,7 +203,7 @@ public class AsmFunction {
         }
         var res = formalParameters.get(index);
         if (res instanceof StackVar stackVar) {
-            return stackVar.flip();
+            return transformStackVar(stackVar.flip());
         }
         return res;
     }
@@ -211,7 +211,7 @@ public class AsmFunction {
     public AsmOperand getParameterByFormal(Value formalParameter) {
         var res = formalParameterMap.get(formalParameter);
         if (res instanceof StackVar stackVar) {
-            return stackVar.flip();
+            return transformStackVar(stackVar.flip());
         }
         return res;
     }
@@ -236,12 +236,16 @@ public class AsmFunction {
         List<Pair<StackVar, Register>> pushList = new ArrayList<>();
         for (int i = 0; i < parameters.size(); i++) {
             var formalPara = calledFunction.formalParameters.get(i);
+            if (formalPara instanceof StackVar stackVar) {
+                formalPara = transformStackVar(stackVar, res);
+            }
             //若形参中使用了参数保存寄存器，则需先push寄存器保存原有内容
             if (formalPara instanceof Register reg) {
-                StackVar vreg = transformStackVar(stackAllocator.push(8), instructionList);
-                res.add(new AsmStore(reg, vreg));
+                StackVar vreg = stackAllocator.push(8);
+                res.add(new AsmStore(reg, transformStackVar(vreg, res)));
                 pushList.add(new Pair<>(vreg, reg));
             } else {
+                assert formalPara instanceof ExStackVarContent;
                 stackAllocator.push_back((StackVar)formalPara);
             }
 
@@ -267,7 +271,7 @@ public class AsmFunction {
         }
         //执行完成后恢复寄存器现场
         for (var p : pushList) {
-            res.add(new AsmLoad(p.b, p.a));
+            res.add(new AsmLoad(p.b, transformStackVar(p.a, res)));
             stackAllocator.pop(8);
         }
         return res;
@@ -283,6 +287,10 @@ public class AsmFunction {
         return ExStackVarContent.transform(stackVar, now);
     }
 
+    public ExStackVarContent transformStackVar(StackVar stackVar) {
+        return transformStackVar(stackVar, instructionList);
+    }
+
     /**
      * 重新分配栈偏移量的过程，避免offset超出11位导致汇编错误
      */
@@ -291,7 +299,7 @@ public class AsmFunction {
         for (var inst : instructionList) {
             for (int j = 1; j <= 3; j++) {
                 AsmOperand operand = inst.getOperand(j);
-                if (operand instanceof StackVar stackVar && !(operand instanceof ExStackVarContent) && ((StackVar) operand).getAddress().getOffset() < 0) {
+                if (operand instanceof StackVar stackVar && !(operand instanceof ExStackVarContent)) {
                     inst.replaceOperand(j, transformStackVar(stackVar, newInstructionList));
                 }
             }

@@ -72,14 +72,7 @@ public class AsmBasicBlock {
             if (function.getRegisterAllocator().contain(instruction)) {
                 return function.getRegisterAllocator().get(instruction);
             } else if (function.getStackAllocator().contain(instruction)) {
-                StackVar stackVar =  function.getStackAllocator().get(instruction);
-                Address stackAddress = stackVar.getAddress();
-                ExStackVarOffset offset = ExStackVarOffset.transform(stackVar, stackAddress.getOffset());
-                IntRegister tmp = function.getRegisterAllocator().allocateInt();
-                function.appendInstruction(new AsmLoad(tmp, offset));
-                function.appendInstruction(new AsmAdd(tmp, tmp, stackAddress.getRegister()));
-                Address now = new AddressContent(0, tmp);
-                return ExStackVarContent.transform(stackVar, now);
+                return function.transformStackVar(function.getStackAllocator().get(instruction));
             } else if (function.getAddressAllocator().contain(instruction)) {
                 return function.getAddressAllocator().get(instruction);
             } else {
@@ -164,6 +157,9 @@ public class AsmBasicBlock {
                 return address.getAddressTag();
             }
         } else if (operand instanceof StackVar stackVar) {
+            if (stackVar instanceof ExStackVarContent) {
+                return stackVar.getAddress().getAddressTag();
+            }
             return transformStackVarToAddressTag(stackVar);
         } else if (operand instanceof IntRegister intRegister) {
             return new AddressTag(0, intRegister);
