@@ -9,6 +9,9 @@ import org.antlr.v4.runtime.misc.Pair;
 
 import java.util.*;
 
+/**
+ * 线性扫描寄存器分配器
+ */
 class LinearScanRegisterControl extends RegisterControl{
     public enum TYPE {
         PRESERVED, UNPRESERVED
