@@ -17,6 +17,10 @@ class StackPool {
         queue.add(stackVar);
     }
 
+    public void clear() {
+        queue.clear();
+    }
+
     StackVar pop() {
         if (queue.isEmpty()) {
             return allocator.push_ex();

@@ -72,7 +72,14 @@ public class AsmBasicBlock {
             if (function.getRegisterAllocator().contain(instruction)) {
                 return function.getRegisterAllocator().get(instruction);
             } else if (function.getStackAllocator().contain(instruction)) {
-                return function.getStackAllocator().get(instruction);
+                StackVar stackVar =  function.getStackAllocator().get(instruction);
+                Address stackAddress = stackVar.getAddress();
+                ExStackVarOffset offset = ExStackVarOffset.transform(stackVar, stackAddress.getOffset());
+                IntRegister tmp = function.getRegisterAllocator().allocateInt();
+                function.appendInstruction(new AsmLoad(tmp, offset));
+                function.appendInstruction(new AsmAdd(tmp, tmp, stackAddress.getRegister()));
+                Address now = new AddressContent(0, tmp);
+                return ExStackVarContent.transform(stackVar, now);
             } else if (function.getAddressAllocator().contain(instruction)) {
                 return function.getAddressAllocator().get(instruction);
             } else {

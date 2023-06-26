@@ -114,7 +114,7 @@ public class AsmFunction {
                 block.emitToFunction();
             }
             asmOptimizerBeforeRegisterAllocate();
-            reAllocateStackVar();
+            //reAllocateStackVar();
             reAllocateRegister();
             asmOptimizerAfterRegisterAllocate();
         }
@@ -238,7 +238,7 @@ public class AsmFunction {
             var formalPara = calledFunction.formalParameters.get(i);
             //若形参中使用了参数保存寄存器，则需先push寄存器保存原有内容
             if (formalPara instanceof Register reg) {
-                StackVar vreg = stackAllocator.push(8);
+                StackVar vreg = transformStackVar(stackAllocator.push(8), instructionList);
                 res.add(new AsmStore(reg, vreg));
                 pushList.add(new Pair<>(vreg, reg));
             } else {
@@ -273,6 +273,16 @@ public class AsmFunction {
         return res;
     }
 
+    public ExStackVarContent transformStackVar(StackVar stackVar, List<AsmInstruction> newInstructionList) {
+        Address stackAddress = stackVar.getAddress();
+        ExStackVarOffset offset = ExStackVarOffset.transform(stackVar, stackAddress.getOffset());
+        IntRegister tmp = registerAllocator.allocateInt();
+        newInstructionList.add(new AsmLoad(tmp, offset));
+        newInstructionList.add(new AsmAdd(tmp, tmp, stackAddress.getRegister()));
+        Address now = new AddressContent(0, tmp);
+        return ExStackVarContent.transform(stackVar, now);
+    }
+
     /**
      * 重新分配栈偏移量的过程，避免offset超出11位导致汇编错误
      */
@@ -281,14 +291,8 @@ public class AsmFunction {
         for (var inst : instructionList) {
             for (int j = 1; j <= 3; j++) {
                 AsmOperand operand = inst.getOperand(j);
-                if (operand instanceof StackVar stackVar) {
-                    Address stackAddress = stackVar.getAddress();
-                    ExStackVarOffset offset = ExStackVarOffset.transform(stackVar, stackAddress.getOffset());
-                    IntRegister tmp = registerAllocator.allocateInt();
-                    newInstructionList.add(new AsmLoad(tmp, offset));
-                    newInstructionList.add(new AsmAdd(tmp, tmp, stackAddress.getRegister()));
-                    Address now = new AddressContent(0, tmp);
-                    inst.replaceOperand(j, ExStackVarContent.transform(stackVar, now));
+                if (operand instanceof StackVar stackVar && !(operand instanceof ExStackVarContent) && ((StackVar) operand).getAddress().getOffset() < 0) {
+                    inst.replaceOperand(j, transformStackVar(stackVar, newInstructionList));
                 }
             }
             newInstructionList.add(inst);
