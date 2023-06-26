@@ -116,7 +116,7 @@ public class AsmFunction {
             asmOptimizerBeforeRegisterAllocate();
             //reAllocateStackVar();
             reAllocateRegister();
-            //asmOptimizerAfterRegisterAllocate();
+            asmOptimizerAfterRegisterAllocate();
         }
     }
 
@@ -314,7 +314,7 @@ public class AsmFunction {
         lifeTimeController.refreshAllVreg(instructionList);
 
         RegisterControl registerController = new RegisterControl(this, stackAllocator);
-        registerController.linearScanRegAllocate(instructionList);
+        registerController.linearScanRegAllocate();
         var newInstructionList = registerController.spillRegisters(instructionList);
 
         for (var inst : newInstructionList) {

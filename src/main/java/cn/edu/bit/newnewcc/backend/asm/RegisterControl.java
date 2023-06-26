@@ -93,15 +93,16 @@ class RegisterControl {
         }
         if (spillReg != null) {
             int original = registerPool.get(spillReg);
-            vregLocation.put(original, stackPool.pop());
+            vregLocation.remove(original);
             registerPool.put(spillReg, index);
             vregLocation.put(index, spillReg);
-            return;
         }
-        vregLocation.put(index, stackPool.pop());
     }
 
-    void linearScanRegAllocate(List<AsmInstruction> instructionList) {
+    /**
+     * 进行两次线性扫描，第一次分配寄存器并进行spill操作，第二次为spill操作后的寄存器分配栈空间
+     */
+    void linearScanRegAllocate() {
         List<Register> vregList = new ArrayList<>();
         List<Pair<Integer, Integer>> recycleList = new ArrayList<>();
         for (var index : function.getLifeTimeController().getKeySet()) {
@@ -117,6 +118,8 @@ class RegisterControl {
             return lifeTimeA.a - lifeTimeB.a;
         });
         recycleList.sort(Comparator.comparingInt(a -> a.b));
+
+        //第一次扫描，分配寄存器本身
         int recycleHead = 0;
         for (var vreg : vregList) {
             var lifeTime = function.getLifeTimeController().getLifeTime(vreg.getIndex());
@@ -125,6 +128,17 @@ class RegisterControl {
                 recycleHead += 1;
             }
             allocateVreg(vreg);
+        }
+
+        //第二次扫描，分配被spill的寄存器的栈空间
+        recycleHead = 0;
+        for (var vreg : vregList) {
+            var lifeTime = function.getLifeTimeController().getLifeTime(vreg.getIndex());
+            while (recycleHead < recycleList.size() && recycleList.get(recycleHead).b < lifeTime.a) {
+                recycle(recycleList.get(recycleHead).a);
+                recycleHead += 1;
+            }
+            vregLocation.put(vreg.getIndex(), stackPool.pop());
         }
         stackPool.clear();
     }
@@ -244,6 +258,9 @@ class RegisterControl {
     }
 
     void recycle(Integer index) {
+        if (!vregLocation.containsKey(index)) {
+            return;
+        }
         var container = vregLocation.get(index);
         if (container instanceof Register register) {
             registerPool.put(register, 0);
