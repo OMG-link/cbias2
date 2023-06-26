@@ -314,8 +314,8 @@ public class AsmFunction {
     private void reAllocateRegister() {
         lifeTimeController.refreshAllVreg(instructionList);
 
-        RegisterControl registerController = new RegisterControl(this, stackAllocator);
-        registerController.linearScanRegAllocate();
+        RegisterControl registerController = new LinearScanRegisterControl(this, stackAllocator);
+        registerController.VritualRegAllocateToPhysics();
         var newInstructionList = registerController.spillRegisters(instructionList);
 
         for (var inst : newInstructionList) {
