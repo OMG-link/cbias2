@@ -13,6 +13,7 @@ import cn.edu.bit.newnewcc.ir.value.BasicBlock;
 import cn.edu.bit.newnewcc.ir.value.Function;
 
 import java.util.*;
+import java.util.function.Consumer;
 
 import static java.lang.Math.max;
 import static java.lang.Math.min;
@@ -390,39 +391,68 @@ public class AsmFunction {
     }
 
     private void asmOptimizerAfterRegisterAllocate() {
-        List<AsmInstruction> newInstructionList = new ArrayList<>();
-        for (int i = 0; i < instructionList.size(); i++) {
+        LinkedList<AsmInstruction> newInstructionList = new LinkedList<>();
+        LinkedList<AsmInstruction> oldInstructionList = new LinkedList<>(instructionList);
+        while (oldInstructionList.size() > 0) {
+            Consumer<Integer> popx = (Integer x) -> {
+                for (int j = 0; j < x; j++) {
+                    oldInstructionList.removeFirst();
+                }
+            };
+            Consumer<Integer> backward = (Integer x) -> {
+                for (int j = 0; j < x && j < newInstructionList.size(); j++) {
+                    oldInstructionList.addFirst(newInstructionList.removeLast());
+                }
+            };
             //这个部分是将额外生成的栈空间地址重新转换为普通寻址的过程，必须首先进行该优化
-            if (i + 2 < instructionList.size()) {
-                var iLi = instructionList.get(i);
-                var iAdd = instructionList.get(i + 1);
-                var iMov = instructionList.get(i + 2);
-                if (iLi instanceof AsmLoad && iLi.getOperand(2) instanceof Immediate offset) {
-                    int offsetVal = offset.getValue();
-                    if (!ImmediateTools.bitlengthNotInLimit(offsetVal)) {
-                        if (iAdd instanceof AsmAdd && iAdd.getOperand(3) instanceof IntRegister baseRegister && baseRegister.isS0()) {
-                            if (iMov instanceof AsmLoad iLoad && iLoad.getOperand(2) instanceof StackVar stackVar) {
-                                if (stackVar.getRegister() == iLi.getOperand(1) && stackVar.getAddress().getOffset() == 0) {
-                                    StackVar now = new StackVar(offsetVal, stackVar.getSize(), true);
-                                    newInstructionList.add(new AsmLoad((Register) iLoad.getOperand(1), now));
-                                    i += 2;
-                                    continue;
-                                }
-                            } else if (iMov instanceof AsmStore iStore && iStore.getOperand(2) instanceof StackVar stackVar) {
-                                if (stackVar.getRegister() == iLi.getOperand(1) && stackVar.getAddress().getOffset() == 0) {
-                                    StackVar now = new StackVar(offsetVal, stackVar.getSize(), true);
-                                    newInstructionList.add(new AsmStore((Register) iStore.getOperand(1), now));
-                                    i += 2;
-                                    continue;
+            if (oldInstructionList.size() > 1) {
+                {
+                    var iSv = oldInstructionList.get(0);
+                    var iLd = oldInstructionList.get(1);
+                    if (iSv instanceof AsmStore && iLd instanceof AsmLoad && iSv.getOperand(2).equals(iLd.getOperand(2))) {
+                        popx.accept(2);
+                        Register source = (Register) iSv.getOperand(1);
+                        Register destination = (Register) iLd.getOperand(1);
+                        if (!source.equals(destination)) {
+                            oldInstructionList.addFirst(new AsmLoad(destination, source));
+                        }
+                        backward.accept(1);
+                        continue;
+                    }
+                }
+                if (oldInstructionList.size() > 2) {
+                    var iLi = oldInstructionList.get(0);
+                    var iAdd = oldInstructionList.get(1);
+                    var iMov = oldInstructionList.get(2);
+                    if (iLi instanceof AsmLoad && iLi.getOperand(2) instanceof Immediate offset) {
+                        int offsetVal = offset.getValue();
+                        if (!ImmediateTools.bitlengthNotInLimit(offsetVal)) {
+                            if (iAdd instanceof AsmAdd && iAdd.getOperand(3) instanceof IntRegister baseRegister && baseRegister.isS0()) {
+                                if (iMov instanceof AsmLoad iLoad && iLoad.getOperand(2) instanceof StackVar stackVar) {
+                                    if (stackVar.getRegister() == iLi.getOperand(1) && stackVar.getAddress().getOffset() == 0) {
+                                        StackVar now = new StackVar(offsetVal, stackVar.getSize(), true);
+                                        popx.accept(3);
+                                        oldInstructionList.addFirst(new AsmLoad((Register) iLoad.getOperand(1), now));
+                                        backward.accept(1);
+                                        continue;
+                                    }
+                                } else if (iMov instanceof AsmStore iStore && iStore.getOperand(2) instanceof StackVar stackVar) {
+                                    if (stackVar.getRegister() == iLi.getOperand(1) && stackVar.getAddress().getOffset() == 0) {
+                                        StackVar now = new StackVar(offsetVal, stackVar.getSize(), true);
+                                        popx.accept(3);
+                                        oldInstructionList.addFirst(new AsmStore((Register) iStore.getOperand(1), now));
+                                        backward.accept(1);
+                                        continue;
+                                    }
                                 }
                             }
                         }
                     }
                 }
             }
-            newInstructionList.add(instructionList.get(i));
+            newInstructionList.addLast(oldInstructionList.removeFirst());
         }
-        instructionList = newInstructionList;
+        instructionList = new ArrayList<>(newInstructionList);
     }
 
 }

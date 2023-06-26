@@ -67,4 +67,9 @@ public class StackVar extends AsmOperand implements RegisterReplaceable {
     public Register getRegister() {
         return getAddress().getRegister();
     }
+
+    @Override
+    public boolean equals(Object v) {
+        return v instanceof StackVar stackVar && size == stackVar.getSize() && emit().equals(stackVar.emit());
+    }
 }

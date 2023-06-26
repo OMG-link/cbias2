@@ -143,14 +143,14 @@ class RegisterControl {
         stackPool.clear();
     }
 
-    Set<Register> getUsedRegisters(AsmInstruction inst) {
-        Set<Register> used = new HashSet<>();
+    Map<Register, Register> getUsedRegisters(AsmInstruction inst) {
+        Map<Register, Register> used = new HashMap<>();
         for (int j = 1; j <= 3; j++) {
             if (inst.getOperand(j) instanceof RegisterReplaceable registerReplaceable) {
                 Register vreg = registerReplaceable.getRegister();
                 if (vreg.isVirtual()) {
                     if (vregLocation.get(vreg.getIndex()) instanceof Register register) {
-                        used.add(register);
+                        used.put(register, register);
                     }
                 }
             }
@@ -158,21 +158,22 @@ class RegisterControl {
         return used;
     }
 
-    Register getExRegister(Set<Register> used, Register vreg, Map<Register, StackVar> registerSaveMap, List<AsmInstruction> newInstList, StackVar stackVar) {
+    Register getExRegister(Map<Register, Register> used, Register vreg, Map<Register, StackVar> registerSaveMap, List<AsmInstruction> newInstList) {
+        if (used.containsKey(vreg)) {
+            return used.get(vreg);
+        }
         for (var reg : registerPool.keySet()) {
-            if (reg.getType() == vreg.getType() && !used.contains(reg) && registerPool.get(reg) == 0) {
-                used.add(reg);
-                newInstList.add(new AsmLoad(reg, stackVar));
+            if (reg.getType() == vreg.getType() && !used.containsValue(reg) && registerPool.get(reg) == 0) {
+                used.put(vreg, reg);
                 return reg;
             }
         }
         for (var reg : registerPool.keySet()) {
-            if (reg.getType() == vreg.getType() && !used.contains(reg)) {
-                used.add(reg);
+            if (reg.getType() == vreg.getType() && !used.containsValue(reg)) {
+                used.put(vreg, reg);
                 var tmp = stackPool.pop();
                 registerSaveMap.put(reg, tmp);
                 newInstList.add(new AsmStore(reg, tmp));
-                newInstList.add(new AsmLoad(reg, stackVar));
                 return reg;
             }
         }
@@ -209,16 +210,20 @@ class RegisterControl {
             Register writeReg = null;
             StackVar writeStack = null;
             var used = getUsedRegisters(inst);
+            Set<Register> loaded = new HashSet<>();
             for (int j = 1; j <= 3; j++) {
                 if (inst.getOperand(j) instanceof RegisterReplaceable registerReplaceable) {
                     var vreg = registerReplaceable.getRegister();
                     if (vreg.isVirtual()) {
                         Register physicRegister = null;
                         if (vregLocation.get(vreg.getIndex()) instanceof StackVar stackVar) {
-                            physicRegister = getExRegister(used, vreg, registerSaveMap, newInstList, stackVar);
-                            if (j == 1) {
+                            physicRegister = getExRegister(used, vreg, registerSaveMap, newInstList);
+                            if (j == 1 && !(inst instanceof AsmStore)) {
                                 writeReg = physicRegister;
                                 writeStack = stackVar;
+                            } else if (!loaded.contains(physicRegister)) {
+                                loaded.add(physicRegister);
+                                newInstList.add(new AsmLoad(physicRegister, stackVar));
                             }
                         } else if (vregLocation.get(vreg.getIndex()) instanceof Register register) {
                             physicRegister = register;

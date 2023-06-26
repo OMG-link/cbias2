@@ -42,4 +42,9 @@ public abstract class AsmOperand {
     }
 
     abstract public String emit();
+
+    @Override
+    public boolean equals(Object v) {
+        return v instanceof AsmOperand op && type == op.type && emit().equals(op.emit());
+    }
 }

@@ -404,7 +404,6 @@ public class AsmBasicBlock {
         long offset = baseAddress.getOffset();
         IntRegister baseRegister = baseAddress.getRegister();
         var rootType = getElementPtrInst.getRootOperand().getType();
-        IntRegister offsetR = null;
         for (int i = 0; i < getElementPtrInst.getIndicesSize(); i++) {
             var index = getValue(getElementPtrInst.getIndexAt(i));
             long baseSize = ((PointerType) GetElementPtrInst.inferDereferencedType(rootType, i + 1)).getBaseType().getSize();
@@ -412,6 +411,8 @@ public class AsmBasicBlock {
                 offset += immediate.getValue() * baseSize;
             }
         }
+        IntRegister offsetR = function.getRegisterAllocator().allocateInt();
+        function.appendInstruction(new AsmLoad(offsetR, new Immediate(Math.toIntExact(offset))));
         for (int i = 0; i < getElementPtrInst.getIndicesSize(); i++) {
             var index = getValue(getElementPtrInst.getIndexAt(i));
             long baseSize = ((PointerType) GetElementPtrInst.inferDereferencedType(rootType, i + 1)).getBaseType().getSize();
@@ -419,30 +420,11 @@ public class AsmBasicBlock {
                 IntRegister tmp = getOperandToIntRegister(index);
                 IntRegister muly = getOperandToIntRegister(new Immediate(Math.toIntExact(baseSize)));
                 function.appendInstruction(new AsmMul(tmp, tmp, muly, 64));
-                if (offsetR == null) {
-                    offsetR = function.getRegisterAllocator().allocateInt();
-                    if (ImmediateTools.bitlengthNotInLimit(offset)) {
-                        function.appendInstruction(new AsmLoad(offsetR, new Immediate(Math.toIntExact(offset))));
-                        function.appendInstruction(new AsmAdd(offsetR, offsetR, tmp));
-                        offset = 0;
-                    } else {
-                        function.appendInstruction(new AsmLoad(offsetR, tmp));
-                    }
-                } else {
-                    function.appendInstruction(new AsmAdd(offsetR, offsetR, tmp));
-                }
+                function.appendInstruction(new AsmAdd(offsetR, offsetR, tmp));
             }
         }
-        if (offsetR != null) {
-            function.appendInstruction(new AsmAdd(offsetR, offsetR, baseRegister));
-            baseRegister = offsetR;
-        } else if (ImmediateTools.bitlengthNotInLimit(offset)) {
-            IntRegister tmp = getOperandToIntRegister(new Immediate(Math.toIntExact(offset)));
-            function.appendInstruction(new AsmAdd(tmp, baseRegister, tmp));
-            offset = 0;
-            baseRegister = tmp;
-        }
-        function.getAddressAllocator().allocate(getElementPtrInst, new AddressContent(offset, baseRegister));
+        function.appendInstruction(new AsmAdd(offsetR, offsetR, baseRegister));
+        function.getAddressAllocator().allocate(getElementPtrInst, new AddressContent(0, offsetR));
     }
 
     void translateFloatNegateInst(FloatNegateInst floatNegateInst) {
