@@ -122,6 +122,18 @@ public abstract class Instruction extends Value {
     }
 
     /**
+     * 将当前指令替换为另一个指令 <br>
+     * 当前指令立即被废弃 <br>
+     *
+     * @param newInstruction 新指令
+     */
+    public void replaceInstructionTo(Instruction newInstruction) {
+        replaceAllUsageTo(newInstruction);
+        newInstruction.insertAfter(this);
+        this.waste();
+    }
+
+    /**
      * 获取当前指令所处的链表节点
      * <p>
      * 不要在InstructionList类以外的任何地方调用该函数！
