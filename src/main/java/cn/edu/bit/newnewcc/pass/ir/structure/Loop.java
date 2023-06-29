@@ -38,6 +38,8 @@ public class Loop {
      */
     private int loopDepth;
 
+    private final SimpleLoopInfo simpleLoopInfo;
+
     /**
      * 构建一个循环
      *
@@ -50,6 +52,7 @@ public class Loop {
         this.subLoops = new HashSet<>(subLoops);
         this.basicBlocks = new HashSet<>(basicBlocks);
         this.loopDepth = -1;
+        this.simpleLoopInfo = SimpleLoopInfo.buildFrom(this);
     }
 
     /**
@@ -107,6 +110,15 @@ public class Loop {
      */
     public Set<BasicBlock> getBasicBlocks() {
         return Collections.unmodifiableSet(basicBlocks);
+    }
+
+
+    public boolean isSimpleLoop() {
+        return simpleLoopInfo != null;
+    }
+
+    public SimpleLoopInfo getSimpleLoopInfo() {
+        return simpleLoopInfo;
     }
 
 }
