@@ -28,7 +28,7 @@ public class LoopForest implements Iterable<Loop> {
     /**
      * 所有循环树的根
      */
-    private final List<Loop> rootLoops = new ArrayList<>();
+    private final Set<Loop> rootLoops = new HashSet<>();
 
     /**
      * 基本块到循环的映射关系
@@ -106,7 +106,7 @@ public class LoopForest implements Iterable<Loop> {
      * @return 所有循环树的根循环列表（只读）
      */
     public Collection<Loop> getRootLoops() {
-        return Collections.unmodifiableList(rootLoops);
+        return Collections.unmodifiableSet(rootLoops);
     }
 
     /**
@@ -118,7 +118,7 @@ public class LoopForest implements Iterable<Loop> {
 
     @Override
     public Iterator<Loop> iterator() {
-        return Collections.unmodifiableList(rootLoops).iterator();
+        return getRootLoops().iterator();
     }
 
 }
