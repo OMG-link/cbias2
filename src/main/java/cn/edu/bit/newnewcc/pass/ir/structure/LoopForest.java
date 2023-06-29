@@ -40,7 +40,7 @@ public class LoopForest implements Iterable<Loop> {
      *
      * @param function 函数
      */
-    public LoopForest(Function function) {
+    private LoopForest(Function function) {
         var builder = new Builder(function);
         dfsFindLoops(builder, function.getEntryBasicBlock());
         for (Loop loop : basicBlockLoopMap.values()) {
@@ -119,6 +119,17 @@ public class LoopForest implements Iterable<Loop> {
     @Override
     public Iterator<Loop> iterator() {
         return getRootLoops().iterator();
+    }
+
+    /**
+     * 在函数的基础上建立一个循环森林 <br>
+     * 由于循环标准化的需要，可能对传入的函数产生副作用！！！ <br>
+     *
+     * @param function 函数（可能会被修改！！！）
+     * @return 循环森林
+     */
+    public static LoopForest buildLoopForestOver(Function function) {
+        return new LoopForest(function);
     }
 
 }
