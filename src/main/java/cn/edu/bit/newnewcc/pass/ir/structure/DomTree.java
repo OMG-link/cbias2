@@ -103,7 +103,7 @@ public class DomTree {
         int delta = b.depth - a.depth;
         for (int i = 0; delta != 0; i++) {
             if ((delta & (1 << i)) != 0) {
-                a = nodeMap.get(a.bexpParents.get(i));
+                b = nodeMap.get(b.bexpParents.get(i));
                 delta ^= (1 << i);
             }
         }
