@@ -10,7 +10,59 @@ import cn.edu.bit.newnewcc.ir.type.IntegerType;
 public class FloatCompareInst extends CompareInst {
 
     public enum Condition {
-        OEQ, ONE, OLT, OLE, OGT, OGE
+        OEQ, ONE, OLT, OLE, OGT, OGE;
+
+        /**
+         * 获取该条件左右交换后的条件
+         *
+         * @return 交换两侧数值后，与原始条件等价的条件
+         */
+        public Condition swap() {
+            return getSwappedCondition(this);
+        }
+
+        /**
+         * 获取该条件左右交换后的条件
+         *
+         * @param condition 原始条件
+         * @return 交换两侧数值后，与原始条件等价的条件
+         */
+        public static Condition getSwappedCondition(Condition condition) {
+            return switch (condition) {
+                case OEQ -> OEQ;
+                case ONE -> ONE;
+                case OLT -> OGT;
+                case OLE -> OGE;
+                case OGT -> OLT;
+                case OGE -> OLE;
+            };
+        }
+
+        /**
+         * 获取该条件被 not 作用后的条件
+         *
+         * @return 该条件被 not 作用后的条件
+         */
+        public Condition not() {
+            return getNotCondition(this);
+        }
+
+        /**
+         * 获取该条件被 not 作用后的条件
+         *
+         * @param condition 原始条件
+         * @return 该条件被 not 作用后的条件
+         */
+        public static Condition getNotCondition(Condition condition) {
+            return switch (condition) {
+                case OEQ -> ONE;
+                case ONE -> OEQ;
+                case OLT -> OGE;
+                case OLE -> OGT;
+                case OGT -> OLE;
+                case OGE -> OLT;
+            };
+        }
     }
 
     private final Condition condition;
