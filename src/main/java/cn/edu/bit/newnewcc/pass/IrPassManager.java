@@ -15,6 +15,7 @@ public class IrPassManager {
                 while (true) {
                     boolean changed = false;
                     changed |= MemoryAccessOptimizePass.runOnModule(module);
+                    changed |= InstructionCombinePass.runOnModule(module);
                     changed |= PatternReplacementPass.runOnModule(module);
                     changed |= FunctionInline.runOnModule(module);
                     changed |= ConstantFoldingPass.runOnModule(module);
