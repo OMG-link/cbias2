@@ -1,9 +1,6 @@
 package cn.edu.bit.newnewcc.backend.asm.util;
 
-import cn.edu.bit.newnewcc.backend.asm.instruction.AsmAdd;
-import cn.edu.bit.newnewcc.backend.asm.instruction.AsmInstruction;
-import cn.edu.bit.newnewcc.backend.asm.instruction.AsmLoad;
-import cn.edu.bit.newnewcc.backend.asm.instruction.AsmStore;
+import cn.edu.bit.newnewcc.backend.asm.instruction.*;
 import cn.edu.bit.newnewcc.backend.asm.operand.*;
 
 import java.util.*;
@@ -129,6 +126,8 @@ public class BackwardOptimizer {
                         continue;
                     }
                     lastWrite.add(address.toString());
+                } else if (iMov instanceof AsmTag) {
+                    lastWrite.clear();
                 }
             }
             newInstructionList.addFirst(iMov);
