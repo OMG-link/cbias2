@@ -1,6 +1,8 @@
 package cn.edu.bit.newnewcc.backend.asm;
 
 import cn.edu.bit.newnewcc.backend.asm.instruction.AsmInstruction;
+import cn.edu.bit.newnewcc.backend.asm.instruction.AsmLoad;
+import cn.edu.bit.newnewcc.backend.asm.instruction.AsmPhiTag;
 import cn.edu.bit.newnewcc.backend.asm.instruction.AsmTag;
 import cn.edu.bit.newnewcc.backend.asm.operand.AsmOperand;
 import cn.edu.bit.newnewcc.backend.asm.operand.Register;
@@ -42,6 +44,8 @@ public class LifeTimeController {
             var inst = instructionList.get(i);
             if (inst instanceof AsmTag tag) {
                 nowTag = tag;
+            } else if (inst instanceof AsmPhiTag phiTag) {
+                nowTag = phiTag.getSourceBlockTag();
             }
             endTime.put(nowTag, i);
         }
@@ -61,14 +65,32 @@ public class LifeTimeController {
 
     public void refreshAllVreg(List<AsmInstruction> instructionList) {
         refreshBlockEndVreg(instructionList);
+        boolean isPhiSegment = false;
+        int phiSegmentStart = 0;
         for (int i = 0; i < instructionList.size(); i++) {
             AsmInstruction instruction = instructionList.get(i);
-            for (int j = 1; j <= 3; j++) {
-                AsmOperand op = instruction.getOperand(j);
-                if (op instanceof RegisterReplaceable registerReplaceableOp) {
-                    Register register = registerReplaceableOp.getRegister();
-                    if (register.isVirtual()) {
-                        setVregLifeTime(register.getIndex(), i);
+            if (instruction instanceof AsmPhiTag) {
+                isPhiSegment = true;
+                phiSegmentStart = i;
+            }
+            if (instruction instanceof AsmTag) {
+                isPhiSegment = false;
+            }
+            if (isPhiSegment) {
+                if (instruction instanceof AsmLoad) {
+                    var ra = (Register)instruction.getOperand(1);
+                    var rb = (Register)instruction.getOperand(2);
+                    setVregLifeTime(ra.getIndex(), i);
+                    setVregLifeTime(rb.getIndex(), phiSegmentStart);
+                }
+            } else {
+                for (int j = 1; j <= 3; j++) {
+                    AsmOperand op = instruction.getOperand(j);
+                    if (op instanceof RegisterReplaceable registerReplaceableOp) {
+                        Register register = registerReplaceableOp.getRegister();
+                        if (register.isVirtual()) {
+                            setVregLifeTime(register.getIndex(), i);
+                        }
                     }
                 }
             }
