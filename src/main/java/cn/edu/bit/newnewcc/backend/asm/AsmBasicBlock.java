@@ -39,7 +39,9 @@ public class AsmBasicBlock {
      */
     void emitToFunction() {
         translatePhiInstructions(irBlock.getInstructions());
-        function.appendInstruction(new AsmTag(blockTag));
+        AsmTag tag = new AsmTag(blockTag);
+        function.putBlockAsmTag(this, tag);
+        function.appendInstruction(tag);
         for (Instruction instruction : irBlock.getInstructions()) {
             translate(instruction);
         }

@@ -1,6 +1,7 @@
 package cn.edu.bit.newnewcc.backend.asm;
 
 import cn.edu.bit.newnewcc.backend.asm.instruction.AsmInstruction;
+import cn.edu.bit.newnewcc.backend.asm.instruction.AsmTag;
 import cn.edu.bit.newnewcc.backend.asm.operand.AsmOperand;
 import cn.edu.bit.newnewcc.backend.asm.operand.Register;
 import cn.edu.bit.newnewcc.backend.asm.operand.RegisterReplaceable;
@@ -34,12 +35,20 @@ public class LifeTimeController {
         return lifeTime.get(index);
     }
 
-    public void refreshBlockEndVreg() {
-        /*
+    public void refreshBlockEndVreg(List<AsmInstruction> instructionList) {
+        Map<AsmTag, Integer> endTime = new HashMap<>();
+        AsmTag nowTag = null;
+        for (int i = 0; i < instructionList.size(); i++) {
+            var inst = instructionList.get(i);
+            if (inst instanceof AsmTag tag) {
+                nowTag = tag;
+            }
+            endTime.put(nowTag, i);
+        }
         while (!lifeToBlockEnd.empty()) {
-            var x = lifeToBlockEnd.pop();
-            setVregLifeTime(x.a, function.getBasicBlock(x.b).getBlockEnd());
-        }*/
+            var p = lifeToBlockEnd.pop();
+            setVregLifeTime(p.a, endTime.get(function.getBlockAsmTag(function.getBasicBlock(p.b))));
+        }
     }
 
     private void setVregLifeTime(Integer index, int t) {
@@ -51,7 +60,7 @@ public class LifeTimeController {
     }
 
     public void refreshAllVreg(List<AsmInstruction> instructionList) {
-        refreshBlockEndVreg();
+        refreshBlockEndVreg(instructionList);
         for (int i = 0; i < instructionList.size(); i++) {
             AsmInstruction instruction = instructionList.get(i);
             for (int j = 1; j <= 3; j++) {

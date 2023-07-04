@@ -28,6 +28,7 @@ public class AsmFunction {
     private final Map<Value, AsmOperand> formalParameterMap = new HashMap<>();
     private final List<AsmBasicBlock> basicBlocks = new ArrayList<>();
     private final Map<BasicBlock, AsmBasicBlock> basicBlockMap = new HashMap<>();
+    private final Map<AsmBasicBlock, AsmTag> blockAsmTagMap = new HashMap<>();
     private List<AsmInstruction> instructionList = new ArrayList<>();
     private final GlobalTag retBlockTag;
     private final BaseFunction baseFunction;
@@ -162,6 +163,14 @@ public class AsmFunction {
     //资源对应的get方法
     public AsmBasicBlock getBasicBlock(BasicBlock block) {
         return basicBlockMap.get(block);
+    }
+
+    public AsmTag getBlockAsmTag(AsmBasicBlock block) {
+        return blockAsmTagMap.get(block);
+    }
+
+    public void putBlockAsmTag(AsmBasicBlock block, AsmTag tag) {
+        blockAsmTagMap.put(block, tag);
     }
 
     public String getFunctionName() {
