@@ -135,6 +135,9 @@ class LinearScanRegisterControl extends RegisterControl{
         //第二次扫描，分配被spill的寄存器的栈空间
         recycleHead = 0;
         for (var vreg : vregList) {
+            if (vregLocation.containsKey(vreg.getIndex())) {
+                continue;
+            }
             var lifeTime = function.getLifeTimeController().getLifeTime(vreg.getIndex());
             while (recycleHead < recycleList.size() && recycleList.get(recycleHead).b < lifeTime.a) {
                 recycle(recycleList.get(recycleHead).a);

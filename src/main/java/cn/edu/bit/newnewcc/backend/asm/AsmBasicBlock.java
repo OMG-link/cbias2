@@ -504,6 +504,11 @@ public class AsmBasicBlock {
         function.appendInstruction(new AsmTransFloatInt(result, source));
     }
 
+    void translateBitCastInst(BitCastInst bitCastInst) {
+        var address = getOperandToAddressTag(getValue(bitCastInst.getSourceOperand())).getAddressContent();
+        function.getAddressAllocator().allocate(bitCastInst, address);
+    }
+
     void translate(Instruction instruction) {
         try {
             if (instruction instanceof ReturnInst returnInst) {
@@ -532,6 +537,8 @@ public class AsmBasicBlock {
                 translateFloatToSignedIntegerInst(floatToSignedIntegerInst);
             } else if (instruction instanceof SignedIntegerToFloatInst signedIntegerToFloatInst) {
                 translateSignedIntegerToFloatInst(signedIntegerToFloatInst);
+            } else if (instruction instanceof BitCastInst bitCastInst) {
+                translateBitCastInst(bitCastInst);
             } else if (instruction instanceof PhiInst phiInst) {
                 translatePhiInst(phiInst);
             }
