@@ -208,14 +208,16 @@ public class AsmBasicBlock {
     void sufTranslatePhiInstructions() {
         for (BasicBlock block : nextBlock) {
             var next = function.getBasicBlock(block);
-            for (Value value : next.phiValueMap.get(irBlock).keySet()) {
-                var op = getValue(value);
-                assert(op instanceof Register);
-                Register reg = (Register) op;
-                Register tmp = function.getRegisterAllocator().allocate(reg);
-                function.appendInstruction(new AsmLoad(tmp, reg));
-                var inst = next.phiValueMap.get(irBlock).get(value);
-                inst.replaceOperand(2, tmp);
+            if (next.phiValueMap.containsKey(irBlock)) {
+                for (Value value : next.phiValueMap.get(irBlock).keySet()) {
+                    var op = getValue(value);
+                    assert (op instanceof Register);
+                    Register reg = (Register) op;
+                    Register tmp = function.getRegisterAllocator().allocate(reg);
+                    function.appendInstruction(new AsmLoad(tmp, reg));
+                    var inst = next.phiValueMap.get(irBlock).get(value);
+                    inst.replaceOperand(2, tmp);
+                }
             }
         }
     }
