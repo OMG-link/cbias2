@@ -13,6 +13,7 @@ import cn.edu.bit.newnewcc.ir.value.BasicBlock;
 import cn.edu.bit.newnewcc.ir.value.Function;
 
 import java.util.*;
+import java.util.function.Consumer;
 
 import static java.lang.Math.max;
 import static java.lang.Math.min;
@@ -76,12 +77,12 @@ public class AsmFunction {
         }
     }
 
-    FloatRegister transConstFloat(Float value) {
+    FloatRegister transConstFloat(Float value, Consumer<AsmInstruction> appendInstruction) {
         var constantFloat = globalCode.getConstFloat(value);
         IntRegister rAddress = registerAllocator.allocateInt();
         FloatRegister tmp = registerAllocator.allocateFloat();
-        appendInstruction(new AsmLoad(rAddress, constantFloat.getConstantTag()));
-        appendInstruction(new AsmLoad(tmp, new AddressContent(0, rAddress)));
+        appendInstruction.accept(new AsmLoad(rAddress, constantFloat.getConstantTag()));
+        appendInstruction.accept(new AsmLoad(tmp, new AddressContent(0, rAddress)));
         return tmp;
     }
 
@@ -112,6 +113,9 @@ public class AsmFunction {
                 }
             }
 
+            for (var block : basicBlocks) {
+                block.preTranslatePhiInstructions();
+            }
             for (var block : basicBlocks) {
                 block.emitToFunction();
             }

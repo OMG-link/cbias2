@@ -18,6 +18,7 @@ import cn.edu.bit.newnewcc.ir.value.constant.ConstInt;
 import cn.edu.bit.newnewcc.ir.value.instruction.*;
 
 import java.util.*;
+import java.util.function.Consumer;
 
 
 /**
@@ -30,29 +31,26 @@ public class AsmBasicBlock {
     private final BasicBlock irBlock;
     private final Map<BasicBlock, List<AsmInstruction>> phiOperation = new HashMap<>();
     private final Map<BasicBlock, Map<Value, AsmInstruction>> phiValueMap = new HashMap<>();
-    private final Set<BasicBlock> nextBlock = new HashSet<>();
 
     public AsmBasicBlock(AsmFunction function, BasicBlock block) {
         this.function = function;
         this.blockTag = new GlobalTag(function.getFunctionName() + "_" + block.getValueName(), false);
         this.irBlock = block;
         this.instBlockTag = new AsmTag(blockTag);
-        preTranslatePhiInstructions(irBlock.getInstructions());
+        function.putBlockAsmTag(this, instBlockTag);
     }
 
     /**
      * 生成基本块的汇编代码，向函数中输出指令
      */
     void emitToFunction() {
-        function.putBlockAsmTag(this, instBlockTag);
-        function.appendInstruction(instBlockTag);
         for (var block : phiOperation.keySet()) {
             function.appendAllInstruction(phiOperation.get(block));
         }
+        function.appendInstruction(instBlockTag);
         for (Instruction instruction : irBlock.getInstructions()) {
             translate(instruction);
         }
-        sufTranslatePhiInstructions();
     }
 
     /**
@@ -78,19 +76,25 @@ public class AsmBasicBlock {
             } else {
                 throw new RuntimeException("Value not found : " + value.getValueNameIR());
             }
-        } else if (value instanceof ConstInt constInt) {
+        } else if (value instanceof Constant constant) {
+            return getConstantVar(constant, function::appendInstruction);
+        }
+        throw new RuntimeException("Value type not found : " + value.getValueNameIR());
+    }
+
+    AsmOperand getConstantVar(Constant constant, Consumer<AsmInstruction> appendInstruction) {
+        if (constant instanceof ConstInt constInt) {
             var intValue = constInt.getValue();
             if (ImmediateTools.bitlengthNotInLimit(intValue)) {
                 IntRegister tmp = function.getRegisterAllocator().allocateInt();
-                function.appendInstruction(new AsmLoad(tmp, new Immediate(intValue)));
+                appendInstruction.accept(new AsmLoad(tmp, new Immediate(intValue)));
                 return tmp;
             }
             return new Immediate(constInt.getValue());
-        } else if (value instanceof ConstFloat constFloat) {
-            return function.transConstFloat(constFloat.getValue());
+        } else if (constant instanceof ConstFloat constFloat) {
+            return function.transConstFloat(constFloat.getValue(), appendInstruction);
         }
-        //浮点立即数留待补充
-        throw new RuntimeException("Value type not found : " + value.getValueNameIR());
+        throw new RuntimeException("Constant value error");
     }
 
     AsmOperand getValueByType(Value value, Type type) {
@@ -180,9 +184,9 @@ public class AsmBasicBlock {
         return getOperandToAddressTag(operand).getAddressContent();
     }
 
-    void preTranslatePhiInstructions(List<Instruction> instructionList) {
+    public void preTranslatePhiInstructions() {
         List<PhiInst> phiInstList = new ArrayList<>();
-        for (var inst : instructionList) {
+        for (var inst : irBlock.getInstructions()) {
             if (inst instanceof PhiInst phiInst) {
                 phiInstList.add(phiInst);
             } else {
@@ -198,15 +202,19 @@ public class AsmBasicBlock {
                     phiValueMap.put(block, new HashMap<>());
                 }
                 Value source = inst.getValue(block);
-                var loadInst = new AsmLoad(tmp, null);
-                phiValueMap.get(block).put(source, loadInst);
-                phiOperation.get(block).add(loadInst);
+                if (source instanceof Constant constant) {
+                    phiOperation.get(block).add(new AsmLoad(tmp, getConstantVar(constant, (ins)-> phiOperation.get(block).add(ins))));
+                } else {
+                    var loadInst = new AsmLoad(tmp, tmp);
+                    phiValueMap.get(block).put(source, loadInst);
+                    phiOperation.get(block).add(loadInst);
+                }
             }
         }
     }
 
     void sufTranslatePhiInstructions() {
-        for (BasicBlock block : nextBlock) {
+        for (BasicBlock block : irBlock.getExitBlocks()) {
             var next = function.getBasicBlock(block);
             if (next.phiValueMap.containsKey(irBlock)) {
                 for (Value value : next.phiValueMap.get(irBlock).keySet()) {
@@ -343,8 +351,6 @@ public class AsmBasicBlock {
 
     void translateBranchInst(BranchInst branchInst) {
         var condition = getOperandToIntRegister(getValue(branchInst.getCondition()));
-        nextBlock.add(branchInst.getTrueExit());
-        nextBlock.add(branchInst.getFalseExit());
         sufTranslatePhiInstructions();
         var trueTag = getJumpGlobalTag(branchInst.getTrueExit());
         var falseTag = getJumpGlobalTag(branchInst.getFalseExit());
@@ -414,7 +420,6 @@ public class AsmBasicBlock {
     }
 
     void translateJumpInst(JumpInst jumpInst) {
-        nextBlock.add(jumpInst.getExit());
         sufTranslatePhiInstructions();
         var jumpTag = getJumpGlobalTag(jumpInst.getExit());
         function.appendInstruction(new AsmJump(jumpTag, AsmJump.JUMPTYPE.NON, null, null));

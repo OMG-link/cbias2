@@ -79,9 +79,11 @@ public class LifeTimeController {
             if (isPhiSegment) {
                 if (instruction instanceof AsmLoad) {
                     var ra = (Register)instruction.getOperand(1);
-                    var rb = (Register)instruction.getOperand(2);
+                    var opb = instruction.getOperand(2);
                     setVregLifeTime(ra.getIndex(), i);
-                    setVregLifeTime(rb.getIndex(), phiSegmentStart);
+                    if (opb instanceof Register rb) {
+                        setVregLifeTime(rb.getIndex(), phiSegmentStart);
+                    }
                 }
             } else {
                 for (int j = 1; j <= 3; j++) {

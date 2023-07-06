@@ -14,6 +14,6 @@ public class Others {
         return res.toString();
     }
     public static String getTagName(AsmTag tag) {
-        return deleteCharString(tag.emit(), ":.");
+        return deleteCharString(tag.emit(), ":.\n ");
     }
 }
