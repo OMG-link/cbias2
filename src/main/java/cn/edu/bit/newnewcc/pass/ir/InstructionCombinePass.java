@@ -18,21 +18,6 @@ public class InstructionCombinePass {
     private final InstructionSet instructionSet = new InstructionSet();
     private DomTree domTree;
 
-    private boolean runOnBasicBlock(BasicBlock basicBlock) {
-        boolean changed = false;
-        var instructionSet = new InstructionSet();
-        for (Instruction instruction : basicBlock.getInstructions()) {
-            if (instructionSet.contains(instruction)) {
-                instruction.replaceAllUsageTo(instructionSet.get(instruction));
-                instruction.waste();
-                changed = true;
-            } else {
-                instructionSet.add(instruction);
-            }
-        }
-        return changed;
-    }
-
     private boolean dfsDomTree(BasicBlock basicBlock) {
         boolean changed = false;
         for (Instruction instruction : basicBlock.getInstructions()) {
