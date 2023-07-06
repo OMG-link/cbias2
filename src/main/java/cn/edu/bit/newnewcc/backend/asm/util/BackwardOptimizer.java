@@ -126,7 +126,7 @@ public class BackwardOptimizer {
                         continue;
                     }
                     lastWrite.add(address.toString());
-                } else if (iMov instanceof AsmTag) {
+                } else if (iMov instanceof AsmTag || iMov instanceof AsmPhiTag) {
                     lastWrite.clear();
                 }
             }

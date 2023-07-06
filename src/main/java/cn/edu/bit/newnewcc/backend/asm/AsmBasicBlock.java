@@ -13,6 +13,7 @@ import cn.edu.bit.newnewcc.ir.type.PointerType;
 import cn.edu.bit.newnewcc.ir.type.VoidType;
 import cn.edu.bit.newnewcc.ir.value.*;
 import cn.edu.bit.newnewcc.ir.value.constant.ConstArray;
+import cn.edu.bit.newnewcc.ir.value.constant.ConstBool;
 import cn.edu.bit.newnewcc.ir.value.constant.ConstFloat;
 import cn.edu.bit.newnewcc.ir.value.constant.ConstInt;
 import cn.edu.bit.newnewcc.ir.value.instruction.*;
@@ -93,6 +94,8 @@ public class AsmBasicBlock {
             return new Immediate(constInt.getValue());
         } else if (constant instanceof ConstFloat constFloat) {
             return function.transConstFloat(constFloat.getValue(), appendInstruction);
+        } else if (constant instanceof ConstBool constBool) {
+            return new Immediate(constBool.getValue() ? 1 : 0);
         }
         throw new RuntimeException("Constant value error");
     }
@@ -233,7 +236,7 @@ public class AsmBasicBlock {
     void translatePhiInst(PhiInst phiInst) {
         var tmp = (Register)getValue(phiInst);
         var reg = function.getRegisterAllocator().allocate(phiInst);
-        function.appendInstruction(new AsmLoad(tmp, reg));
+        function.appendInstruction(new AsmLoad(reg, tmp));
     }
 
     void translateBinaryInstruction(BinaryInstruction binaryInstruction) {
@@ -533,6 +536,7 @@ public class AsmBasicBlock {
                 translatePhiInst(phiInst);
             }
         } catch (RuntimeException exception) {
+            exception.printStackTrace();
             throw new RuntimeException("get exception at instruction " + instruction + "\n" + "basic block : " + blockTag.emit() + "\n" + exception.getMessage());
         }
     }
