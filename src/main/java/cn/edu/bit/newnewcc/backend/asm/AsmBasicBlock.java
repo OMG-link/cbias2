@@ -47,6 +47,7 @@ public class AsmBasicBlock {
     void emitToFunction() {
         for (var block : phiOperation.keySet()) {
             function.appendAllInstruction(phiOperation.get(block));
+            function.appendInstruction(new AsmJump(blockTag, AsmJump.JUMPTYPE.NON, null, null));
         }
         function.appendInstruction(instBlockTag);
         for (Instruction instruction : irBlock.getInstructions()) {
