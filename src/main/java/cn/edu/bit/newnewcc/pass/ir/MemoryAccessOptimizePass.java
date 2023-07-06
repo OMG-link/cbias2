@@ -22,9 +22,8 @@ import java.util.Map;
  */
 public class MemoryAccessOptimizePass {
 
-    private static boolean localizeGlobalVariable(BasicBlock basicBlock) {
+    private static void localizeGlobalVariable(BasicBlock basicBlock) {
         // changed指代是否有优化产生，非优化的修改不影响changed
-        boolean changed = false;
         Map<GlobalVariable, Value> gvBuffer = new HashMap<>();
         Map<GlobalVariable, Value> writeBackBuffer = new HashMap<>();
         for (Instruction mainInstruction : basicBlock.getMainInstructions()) {
@@ -32,7 +31,6 @@ public class MemoryAccessOptimizePass {
                 if (gvBuffer.containsKey(globalVariable)) {
                     loadInst.replaceAllUsageTo(gvBuffer.get(globalVariable));
                     loadInst.waste();
-                    changed = true;
                 } else {
                     gvBuffer.put(globalVariable, loadInst);
                 }
@@ -54,11 +52,9 @@ public class MemoryAccessOptimizePass {
             // addInstruction的行为是加在mainInstructions的末尾
             basicBlock.addInstruction(storeInst);
         });
-        return changed;
     }
 
-    private static boolean mergeDuplicatedLoad(BasicBlock basicBlock) {
-        boolean changed = false;
+    private static void mergeDuplicatedLoad(BasicBlock basicBlock) {
         Map<Value, Value> addressValueMap = new HashMap<>();
         for (Instruction mainInstruction : basicBlock.getMainInstructions()) {
             if (mainInstruction instanceof LoadInst loadInst) {
@@ -68,7 +64,6 @@ public class MemoryAccessOptimizePass {
                 } else {
                     loadInst.replaceAllUsageTo(addressValueMap.get(address));
                     loadInst.waste();
-                    changed = true;
                 }
             } else if (mainInstruction instanceof StoreInst) { // 内存变动
                 addressValueMap.clear();
@@ -76,20 +71,18 @@ public class MemoryAccessOptimizePass {
                 addressValueMap.clear();
             }
         }
-        return changed;
     }
 
-    private static boolean runOnBasicBlock(BasicBlock basicBlock) {
-        return localizeGlobalVariable(basicBlock) | mergeDuplicatedLoad(basicBlock);
+    private static void runOnBasicBlock(BasicBlock basicBlock) {
+        localizeGlobalVariable(basicBlock);
+        mergeDuplicatedLoad(basicBlock);
     }
 
-    public static boolean runOnModule(Module module) {
-        boolean changed = false;
+    public static void runOnModule(Module module) {
         for (Function function : module.getFunctions()) {
             for (BasicBlock basicBlock : function.getBasicBlocks()) {
-                changed |= runOnBasicBlock(basicBlock);
+                runOnBasicBlock(basicBlock);
             }
         }
-        return changed;
     }
 }
