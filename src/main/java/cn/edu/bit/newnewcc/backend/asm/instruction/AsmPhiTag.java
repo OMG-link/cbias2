@@ -14,6 +14,6 @@ public class AsmPhiTag extends AsmInstruction {
         return sourceBlockTag;
     }
     public GlobalTag getInnerTag() {
-        return new GlobalTag(Others.deleteCharString(this.emit(), ":."), false);
+        return new GlobalTag(Others.deleteCharString(this.emit(), ":.\n\t "), false);
     }
 }
