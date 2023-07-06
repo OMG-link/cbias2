@@ -23,16 +23,18 @@ public final class SysYExternalFunctions {
         new ExternalFunction(
             FunctionType.getInstance(VoidType.getInstance(), List.of(IntegerType.getI32())), "putch"),
         new ExternalFunction(
-            FunctionType.getInstance(IntegerType.getI32(), List.of(PointerType.getInstance(IntegerType.getI32()))), "getarray"),
-        new ExternalFunction(
-            FunctionType.getInstance(VoidType.getInstance(), List.of(IntegerType.getI32(), PointerType.getInstance(IntegerType.getI32()))), "putarray"),
-        new ExternalFunction(
-            FunctionType.getInstance(IntegerType.getI32(), List.of(PointerType.getInstance(FloatType.getFloat()))), "getfarray"),
-        new ExternalFunction(
-            FunctionType.getInstance(VoidType.getInstance(), List.of(IntegerType.getI32(), PointerType.getInstance(FloatType.getFloat()))), "putfarray"),
-        new ExternalFunction(
-            FunctionType.getInstance(VoidType.getInstance(), List.of(IntegerType.getI32())), "_sysy_starttime"),
-        new ExternalFunction(
-            FunctionType.getInstance(VoidType.getInstance(), List.of(IntegerType.getI32())), "_sysy_stoptime")
+                FunctionType.getInstance(IntegerType.getI32(), List.of(PointerType.getInstance(IntegerType.getI32()))), "getarray"),
+            new ExternalFunction(
+                    FunctionType.getInstance(VoidType.getInstance(), List.of(IntegerType.getI32(), PointerType.getInstance(IntegerType.getI32()))), "putarray"),
+            new ExternalFunction(
+                    FunctionType.getInstance(IntegerType.getI32(), List.of(PointerType.getInstance(FloatType.getFloat()))), "getfarray"),
+            new ExternalFunction(
+                    FunctionType.getInstance(VoidType.getInstance(), List.of(IntegerType.getI32(), PointerType.getInstance(FloatType.getFloat()))), "putfarray"),
+            new ExternalFunction(
+                    FunctionType.getInstance(VoidType.getInstance(), List.of(IntegerType.getI32())), "_sysy_starttime"),
+            new ExternalFunction(
+                    FunctionType.getInstance(VoidType.getInstance(), List.of(IntegerType.getI32())), "_sysy_stoptime"),
+            new ExternalFunction(
+                    FunctionType.getInstance(VoidType.getInstance(), List.of(PointerType.getInstance(IntegerType.getI32()), IntegerType.getI32(), IntegerType.getI32())), "memset")
     );
 }
