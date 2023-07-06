@@ -7,6 +7,7 @@ public class IrPassManager {
 
     public static void optimize(Module module, int optimizeLevel) {
         DeadCodeEliminationPass.runOnModule(module);
+        LocalArrayInitializePass.runOnModule(module);
         switch (optimizeLevel) {
             case 0 -> {
             }
