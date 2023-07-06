@@ -23,6 +23,23 @@ public class InstructionSet {
         return instructionSet.get(getFeatures(instruction));
     }
 
+    /**
+     * 移除指定的指令 <br>
+     * 只有传入原始指令才能成功移除，传入等价指令不会导致原始指令被移除 <br>
+     *
+     * @param instruction 待移除的原始指令
+     * @return 成功返回true；否则返回false。
+     */
+    public boolean remove(Instruction instruction) {
+        var features = getFeatures(instruction);
+        if (instructionSet.containsKey(features) && instructionSet.get(features) == instruction) {
+            instructionSet.remove(features);
+            return true;
+        } else {
+            return false;
+        }
+    }
+
     private static List<Object> getFeatures(Instruction instruction) {
         List<Object> result = new ArrayList<>();
         result.add(instruction.getClass());
