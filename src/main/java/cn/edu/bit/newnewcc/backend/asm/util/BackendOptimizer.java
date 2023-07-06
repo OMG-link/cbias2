@@ -75,6 +75,16 @@ public class BackendOptimizer {
                             backward.accept(1);
                             continue;
                         }
+                    } else if (iSv instanceof AsmJump jump) {
+                        if (iLd instanceof AsmTag tag) {
+                            if (jump.isNotBranchJump() && jump.getOperand(1).emit().equals(Others.deleteCharString(tag.emit(), ":\t\n"))) {
+                                popx.accept(1);
+                            }
+                        } else if (iLd instanceof AsmPhiTag tag) {
+                            if (jump.isNotBranchJump() && jump.getOperand(1).emit().equals(Others.deleteCharString(tag.emit(), ":\t\n"))) {
+                                popx.accept(1);
+                            }
+                        }
                     }
                 }
                 if (oldInstructionList.size() > 2) {

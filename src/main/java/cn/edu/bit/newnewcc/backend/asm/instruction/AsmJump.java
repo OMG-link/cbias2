@@ -44,4 +44,7 @@ public class AsmJump extends AsmInstruction {
         super("jr", addressRegister, null, null);
     }
 
+    public boolean isNotBranchJump() {
+        return getInstructionName().equals("j");
+    }
 }

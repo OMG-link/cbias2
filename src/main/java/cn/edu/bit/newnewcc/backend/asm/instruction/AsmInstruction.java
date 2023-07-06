@@ -20,6 +20,10 @@ public class AsmInstruction {
         this.instructionName = name;
     }
 
+    protected String getInstructionName() {
+        return instructionName;
+    }
+
     protected void setOperand1(AsmOperand operand1) {
         this.operand1 = operand1;
     }
