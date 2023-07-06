@@ -10,6 +10,10 @@ public class ExternalFunction extends BaseFunction {
 
     private String functionName;
 
+    public String getFunctionName() {
+        return functionName;
+    }
+
     @Override
     public String getValueName() {
         return functionName;
