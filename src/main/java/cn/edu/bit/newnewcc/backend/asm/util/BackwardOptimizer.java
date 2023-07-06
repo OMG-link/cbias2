@@ -118,7 +118,9 @@ public class BackwardOptimizer {
         while (oldInstructionList.size() > 0) {
             var iMov = oldInstructionList.removeLast();
             var address = iMov.getOperand(2);
-            if (address instanceof StackVar && !(address instanceof ExStackVarContent)) {
+            if (iMov instanceof AsmTag || iMov instanceof AsmPhiTag) {
+                lastWrite.clear();
+            } else if (address instanceof StackVar && !(address instanceof ExStackVarContent)) {
                 if (iMov instanceof AsmLoad) {
                     lastWrite.remove(address.emit());
                 } else if (iMov instanceof AsmStore) {
@@ -126,8 +128,6 @@ public class BackwardOptimizer {
                         continue;
                     }
                     lastWrite.add(address.toString());
-                } else if (iMov instanceof AsmTag || iMov instanceof AsmPhiTag) {
-                    lastWrite.clear();
                 }
             }
             newInstructionList.addFirst(iMov);
