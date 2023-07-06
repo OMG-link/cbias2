@@ -47,6 +47,13 @@ public class RegisterAllocator {
             return allocateInt(instruction);
         }
     }
+    public Register allocate(Register sourceReg) {
+        if (sourceReg.isInt()) {
+            return allocateInt();
+        } else {
+            return allocateFloat();
+        }
+    }
     public boolean contain(Instruction instruction) {
         return intRegisterAllocator.contain(instruction) || floatRegisterAllocator.contain(instruction);
     }

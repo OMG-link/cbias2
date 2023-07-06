@@ -4,6 +4,7 @@ import cn.edu.bit.newnewcc.backend.asm.instruction.*;
 import cn.edu.bit.newnewcc.backend.asm.operand.*;
 import cn.edu.bit.newnewcc.backend.asm.util.ConstArrayTools;
 import cn.edu.bit.newnewcc.backend.asm.util.ImmediateTools;
+import cn.edu.bit.newnewcc.backend.asm.util.Others;
 import cn.edu.bit.newnewcc.ir.Type;
 import cn.edu.bit.newnewcc.ir.Value;
 import cn.edu.bit.newnewcc.ir.type.FloatType;
@@ -16,8 +17,7 @@ import cn.edu.bit.newnewcc.ir.value.constant.ConstFloat;
 import cn.edu.bit.newnewcc.ir.value.constant.ConstInt;
 import cn.edu.bit.newnewcc.ir.value.instruction.*;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 
 /**
@@ -25,26 +25,34 @@ import java.util.List;
  */
 public class AsmBasicBlock {
     private final GlobalTag blockTag;
+    private final AsmTag instBlockTag;
     private final AsmFunction function;
     private final BasicBlock irBlock;
+    private final Map<BasicBlock, List<AsmInstruction>> phiOperation = new HashMap<>();
+    private final Map<BasicBlock, Map<Value, AsmInstruction>> phiValueMap = new HashMap<>();
+    private final Set<BasicBlock> nextBlock = new HashSet<>();
 
     public AsmBasicBlock(AsmFunction function, BasicBlock block) {
         this.function = function;
         this.blockTag = new GlobalTag(function.getFunctionName() + "_" + block.getValueName(), false);
         this.irBlock = block;
+        this.instBlockTag = new AsmTag(blockTag);
+        preTranslatePhiInstructions(irBlock.getInstructions());
     }
 
     /**
      * 生成基本块的汇编代码，向函数中输出指令
      */
     void emitToFunction() {
-        translatePhiInstructions(irBlock.getInstructions());
-        AsmTag tag = new AsmTag(blockTag);
-        function.putBlockAsmTag(this, tag);
-        function.appendInstruction(tag);
+        function.putBlockAsmTag(this, instBlockTag);
+        function.appendInstruction(instBlockTag);
+        for (var block : phiOperation.keySet()) {
+            function.appendAllInstruction(phiOperation.get(block));
+        }
         for (Instruction instruction : irBlock.getInstructions()) {
             translate(instruction);
         }
+        sufTranslatePhiInstructions();
     }
 
     /**
@@ -131,6 +139,14 @@ public class AsmBasicBlock {
         }
     }
 
+    GlobalTag getJumpGlobalTag(BasicBlock jumpBlock) {
+        AsmBasicBlock block = function.getBasicBlock(jumpBlock);
+        if (block.phiOperation.containsKey(irBlock)) {
+            return ((AsmPhiTag) block.phiOperation.get(irBlock).get(0)).getInnerTag();
+        }
+        return block.blockTag;
+    }
+
     AddressTag transformStackVarToAddressTag(StackVar stackVar) {
         IntRegister tmp = function.getRegisterAllocator().allocateInt();
         Address now = stackVar.getAddress();
@@ -164,13 +180,50 @@ public class AsmBasicBlock {
         return getOperandToAddressTag(operand).getAddressContent();
     }
 
-    void translatePhiInstructions(List<Instruction> instructionList) {
+    void preTranslatePhiInstructions(List<Instruction> instructionList) {
+        List<PhiInst> phiInstList = new ArrayList<>();
         for (var inst : instructionList) {
-            if (!(inst instanceof PhiInst)) {
+            if (inst instanceof PhiInst phiInst) {
+                phiInstList.add(phiInst);
+            } else {
                 break;
             }
-            // 待完成
         }
+        for (var inst : phiInstList) {
+            Register tmp = function.getRegisterAllocator().allocate(inst);
+            for (var block : inst.getEntrySet()) {
+                if (!phiOperation.containsKey(block)) {
+                    phiOperation.put(block, new ArrayList<>());
+                    phiOperation.get(block).add(new AsmPhiTag(function.getBlockAsmTag(function.getBasicBlock(block)), instBlockTag));
+                    phiValueMap.put(block, new HashMap<>());
+                }
+                Value source = inst.getValue(block);
+                var loadInst = new AsmLoad(tmp, null);
+                phiValueMap.get(block).put(source, loadInst);
+                phiOperation.get(block).add(loadInst);
+            }
+        }
+    }
+
+    void sufTranslatePhiInstructions() {
+        for (BasicBlock block : nextBlock) {
+            var next = function.getBasicBlock(block);
+            for (Value value : next.phiValueMap.get(irBlock).keySet()) {
+                var op = getValue(value);
+                assert(op instanceof Register);
+                Register reg = (Register) op;
+                Register tmp = function.getRegisterAllocator().allocate(reg);
+                function.appendInstruction(new AsmLoad(tmp, reg));
+                var inst = next.phiValueMap.get(irBlock).get(value);
+                inst.replaceOperand(2, tmp);
+            }
+        }
+    }
+
+    void translatePhiInst(PhiInst phiInst) {
+        var tmp = (Register)getValue(phiInst);
+        var reg = function.getRegisterAllocator().allocate(phiInst);
+        function.appendInstruction(new AsmLoad(tmp, reg));
     }
 
     void translateBinaryInstruction(BinaryInstruction binaryInstruction) {
@@ -288,8 +341,11 @@ public class AsmBasicBlock {
 
     void translateBranchInst(BranchInst branchInst) {
         var condition = getOperandToIntRegister(getValue(branchInst.getCondition()));
-        var trueTag = function.getBasicBlock(branchInst.getTrueExit()).blockTag;
-        var falseTag = function.getBasicBlock(branchInst.getFalseExit()).blockTag;
+        nextBlock.add(branchInst.getTrueExit());
+        nextBlock.add(branchInst.getFalseExit());
+        sufTranslatePhiInstructions();
+        var trueTag = getJumpGlobalTag(branchInst.getTrueExit());
+        var falseTag = getJumpGlobalTag(branchInst.getFalseExit());
         function.appendInstruction(new AsmJump(trueTag, AsmJump.JUMPTYPE.NEZ, condition, null));
         function.appendInstruction(new AsmJump(falseTag, AsmJump.JUMPTYPE.NON, null, null));
     }
@@ -356,7 +412,9 @@ public class AsmBasicBlock {
     }
 
     void translateJumpInst(JumpInst jumpInst) {
-        var jumpTag = function.getBasicBlock(jumpInst.getExit()).blockTag;
+        nextBlock.add(jumpInst.getExit());
+        sufTranslatePhiInstructions();
+        var jumpTag = getJumpGlobalTag(jumpInst.getExit());
         function.appendInstruction(new AsmJump(jumpTag, AsmJump.JUMPTYPE.NON, null, null));
     }
 
@@ -464,6 +522,8 @@ public class AsmBasicBlock {
                 translateFloatToSignedIntegerInst(floatToSignedIntegerInst);
             } else if (instruction instanceof SignedIntegerToFloatInst signedIntegerToFloatInst) {
                 translateSignedIntegerToFloatInst(signedIntegerToFloatInst);
+            } else if (instruction instanceof PhiInst phiInst) {
+                translatePhiInst(phiInst);
             }
         } catch (RuntimeException exception) {
             throw new RuntimeException("get exception at instruction " + instruction + "\n" + "basic block : " + blockTag.emit() + "\n" + exception.getMessage());

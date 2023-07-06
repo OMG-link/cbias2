@@ -118,3 +118,8 @@ low memory addressContent
 寄存器分配算法执行过程中应注意call命令出现的节点，跨越节点前后的寄存器引用均需使用栈作为中介保存变量
 
 ![riscv.png](https://i.postimg.cc/y6j1vXpw/riscv.png)
+
+
+# phi 指令翻译技术方案
+
+## 

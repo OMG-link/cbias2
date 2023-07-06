@@ -343,7 +343,8 @@ public class AsmFunction {
 
     //寄存器分配前的优化器，用于合并重复虚拟寄存器
     private void asmOptimizerBeforeRegisterAllocate() {
-        instructionList = BackwardOptimizer.beforeAllocateScanForward(new ArrayList<>(instructionList));
+        //instructionList = BackwardOptimizer.beforeAllocateScanForward(new ArrayList<>(instructionList));
+        //由于翻译phi指令导致的寄存器合并无法纳入优化过程
     }
 
 
