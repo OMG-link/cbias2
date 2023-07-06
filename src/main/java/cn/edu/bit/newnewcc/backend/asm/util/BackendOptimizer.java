@@ -6,7 +6,7 @@ import cn.edu.bit.newnewcc.backend.asm.operand.*;
 import java.util.*;
 import java.util.function.Consumer;
 
-public class BackwardOptimizer {
+public class BackendOptimizer {
     public static ArrayList<AsmInstruction> beforeAllocateScanForward(ArrayList<AsmInstruction> instructionList) {
         DSU<Integer> dsu = new DSU<>();
         for (AsmInstruction iMov : instructionList) {
@@ -120,9 +120,10 @@ public class BackwardOptimizer {
             var address = iMov.getOperand(2);
             if (iMov instanceof AsmTag || iMov instanceof AsmPhiTag) {
                 lastWrite.clear();
-            } else if (address instanceof StackVar && !(address instanceof ExStackVarContent)) {
+            }
+            if (address instanceof StackVar && !(address instanceof ExStackVarContent)) {
                 if (iMov instanceof AsmLoad) {
-                    lastWrite.remove(address.emit());
+                    lastWrite.remove(address.toString());
                 } else if (iMov instanceof AsmStore) {
                     if (lastWrite.contains(address.toString())) {
                         continue;

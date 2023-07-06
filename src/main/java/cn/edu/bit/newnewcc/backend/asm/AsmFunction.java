@@ -2,7 +2,7 @@ package cn.edu.bit.newnewcc.backend.asm;
 
 import cn.edu.bit.newnewcc.backend.asm.instruction.*;
 import cn.edu.bit.newnewcc.backend.asm.operand.*;
-import cn.edu.bit.newnewcc.backend.asm.util.BackwardOptimizer;
+import cn.edu.bit.newnewcc.backend.asm.util.BackendOptimizer;
 import cn.edu.bit.newnewcc.backend.asm.util.Pair;
 import cn.edu.bit.newnewcc.ir.Value;
 import cn.edu.bit.newnewcc.ir.type.FloatType;
@@ -354,8 +354,8 @@ public class AsmFunction {
 
     private void asmOptimizerAfterRegisterAllocate() {
         LinkedList<AsmInstruction> linkedInstructionList = new LinkedList<>(instructionList);
-        linkedInstructionList = BackwardOptimizer.afterAllocateScanForward(linkedInstructionList);
-        linkedInstructionList = BackwardOptimizer.afterAllocateScanBackward(linkedInstructionList);
+        linkedInstructionList = BackendOptimizer.afterAllocateScanForward(linkedInstructionList);
+        linkedInstructionList = BackendOptimizer.afterAllocateScanBackward(linkedInstructionList);
         instructionList = new ArrayList<>(linkedInstructionList);
     }
 
