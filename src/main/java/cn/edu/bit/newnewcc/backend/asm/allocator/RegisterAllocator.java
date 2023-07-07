@@ -1,4 +1,4 @@
-package cn.edu.bit.newnewcc.backend.asm;
+package cn.edu.bit.newnewcc.backend.asm.allocator;
 
 import cn.edu.bit.newnewcc.backend.asm.operand.FloatRegister;
 import cn.edu.bit.newnewcc.backend.asm.operand.IntRegister;

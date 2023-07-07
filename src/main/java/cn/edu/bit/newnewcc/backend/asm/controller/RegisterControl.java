@@ -1,11 +1,8 @@
-package cn.edu.bit.newnewcc.backend.asm;
+package cn.edu.bit.newnewcc.backend.asm.controller;
 
-import cn.edu.bit.newnewcc.backend.asm.instruction.AsmCall;
+import cn.edu.bit.newnewcc.backend.asm.AsmFunction;
+import cn.edu.bit.newnewcc.backend.asm.allocator.StackAllocator;
 import cn.edu.bit.newnewcc.backend.asm.instruction.AsmInstruction;
-import cn.edu.bit.newnewcc.backend.asm.instruction.AsmLoad;
-import cn.edu.bit.newnewcc.backend.asm.instruction.AsmStore;
-import cn.edu.bit.newnewcc.backend.asm.operand.*;
-import org.antlr.v4.runtime.misc.Pair;
 
 import java.util.*;
 
@@ -15,6 +12,7 @@ public abstract class RegisterControl {
 
     public abstract List<AsmInstruction> emitHead();
     public abstract List<AsmInstruction> emitTail();
+    public abstract void virtualRegAllocateToPhysics();
 
     public RegisterControl(AsmFunction function, StackAllocator allocator) {
         this.function = function;

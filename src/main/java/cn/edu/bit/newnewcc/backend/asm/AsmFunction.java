@@ -1,5 +1,11 @@
 package cn.edu.bit.newnewcc.backend.asm;
 
+import cn.edu.bit.newnewcc.backend.asm.allocator.AddressAllocator;
+import cn.edu.bit.newnewcc.backend.asm.allocator.RegisterAllocator;
+import cn.edu.bit.newnewcc.backend.asm.allocator.StackAllocator;
+import cn.edu.bit.newnewcc.backend.asm.controller.LifeTimeController;
+import cn.edu.bit.newnewcc.backend.asm.controller.LinearScanRegisterControl;
+import cn.edu.bit.newnewcc.backend.asm.controller.RegisterControl;
 import cn.edu.bit.newnewcc.backend.asm.instruction.*;
 import cn.edu.bit.newnewcc.backend.asm.operand.*;
 import cn.edu.bit.newnewcc.backend.asm.util.BackendOptimizer;
@@ -330,6 +336,7 @@ public class AsmFunction {
         lifeTimeController.refreshAllVreg(instructionList);
 
         RegisterControl registerController = new LinearScanRegisterControl(this, stackAllocator);
+        registerController.virtualRegAllocateToPhysics();
         var newInstructionList = registerController.spillRegisters(instructionList);
 
         for (var inst : newInstructionList) {

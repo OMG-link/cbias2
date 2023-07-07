@@ -1,5 +1,6 @@
-package cn.edu.bit.newnewcc.backend.asm;
+package cn.edu.bit.newnewcc.backend.asm.controller;
 
+import cn.edu.bit.newnewcc.backend.asm.allocator.StackAllocator;
 import cn.edu.bit.newnewcc.backend.asm.operand.StackVar;
 
 import java.util.ArrayDeque;

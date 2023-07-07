@@ -1,5 +1,7 @@
-package cn.edu.bit.newnewcc.backend.asm;
+package cn.edu.bit.newnewcc.backend.asm.controller;
 
+import cn.edu.bit.newnewcc.backend.asm.AsmFunction;
+import cn.edu.bit.newnewcc.backend.asm.allocator.StackAllocator;
 import cn.edu.bit.newnewcc.backend.asm.instruction.AsmCall;
 import cn.edu.bit.newnewcc.backend.asm.instruction.AsmInstruction;
 import cn.edu.bit.newnewcc.backend.asm.instruction.AsmLoad;
@@ -12,7 +14,7 @@ import java.util.*;
 /**
  * 线性扫描寄存器分配器
  */
-class LinearScanRegisterControl extends RegisterControl{
+public class LinearScanRegisterControl extends RegisterControl{
     public enum TYPE {
         PRESERVED, UNPRESERVED
     }
@@ -104,7 +106,8 @@ class LinearScanRegisterControl extends RegisterControl{
     /**
      * 进行两次线性扫描，第一次分配寄存器并进行spill操作，第二次为spill操作后的寄存器分配栈空间
      */
-    private void virtualRegAllocateToPhysics() {
+    @Override
+    public void virtualRegAllocateToPhysics() {
         List<Register> vregList = new ArrayList<>();
         List<Pair<Integer, Integer>> recycleList = new ArrayList<>();
         for (var index : function.getLifeTimeController().getKeySet()) {
@@ -187,7 +190,6 @@ class LinearScanRegisterControl extends RegisterControl{
 
     @Override
     public List<AsmInstruction> spillRegisters(List<AsmInstruction> instructionList) {
-        virtualRegAllocateToPhysics();
         registerPool.replaceAll((r, v) -> 0);
         List<AsmInstruction> newInstList = new ArrayList<>();
         List<List<Pair<Integer, Integer>>> callSavedRegisters = new ArrayList<>();

@@ -1,4 +1,4 @@
-package cn.edu.bit.newnewcc.backend.asm;
+package cn.edu.bit.newnewcc.backend.asm.allocator;
 
 import cn.edu.bit.newnewcc.backend.asm.operand.Address;
 import cn.edu.bit.newnewcc.backend.asm.operand.AddressContent;
@@ -13,13 +13,13 @@ public class AddressAllocator {
     public AddressAllocator() {
         addressMap = new HashMap<>();
     }
-    void allocate(Instruction instruction, AddressContent address) {
+    public void allocate(Instruction instruction, AddressContent address) {
         addressMap.put(instruction, address);
     }
     public boolean contain(Instruction instruction) {
         return addressMap.containsKey(instruction);
     }
-    AddressContent get(Instruction instruction) {
+    public AddressContent get(Instruction instruction) {
         return addressMap.get(instruction);
     }
 }
