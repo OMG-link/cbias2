@@ -16,7 +16,6 @@ public class LifeTimeController {
     //虚拟寄存器生命周期的设置过程
     private final AsmFunction function;
     private final Map<Integer, Pair<Integer, Integer>> lifeTime = new HashMap<>();
-    private final Stack<Pair<Integer, BasicBlock>> lifeToBlockEnd = new Stack<>();
 
     public Set<Integer> getKeySet() {
         return lifeTime.keySet();
@@ -26,30 +25,8 @@ public class LifeTimeController {
         this.function = function;
     }
 
-    public void setVregLifeTimeBlockEnd(Integer index, BasicBlock block) {
-        lifeToBlockEnd.push(new Pair<>(index, block));
-    }
-
     public Pair<Integer, Integer> getLifeTime(Integer index) {
         return lifeTime.get(index);
-    }
-
-    public void refreshBlockEndVreg(List<AsmInstruction> instructionList) {
-        Map<AsmTag, Integer> endTime = new HashMap<>();
-        AsmTag nowTag = null;
-        for (int i = 0; i < instructionList.size(); i++) {
-            var inst = instructionList.get(i);
-            if (inst instanceof AsmTag tag) {
-                nowTag = tag;
-            } else if (inst instanceof AsmPhiTag phiTag) {
-                nowTag = phiTag.getSourceBlockTag();
-            }
-            endTime.put(nowTag, i);
-        }
-        while (!lifeToBlockEnd.empty()) {
-            var p = lifeToBlockEnd.pop();
-            setVregLifeTime(p.a, endTime.get(function.getBlockAsmTag(function.getBasicBlock(p.b))));
-        }
     }
 
     private void setVregLifeTime(Integer index, int t) {
@@ -81,7 +58,6 @@ public class LifeTimeController {
     }
 
     public void refreshAllVreg(List<AsmInstruction> instructionList) {
-        refreshBlockEndVreg(instructionList);
         boolean isPhiSegment = false;
         int phiSegmentStart = 0;
         for (int i = 0; i < instructionList.size(); i++) {

@@ -76,12 +76,8 @@ public class BackendOptimizer {
                             continue;
                         }
                     } else if (iSv instanceof AsmJump jump) {
-                        if (iLd instanceof AsmTag tag) {
-                            if (jump.isNotBranchJump() && jump.getOperand(1).emit().equals(Others.deleteCharString(tag.emit(), ":\t\n"))) {
-                                popx.accept(1);
-                            }
-                        } else if (iLd instanceof AsmPhiTag tag) {
-                            if (jump.isNotBranchJump() && jump.getOperand(1).emit().equals(Others.deleteCharString(tag.emit(), ":\t\n"))) {
+                        if (iLd instanceof AsmAbstractTag tag) {
+                            if (jump.isNotBranchJump() && ((GlobalTag)jump.getOperand(1)).getPureName().equals(tag.getPureName())) {
                                 popx.accept(1);
                             }
                         }
@@ -128,7 +124,7 @@ public class BackendOptimizer {
         while (oldInstructionList.size() > 0) {
             var iMov = oldInstructionList.removeLast();
             var address = iMov.getOperand(2);
-            if (iMov instanceof AsmTag || iMov instanceof AsmPhiTag) {
+            if (iMov instanceof AsmAbstractTag) {
                 lastWrite.clear();
             }
             if (address instanceof StackVar && !(address instanceof ExStackVarContent)) {

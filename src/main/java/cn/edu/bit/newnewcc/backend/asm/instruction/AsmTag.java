@@ -5,7 +5,7 @@ import cn.edu.bit.newnewcc.backend.asm.operand.GlobalTag;
 /**
  * 标签也被视为一类指令
  */
-public class AsmTag extends AsmInstruction {
+public class AsmTag extends AsmAbstractTag {
     public AsmTag(GlobalTag tag) {
         super(tag.tagExpress(), null, null, null);
     }

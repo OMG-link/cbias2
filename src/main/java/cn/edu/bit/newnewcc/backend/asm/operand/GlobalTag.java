@@ -1,5 +1,7 @@
 package cn.edu.bit.newnewcc.backend.asm.operand;
 
+import cn.edu.bit.newnewcc.backend.asm.util.Others;
+
 /**
  * 全局标记实际上存储的是地址，通常代表全局变量或浮点变量
  * 读取地址的时候使用%hi(tag), %lo(tag)两个伪指令，分别读取高16位和低16位
@@ -50,6 +52,10 @@ public class GlobalTag extends AsmOperand {
         this.tagName = tagName;
         this.segment = segment;
         this.baseAddress = null;
+    }
+
+    public String getPureName() {
+        return Others.deleteCharString(emit(), ":.\n\t ");
     }
 
     private String getOffset() {
