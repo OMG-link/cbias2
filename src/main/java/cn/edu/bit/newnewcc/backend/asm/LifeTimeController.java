@@ -1,9 +1,6 @@
 package cn.edu.bit.newnewcc.backend.asm;
 
-import cn.edu.bit.newnewcc.backend.asm.instruction.AsmInstruction;
-import cn.edu.bit.newnewcc.backend.asm.instruction.AsmLoad;
-import cn.edu.bit.newnewcc.backend.asm.instruction.AsmPhiTag;
-import cn.edu.bit.newnewcc.backend.asm.instruction.AsmTag;
+import cn.edu.bit.newnewcc.backend.asm.instruction.*;
 import cn.edu.bit.newnewcc.backend.asm.operand.AsmOperand;
 import cn.edu.bit.newnewcc.backend.asm.operand.Register;
 import cn.edu.bit.newnewcc.backend.asm.operand.RegisterReplaceable;
@@ -61,6 +58,26 @@ public class LifeTimeController {
         }
         var x = lifeTime.get(index);
         lifeTime.put(index, new Pair<>(min(x.a, t), max(x.b, t)));
+    }
+
+    private Set<Register> getWriteVregSet(AsmInstruction inst) {
+        if (!(inst instanceof AsmStore) && inst.getOperand(1) instanceof RegisterReplaceable registerReplaceable) {
+            return new HashSet<>(Collections.singleton(registerReplaceable.getRegister()));
+        } else {
+            return new HashSet<>();
+        }
+    }
+
+    private Set<Register> getReadVregSet(AsmInstruction inst) {
+        var res = new HashSet<Register>();
+        for (int i = 1; i <= 3; i++) {
+            if (inst.getOperand(i) instanceof RegisterReplaceable op) {
+                if ((i == 1 && inst instanceof AsmStore) || (i > 1)) {
+                    res.add(op.getRegister());
+                }
+            }
+        }
+        return res;
     }
 
     public void refreshAllVreg(List<AsmInstruction> instructionList) {

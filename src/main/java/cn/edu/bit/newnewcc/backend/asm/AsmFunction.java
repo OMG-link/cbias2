@@ -121,7 +121,8 @@ public class AsmFunction {
             }
             asmOptimizerBeforeRegisterAllocate();
             //reAllocateStackVar();
-            reAllocateRegister();
+            //reAllocateRegister();
+            //发现bug来自于控制流经过了不在区间内的块，待修复
             asmOptimizerAfterRegisterAllocate();
         }
     }
