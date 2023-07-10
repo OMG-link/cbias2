@@ -4,6 +4,7 @@ import cn.edu.bit.newnewcc.ir.Value;
 import cn.edu.bit.newnewcc.ir.exception.IllegalStateException;
 import cn.edu.bit.newnewcc.ir.value.BasicBlock;
 import cn.edu.bit.newnewcc.ir.value.Instruction;
+import cn.edu.bit.newnewcc.ir.value.constant.ConstInt;
 import cn.edu.bit.newnewcc.ir.value.instruction.*;
 
 import java.util.HashSet;
@@ -11,6 +12,7 @@ import java.util.Set;
 
 /**
  * 简单循环结构，仅支持整数的加法和减法作为循环变量的循环
+ * 循环的退出语句必须在循环头内
  *
  * @param condition    循环的条件语句
  * @param stepInst     循环的步进语句
@@ -101,6 +103,7 @@ public record SimpleLoopInfo(IntegerCompareInst condition, IntegerArithmeticInst
         private IntegerCompareInst getExitCondition() throws BuildFailedException {
             // 获取循环退出的条件值
             Value conditionValue = null;
+            BranchInst br = null;
             for (BasicBlock inLoopBlock : inLoopBlocks) {
                 var terminateInst = inLoopBlock.getTerminateInstruction();
                 if (terminateInst instanceof BranchInst branchInst) {
@@ -108,6 +111,7 @@ public record SimpleLoopInfo(IntegerCompareInst condition, IntegerArithmeticInst
                         if (inLoopBlocks.contains(exit)) continue;
                         if (conditionValue == null) {
                             conditionValue = branchInst.getCondition();
+                            br = branchInst;
                         } else {
                             // 多出口，不是简单循环
                             throw new BuildFailedException();
@@ -121,9 +125,34 @@ public record SimpleLoopInfo(IntegerCompareInst condition, IntegerArithmeticInst
                     throw new IllegalStateException();
                 }
             }
+
             // 仅支持整数加法或减法的循环
             if (!(conditionValue instanceof IntegerCompareInst integerCompareInst)) {
                 throw new BuildFailedException();
+            }
+
+            // 循环的退出块必须在循环头
+            if (br.getBasicBlock() != loopHeadBlock) {
+                throw new BuildFailedException();
+            }
+
+            // 标准化br语句
+            if (!inLoopBlocks.contains(br.getTrueExit())) {
+                // 交换exit
+                var trueExitTemp = br.getTrueExit();
+                var falseExitTemp = br.getFalseExit();
+                br.setTrueExit(falseExitTemp);
+                br.setFalseExit(trueExitTemp);
+                // 新建反转的cmp语句
+                // 此处不能删除旧的cmp语句，因为该语句可能还被其他语句使用
+                var newCmpInstruction = new IntegerCompareInst(
+                        integerCompareInst.getComparedType(),
+                        integerCompareInst.getCondition().not(),
+                        integerCompareInst.getOperand1(), integerCompareInst.getOperand2()
+                );
+                newCmpInstruction.insertBefore(integerCompareInst);
+                br.setCondition(newCmpInstruction);
+                integerCompareInst = newCmpInstruction;
             }
 
             // 标准化比较语句，动态变量应当放置在左侧
@@ -188,6 +217,79 @@ public record SimpleLoopInfo(IntegerCompareInst condition, IntegerArithmeticInst
 
     public static SimpleLoopInfo buildFrom(Loop loop) {
         return new Builder(loop).getSimpleLoopInfo();
+    }
+
+    /**
+     * 判断当前循环次数是否固定
+     *
+     * @return 循环次数固定返回true；否则返回false。
+     */
+    public boolean isFixedLoop() {
+        return getLoopCount() != -1;
+    }
+
+    /**
+     * 获取循环执行的次数
+     *
+     * @return 若循环执行固定次数，返回其执行的次数；否则返回-1。
+     */
+    public int getLoopCount() {
+        if (!(initialValue instanceof ConstInt)) return -1;
+        if (!(stepInst.getOperand2() instanceof ConstInt)) return -1;
+        if (!(condition.getOperand2() instanceof ConstInt)) return -1;
+        var initialValue = (long) ((ConstInt) this.initialValue).getValue();
+        var stepValue = (long) ((ConstInt) stepInst.getOperand2()).getValue();
+        if (stepInst instanceof IntegerSubInst) {
+            stepValue = -stepValue;
+        }
+        var limitValue = (long) ((ConstInt) condition.getOperand2()).getValue();
+        var condition = this.condition.getCondition();
+        if (condition == IntegerCompareInst.Condition.SGE) {
+            // 可以认为 limitValue-1 一定不会下溢，否则原循环是死循环
+            limitValue = limitValue - 1;
+            condition = IntegerCompareInst.Condition.SGT;
+        }
+        if (condition == IntegerCompareInst.Condition.SLE) {
+            // 同样地，可以假设 limitValue+1 不会上溢
+            limitValue = limitValue + 1;
+            condition = IntegerCompareInst.Condition.SLT;
+        }
+        switch (condition) {
+            case EQ -> {
+                if (initialValue != limitValue) return 0;
+                else return -1;
+            }
+            case NE -> {
+                if (initialValue == limitValue) return 0;
+                if (stepValue == 0) return -1;
+                if ((limitValue - initialValue) % stepValue != 0) {
+                    return -1;
+                } else {
+                    long count = (limitValue - initialValue) / stepValue;
+                    if (count > Integer.MAX_VALUE || count < 0) return -1;
+                    return (int) count;
+                }
+            }
+            case SLT -> {
+                var interval = limitValue - initialValue;
+                if (interval <= 0) return 0;
+                if (stepValue <= 0) return -1;
+                long count = (interval + stepValue - 1) / stepValue;
+                if (count > Integer.MAX_VALUE) return -1;
+                return (int) count;
+            }
+            case SGT -> {
+                var interval = limitValue - initialValue;
+                if (interval >= 0) return 0;
+                if (stepValue >= 0) return -1;
+                interval = -interval;
+                stepValue = -stepValue;
+                long count = (interval + stepValue - 1) / stepValue;
+                if (count > Integer.MAX_VALUE) return -1;
+                return (int) count;
+            }
+        }
+        return -1;
     }
 
 }
