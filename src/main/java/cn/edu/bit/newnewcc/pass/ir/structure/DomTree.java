@@ -126,6 +126,19 @@ public class DomTree {
         return nodeMap.get(basicBlock).depth;
     }
 
+    /**
+     * 获取基本块的第 2^i 级祖先
+     *
+     * @param basicBlock 基本块
+     * @param level      获取第 2^level 级祖先
+     * @return 第 2^level 级祖先
+     */
+    public BasicBlock getBexpFather(BasicBlock basicBlock, int level) {
+        var p = nodeMap.get(basicBlock).bexpParents;
+        if (level < p.size()) return p.get(level);
+        else return null;
+    }
+
     public static DomTree buildOver(Function function) {
         return new DomTree(function);
     }
