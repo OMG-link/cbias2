@@ -23,7 +23,6 @@ import java.util.Map;
 public class MemoryAccessOptimizePass {
 
     private static void localizeGlobalVariable(BasicBlock basicBlock) {
-        // changed指代是否有优化产生，非优化的修改不影响changed
         Map<GlobalVariable, Value> gvBuffer = new HashMap<>();
         Map<GlobalVariable, Value> writeBackBuffer = new HashMap<>();
         for (Instruction mainInstruction : basicBlock.getMainInstructions()) {
