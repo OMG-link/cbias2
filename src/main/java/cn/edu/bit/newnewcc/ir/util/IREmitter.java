@@ -6,7 +6,6 @@ import cn.edu.bit.newnewcc.ir.Value;
 import cn.edu.bit.newnewcc.ir.type.VoidType;
 import cn.edu.bit.newnewcc.ir.value.*;
 
-import java.io.IOException;
 import java.util.StringJoiner;
 
 public class IREmitter {
@@ -108,7 +107,7 @@ public class IREmitter {
         builder.append('\n');
     }
 
-    public static String emit(Module module) throws IOException {
+    public static String emit(Module module) {
         var emitter = new IREmitter();
         emitter.emitModule(module);
         return emitter.builder.toString();
