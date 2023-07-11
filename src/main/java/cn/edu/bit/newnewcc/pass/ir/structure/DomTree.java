@@ -110,6 +110,16 @@ public class DomTree {
         return a == b;
     }
 
+    /**
+     * 获取某个基本块在支配树中的深度
+     *
+     * @param basicBlock 基本块
+     * @return 基本块在支配树中的深度
+     */
+    public int getDomDepth(BasicBlock basicBlock) {
+        return nodeMap.get(basicBlock).depth;
+    }
+
     public static DomTree buildOver(Function function) {
         return new DomTree(function);
     }
