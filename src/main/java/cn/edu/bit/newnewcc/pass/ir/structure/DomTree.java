@@ -139,6 +139,30 @@ public class DomTree {
         else return null;
     }
 
+    public BasicBlock lca(BasicBlock u_, BasicBlock v_) {
+        var u = nodeMap.get(u_);
+        var v = nodeMap.get(v_);
+        if (u.depth < v.depth) {
+            var temp = u;
+            u = v;
+            v = temp;
+        }
+        for (int i = 0; (1 << i) <= u.depth - v.depth; i++) {
+            if (((u.depth - v.depth) & (1 << i)) != 0) {
+                u = nodeMap.get(u.bexpParents.get(i));
+            }
+        }
+        if (u == v) return u.basicBlock;
+        for (int i = u.bexpParents.size() - 1; i >= 0; i--) {
+            if (u.bexpParents.get(i) != v.bexpParents.get(i)) {
+                u = nodeMap.get(u.bexpParents.get(i));
+                v = nodeMap.get(v.bexpParents.get(i));
+            }
+            i = Integer.min(i, u.bexpParents.size());
+        }
+        return u.bexpParents.get(0);
+    }
+
     public static DomTree buildOver(Function function) {
         return new DomTree(function);
     }
