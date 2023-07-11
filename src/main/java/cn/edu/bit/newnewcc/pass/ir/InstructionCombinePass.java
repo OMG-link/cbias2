@@ -39,7 +39,7 @@ public class InstructionCombinePass {
     }
 
     private boolean runOnFunction(Function function) {
-        domTree = new DomTree(function);
+        domTree = DomTree.buildOver(function);
         return dfsDomTree(function.getEntryBasicBlock());
     }
 

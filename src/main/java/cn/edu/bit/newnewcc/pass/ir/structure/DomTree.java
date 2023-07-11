@@ -39,7 +39,7 @@ public class DomTree {
 
     private final Map<BasicBlock, Node> nodeMap = new HashMap<>();
 
-    public DomTree(Function function) {
+    private DomTree(Function function) {
         var builder = new DomTreeBuilder<BasicBlock>();
         builder.setRoot(function.getEntryBasicBlock());
         for (BasicBlock basicBlock : function.getBasicBlocks()) {
@@ -108,6 +108,10 @@ public class DomTree {
             }
         }
         return a == b;
+    }
+
+    public static DomTree buildOver(Function function) {
+        return new DomTree(function);
     }
 
 }

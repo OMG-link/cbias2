@@ -21,7 +21,7 @@ public class LoopForest implements Iterable<Loop> {
         public final DomTree domTree;
 
         public Builder(Function function) {
-            domTree = new DomTree(function);
+            domTree = DomTree.buildOver(function);
         }
     }
 
