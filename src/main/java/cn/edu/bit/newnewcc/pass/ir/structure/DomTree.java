@@ -38,8 +38,10 @@ public class DomTree {
     }
 
     private final Map<BasicBlock, Node> nodeMap = new HashMap<>();
+    private final BasicBlock domRoot;
 
     private DomTree(Function function) {
+        domRoot = function.getEntryBasicBlock();
         var builder = new DomTreeBuilder<BasicBlock>();
         builder.setRoot(function.getEntryBasicBlock());
         for (BasicBlock basicBlock : function.getBasicBlocks()) {
@@ -70,6 +72,10 @@ public class DomTree {
             sonNode.bexpParents.add(u.basicBlock);
             buildBexpArray(sonNode);
         }
+    }
+
+    public BasicBlock getDomRoot() {
+        return domRoot;
     }
 
     /**
