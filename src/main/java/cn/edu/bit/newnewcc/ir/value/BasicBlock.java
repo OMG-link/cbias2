@@ -63,12 +63,12 @@ public class BasicBlock extends Value {
      * @param instruction 待插入的指令
      */
     public void addInstruction(Instruction instruction) {
-        if (instruction instanceof AllocateInst || instruction instanceof PhiInst) {
+        if (isLeadingInstruction(instruction)) {
             instructionList.addLeadingInst(instruction);
             return;
         }
-        if (instruction instanceof TerminateInst terminateInst) {
-            setTerminateInstruction(terminateInst);
+        if (isTerminateInstruction(instruction)) {
+            setTerminateInstruction((TerminateInst) instruction);
             return;
         }
         instructionList.appendMainInstruction(instruction);
@@ -223,4 +223,13 @@ public class BasicBlock extends Value {
     public void __clearFunction__() {
         __setFunction__(null, false);
     }
+
+    public static boolean isLeadingInstruction(Instruction instruction) {
+        return instruction instanceof AllocateInst || instruction instanceof PhiInst;
+    }
+
+    public static boolean isTerminateInstruction(Instruction instruction) {
+        return instruction instanceof TerminateInst;
+    }
+
 }
