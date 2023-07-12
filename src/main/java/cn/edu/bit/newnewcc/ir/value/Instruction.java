@@ -87,6 +87,9 @@ public abstract class Instruction extends Value {
      * @param beta 乙节点
      */
     public void insertAfter(Instruction beta) {
+        if (BasicBlock.isLeadingInstruction(beta) || BasicBlock.isTerminateInstruction(beta)) {
+            throw new RuntimeException("Cannot insert instruction after special instructions.");
+        }
         InstructionList.insertAlphaAfterBeta(this.node, beta.node);
     }
 
@@ -98,6 +101,9 @@ public abstract class Instruction extends Value {
      * @param beta 乙节点
      */
     public void insertBefore(Instruction beta) {
+        if (BasicBlock.isLeadingInstruction(beta) || BasicBlock.isTerminateInstruction(beta)) {
+            throw new RuntimeException("Cannot insert instruction before special instructions.");
+        }
         InstructionList.insertAlphaBeforeBeta(this.node, beta.node);
     }
 

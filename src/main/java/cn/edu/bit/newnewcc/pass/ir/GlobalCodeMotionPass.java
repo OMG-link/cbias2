@@ -303,7 +303,12 @@ public class GlobalCodeMotionPass {
                         var insertPoint = instruction;
                         while (!readyInstructions.isEmpty()) {
                             var puttingInstruction = readyInstructions.pop();
-                            puttingInstruction.insertBefore(insertPoint);
+                            // 终止指令无法被 insertBefore 操作，需要改用其他方式插在主体指令的末尾
+                            if (BasicBlock.isTerminateInstruction(insertPoint)) {
+                                basicBlock.addInstruction(puttingInstruction);
+                            } else {
+                                puttingInstruction.insertBefore(insertPoint);
+                            }
                             insertPoint = puttingInstruction;
                             onInstructionPlaced.accept(puttingInstruction);
                         }
