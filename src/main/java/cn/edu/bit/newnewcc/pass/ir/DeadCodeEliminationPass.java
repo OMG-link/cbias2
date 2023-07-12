@@ -3,17 +3,16 @@ package cn.edu.bit.newnewcc.pass.ir;
 import cn.edu.bit.newnewcc.ir.Module;
 import cn.edu.bit.newnewcc.ir.Operand;
 import cn.edu.bit.newnewcc.ir.exception.ValueBeingUsedException;
-import cn.edu.bit.newnewcc.ir.value.BasicBlock;
-import cn.edu.bit.newnewcc.ir.value.ExternalFunction;
-import cn.edu.bit.newnewcc.ir.value.Function;
-import cn.edu.bit.newnewcc.ir.value.Instruction;
+import cn.edu.bit.newnewcc.ir.value.*;
 import cn.edu.bit.newnewcc.ir.value.instruction.CallInst;
 import cn.edu.bit.newnewcc.ir.value.instruction.StoreInst;
 import cn.edu.bit.newnewcc.ir.value.instruction.TerminateInst;
 import cn.edu.bit.newnewcc.ir.value.instruction.UnreachableInst;
+import cn.edu.bit.newnewcc.pass.ir.util.CallMap;
 import cn.edu.bit.newnewcc.pass.ir.util.GlobalAddressDetector;
 
 import java.util.*;
+import java.util.function.Consumer;
 
 /**
  * 消除 ir 中的无用代码
@@ -220,7 +219,37 @@ public class DeadCodeEliminationPass {
         return removeInvalidInstruction(module);
     }
 
+    private static void removeUnusedFunctions(Module module) {
+        var calleeMap = CallMap.getCalleeMap(module);
+        var unusedFunctions = new HashSet<>(module.getFunctions());
+        // 使用 BFS 的方式从 main 开始探索所有可能被调用的函数
+        Queue<Function> processQueue = new LinkedList<>();
+        Consumer<Function> markReachable = function -> {
+            if (unusedFunctions.contains(function)) {
+                unusedFunctions.remove(function);
+                processQueue.add(function);
+            }
+        };
+        for (Function function : module.getFunctions()) {
+            if (function.getValueName().equals("main")) {
+                markReachable.accept(function);
+                break;
+            }
+        }
+        while (!processQueue.isEmpty()) {
+            var caller = processQueue.remove();
+            unusedFunctions.remove(caller);
+            for (BaseFunction baseCallee : calleeMap.get(caller)) {
+                if (baseCallee instanceof Function callee) {
+                    markReachable.accept(callee);
+                }
+            }
+        }
+        unusedFunctions.forEach(module::removeFunction);
+    }
+
     public static boolean runOnModule(Module module) {
+        removeUnusedFunctions(module);
         return new DeadCodeEliminationPass().runOnModule_(module);
     }
 
