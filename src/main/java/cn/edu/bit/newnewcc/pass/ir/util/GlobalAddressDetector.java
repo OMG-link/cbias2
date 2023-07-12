@@ -19,7 +19,7 @@ import java.util.*;
 // 每当遇到一个待定的值，先向上搜索其所有可能的来源，并将所有值标记为待定（pending）
 // 若搜索到了全局源，则从全局源开始向下传播全局地址标记
 // 最后，没有被标记的待定值都是局部地址，因为其找不到任何全局源
-public class GlobalAddressDetect {
+public class GlobalAddressDetector {
 
     private final Map<Value, Boolean> addressTypeCache = new HashMap<>();
     private final Queue<Value> spreadingGlobalAddresses = new ArrayDeque<>();

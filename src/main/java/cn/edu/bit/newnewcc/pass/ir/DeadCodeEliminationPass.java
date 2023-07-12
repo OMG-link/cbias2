@@ -11,7 +11,7 @@ import cn.edu.bit.newnewcc.ir.value.instruction.CallInst;
 import cn.edu.bit.newnewcc.ir.value.instruction.StoreInst;
 import cn.edu.bit.newnewcc.ir.value.instruction.TerminateInst;
 import cn.edu.bit.newnewcc.ir.value.instruction.UnreachableInst;
-import cn.edu.bit.newnewcc.pass.ir.util.GlobalAddressDetect;
+import cn.edu.bit.newnewcc.pass.ir.util.GlobalAddressDetector;
 
 import java.util.*;
 
@@ -49,7 +49,7 @@ import java.util.*;
 // 缩写：se = side effect
 public class DeadCodeEliminationPass {
 
-    GlobalAddressDetect addressTypeCache = new GlobalAddressDetect();
+    GlobalAddressDetector addressTypeCache = new GlobalAddressDetector();
 
     /// 可达指令 & 副作用指令搜索
 
