@@ -1,7 +1,8 @@
-package cn.edu.bit.newnewcc.pass.ir.structure;
+package cn.edu.bit.newnewcc.pass.ir.util;
 
 import cn.edu.bit.newnewcc.ir.Value;
 import cn.edu.bit.newnewcc.ir.value.BasicBlock;
+import cn.edu.bit.newnewcc.ir.value.Function;
 import cn.edu.bit.newnewcc.ir.value.Instruction;
 import cn.edu.bit.newnewcc.ir.value.instruction.*;
 
@@ -9,7 +10,12 @@ import java.util.*;
 
 public class InstructionSet {
 
+    private final Set<Function> pureFunctions;
     private final Map<List<Object>, Instruction> instructionSet = new HashMap<>();
+
+    public InstructionSet(Set<Function> pureFunctions) {
+        this.pureFunctions = pureFunctions;
+    }
 
     public void add(Instruction instruction) {
         instructionSet.put(getFeatures(instruction), instruction);
@@ -40,14 +46,22 @@ public class InstructionSet {
         }
     }
 
-    private static List<Object> getFeatures(Instruction instruction) {
+    private List<Object> getFeatures(Instruction instruction) {
         List<Object> result = new ArrayList<>();
         result.add(instruction.getClass());
         // 不可合并的指令
         if (instruction instanceof TerminateInst ||
-                instruction instanceof CallInst ||
                 instruction instanceof MemoryInst) {
             result.add(instruction);
+        }
+        // 过程调用
+        else if (instruction instanceof CallInst callInst) {
+            if (callInst.getCallee() instanceof Function callee && pureFunctions.contains(callee)) {
+                result.add(callInst.getCallee());
+                result.addAll(callInst.getArgumentList());
+            } else {
+                result.add(instruction);
+            }
         }
         // 可交换二元算数指令
         else if (instruction instanceof FloatAddInst ||
