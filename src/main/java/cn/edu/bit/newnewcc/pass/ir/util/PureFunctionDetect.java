@@ -2,11 +2,8 @@ package cn.edu.bit.newnewcc.pass.ir.util;
 
 import cn.edu.bit.newnewcc.ir.Module;
 import cn.edu.bit.newnewcc.ir.Operand;
-import cn.edu.bit.newnewcc.ir.Value;
 import cn.edu.bit.newnewcc.ir.value.*;
-import cn.edu.bit.newnewcc.ir.value.instruction.AllocateInst;
 import cn.edu.bit.newnewcc.ir.value.instruction.CallInst;
-import cn.edu.bit.newnewcc.ir.value.instruction.GetElementPtrInst;
 import cn.edu.bit.newnewcc.ir.value.instruction.StoreInst;
 
 import java.util.HashMap;
@@ -21,6 +18,7 @@ public class PureFunctionDetect {
         private final Map<Function, Set<Function>> callers = new HashMap<>();
         private final Set<Function> externalCallers = new HashSet<>();
         private final Set<Function> nonPureFunctions = new HashSet<>();
+        private final GlobalAddressDetector globalAddressDetector = new GlobalAddressDetector();
 
         public Detector(Module module) {
             this.module = module;
@@ -64,25 +62,6 @@ public class PureFunctionDetect {
         }
 
         /**
-         * 判断一个地址是否是局部地址
-         *
-         * @param address 地址
-         * @return 是局部地址，返回true；否则返回false。
-         */
-        private boolean isLocalAddress(Value address) {
-            if (address instanceof AllocateInst) {
-                return true;
-            } else if (address instanceof Function.FormalParameter ||
-                    address instanceof GlobalVariable) {
-                return false;
-            } else if (address instanceof GetElementPtrInst getElementPtrInst) {
-                return isLocalAddress(getElementPtrInst.getRootOperand());
-            } else {
-                throw new RuntimeException("Unknown class of address: " + address.getClass());
-            }
-        }
-
-        /**
          * 检查某个函数是否为纯函数 <br>
          * 此方法<b>不考虑</b>调用非纯函数导致本函数变成非纯函数的情况 <br>
          *
@@ -102,9 +81,9 @@ public class PureFunctionDetect {
                             return false;
                         }
                     }
-                    // 3. 向形参中的地址store
+                    // 3. 向除局部变量以外的位置store
                     if (instruction instanceof StoreInst storeInst) {
-                        if (!isLocalAddress(storeInst.getAddressOperand())) {
+                        if (globalAddressDetector.isGlobalAddress(storeInst.getAddressOperand())) {
                             return false;
                         }
                     }
