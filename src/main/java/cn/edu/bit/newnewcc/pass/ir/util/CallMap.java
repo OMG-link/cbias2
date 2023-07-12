@@ -10,25 +10,44 @@ import java.util.Map;
 import java.util.Set;
 
 public class CallMap {
-    public static Map<BaseFunction, Set<Function>> from(Module module) {
-        Map<BaseFunction, Set<Function>> callMap = new HashMap<>();
+
+    public static Map<BaseFunction, Set<Function>> getCallerMap(Module module) {
+        Map<BaseFunction, Set<Function>> callerMap = new HashMap<>();
         for (Function function : module.getFunctions()) {
-            callMap.put(function, new HashSet<>());
+            callerMap.put(function, new HashSet<>());
         }
         for (ExternalFunction externalFunction : module.getExternalFunctions()) {
-            callMap.put(externalFunction, new HashSet<>());
+            callerMap.put(externalFunction, new HashSet<>());
         }
         for (Function caller : module.getFunctions()) {
             for (BasicBlock basicBlock : caller.getBasicBlocks()) {
                 for (Instruction instruction : basicBlock.getInstructions()) {
                     if (instruction instanceof CallInst callInst) {
                         var callee = callInst.getCallee();
-                        callMap.get(callee).add(caller);
+                        callerMap.get(callee).add(caller);
                     }
                 }
             }
         }
-        return callMap;
+        return callerMap;
+    }
+
+    public static Map<Function, Set<BaseFunction>> getCalleeMap(Module module) {
+        Map<Function, Set<BaseFunction>> calleeMap = new HashMap<>();
+        for (Function function : module.getFunctions()) {
+            calleeMap.put(function, new HashSet<>());
+        }
+        for (Function caller : module.getFunctions()) {
+            for (BasicBlock basicBlock : caller.getBasicBlocks()) {
+                for (Instruction instruction : basicBlock.getInstructions()) {
+                    if (instruction instanceof CallInst callInst) {
+                        var callee = callInst.getCallee();
+                        calleeMap.get(caller).add(callee);
+                    }
+                }
+            }
+        }
+        return calleeMap;
     }
 
 }

@@ -27,7 +27,7 @@ public class PureFunctionDetect {
          * 分析每个函数被哪些函数调用
          */
         private void analysisCallers() {
-            var callMap = CallMap.from(module);
+            var callMap = CallMap.getCallerMap(module);
             callMap.forEach((baseCallee, callers) -> {
                 if (baseCallee instanceof Function callee) {
                     this.callers.put(callee, callers);
