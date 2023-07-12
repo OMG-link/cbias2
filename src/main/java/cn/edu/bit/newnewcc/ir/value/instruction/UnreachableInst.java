@@ -11,8 +11,8 @@ import java.util.List;
 public class UnreachableInst extends TerminateInst {
 
     @Override
-    public String toString() {
-        return "unreachable";
+    public void emitIr(StringBuilder builder) {
+        builder.append("unreachable");
     }
 
     @Override

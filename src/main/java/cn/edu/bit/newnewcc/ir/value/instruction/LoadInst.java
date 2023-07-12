@@ -43,13 +43,13 @@ public class LoadInst extends MemoryInst{
     }
 
     @Override
-    public String toString() {
-        return String.format(
+    public void emitIr(StringBuilder builder) {
+        builder.append(String.format(
                 "%s = load %s, %s %s",
                 getValueNameIR(),
                 getTypeName(),
                 getAddressOperand().getType().getTypeName(),
                 getAddressOperand().getValueNameIR()
-        );
+        ));
     }
 }

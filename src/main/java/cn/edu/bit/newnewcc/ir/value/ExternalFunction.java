@@ -1,5 +1,6 @@
 package cn.edu.bit.newnewcc.ir.value;
 
+import cn.edu.bit.newnewcc.ir.Type;
 import cn.edu.bit.newnewcc.ir.type.FunctionType;
 
 public class ExternalFunction extends BaseFunction {
@@ -28,4 +29,22 @@ public class ExternalFunction extends BaseFunction {
     public void setValueName(String valueName) {
         functionName = valueName;
     }
+
+    public void emitIr(StringBuilder builder) {
+        builder.append("declare ")
+                .append(this.getReturnType().getTypeName())
+                .append(' ')
+                .append(this.getValueNameIR())
+                .append('(');
+        boolean isFirstParameter = true;
+        for (Type parameterType : this.getParameterTypes()) {
+            if (!isFirstParameter) {
+                builder.append(", ");
+            }
+            builder.append(parameterType.getTypeName());
+            isFirstParameter = false;
+        }
+        builder.append(")\n");
+    }
+
 }

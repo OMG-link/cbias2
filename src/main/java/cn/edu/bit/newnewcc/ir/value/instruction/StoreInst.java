@@ -86,13 +86,13 @@ public class StoreInst extends MemoryInst {
     }
 
     @Override
-    public String toString() {
-        return String.format(
+    public void emitIr(StringBuilder builder) {
+        builder.append(String.format(
                 "store %s %s, %s %s",
                 valueOperand.getValue().getTypeName(),
                 valueOperand.getValue().getValueNameIR(),
                 addressOperand.getValue().getTypeName(),
                 addressOperand.getValue().getValueNameIR()
-        );
+        ));
     }
 }

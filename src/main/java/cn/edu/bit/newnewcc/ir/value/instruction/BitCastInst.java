@@ -54,13 +54,13 @@ public class BitCastInst extends Instruction {
     }
 
     @Override
-    public String toString() {
-        return String.format(
+    public void emitIr(StringBuilder builder) {
+        builder.append(String.format(
                 "%s = bitcast %s %s to %s",
                 this.getValueNameIR(),
                 getSourceOperand().getTypeName(),
                 getSourceOperand().getValueNameIR(),
                 this.getTypeName()
-        );
+        ));
     }
 }

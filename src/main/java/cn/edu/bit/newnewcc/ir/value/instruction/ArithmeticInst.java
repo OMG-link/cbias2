@@ -8,14 +8,14 @@ public abstract class ArithmeticInst extends BinaryInstruction {
     }
 
     @Override
-    public String toString() {
-        return String.format(
+    public void emitIr(StringBuilder builder) {
+        builder.append(String.format(
                 "%s = %s %s %s, %s",
                 this.getValueNameIR(),
                 this.getInstName(),
                 this.getTypeName(),
                 getOperand1().getValueNameIR(),
                 getOperand2().getValueNameIR()
-        );
+        ));
     }
 }

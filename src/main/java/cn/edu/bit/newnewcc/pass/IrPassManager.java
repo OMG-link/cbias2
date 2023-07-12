@@ -34,6 +34,7 @@ public class IrPassManager {
             }
         }
         IrSemanticCheckPass.verify(module);
+        IrNamingPass.runOnModule(module);
     }
 
     private static void runOptimizePasses(Module module) {

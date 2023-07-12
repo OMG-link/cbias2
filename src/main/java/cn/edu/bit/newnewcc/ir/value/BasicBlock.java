@@ -5,7 +5,6 @@ import cn.edu.bit.newnewcc.ir.exception.IllegalArgumentException;
 import cn.edu.bit.newnewcc.ir.exception.UsageRelationshipCheckFailedException;
 import cn.edu.bit.newnewcc.ir.type.LabelType;
 import cn.edu.bit.newnewcc.ir.util.InstructionList;
-import cn.edu.bit.newnewcc.ir.util.NameAllocator;
 import cn.edu.bit.newnewcc.ir.value.instruction.AllocateInst;
 import cn.edu.bit.newnewcc.ir.value.instruction.PhiInst;
 import cn.edu.bit.newnewcc.ir.value.instruction.TerminateInst;
@@ -28,16 +27,10 @@ public class BasicBlock extends Value {
 
     /// 名称
 
-    private String valueName;
+    private String valueName = null;
 
     @Override
     public String getValueName() {
-        if (valueName == null) {
-            if (function == null) {
-                throw new UnsupportedOperationException("Cannot get the name of a basic block outside any functions");
-            }
-            valueName = NameAllocator.getLvName(function);
-        }
         return valueName;
     }
 
@@ -49,6 +42,15 @@ public class BasicBlock extends Value {
     @Override
     public void setValueName(String valueName) {
         this.valueName = valueName;
+    }
+
+    public void emitIr(StringBuilder builder) {
+        builder.append(this.getValueName()).append(":\n");
+        for (Instruction instruction : this.getInstructions()) {
+            builder.append("    ");
+            instruction.emitIr(builder);
+            builder.append('\n');
+        }
     }
 
     private final InstructionList instructionList = new InstructionList(this);

@@ -62,13 +62,13 @@ public class BranchInst extends TerminateInst{
     }
 
     @Override
-    public String toString() {
-        return String.format(
+    public void emitIr(StringBuilder builder) {
+        builder.append(String.format(
                 "br i1 %s, label %s, label %s",
                 getCondition().getValueNameIR(),
                 getTrueExit().getValueNameIR(),
                 getFalseExit().getValueNameIR()
-        );
+        ));
     }
 
     @Override

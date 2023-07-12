@@ -17,7 +17,7 @@ public class DummyInstruction extends Instruction {
     }
 
     @Override
-    public String toString() {
+    public void emitIr(StringBuilder builder) {
         throw new UnsupportedOperationException();
     }
 }

@@ -3,7 +3,6 @@ package cn.edu.bit.newnewcc.ir.value;
 import cn.edu.bit.newnewcc.ir.Type;
 import cn.edu.bit.newnewcc.ir.Value;
 import cn.edu.bit.newnewcc.ir.type.PointerType;
-import cn.edu.bit.newnewcc.ir.util.NameAllocator;
 
 /**
  * 全局变量
@@ -77,13 +76,10 @@ public class GlobalVariable extends Value {
         return (PointerType) super.getType();
     }
 
-    private String valueName;
+    private String valueName = null;
 
     @Override
     public String getValueName() {
-        if (valueName == null) {
-            valueName = NameAllocator.getGvName();
-        }
         return valueName;
     }
 
@@ -96,4 +92,18 @@ public class GlobalVariable extends Value {
     public void setValueName(String valueName) {
         this.valueName = valueName;
     }
+
+    public void emitIr(StringBuilder builder) {
+        // e.g.
+        // @c = dso_local constant i32 3
+        // @d = dso_local global i32 4
+        builder.append(String.format(
+                "%s = dso_local %s %s %s\n",
+                this.getValueNameIR(),
+                this.isConstant() ? "constant" : "global",
+                this.getStoredValueType().getTypeName(),
+                this.getInitialValue().getValueNameIR()
+        ));
+    }
+
 }

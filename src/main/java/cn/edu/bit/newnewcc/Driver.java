@@ -7,7 +7,6 @@ import cn.edu.bit.newnewcc.frontend.Translator;
 import cn.edu.bit.newnewcc.frontend.antlr.SysYLexer;
 import cn.edu.bit.newnewcc.frontend.antlr.SysYParser;
 import cn.edu.bit.newnewcc.ir.Module;
-import cn.edu.bit.newnewcc.ir.util.IREmitter;
 import cn.edu.bit.newnewcc.pass.IrPassManager;
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CharStreams;
@@ -48,7 +47,9 @@ public class Driver {
                 if (outputFileName == null) outputFileName = changeExtension(inputFileName, "ll");
 
                 try (var fileOutputStream = new FileOutputStream(outputFileName)) {
-                    fileOutputStream.write(IREmitter.emit(module).getBytes(StandardCharsets.UTF_8));
+                    var builder = new StringBuilder();
+                    module.emitIr(builder);
+                    fileOutputStream.write(builder.toString().getBytes(StandardCharsets.UTF_8));
                 }
 
                 continue;

@@ -60,13 +60,13 @@ public class SignedIntegerToFloatInst extends Instruction {
     }
 
     @Override
-    public String toString() {
-        return String.format(
+    public void emitIr(StringBuilder builder) {
+        builder.append(String.format(
                 "%s = sitofp %s %s to %s",
                 this.getValueNameIR(),
                 getSourceOperand().getTypeName(),
                 getSourceOperand().getValueNameIR(),
                 this.getTypeName()
-        );
+        ));
     }
 }

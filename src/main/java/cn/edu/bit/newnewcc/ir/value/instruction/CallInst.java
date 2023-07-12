@@ -132,9 +132,8 @@ public class CallInst extends Instruction {
     }
 
     @Override
-    public String toString() {
+    public void emitIr(StringBuilder builder) {
         // e.g. %1 = call double @sum(i32 1, float 2.000000e+00)
-        var builder = new StringBuilder();
         if (getType() != VoidType.getInstance()) {
             builder.append(getValueNameIR()).append(" = ");
         }
@@ -152,6 +151,5 @@ public class CallInst extends Instruction {
             builder.append(String.format("%s %s", argument.getTypeName(), argument.getValueNameIR()));
         }
         builder.append(')');
-        return builder.toString();
     }
 }

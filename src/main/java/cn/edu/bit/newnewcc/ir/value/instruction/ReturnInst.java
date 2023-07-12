@@ -47,16 +47,16 @@ public class ReturnInst extends TerminateInst{
     }
 
     @Override
-    public String toString() {
+    public void emitIr(StringBuilder builder) {
         var returnValue = returnValueOperand.getValue();
-        if(returnValue.getType() instanceof VoidType){
-            return "ret void";
-        }else{
-            return String.format(
+        if (returnValue.getType() instanceof VoidType) {
+            builder.append("ret void");
+        } else {
+            builder.append(String.format(
                     "ret %s %s",
                     returnValue.getTypeName(),
                     returnValue.getValueNameIR()
-            );
+            ));
         }
     }
 

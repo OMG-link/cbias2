@@ -5,7 +5,6 @@ import cn.edu.bit.newnewcc.ir.Type;
 import cn.edu.bit.newnewcc.ir.Value;
 import cn.edu.bit.newnewcc.ir.exception.ValueBeingUsedException;
 import cn.edu.bit.newnewcc.ir.util.InstructionList;
-import cn.edu.bit.newnewcc.ir.util.NameAllocator;
 
 import java.util.List;
 
@@ -36,21 +35,10 @@ public abstract class Instruction extends Value {
 
     /// Name
 
-    private String valueName;
+    private String valueName = null;
 
     @Override
     public String getValueName() {
-        if (valueName == null) {
-            var bb = getBasicBlock();
-            if (bb == null) {
-                throw new UnsupportedOperationException("Cannot get the name of an instruction outside any basic blocks");
-            }
-            var fun = bb.getFunction();
-            if (fun == null) {
-                throw new UnsupportedOperationException("Cannot get the name of an instruction outside any functions");
-            }
-            valueName = NameAllocator.getLvName(fun);
-        }
         return valueName;
     }
 
@@ -64,8 +52,7 @@ public abstract class Instruction extends Value {
         this.valueName = valueName;
     }
 
-    @Override
-    public abstract String toString();
+    public abstract void emitIr(StringBuilder builder);
 
 
     /// Operands

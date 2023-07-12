@@ -60,4 +60,19 @@ public class Module {
         return Collections.unmodifiableSet(globalVariables);
     }
 
+    public void emitIr(StringBuilder builder) {
+        for (ExternalFunction externalFunction : this.getExternalFunctions()) {
+            externalFunction.emitIr(builder);
+        }
+        builder.append('\n');
+        for (GlobalVariable globalVariable : this.getGlobalVariables()) {
+            globalVariable.emitIr(builder);
+        }
+        builder.append('\n');
+        for (Function function : this.getFunctions()) {
+            function.emitIr(builder);
+        }
+        builder.append('\n');
+    }
+
 }

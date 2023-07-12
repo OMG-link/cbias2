@@ -17,14 +17,14 @@ public abstract class CompareInst extends BinaryInstruction {
     }
 
     @Override
-    public String toString() {
-        return String.format(
+    public void emitIr(StringBuilder builder) {
+        builder.append(String.format(
                 "%s = %s %s %s, %s",
                 this.getValueNameIR(),
                 this.getInstName(),
                 this.comparedType.getTypeName(),
                 getOperand1().getValueNameIR(),
                 getOperand2().getValueNameIR()
-        );
+        ));
     }
 }

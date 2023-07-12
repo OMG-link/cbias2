@@ -4,19 +4,15 @@ import cn.edu.bit.newnewcc.ir.Type;
 import cn.edu.bit.newnewcc.ir.Value;
 import cn.edu.bit.newnewcc.ir.exception.IllegalArgumentException;
 import cn.edu.bit.newnewcc.ir.type.FunctionType;
-import cn.edu.bit.newnewcc.ir.util.NameAllocator;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.LinkedHashSet;
-import java.util.List;
+import java.util.*;
 
 /**
  * 函数
  */
 public class Function extends BaseFunction {
 
-    public class FormalParameter extends Value {
+    public static class FormalParameter extends Value {
         public FormalParameter(Type type) {
             super(type);
         }
@@ -25,9 +21,6 @@ public class Function extends BaseFunction {
 
         @Override
         public String getValueName() {
-            if (valueName == null) {
-                valueName = NameAllocator.getLvName(Function.this);
-            }
             return valueName;
         }
 
@@ -65,13 +58,10 @@ public class Function extends BaseFunction {
         this.addBasicBlock_(this.entryBasicBlock, true);
     }
 
-    private String functionName;
+    private String functionName = null;
 
     @Override
     public String getValueName() {
-        if (functionName == null) {
-            functionName = NameAllocator.getGvName();
-        }
         return functionName;
     }
 
@@ -141,6 +131,25 @@ public class Function extends BaseFunction {
      */
     public List<FormalParameter> getFormalParameters() {
         return Collections.unmodifiableList(formalParameters);
+    }
+
+    public void emitIr(StringBuilder builder) {
+        builder.append(String.format(
+                "define dso_local %s %s",
+                this.getReturnType().getTypeName(),
+                this.getValueNameIR()
+        ));
+        builder.append('(');
+        StringJoiner joiner = new StringJoiner(", ");
+        for (Value formalParameter : this.getFormalParameters()) {
+            joiner.add(formalParameter.getTypeName() + " " + formalParameter.getValueNameIR());
+        }
+        builder.append(joiner);
+        builder.append(") {\n");
+        for (BasicBlock basicBlock : this.getBasicBlocks()) {
+            basicBlock.emitIr(builder);
+        }
+        builder.append("}\n\n");
     }
 
 }

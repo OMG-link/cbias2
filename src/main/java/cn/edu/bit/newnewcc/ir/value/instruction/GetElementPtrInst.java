@@ -110,8 +110,7 @@ public class GetElementPtrInst extends Instruction {
     }
 
     @Override
-    public String toString() {
-        var builder = new StringBuilder();
+    public void emitIr(StringBuilder builder) {
         builder.append(String.format(
                 "%s = getelementptr %s, %s %s",
                 getValueNameIR(),
@@ -127,7 +126,6 @@ public class GetElementPtrInst extends Instruction {
                     index.getValueNameIR()
             ));
         }
-        return builder.toString();
     }
 
     /**

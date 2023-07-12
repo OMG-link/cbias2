@@ -120,8 +120,7 @@ public class PhiInst extends Instruction {
     }
 
     @Override
-    public String toString() {
-        var builder = new StringBuilder();
+    public void emitIr(StringBuilder builder) {
         builder.append(String.format("%s = phi %s ", this.getValueNameIR(), this.getTypeName()));
         boolean isFirstPair = true;
         for (var entry : entryMap.entrySet()) {
@@ -133,6 +132,5 @@ public class PhiInst extends Instruction {
             builder.append(String.format("[ %s, %s ]", value.getValueNameIR(), basicBlock.getValueNameIR()));
             isFirstPair = false;
         }
-        return builder.toString();
     }
 }

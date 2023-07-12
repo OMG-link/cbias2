@@ -45,11 +45,11 @@ public class AllocateInst extends MemoryInst {
     }
 
     @Override
-    public String toString() {
-        return String.format(
+    public void emitIr(StringBuilder builder) {
+        builder.append(String.format(
                 "%s = alloca %s",
                 this.getValueNameIR(),
                 this.getType().getBaseType().getTypeName()
-        );
+        ));
     }
 }
