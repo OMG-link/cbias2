@@ -3,7 +3,6 @@ package cn.edu.bit.newnewcc.pass.ir.util;
 import cn.edu.bit.newnewcc.ir.Module;
 import cn.edu.bit.newnewcc.ir.Operand;
 import cn.edu.bit.newnewcc.ir.value.*;
-import cn.edu.bit.newnewcc.ir.value.instruction.CallInst;
 import cn.edu.bit.newnewcc.ir.value.instruction.StoreInst;
 
 import java.util.HashMap;
@@ -28,24 +27,16 @@ public class PureFunctionDetect {
          * 分析每个函数被哪些函数调用
          */
         private void analysisCallers() {
-            for (Function function : module.getFunctions()) {
-                callers.put(function, new HashSet<>());
-            }
-            for (Function caller : module.getFunctions()) {
-                for (BasicBlock basicBlock : caller.getBasicBlocks()) {
-                    for (Instruction instruction : basicBlock.getInstructions()) {
-                        if (instruction instanceof CallInst callInst) {
-                            if (callInst.getCallee() instanceof Function callee) {
-                                callers.get(callee).add(caller);
-                            } else if (callInst.getCallee() instanceof ExternalFunction) {
-                                externalCallers.add(caller);
-                            } else {
-                                throw new RuntimeException("Unknown class of function " + callInst.getCallee().getClass());
-                            }
-                        }
-                    }
+            var callMap = CallMap.from(module);
+            callMap.forEach((baseCallee, callers) -> {
+                if (baseCallee instanceof Function callee) {
+                    this.callers.put(callee, callers);
+                } else if (baseCallee instanceof ExternalFunction) {
+                    externalCallers.addAll(callers);
+                } else {
+                    throw new RuntimeException("Unknown class of function: " + baseCallee);
                 }
-            }
+            });
         }
 
         /**
