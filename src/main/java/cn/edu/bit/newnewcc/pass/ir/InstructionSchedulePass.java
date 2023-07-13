@@ -173,11 +173,18 @@ public class InstructionSchedulePass {
                     updateScore(users.iterator().next(), -1);
                 }
             });
+            // 放回指令
             while (true) {
                 var instruction = getNextInstruction();
                 if (instruction == null) break;
                 basicBlock.addInstruction(instruction);
                 onInstructionPlaced(instruction);
+            }
+            // 更新 exitLiveInstructions ，将本基本块内用到的外部值加入其中，并删除已经在本基本块内定义的值
+            exitLiveInstructions.addAll(liveValueUseSet.keySet());
+            for (Instruction instruction : basicBlock.getInstructions()) {
+                // set的特性：如果不存在就不移除，不需要额外检查
+                exitLiveInstructions.remove(instruction);
             }
         }
 
