@@ -18,9 +18,8 @@ public class IrPassManager {
                 MemoryToRegisterPass.runOnModule(module);
                 runOptimizePasses(module);
 
-                // 内存访问优化需要搭配GCM运行，以确保各寄存器生命周期最小化，而GCM是无法确定是否产生优化的
+                // 内存访问优化运行单次即可
                 MemoryAccessOptimizePass.runOnModule(module);
-                // todo: 添加语句重排，缩短活跃区间
                 runOptimizePasses(module);
 
                 // 加法合并无法确定是否产生了优化
@@ -30,6 +29,9 @@ public class IrPassManager {
                 // 加法合并无法确定是否产生了优化
                 GlobalCodeMotionPass.runOnModule(module);
                 runOptimizePasses(module);
+
+                // 最后调整一下指令顺序，以得到更好的寄存器分配结果
+                InstructionSchedulePass.runOnModule(module);
 
             }
         }
