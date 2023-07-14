@@ -2,6 +2,7 @@ package cn.edu.bit.newnewcc.pass.ir.util;
 
 import cn.edu.bit.newnewcc.ir.Module;
 import cn.edu.bit.newnewcc.ir.Operand;
+import cn.edu.bit.newnewcc.ir.type.PointerType;
 import cn.edu.bit.newnewcc.ir.value.*;
 import cn.edu.bit.newnewcc.ir.value.instruction.StoreInst;
 
@@ -62,8 +63,13 @@ public class PureFunctionDetect {
         // 导致非纯函数的原因包括：
         // 1. 调用非纯函数
         // 2. 引用全局变量
-        // 3. 向除局部变量以外的位置store
+        // 3. 传入的参数包含指针
+        // 4. 向除局部变量以外的位置store
         private boolean isPureFunction(Function function) {
+            // 3. 传入的参数包含指针
+            for (Function.FormalParameter formalParameter : function.getFormalParameters()) {
+                if (formalParameter.getType() instanceof PointerType) return false;
+            }
             for (BasicBlock basicBlock : function.getBasicBlocks()) {
                 for (Instruction instruction : basicBlock.getInstructions()) {
                     // 2. 引用全局变量
@@ -72,7 +78,7 @@ public class PureFunctionDetect {
                             return false;
                         }
                     }
-                    // 3. 向除局部变量以外的位置store
+                    // 4. 向除局部变量以外的位置store
                     if (instruction instanceof StoreInst storeInst) {
                         if (globalAddressDetector.isGlobalAddress(storeInst.getAddressOperand())) {
                             return false;
