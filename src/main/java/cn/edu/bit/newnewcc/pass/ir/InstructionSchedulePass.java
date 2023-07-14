@@ -10,6 +10,7 @@ import cn.edu.bit.newnewcc.ir.value.instruction.CallInst;
 import cn.edu.bit.newnewcc.ir.value.instruction.MemoryInst;
 import cn.edu.bit.newnewcc.ir.value.instruction.PhiInst;
 import cn.edu.bit.newnewcc.pass.ir.structure.DomTree;
+import cn.edu.bit.newnewcc.pass.ir.util.PureFunctionDetect;
 
 import java.util.*;
 
@@ -22,10 +23,12 @@ public class InstructionSchedulePass {
     private static class BasicBlockProcessor {
         private final BasicBlock basicBlock;
         private final Set<Instruction> exitLiveInstructions;
+        private final Set<Function> pureFunctions;
 
-        private BasicBlockProcessor(BasicBlock basicBlock, Set<Instruction> exitLiveInstructions) {
+        private BasicBlockProcessor(BasicBlock basicBlock, Set<Instruction> exitLiveInstructions, Set<Function> pureFunctions) {
             this.basicBlock = basicBlock;
             this.exitLiveInstructions = exitLiveInstructions;
+            this.pureFunctions = pureFunctions;
         }
 
         // 对于最后一次使用在当前块内的变量，记录其目前还被哪些指令使用，以便在剩余单个使用时为对应指令加分
@@ -195,21 +198,28 @@ public class InstructionSchedulePass {
          * @param instruction 被判断的指令
          * @return 需要固定返回true；否则返回false。
          */
-        private static boolean isFixedInstruction(Instruction instruction) {
-            return instruction instanceof MemoryInst || instruction instanceof CallInst;
+        private boolean isFixedInstruction(Instruction instruction) {
+            if (instruction instanceof MemoryInst) return true;
+            if (instruction instanceof CallInst callInst) {
+                if (callInst.getCallee() instanceof Function function && pureFunctions.contains(function)) return false;
+                else return true;
+            }
+            return false;
         }
 
-        public static void process(BasicBlock basicBlock, Set<Instruction> liveInstructions) {
-            new BasicBlockProcessor(basicBlock, liveInstructions).rescheduleInstructions();
+        public static void process(BasicBlock basicBlock, Set<Instruction> liveInstructions, Set<Function> pureFunctions) {
+            new BasicBlockProcessor(basicBlock, liveInstructions, pureFunctions).rescheduleInstructions();
         }
     }
 
     private final Function function;
     private final DomTree domTree;
+    private final Set<Function> pureFunctions;
 
-    private InstructionSchedulePass(Function function) {
+    private InstructionSchedulePass(Function function, Set<Function> pureFunctions) {
         this.function = function;
         this.domTree = DomTree.buildOver(function);
+        this.pureFunctions = pureFunctions;
     }
 
     // 将 phi 指令的 use 挂载到对应基本块的末尾
@@ -263,7 +273,7 @@ public class InstructionSchedulePass {
             }
         }
         // 重排当前基本块的指令
-        BasicBlockProcessor.process(block, liveInstructions);
+        BasicBlockProcessor.process(block, liveInstructions, pureFunctions);
         return liveInstructions;
     }
 
@@ -274,8 +284,9 @@ public class InstructionSchedulePass {
     }
 
     public static void runOnModule(Module module) {
+        var pureFunctions = PureFunctionDetect.getPureFunctions(module);
         for (Function function : module.getFunctions()) {
-            new InstructionSchedulePass(function).runOnFunction();
+            new InstructionSchedulePass(function, pureFunctions).runOnFunction();
         }
     }
 }
