@@ -136,6 +136,7 @@ public class DomTreeBuilder<T> {
         if (hasTreeBuilt) {
             throw new UnsupportedOperationException();
         }
+        if (source == destination) return;
         var u = tToNode(source);
         var v = tToNode(destination);
         u.exits.add(v);
