@@ -3,12 +3,10 @@ package cn.edu.bit.newnewcc.pass.ir.structure;
 import cn.edu.bit.newnewcc.ir.Type;
 import cn.edu.bit.newnewcc.ir.Value;
 import cn.edu.bit.newnewcc.ir.exception.IllegalArgumentException;
-import cn.edu.bit.newnewcc.ir.exception.IllegalStateException;
 import cn.edu.bit.newnewcc.ir.value.BaseFunction;
 import cn.edu.bit.newnewcc.ir.value.BasicBlock;
 import cn.edu.bit.newnewcc.ir.value.Instruction;
 import cn.edu.bit.newnewcc.ir.value.instruction.*;
-import cn.edu.bit.newnewcc.pass.ir.util.UtilFunctions;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -27,15 +25,7 @@ public class CloneBase {
     }
 
     protected Value getReplacedValue(Value value) {
-        if (UtilFunctions.isGlobalValue(value)) {
-            return value;
-        } else {
-            if (!valueMap.containsKey(value)) {
-                throw new IllegalStateException("No local value were found to replace.");
-            } else {
-                return valueMap.get(value);
-            }
-        }
+        return valueMap.getOrDefault(value, value);
     }
 
     protected void setValueMapKv(Value key, Value value) {
@@ -194,7 +184,7 @@ public class CloneBase {
         }
     }
 
-    private static class Symbol extends Value {
+    protected static class Symbol extends Value {
         public Symbol(Type type) {
             super(type);
         }
@@ -216,7 +206,7 @@ public class CloneBase {
 
         @Override
         public void setValueName(String valueName) {
-            this.name = name;
+            this.name = valueName;
         }
 
     }
