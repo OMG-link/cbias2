@@ -328,7 +328,7 @@ public class GlobalCodeMotionPass {
 
     private static void runOnFunction(Function function) {
         var domTree = DomTree.buildOver(function);
-        var loopForest = LoopForest.buildLoopForestOver(function);
+        var loopForest = LoopForest.buildOver(function);
         Map<BasicBlock, Integer> loopDepthMap = new HashMap<>();
         Map<BasicBlock, Integer> domDepthMap = new HashMap<>();
         loopForest.getBasicBlockLoopMap().forEach((basicBlock, loop) -> loopDepthMap.put(basicBlock, loop.getLoopDepth()));

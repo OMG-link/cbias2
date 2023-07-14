@@ -128,7 +128,7 @@ public class LoopForest implements Iterable<Loop> {
      * @param function 函数（可能会被修改！！！）
      * @return 循环森林
      */
-    public static LoopForest buildLoopForestOver(Function function) {
+    public static LoopForest buildOver(Function function) {
         return new LoopForest(function);
     }
 
