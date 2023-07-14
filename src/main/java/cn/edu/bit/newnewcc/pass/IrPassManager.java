@@ -26,7 +26,7 @@ public class IrPassManager {
                 AddToMulPass.runOnModule(module);
                 runOptimizePasses(module);
 
-                // 加法合并无法确定是否产生了优化
+                // GCM无法确定是否产生了优化
                 GlobalCodeMotionPass.runOnModule(module);
                 runOptimizePasses(module);
 
