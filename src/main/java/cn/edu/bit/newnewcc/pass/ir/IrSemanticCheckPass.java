@@ -90,11 +90,23 @@ public class IrSemanticCheckPass {
         basicBlock.getInstructions().forEach(localValues::remove);
     }
 
+    private void verifyControlFlowMap(Collection<BasicBlock> basicBlocks) {
+        var set = new HashSet<>(basicBlocks);
+        for (BasicBlock block : basicBlocks) {
+            for (BasicBlock exitBlock : block.getExitBlocks()) {
+                if (!set.contains(exitBlock)) {
+                    throw new SemanticCheckFailedException("Control flow leads to a block outside function.");
+                }
+            }
+        }
+    }
+
     private void verifyFunction(Function function) {
         // 收集局部变量列表
         localValues = new HashSet<>(globalValues);
         localValues.addAll(function.getFormalParameters());
         localValues.addAll(function.getBasicBlocks());
+        verifyControlFlowMap(function.getBasicBlocks());
         domTree = DomTree.buildOver(function);
         verifyBlocksOverDomTree(function.getEntryBasicBlock(), true);
         // 用 getExitBlocks 方法收集块入口列表
