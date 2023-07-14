@@ -5,13 +5,11 @@ import cn.edu.bit.newnewcc.ir.Value;
 import cn.edu.bit.newnewcc.ir.exception.IllegalArgumentException;
 import cn.edu.bit.newnewcc.ir.value.BaseFunction;
 import cn.edu.bit.newnewcc.ir.value.BasicBlock;
+import cn.edu.bit.newnewcc.ir.value.Function;
 import cn.edu.bit.newnewcc.ir.value.Instruction;
 import cn.edu.bit.newnewcc.ir.value.instruction.*;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 public class CloneBase {
     private final Map<Value, Value> valueMap = new HashMap<>();
@@ -210,4 +208,98 @@ public class CloneBase {
         }
 
     }
+
+    protected static class BasicBlockSymbol extends BasicBlock {
+        private String name;
+
+        @Override
+        public String getValueName() {
+            if (name == null) {
+                name = String.format("%s#%s", this.getClass(), UUID.randomUUID());
+            }
+            return name;
+        }
+
+        @Override
+        public String getValueNameIR() {
+            return '%' + getValueName();
+        }
+
+        @Override
+        public void setValueName(String valueName) {
+            this.name = valueName;
+        }
+
+        @Override
+        public void emitIr(StringBuilder builder) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public void addInstruction(Instruction instruction) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public void setTerminateInstruction(TerminateInst terminateInstruction) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public List<Instruction> getLeadingInstructions() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public List<Instruction> getMainInstructions() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public TerminateInst getTerminateInstruction() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public List<Instruction> getInstructions() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public Collection<BasicBlock> getExitBlocks() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public Set<BasicBlock> getEntryBlocks() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public void removeEntryFromPhi(BasicBlock entry) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public Function getFunction() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public void removeFromFunction() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public void __setFunction__(Function function, boolean shouldFixFunction) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public void __clearFunction__() {
+            throw new UnsupportedOperationException();
+        }
+
+    }
+
 }
