@@ -46,6 +46,7 @@ public class BranchSimplifyPass {
         for (Function function : module.getFunctions()) {
             changed = changed | runOnFunction(function);
         }
+        changed |= DeadCodeEliminationPass.runOnModule(module);
         return changed;
     }
 
