@@ -31,6 +31,25 @@ public class IrSemanticCheckPass {
     private IrSemanticCheckPass() {
     }
 
+    private void verifyUsage(Value value) {
+        // 检查使用该语句值的语句合法性
+        for (Operand usage : value.getUsages()) {
+            if (usage.getInstruction().getBasicBlock() == null) {
+                System.out.printf("In %s, it is used by %s, which is not in any block.\n",
+                        value.getClass(),
+                        usage.getInstruction().getClass()
+                );
+                throw new SemanticCheckFailedException("Value being used by a free instruction.");
+            } else if (usage.getInstruction().getBasicBlock().getFunction() == null) {
+                System.out.printf("In %s, it is used by %s, which is not in any function.\n",
+                        value.getClass(),
+                        usage.getInstruction().getClass()
+                );
+                throw new SemanticCheckFailedException("Value being used by a free instruction.");
+            }
+        }
+    }
+
     private void verifyInstruction(Instruction instruction) {
         // 检查操作数合法性
         // Phi 指令的实际使用位置是每个入口块末尾，因此不在这里检查（Phi指令检查的localValues不是此时的）
@@ -45,15 +64,7 @@ public class IrSemanticCheckPass {
             }
         }
         // 检查使用该语句值的语句合法性
-        for (Operand usage : instruction.getUsages()) {
-            if (usage.getInstruction().getBasicBlock() == null) {
-                System.out.printf("In %s, it is used by %s, which is not in any block.\n",
-                        instruction.getClass(),
-                        usage.getInstruction().getClass()
-                );
-                throw new SemanticCheckFailedException("Value being used by a free instruction.");
-            }
-        }
+        verifyUsage(instruction);
     }
 
     private void verifyBlocksOverDomTree(BasicBlock basicBlock, boolean isFunctionEntry) {
@@ -84,6 +95,7 @@ public class IrSemanticCheckPass {
                 }
             }
         }
+        verifyUsage(basicBlock);
         for (BasicBlock domSon : domTree.getDomSons(basicBlock)) {
             verifyBlocksOverDomTree(domSon, false);
         }
@@ -137,6 +149,7 @@ public class IrSemanticCheckPass {
                 throw new SemanticCheckFailedException("Block entry was not properly maintained");
             }
         }
+        verifyUsage(function);
     }
 
     private void verifyModule(Module module) {
