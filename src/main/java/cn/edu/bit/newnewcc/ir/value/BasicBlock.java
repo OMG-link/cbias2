@@ -78,11 +78,19 @@ public class BasicBlock extends Value {
 
     public void setTerminateInstruction(TerminateInst terminateInstruction) {
         if (getTerminateInstruction() != null) {
-            getTerminateInstruction().getExits().forEach(exit -> exit.__removeEntryBlock__(this));
+            getTerminateInstruction().getExits().forEach(exit -> {
+                if (exit != null) {
+                    exit.__removeEntryBlock__(this);
+                }
+            });
         }
         instructionList.setTerminateInstruction(terminateInstruction);
         if (getTerminateInstruction() != null) {
-            getTerminateInstruction().getExits().forEach(exit -> exit.__addEntryBlock__(this));
+            getTerminateInstruction().getExits().forEach(exit -> {
+                if (exit != null) {
+                    exit.__addEntryBlock__(this);
+                }
+            });
         }
     }
 
@@ -138,13 +146,15 @@ public class BasicBlock extends Value {
 
     private final Set<BasicBlock> entryBlockSet = new HashSet<>();
 
-    private void __addEntryBlock__(BasicBlock basicBlock) {
-        entryBlockSet.add(basicBlock);
+    public void __addEntryBlock__(BasicBlock basicBlock) {
+        if (!entryBlockSet.add(basicBlock)) {
+            throw new IllegalArgumentException("Specified basic block is already an entry of this block.");
+        }
     }
 
-    private void __removeEntryBlock__(BasicBlock basicBlock) {
+    public void __removeEntryBlock__(BasicBlock basicBlock) {
         if (!entryBlockSet.contains(basicBlock)) {
-            throw new IllegalArgumentException("Specified basic block is not an entry of this block");
+            throw new IllegalArgumentException("Specified basic block is not an entry of this block.");
         }
         entryBlockSet.remove(basicBlock);
     }
