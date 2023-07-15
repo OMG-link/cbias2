@@ -6,6 +6,7 @@ import cn.edu.bit.newnewcc.ir.value.BasicBlock;
 import cn.edu.bit.newnewcc.ir.value.Instruction;
 import cn.edu.bit.newnewcc.ir.value.constant.ConstInt;
 import cn.edu.bit.newnewcc.ir.value.instruction.*;
+import org.antlr.v4.runtime.misc.Pair;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -18,7 +19,8 @@ import java.util.Set;
  * @param stepInst     循环的步进语句
  * @param initialValue 循环变量的初值
  */
-public record SimpleLoopInfo(IntegerCompareInst condition, IntegerArithmeticInst stepInst, Value initialValue) {
+public record SimpleLoopInfo(IntegerCompareInst condition, IntegerArithmeticInst stepInst, Value initialValue,
+                             BasicBlock exitBlock) {
     private static class Builder {
 
         private static class BuildFailedException extends Exception {
@@ -53,12 +55,14 @@ public record SimpleLoopInfo(IntegerCompareInst condition, IntegerArithmeticInst
 
         private SimpleLoopInfo tryCreateSimpleLoopInfo() {
             try {
-                IntegerCompareInst exitCondition = getExitCondition();
+                var p = getExitCondition();
+                var exitCondition = p.a;
+                var exitBlock = p.b;
                 if (!(exitCondition.getOperand1() instanceof PhiInst phiInst)) throw new BuildFailedException();
                 analysisPhi(phiInst);
                 IntegerArithmeticInst stepInstruction = getStepInstruction(exitLoopValue);
                 if (stepInstruction.getOperand1() != phiInst) throw new BuildFailedException();
-                return new SimpleLoopInfo(exitCondition, stepInstruction, initialValue);
+                return new SimpleLoopInfo(exitCondition, stepInstruction, initialValue, exitBlock);
             } catch (BuildFailedException e) {
                 return null;
             }
@@ -98,9 +102,9 @@ public record SimpleLoopInfo(IntegerCompareInst condition, IntegerArithmeticInst
          * 获取循环的退出条件语句 <br>
          * 如果有多个可能的退出条件，则返回null <br>
          *
-         * @return 循环的唯一退出条件语句，或是null
+         * @return 二元组(循环的唯一退出条件语句, 出口块)，或是null
          */
-        private IntegerCompareInst getExitCondition() throws BuildFailedException {
+        private Pair<IntegerCompareInst, BasicBlock> getExitCondition() throws BuildFailedException {
             // 获取循环退出的条件值
             Value conditionValue = null;
             BranchInst br = null;
@@ -154,6 +158,7 @@ public record SimpleLoopInfo(IntegerCompareInst condition, IntegerArithmeticInst
                 br.setCondition(newCmpInstruction);
                 integerCompareInst = newCmpInstruction;
             }
+            var exitBlock = br.getFalseExit();
 
             // 标准化比较语句，动态变量应当放置在左侧
             var op1 = integerCompareInst.getOperand1();
@@ -166,8 +171,9 @@ public record SimpleLoopInfo(IntegerCompareInst condition, IntegerArithmeticInst
             }
             // 标准化的比较语句要求左侧是动态量，右侧是常量
             // 只需要检测op1是动态的，因为op1与op2不同
+            IntegerCompareInst condition;
             if (isOp1Dynamic) {
-                return integerCompareInst;
+                condition = integerCompareInst;
             } else {
                 // 如果放反了，新建一个指令替换之
                 var newCmpInstruction = new IntegerCompareInst(
@@ -176,9 +182,9 @@ public record SimpleLoopInfo(IntegerCompareInst condition, IntegerArithmeticInst
                         op2, op1
                 );
                 integerCompareInst.replaceInstructionTo(newCmpInstruction);
-                return newCmpInstruction;
+                condition = newCmpInstruction;
             }
-
+            return new Pair<>(condition, exitBlock);
         }
 
         private IntegerArithmeticInst getStepInstruction(Value exitLoopValue) throws BuildFailedException {
