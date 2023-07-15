@@ -1,6 +1,7 @@
 package cn.edu.bit.newnewcc.pass.ir.util;
 
 import cn.edu.bit.newnewcc.ir.Value;
+import cn.edu.bit.newnewcc.ir.exception.CompilationProcessCheckFailedException;
 import cn.edu.bit.newnewcc.ir.value.BasicBlock;
 import cn.edu.bit.newnewcc.ir.value.Function;
 import cn.edu.bit.newnewcc.ir.value.Instruction;
@@ -135,7 +136,7 @@ public class InstructionSet {
         }
         // 未知指令
         else {
-            throw new RuntimeException("Unable to extract feature from instruction of class " + instruction.getClass());
+            throw new CompilationProcessCheckFailedException("Unable to extract feature from instruction of class " + instruction.getClass());
         }
         return result;
     }

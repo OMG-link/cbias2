@@ -2,6 +2,7 @@ package cn.edu.bit.newnewcc.pass.ir;
 
 import cn.edu.bit.newnewcc.ir.Module;
 import cn.edu.bit.newnewcc.ir.Value;
+import cn.edu.bit.newnewcc.ir.exception.CompilationProcessCheckFailedException;
 import cn.edu.bit.newnewcc.ir.type.IntegerType;
 import cn.edu.bit.newnewcc.ir.type.PointerType;
 import cn.edu.bit.newnewcc.ir.value.BasicBlock;
@@ -38,7 +39,7 @@ public class LocalArrayInitializePass {
             } else if (value instanceof ConstArray subConstArray) {
                 generateInitializationStore(generatedInstructions, gep, subConstArray);
             } else {
-                throw new RuntimeException("Unable to generate initialize sequence for initial value of class " + value.getClass());
+                throw new CompilationProcessCheckFailedException("Unable to generate initialize sequence for initial value of class " + value.getClass());
             }
         }
     }
@@ -79,7 +80,7 @@ public class LocalArrayInitializePass {
         }
         if (memsetFunction == null) {
             // 外部函数列表里没有memset，寄！
-            throw new RuntimeException("Unable to locate function memset.");
+            throw new CompilationProcessCheckFailedException("Unable to locate function memset.");
         }
         for (Function function : module.getFunctions()) {
             for (BasicBlock basicBlock : function.getBasicBlocks()) {

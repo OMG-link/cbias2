@@ -2,6 +2,7 @@ package cn.edu.bit.newnewcc.pass.ir.util;
 
 import cn.edu.bit.newnewcc.ir.Module;
 import cn.edu.bit.newnewcc.ir.Operand;
+import cn.edu.bit.newnewcc.ir.exception.CompilationProcessCheckFailedException;
 import cn.edu.bit.newnewcc.ir.type.PointerType;
 import cn.edu.bit.newnewcc.ir.value.*;
 import cn.edu.bit.newnewcc.ir.value.instruction.StoreInst;
@@ -35,7 +36,7 @@ public class PureFunctionDetect {
                 } else if (baseCallee instanceof ExternalFunction) {
                     externalCallers.addAll(callers);
                 } else {
-                    throw new RuntimeException("Unknown class of function: " + baseCallee);
+                    throw new CompilationProcessCheckFailedException("Unknown class of function: " + baseCallee);
                 }
             });
         }

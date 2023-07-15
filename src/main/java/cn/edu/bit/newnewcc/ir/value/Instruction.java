@@ -3,6 +3,7 @@ package cn.edu.bit.newnewcc.ir.value;
 import cn.edu.bit.newnewcc.ir.Operand;
 import cn.edu.bit.newnewcc.ir.Type;
 import cn.edu.bit.newnewcc.ir.Value;
+import cn.edu.bit.newnewcc.ir.exception.CompilationProcessCheckFailedException;
 import cn.edu.bit.newnewcc.ir.exception.ValueBeingUsedException;
 import cn.edu.bit.newnewcc.ir.util.InstructionList;
 
@@ -88,7 +89,7 @@ public abstract class Instruction extends Value {
      */
     public void insertAfter(Instruction beta) {
         if (BasicBlock.isLeadingInstruction(beta) || BasicBlock.isTerminateInstruction(beta)) {
-            throw new RuntimeException("Cannot insert instruction after special instructions.");
+            throw new CompilationProcessCheckFailedException("Cannot insert instruction after special instructions.");
         }
         InstructionList.insertAlphaAfterBeta(this.node, beta.node);
     }
@@ -102,7 +103,7 @@ public abstract class Instruction extends Value {
      */
     public void insertBefore(Instruction beta) {
         if (BasicBlock.isLeadingInstruction(beta) || BasicBlock.isTerminateInstruction(beta)) {
-            throw new RuntimeException("Cannot insert instruction before special instructions.");
+            throw new CompilationProcessCheckFailedException("Cannot insert instruction before special instructions.");
         }
         InstructionList.insertAlphaBeforeBeta(this.node, beta.node);
     }
