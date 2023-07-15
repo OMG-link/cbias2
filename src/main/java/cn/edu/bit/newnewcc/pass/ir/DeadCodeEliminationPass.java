@@ -186,6 +186,7 @@ public class DeadCodeEliminationPass {
             for (BasicBlock exitBlock : invalidBasicBlock.getExitBlocks()) {
                 exitBlock.removeEntryFromPhi(invalidBasicBlock);
             }
+            // 原有 TerminateInstruction 不在这里 waste ，因为其已经被划入 invalidInstruction ，稍后会被清理
             invalidBasicBlock.setTerminateInstruction(new UnreachableInst());
         }
         // 清理操作数
