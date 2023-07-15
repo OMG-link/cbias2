@@ -145,6 +145,9 @@ public record SimpleLoopInfo(IntegerCompareInst condition, IntegerArithmeticInst
                 // 交换exit
                 var trueExitTemp = br.getTrueExit();
                 var falseExitTemp = br.getFalseExit();
+                // 避免trueExit和falseExit为相同值导致被entrySet去重
+                br.setTrueExit(null);
+                br.setFalseExit(null);
                 br.setTrueExit(falseExitTemp);
                 br.setFalseExit(trueExitTemp);
                 // 新建反转的cmp语句
