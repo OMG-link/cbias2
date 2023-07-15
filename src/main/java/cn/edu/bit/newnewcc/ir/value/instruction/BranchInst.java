@@ -13,16 +13,16 @@ import java.util.List;
 /**
  * 分支语句
  */
-public class BranchInst extends TerminateInst{
+public class BranchInst extends TerminateInst {
 
     private final Operand conditionOperand;
-    private final Operand trueExitOperand, falseExitOperand;
+    private final ExitOperand trueExitOperand, falseExitOperand;
 
     /**
      * 构造一个空的分支语句
      */
-    public BranchInst(){
-        this(null,null,null);
+    public BranchInst() {
+        this(null, null, null);
     }
 
     /**
@@ -31,10 +31,10 @@ public class BranchInst extends TerminateInst{
      * @param trueExit 条件为真时跳转的基本块
      * @param falseExit 条件为假时跳转的基本块
      */
-    public BranchInst(Value condition, BasicBlock trueExit, BasicBlock falseExit){
+    public BranchInst(Value condition, BasicBlock trueExit, BasicBlock falseExit) {
         this.conditionOperand = new Operand(this, IntegerType.getI1(), condition);
-        this.trueExitOperand = new Operand(this, LabelType.getInstance(), trueExit);
-        this.falseExitOperand = new Operand(this, LabelType.getInstance(), falseExit);
+        this.trueExitOperand = new ExitOperand(this, LabelType.getInstance(), trueExit);
+        this.falseExitOperand = new ExitOperand(this, LabelType.getInstance(), falseExit);
     }
 
     public Value getCondition() {

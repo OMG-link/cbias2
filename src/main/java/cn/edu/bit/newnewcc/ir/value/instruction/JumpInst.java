@@ -12,7 +12,7 @@ import java.util.List;
  * 无条件跳转语句
  */
 public class JumpInst extends TerminateInst{
-    private final Operand exitOperand;
+    private final ExitOperand exitOperand;
 
     public JumpInst(){
         this(null);
@@ -21,7 +21,7 @@ public class JumpInst extends TerminateInst{
      * @param exit 跳转的目标基本块
      */
     public JumpInst(BasicBlock exit) {
-        this.exitOperand = new Operand(this, LabelType.getInstance(),exit);
+        this.exitOperand = new ExitOperand(this, LabelType.getInstance(), exit);
     }
 
     public BasicBlock getExit() {
