@@ -264,6 +264,10 @@ public class ConstantFoldingPass {
                     throw new IllegalStateException("Unknown target type " + targetType);
                 }
             }
+        } else if (instruction instanceof BitCastInst bitCastInst) {
+            if (bitCastInst.getSourceType() == bitCastInst.getTargetType()) {
+                return bitCastInst.getSourceOperand();
+            }
         }
         return null;
     }
