@@ -127,12 +127,16 @@ public class InstructionSet {
         // 类型转换指令
         else if (instruction instanceof FloatToSignedIntegerInst floatToSignedIntegerInst) {
             result.add(floatToSignedIntegerInst.getSourceOperand());
+            result.add(floatToSignedIntegerInst.getTargetType());
         } else if (instruction instanceof SignedIntegerToFloatInst signedIntegerToFloatInst) {
             result.add(signedIntegerToFloatInst.getSourceOperand());
+            result.add(signedIntegerToFloatInst.getTargetType());
         } else if (instruction instanceof ZeroExtensionInst zeroExtensionInst) {
             result.add(zeroExtensionInst.getSourceOperand());
+            result.add(zeroExtensionInst.getTargetType());
         } else if (instruction instanceof BitCastInst bitCastInst) {
             result.add(bitCastInst.getSourceOperand());
+            result.add(bitCastInst.getTargetType());
         }
         // 未知指令
         else {
