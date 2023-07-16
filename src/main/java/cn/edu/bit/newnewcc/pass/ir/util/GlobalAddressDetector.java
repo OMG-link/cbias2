@@ -5,10 +5,7 @@ import cn.edu.bit.newnewcc.ir.Value;
 import cn.edu.bit.newnewcc.ir.exception.IllegalArgumentException;
 import cn.edu.bit.newnewcc.ir.value.Function;
 import cn.edu.bit.newnewcc.ir.value.GlobalVariable;
-import cn.edu.bit.newnewcc.ir.value.instruction.AllocateInst;
-import cn.edu.bit.newnewcc.ir.value.instruction.GetElementPtrInst;
-import cn.edu.bit.newnewcc.ir.value.instruction.LoadInst;
-import cn.edu.bit.newnewcc.ir.value.instruction.PhiInst;
+import cn.edu.bit.newnewcc.ir.value.instruction.*;
 
 import java.util.*;
 
@@ -59,6 +56,8 @@ public class GlobalAddressDetector {
             judgeAddress(getElementPtrInst.getRootOperand());
         } else if (address instanceof PhiInst phiInst) {
             phiInst.forEach((basicBlock, value) -> judgeAddress(value));
+        } else if (address instanceof BitCastInst bitCastInst) {
+            judgeAddress(bitCastInst.getSourceOperand());
         } else {
             throw new IllegalArgumentException(String.format("Cannot analysis variable of type %s.", address.getClass()));
         }
