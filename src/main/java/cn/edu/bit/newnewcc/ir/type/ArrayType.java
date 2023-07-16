@@ -63,6 +63,22 @@ public class ArrayType extends Type {
         return baseType;
     }
 
+    /**
+     * 获取该类型扁平化后的类型 <br>
+     * 即将多维数组压缩成一维数组后的类型 <br>
+     *
+     * @return 扁平化后的类型
+     */
+    public Type getFlattenedType() {
+        int flattenedLength = 1;
+        Type flattenedType = this;
+        while (flattenedType instanceof ArrayType arrayType) {
+            flattenedLength *= arrayType.length;
+            flattenedType = arrayType.baseType;
+        }
+        return ArrayType.getInstance(flattenedLength, flattenedType);
+    }
+
     private ConstArray defaultInitialization;
 
     @Override
