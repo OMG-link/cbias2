@@ -102,14 +102,42 @@ public class IrSemanticCheckPass {
         basicBlock.getInstructions().forEach(localValues::remove);
     }
 
-    private void verifyControlFlowMap(Collection<BasicBlock> basicBlocks) {
+    private void verifyControlFlowMap(Function function) {
+        var basicBlocks = function.getBasicBlocks();
         var set = new HashSet<>(basicBlocks);
         for (BasicBlock block : basicBlocks) {
             for (BasicBlock exitBlock : block.getExitBlocks()) {
                 if (!set.contains(exitBlock)) {
                     throw new SemanticCheckFailedException("Control flow leads to a block outside function.");
                 }
+                if (!exitBlock.getEntryBlocks().contains(block)) {
+                    throw new SemanticCheckFailedException("Block entry was not properly maintained.");
+                }
             }
+            for (BasicBlock entryBlock : block.getEntryBlocks()) {
+                if (!set.contains(entryBlock)) {
+                    throw new SemanticCheckFailedException("Control flow leads to a block outside function.");
+                }
+                if (!entryBlock.getExitBlocks().contains(block)) {
+                    throw new SemanticCheckFailedException("Block entry was not properly maintained.");
+                }
+            }
+        }
+        var unreachableBlocks = new HashSet<>(basicBlocks);
+        Queue<BasicBlock> bfsQueue = new LinkedList<>();
+        bfsQueue.add(function.getEntryBasicBlock());
+        unreachableBlocks.remove(function.getEntryBasicBlock());
+        while (!bfsQueue.isEmpty()) {
+            var u = bfsQueue.remove();
+            for (BasicBlock exitBlock : u.getExitBlocks()) {
+                if (unreachableBlocks.contains(exitBlock)) {
+                    bfsQueue.add(exitBlock);
+                    unreachableBlocks.remove(exitBlock);
+                }
+            }
+        }
+        if (!unreachableBlocks.isEmpty()) {
+            throw new SemanticCheckFailedException("Control flow map contains unreachable blocks.");
         }
     }
 
@@ -118,7 +146,7 @@ public class IrSemanticCheckPass {
         localValues = new HashSet<>(globalValues);
         localValues.addAll(function.getFormalParameters());
         localValues.addAll(function.getBasicBlocks());
-        verifyControlFlowMap(function.getBasicBlocks());
+        verifyControlFlowMap(function);
         domTree = DomTree.buildOver(function);
         verifyBlocksOverDomTree(function.getEntryBasicBlock(), true);
         // 用 getExitBlocks 方法收集块入口列表
