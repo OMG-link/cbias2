@@ -130,18 +130,18 @@ public class InstructionSchedulePass {
                     if (liveValueUseSet.containsKey(usedInstruction)) {
                         var users = liveValueUseSet.get(usedInstruction);
                         users.remove(instruction);
-                        if (users.size() == 1) {
-                            updateScore(users.iterator().next(), -1);
+                        for (Instruction user : users) {
+                            updateScore(user, -1);
                         }
                     }
                 }
             }
             // 维护 dependencyUseeMap
-            for (Instruction userInstruction : dependencyUserMap.get(instruction)) {
-                var usees = dependencyUseeMap.get(userInstruction);
-                usees.remove(instruction);
-                if (usees.size() == 0) {
-                    addInstructionAsPending(userInstruction);
+            for (Instruction useeInstruction : dependencyUseeMap.get(instruction)) {
+                var users = dependencyUserMap.get(useeInstruction);
+                users.remove(instruction);
+                if (users.size() == 0) {
+                    addInstructionAsPending(useeInstruction);
                 }
             }
         }
@@ -169,32 +169,36 @@ public class InstructionSchedulePass {
                 // 给予所有指令基本分数
                 instructionScoreMap.put(instruction, 0);
                 // 加入初始可用的指令
-                if (dependencyUseeMap.get(instruction).size() == 0) {
+                if (dependencyUserMap.get(instruction).size() == 0) {
                     addInstructionAsPending(instruction);
                 }
                 // 产生活跃变量的减1分
                 if (instruction.getType() != VoidType.getInstance()) {
-                    updateScore(instruction, 1);
+                    updateScore(instruction, -1);
                 }
             }
             // 扫描活跃变量，检查是否存在可以加分的活跃变量
             liveValueUseSet.forEach((instruction, users) -> {
-                if (users.size() == 1) {
-                    updateScore(users.iterator().next(), -1);
-                }
+                updateScore(users.iterator().next(), 1);
             });
-            // 放回指令
-            while (true) {
-                var instruction = getNextInstruction();
-                if (instruction == null) break;
-                basicBlock.addInstruction(instruction);
-                onInstructionPlaced(instruction);
-            }
             // 更新 exitLiveInstructions ，将本基本块内用到的外部值加入其中，并删除已经在本基本块内定义的值
             exitLiveInstructions.addAll(liveValueUseSet.keySet());
             for (Instruction instruction : basicBlock.getInstructions()) {
                 // set的特性：如果不存在就不移除，不需要额外检查
                 exitLiveInstructions.remove(instruction);
+            }
+            // 放回指令
+            Instruction lastPlacedInstruction = null;
+            while (true) {
+                var instruction = getNextInstruction();
+                if (instruction == null) break;
+                if (lastPlacedInstruction == null) {
+                    basicBlock.addInstruction(instruction);
+                } else {
+                    instruction.insertBefore(lastPlacedInstruction);
+                }
+                lastPlacedInstruction = instruction;
+                onInstructionPlaced(instruction);
             }
         }
 
