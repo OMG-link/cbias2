@@ -3,6 +3,7 @@ package cn.edu.bit.newnewcc.pass.ir;
 import cn.edu.bit.newnewcc.ir.Module;
 import cn.edu.bit.newnewcc.ir.Value;
 import cn.edu.bit.newnewcc.ir.exception.CompilationProcessCheckFailedException;
+import cn.edu.bit.newnewcc.ir.type.ArrayType;
 import cn.edu.bit.newnewcc.ir.type.IntegerType;
 import cn.edu.bit.newnewcc.ir.type.PointerType;
 import cn.edu.bit.newnewcc.ir.value.BasicBlock;
@@ -25,19 +26,19 @@ import java.util.List;
  */
 public class LocalArrayInitializePass {
 
-    private static void generateInitializationStore(List<Instruction> generatedInstructions, Value address, ConstArray constArray) {
+    private static void generateInitializationStore(List<Instruction> generatedInstructions, Value address, int offset, ConstArray constArray) {
         for (int i = 0; i < constArray.getInitializedLength(); i++) {
-            var indices = new ArrayList<Value>();
-            indices.add(ConstInt.getInstance(0));
-            indices.add(ConstInt.getInstance(i));
-            var gep = new GetElementPtrInst(address, indices);
-            generatedInstructions.add(gep);
             var value = constArray.getValueAt(i);
             if (value instanceof ConstInt constInt) {
+                var indices = new ArrayList<Value>();
+                indices.add(ConstInt.getInstance(0));
+                indices.add(ConstInt.getInstance(offset + i));
+                var gep = new GetElementPtrInst(address, indices);
+                generatedInstructions.add(gep);
                 var storeInst = new StoreInst(gep, constInt);
                 generatedInstructions.add(storeInst);
             } else if (value instanceof ConstArray subConstArray) {
-                generateInitializationStore(generatedInstructions, gep, subConstArray);
+                generateInitializationStore(generatedInstructions, address, (offset + i) * subConstArray.getLength(), subConstArray);
             } else {
                 throw new CompilationProcessCheckFailedException("Unable to generate initialize sequence for initial value of class " + value.getClass());
             }
@@ -50,7 +51,8 @@ public class LocalArrayInitializePass {
         var initializeInstructions = new ArrayList<Instruction>();
         // 构造 memset 参数1 (i32*)address
         // 选择 i32* 是因为 clang 不接受 void* ，而 i8* 需要构建新的类
-        var bitCastInst = new BitCastInst(storeInst.getAddressOperand(), PointerType.getInstance(IntegerType.getI32()));
+        var address = storeInst.getAddressOperand();
+        var bitCastInst = new BitCastInst(address, PointerType.getInstance(IntegerType.getI32()));
         initializeInstructions.add(bitCastInst);
         // 构造 memset 参数3
         long arraySize = initialConstArray.getType().getSize();
@@ -62,7 +64,9 @@ public class LocalArrayInitializePass {
         var memsetInst = new CallInst(memsetFunction, arguments);
         initializeInstructions.add(memsetInst);
         // 构造初始值
-        generateInitializationStore(initializeInstructions, storeInst.getAddressOperand(), initialConstArray);
+        var flattenedArray = new BitCastInst(address, PointerType.getInstance(((ArrayType) ((PointerType) address.getType()).getBaseType()).getFlattenedType()));
+        initializeInstructions.add(flattenedArray);
+        generateInitializationStore(initializeInstructions, flattenedArray, 0, initialConstArray);
         // 替换语句
         for (Instruction initializeInstruction : initializeInstructions) {
             initializeInstruction.insertBefore(storeInst);
