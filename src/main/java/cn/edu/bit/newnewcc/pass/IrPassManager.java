@@ -46,6 +46,7 @@ public class IrPassManager {
             changed |= PatternReplacementPass.runOnModule(module);
             changed |= TailRecursionEliminationPass.runOnModule(module);
             changed |= FunctionInline.runOnModule(module);
+            changed |= ConstLoopUnrollPass.runOnModule(module);
             changed |= ConstantFoldingPass.runOnModule(module);
             changed |= BranchSimplifyPass.runOnModule(module);
             changed |= BasicBlockMergePass.runOnModule(module);
