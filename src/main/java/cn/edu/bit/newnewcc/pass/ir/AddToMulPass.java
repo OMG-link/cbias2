@@ -1,6 +1,5 @@
 package cn.edu.bit.newnewcc.pass.ir;
 
-import cn.edu.bit.newnewcc.backend.asm.util.Pair;
 import cn.edu.bit.newnewcc.ir.Module;
 import cn.edu.bit.newnewcc.ir.Operand;
 import cn.edu.bit.newnewcc.ir.Value;
@@ -12,6 +11,8 @@ import cn.edu.bit.newnewcc.ir.value.constant.ConstInt;
 import cn.edu.bit.newnewcc.ir.value.instruction.IntegerAddInst;
 import cn.edu.bit.newnewcc.ir.value.instruction.IntegerMultiplyInst;
 import cn.edu.bit.newnewcc.ir.value.instruction.IntegerSubInst;
+import cn.edu.bit.newnewcc.pass.ir.structure.DomTree;
+import org.antlr.v4.runtime.misc.Pair;
 
 import java.util.*;
 
@@ -28,6 +29,42 @@ public class AddToMulPass {
     }
 
     private AddToMulPass() {
+    }
+
+    private final Map<Value, Pair<Integer, Integer>> availableTimeTable = new HashMap<>();
+
+    private void getAvailableTimeTable(Function function) {
+        var domTree = DomTree.buildOver(function);
+        for (Function.FormalParameter formalParameter : function.getFormalParameters()) {
+            availableTimeTable.put(formalParameter, new Pair<>(-1, 0));
+        }
+        for (BasicBlock basicBlock : function.getBasicBlocks()) {
+            int domDepth = domTree.getDomDepth(basicBlock);
+            int instructionId = 0;
+            for (Instruction instruction : basicBlock.getInstructions()) {
+                availableTimeTable.put(instruction, new Pair<>(domDepth, instructionId));
+                instructionId++;
+            }
+        }
+    }
+
+    private int compareAvailableTime(Value a, Value b) {
+        if (availableTimeTable.containsKey(a)) {
+            if (availableTimeTable.containsKey(b)) {
+                var pa = availableTimeTable.get(a);
+                var pb = availableTimeTable.get(b);
+                if (!Objects.equals(pa.a, pb.a)) return Integer.compare(pa.a, pb.a);
+                return Integer.compare(pa.b, pb.b);
+            } else {
+                return -1;
+            }
+        } else {
+            if (availableTimeTable.containsKey(b)) {
+                return 1;
+            } else {
+                return 0;
+            }
+        }
     }
 
     // 分析结果在单次 runOnModule 中是恒定的
@@ -130,35 +167,33 @@ public class AddToMulPass {
      */
     private Pair<List<Instruction>, Value> getSpawnInstructionList(IngredientList ingredientList) {
         List<Instruction> spawnList = new ArrayList<>();
-        Queue<Value> addQueue = new LinkedList<>();
-        Value resultValue;
+        ArrayList<Value> addList = new ArrayList<>();
         ingredientList.ingredientCounts.forEach((ingredient, count) -> {
             if (count == 0) return;
             if (count == 1) {
-                addQueue.add(ingredient);
+                addList.add(ingredient);
                 return;
             }
             var multiplyInst = new IntegerMultiplyInst((IntegerType) ingredient.getType(), ingredient, ConstInt.getInstance(count));
-            addQueue.add(multiplyInst);
+            addList.add(multiplyInst);
             spawnList.add(multiplyInst);
         });
         // 若恰好全部消除，则结果为0
-        if (addQueue.isEmpty()) {
-            addQueue.add(ConstInt.getInstance(0));
+        if (addList.isEmpty()) {
+            addList.add(ConstInt.getInstance(0));
         }
-        // 使用队列维护待求和的数字集合，提升指令并行的可能
-        while (true) {
-            Value v1 = addQueue.remove();
-            if (addQueue.isEmpty()) {
-                resultValue = v1;
-                break;
+        addList.sort(this::compareAvailableTime);
+        Value sum = null;
+        for (Value value : addList) {
+            if (sum == null) {
+                sum = value;
+            } else {
+                var addInst = new IntegerAddInst((IntegerType) sum.getType(), sum, value);
+                spawnList.add(addInst);
+                sum = addInst;
             }
-            Value v2 = addQueue.remove();
-            var addInst = new IntegerAddInst((IntegerType) v1.getType(), v1, v2);
-            addQueue.add(addInst);
-            spawnList.add(addInst);
         }
-        return new Pair<>(spawnList, resultValue);
+        return new Pair<>(spawnList, sum);
     }
 
     /**
@@ -177,6 +212,8 @@ public class AddToMulPass {
     }
 
     private void runOnFunction(Function function) {
+        // 计算每个值可用的时机先后顺序，为综合时的加法提供顺序参考
+        getAvailableTimeTable(function);
         // 先对所有主体指令尝试拆解
         // 前导指令和返回指令总是不可拆解的，出于性能考虑，不运行getIngredientList
         for (BasicBlock basicBlock : function.getBasicBlocks()) {
