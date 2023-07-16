@@ -92,10 +92,11 @@ public class InstructionSchedulePass {
         private final Map<Instruction, Integer> instructionScoreMap = new HashMap<>();
 
         private record PendingInstruction(Instruction instruction,
-                                          int score) implements Comparable<PendingInstruction> {
+                                          int score, int timestamp) implements Comparable<PendingInstruction> {
             @Override
             public int compareTo(PendingInstruction o) {
                 if (score != o.score) return Integer.compare(score, o.score);
+                if (timestamp != o.timestamp) return Integer.compare(timestamp, o.timestamp);
                 return 0;
             }
         }
@@ -103,8 +104,14 @@ public class InstructionSchedulePass {
         private final Set<Instruction> pendingInstructions = new HashSet<>();
         private final PriorityQueue<PendingInstruction> pendingInstructionQueue = new PriorityQueue<>();
 
+        private int timeStamp = Integer.MAX_VALUE;
+
+        private int getTimeStamp() {
+            return timeStamp--;
+        }
+
         private void addInstructionAsPending(Instruction instruction) {
-            pendingInstructionQueue.add(new PendingInstruction(instruction, instructionScoreMap.get(instruction)));
+            pendingInstructionQueue.add(new PendingInstruction(instruction, instructionScoreMap.get(instruction), getTimeStamp()));
             pendingInstructions.add(instruction);
         }
 
@@ -112,7 +119,7 @@ public class InstructionSchedulePass {
             int oldScore = instructionScoreMap.get(instruction);
             instructionScoreMap.put(instruction, oldScore + scoreDiff);
             if (pendingInstructions.contains(instruction)) {
-                pendingInstructionQueue.add(new PendingInstruction(instruction, instructionScoreMap.get(instruction)));
+                pendingInstructionQueue.add(new PendingInstruction(instruction, instructionScoreMap.get(instruction), getTimeStamp()));
             }
         }
 
