@@ -1,5 +1,7 @@
 package cn.edu.bit.newnewcc.backend.asm.operand;
 
+import cn.edu.bit.newnewcc.backend.asm.util.Others;
+
 public abstract class AsmOperand {
     TYPE type;
 
@@ -46,5 +48,10 @@ public abstract class AsmOperand {
     @Override
     public boolean equals(Object v) {
         return v instanceof AsmOperand op && type == op.type && emit().equals(op.emit());
+    }
+
+    @Override
+    public String toString() {
+        return emit();
     }
 }

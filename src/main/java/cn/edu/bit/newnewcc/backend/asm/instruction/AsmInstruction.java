@@ -1,6 +1,7 @@
 package cn.edu.bit.newnewcc.backend.asm.instruction;
 
 import cn.edu.bit.newnewcc.backend.asm.operand.*;
+import cn.edu.bit.newnewcc.backend.asm.util.Others;
 
 /**
  * 汇编指令基类
@@ -78,9 +79,14 @@ public class AsmInstruction {
                 }
             }
         }
-        if (!(this instanceof AsmTag)) {
+        if (!(this instanceof AsmTag || this instanceof AsmPhiTag)) {
             res = '\t' + res;
         }
         return res + "\n";
+    }
+
+    @Override
+    public String toString() {
+        return Others.deleteCharString(emit(), "\t\n");
     }
 }

@@ -147,6 +147,26 @@ public class AsmBasicBlock {
         }
     }
 
+    Register getValueToRegister(Value value) {
+        var op = getValue(value);
+        Register res;
+        if (op instanceof Register reg) {
+            res = function.getRegisterAllocator().allocate(reg);
+            function.appendInstruction(new AsmLoad(res, reg));
+        } else {
+            if (value.getType() instanceof FloatType) {
+                var tmp = function.getRegisterAllocator().allocateFloat();
+                function.appendInstruction(new AsmLoad(tmp, op));
+                res = tmp;
+            } else {
+                var tmp = function.getRegisterAllocator().allocateInt();
+                function.appendInstruction(new AsmLoad(tmp, op));
+                res = tmp;
+            }
+        }
+        return res;
+    }
+
     GlobalTag getJumpGlobalTag(BasicBlock jumpBlock) {
         AsmBasicBlock block = function.getBasicBlock(jumpBlock);
         if (block.phiOperation.containsKey(irBlock)) {
@@ -222,13 +242,9 @@ public class AsmBasicBlock {
             var next = function.getBasicBlock(block);
             if (next.phiValueMap.containsKey(irBlock)) {
                 for (Value value : next.phiValueMap.get(irBlock).keySet()) {
-                    var op = getValue(value);
-                    assert (op instanceof Register);
-                    Register reg = (Register) op;
-                    Register tmp = function.getRegisterAllocator().allocate(reg);
-                    function.appendInstruction(new AsmLoad(tmp, reg));
+                    Register reg = getValueToRegister(value);
                     var inst = next.phiValueMap.get(irBlock).get(value);
-                    inst.replaceOperand(2, tmp);
+                    inst.replaceOperand(2, reg);
                 }
             }
         }
@@ -472,13 +488,16 @@ public class AsmBasicBlock {
                 offset += immediate.getValue() * baseSize;
             }
         }
-        IntRegister offsetR = function.getRegisterAllocator().allocateInt();
+        IntRegister offsetR = function.getRegisterAllocator().allocateInt(), tmp = null;
         function.appendInstruction(new AsmLoad(offsetR, new Immediate(Math.toIntExact(offset))));
         for (int i = 0; i < getElementPtrInst.getIndicesSize(); i++) {
             var index = getValue(getElementPtrInst.getIndexAt(i));
             long baseSize = ((PointerType) GetElementPtrInst.inferDereferencedType(rootType, i + 1)).getBaseType().getSize();
             if (!(index instanceof Immediate)) {
-                IntRegister tmp = getOperandToIntRegister(index);
+                if (tmp == null) {
+                    tmp = function.getRegisterAllocator().allocateInt();
+                }
+                function.appendInstruction(new AsmLoad(tmp, getOperandToIntRegister(index)));
                 IntRegister muly = getOperandToIntRegister(new Immediate(Math.toIntExact(baseSize)));
                 function.appendInstruction(new AsmMul(tmp, tmp, muly, 64));
                 function.appendInstruction(new AsmAdd(offsetR, offsetR, tmp));

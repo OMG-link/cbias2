@@ -127,8 +127,7 @@ public class AsmFunction {
             }
             asmOptimizerBeforeRegisterAllocate();
             //reAllocateStackVar();
-            //reAllocateRegister();
-            //发现bug来自于控制流经过了不在区间内的块，待修复
+            reAllocateRegister();
             asmOptimizerAfterRegisterAllocate();
         }
     }
@@ -333,7 +332,7 @@ public class AsmFunction {
 
     //未分配寄存器的分配方法
     private void reAllocateRegister() {
-        lifeTimeController.refreshAllVreg(instructionList);
+        lifeTimeController.getAllVregLifeTime(instructionList);
 
         RegisterControl registerController = new LinearScanRegisterControl(this, stackAllocator);
         registerController.virtualRegAllocateToPhysics();
@@ -362,8 +361,8 @@ public class AsmFunction {
 
     private void asmOptimizerAfterRegisterAllocate() {
         LinkedList<AsmInstruction> linkedInstructionList = new LinkedList<>(instructionList);
-        linkedInstructionList = BackendOptimizer.afterAllocateScanForward(linkedInstructionList);
-        linkedInstructionList = BackendOptimizer.afterAllocateScanBackward(linkedInstructionList);
+        //linkedInstructionList = BackendOptimizer.afterAllocateScanForward(linkedInstructionList);
+        //linkedInstructionList = BackendOptimizer.afterAllocateScanBackward(linkedInstructionList);
         instructionList = new ArrayList<>(linkedInstructionList);
     }
 
