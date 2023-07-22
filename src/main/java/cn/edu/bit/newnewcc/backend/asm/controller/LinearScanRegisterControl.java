@@ -2,11 +2,10 @@ package cn.edu.bit.newnewcc.backend.asm.controller;
 
 import cn.edu.bit.newnewcc.backend.asm.AsmFunction;
 import cn.edu.bit.newnewcc.backend.asm.allocator.StackAllocator;
-import cn.edu.bit.newnewcc.backend.asm.instruction.AsmCall;
-import cn.edu.bit.newnewcc.backend.asm.instruction.AsmInstruction;
-import cn.edu.bit.newnewcc.backend.asm.instruction.AsmLoad;
-import cn.edu.bit.newnewcc.backend.asm.instruction.AsmStore;
+import cn.edu.bit.newnewcc.backend.asm.instruction.*;
 import cn.edu.bit.newnewcc.backend.asm.operand.*;
+import cn.edu.bit.newnewcc.backend.asm.util.ImmediateTools;
+import cn.edu.bit.newnewcc.backend.asm.util.Others;
 import org.antlr.v4.runtime.misc.Pair;
 
 import java.util.*;
@@ -25,12 +24,21 @@ public class LinearScanRegisterControl extends RegisterControl{
     //寄存器在调用过程中保留与否，保留的寄存器需要在函数头尾额外保存
     private final Map<Register, TYPE> registerPreservedType = new HashMap<>();
     private final Map<Register, StackVar> preservedRegisterSaved = new HashMap<>();
+    private final IntRegister s1 = new IntRegister("s1");
+    private final StackVar s1saved;
 
     @Override
     public List<AsmInstruction> emitHead() {
         List<AsmInstruction> res = new ArrayList<>();
         for (var register : preservedRegisterSaved.keySet()) {
-            res.add(new AsmStore(register, preservedRegisterSaved.get(register)));
+            var x = preservedRegisterSaved.get(register);
+            if (!ImmediateTools.bitlengthNotInLimit(x.getAddress().getOffset())) {
+                preservedRegisterSaved.put(s1, s1saved);
+                break;
+            }
+        }
+        for (var register : preservedRegisterSaved.keySet()) {
+            saveToStackVar(res, register, preservedRegisterSaved.get(register));
         }
         return res;
     }
@@ -39,7 +47,7 @@ public class LinearScanRegisterControl extends RegisterControl{
     public List<AsmInstruction> emitTail() {
         List<AsmInstruction> res = new ArrayList<>();
         for (var register : preservedRegisterSaved.keySet()) {
-            res.add(new AsmLoad(register, preservedRegisterSaved.get(register)));
+            loadFromStackVar(res, register, preservedRegisterSaved.get(register));
         }
         return res;
     }
@@ -47,13 +55,15 @@ public class LinearScanRegisterControl extends RegisterControl{
     public LinearScanRegisterControl(AsmFunction function, StackAllocator allocator) {
         super(function, allocator);
         //加入目前可使用的寄存器
+        s1saved = stackPool.pop();
+        registerPreservedType.put(s1, TYPE.PRESERVED);
         for (int i = 0; i <= 31; i++) {
             if ((6 <= i && i <= 7) || (28 <= i)) {
                 Register register = new IntRegister(i);
                 registerPool.put(register, 0);
                 registerPreservedType.put(register, TYPE.UNPRESERVED);
             }
-            if (i == 9 || (18 <= i && i <= 27)) {
+            if (18 <= i && i <= 27) {
                 Register register = new IntRegister(i);
                 registerPool.put(register, 0);
                 registerPreservedType.put(register, TYPE.PRESERVED);
@@ -84,11 +94,11 @@ public class LinearScanRegisterControl extends RegisterControl{
             }
         }
         Register spillReg = null;
-        int maxR = function.getLifeTimeController().getLifeTime(index).b;
+        int maxR = function.getLifeTimeController().getLifeTimeRange(index).b;
         for (var reg : registerPool.keySet()) {
             if (reg.getType() == vreg.getType()) {
                 int original = registerPool.get(reg);
-                int regR = function.getLifeTimeController().getLifeTime(original).b;
+                int regR = function.getLifeTimeController().getLifeTimeRange(original).b;
                 if (regR > maxR) {
                     maxR = regR;
                     spillReg = reg;
@@ -112,11 +122,11 @@ public class LinearScanRegisterControl extends RegisterControl{
         List<Pair<Integer, Integer>> recycleList = new ArrayList<>();
         for (var index : function.getLifeTimeController().getKeySet()) {
             vregList.add(function.getRegisterAllocator().get(index));
-            recycleList.add(new Pair<>(index, function.getLifeTimeController().getLifeTime(index).b));
+            recycleList.add(new Pair<>(index, function.getLifeTimeController().getLifeTimeRange(index).b));
         }
         vregList.sort((a, b) -> {
-            var lifeTimeA = function.getLifeTimeController().getLifeTime(a.getIndex());
-            var lifeTimeB = function.getLifeTimeController().getLifeTime(b.getIndex());
+            var lifeTimeA = function.getLifeTimeController().getLifeTimeRange(a.getIndex());
+            var lifeTimeB = function.getLifeTimeController().getLifeTimeRange(b.getIndex());
             if (Objects.equals(lifeTimeA.a, lifeTimeB.a)) {
                 return lifeTimeA.b - lifeTimeB.b;
             }
@@ -127,7 +137,7 @@ public class LinearScanRegisterControl extends RegisterControl{
         //第一次扫描，分配寄存器本身
         int recycleHead = 0;
         for (var vreg : vregList) {
-            var lifeTime = function.getLifeTimeController().getLifeTime(vreg.getIndex());
+            var lifeTime = function.getLifeTimeController().getLifeTimeRange(vreg.getIndex());
             while (recycleHead < recycleList.size() && recycleList.get(recycleHead).b < lifeTime.a) {
                 recycle(recycleList.get(recycleHead).a);
                 recycleHead += 1;
@@ -141,7 +151,7 @@ public class LinearScanRegisterControl extends RegisterControl{
             if (vregLocation.containsKey(vreg.getIndex())) {
                 continue;
             }
-            var lifeTime = function.getLifeTimeController().getLifeTime(vreg.getIndex());
+            var lifeTime = function.getLifeTimeController().getLifeTimeRange(vreg.getIndex());
             while (recycleHead < recycleList.size() && recycleList.get(recycleHead).b < lifeTime.a) {
                 recycle(recycleList.get(recycleHead).a);
                 recycleHead += 1;
@@ -181,11 +191,33 @@ public class LinearScanRegisterControl extends RegisterControl{
                 used.put(vreg, reg);
                 var tmp = stackPool.pop();
                 registerSaveMap.put(reg, tmp);
-                newInstList.add(new AsmStore(reg, tmp));
+                saveToStackVar(newInstList, reg, tmp);
                 return reg;
             }
         }
         return null;
+    }
+
+    void loadFromStackVar(List<AsmInstruction> instList, Register register, StackVar stk) {
+        if (ImmediateTools.bitlengthNotInLimit(stk.getAddress().getOffset())) {
+            preservedRegisterSaved.put(s1, s1saved);
+            instList.add(new AsmLoad(s1, new Immediate(Math.toIntExact(stk.getAddress().getOffset()))));
+            instList.add(new AsmAdd(s1, s1, stk.getAddress().getRegister()));
+            stk = new StackVar(0, stk.getSize(), true);
+            stk.replaceRegister(s1);
+        }
+        instList.add(new AsmLoad(register, stk));
+    }
+
+    void saveToStackVar(List<AsmInstruction> instList, Register register, StackVar stk) {
+        if (ImmediateTools.bitlengthNotInLimit(stk.getAddress().getOffset())) {
+            preservedRegisterSaved.put(s1, s1saved);
+            instList.add(new AsmLoad(s1, new Immediate(Math.toIntExact(stk.getAddress().getOffset()))));
+            instList.add(new AsmAdd(s1, s1, stk.getAddress().getRegister()));
+            stk = new StackVar(0, stk.getSize(), true);
+            stk.replaceRegister(s1);
+        }
+        instList.add(new AsmStore(register, stk));
     }
 
     @Override
@@ -193,12 +225,12 @@ public class LinearScanRegisterControl extends RegisterControl{
         registerPool.replaceAll((r, v) -> 0);
         List<AsmInstruction> newInstList = new ArrayList<>();
         List<List<Pair<Integer, Integer>>> callSavedRegisters = new ArrayList<>();
-        for (int i = 0; i <= instructionList.size(); i++) {
+        for (int i = 0; i <= instructionList.size() + 1; i++) {
             callSavedRegisters.add(new ArrayList<>());
         }
         for (var index : function.getLifeTimeController().getKeySet()) {
             if (vregLocation.get(index) instanceof Register) {
-                var lifeTime = function.getLifeTimeController().getLifeTime(index);
+                var lifeTime = function.getLifeTimeController().getLifeTimeRange(index);
                 callSavedRegisters.get(lifeTime.a).add(new Pair<>(index, 1));
                 callSavedRegisters.get(lifeTime.b + 1).add(new Pair<>(index, -1));
             }
@@ -232,7 +264,7 @@ public class LinearScanRegisterControl extends RegisterControl{
                                 writeStack = stackVar;
                             } else if (!loaded.contains(physicRegister)) {
                                 loaded.add(physicRegister);
-                                newInstList.add(new AsmLoad(physicRegister, stackVar));
+                                loadFromStackVar(newInstList, physicRegister, stackVar);
                             }
                         } else if (vregLocation.get(vreg.getIndex()) instanceof Register register) {
                             physicRegister = register;
@@ -247,24 +279,24 @@ public class LinearScanRegisterControl extends RegisterControl{
                     if (registerPool.get(reg) != 0 && registerPreservedType.get(reg) != TYPE.PRESERVED) {
                         var tmp = stackPool.pop();
                         callSaved.put(reg, tmp);
-                        newInstList.add(new AsmStore(reg, tmp));
+                        saveToStackVar(newInstList, reg, tmp);
                     }
                 }
                 newInstList.add(inst);
                 for (var reg : callSaved.keySet()) {
                     var tmp = callSaved.get(reg);
-                    newInstList.add(new AsmLoad(reg, tmp));
+                    loadFromStackVar(newInstList, reg, tmp);
                     stackPool.push(tmp);
                 }
             } else {
                 newInstList.add(inst);
             }
             if (writeStack != null) {
-                newInstList.add(new AsmStore(writeReg, writeStack));
+                saveToStackVar(newInstList, writeReg, writeStack);
             }
             for (var reg : registerSaveMap.keySet()) {
                 var tmp = registerSaveMap.get(reg);
-                newInstList.add(new AsmLoad(reg, tmp));
+                loadFromStackVar(newInstList, reg, tmp);
                 stackPool.push(tmp);
             }
         }
