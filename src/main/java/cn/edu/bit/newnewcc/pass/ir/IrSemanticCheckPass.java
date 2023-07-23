@@ -184,6 +184,8 @@ public class IrSemanticCheckPass {
         globalValues.addAll(module.getExternalFunctions());
         globalValues.addAll(module.getFunctions());
         globalValues.addAll(module.getGlobalVariables());
+        module.getGlobalVariables().forEach(this::verifyUsage);
+        module.getFunctions().forEach(this::verifyUsage);
         module.getFunctions().forEach(this::verifyFunction);
     }
 
