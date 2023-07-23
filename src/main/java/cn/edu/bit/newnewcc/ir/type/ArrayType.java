@@ -68,7 +68,7 @@ public class ArrayType extends Type {
      *
      * @return 扁平化后的类型
      */
-    public Type getFlattenedType() {
+    public ArrayType getFlattenedType() {
         int flattenedLength = 1;
         Type flattenedType = this;
         while (flattenedType instanceof ArrayType arrayType) {
