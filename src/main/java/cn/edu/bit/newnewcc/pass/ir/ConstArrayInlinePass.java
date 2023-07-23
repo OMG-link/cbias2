@@ -46,9 +46,8 @@ public class ConstArrayInlinePass {
             if (!(getElementPtrInst.getIndexAt(0) instanceof ConstInt constInt && constInt.getValue() == 0)) {
                 return false;
             }
-            var indices = getElementPtrInst.getIndexOperands();
-            for (int i = 1; i < indices.size(); i++) {
-                if (!(indices.get(i) instanceof ConstInt constInt1)) {
+            for (int i = 1; i < getElementPtrInst.getIndicesSize(); i++) {
+                if (!(getElementPtrInst.getIndexAt(i) instanceof ConstInt constInt1)) {
                     return false;
                 }
                 constant = ((ConstArray) constant).getValueAt(constInt1.getValue());

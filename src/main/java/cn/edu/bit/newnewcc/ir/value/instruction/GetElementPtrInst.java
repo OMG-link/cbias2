@@ -59,6 +59,9 @@ public class GetElementPtrInst extends Instruction {
     }
 
     /**
+     * 获取下标操作数列表 <br>
+     * 此方法仅供不关心第几个下标时使用 <br>
+     *
      * @return 下标操作数列表
      */
     public List<Value> getIndexOperands() {
