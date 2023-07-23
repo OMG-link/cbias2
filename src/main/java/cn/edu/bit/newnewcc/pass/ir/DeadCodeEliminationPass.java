@@ -246,7 +246,18 @@ public class DeadCodeEliminationPass {
                 }
             }
         }
-        unusedFunctions.forEach(module::removeFunction);
+        for (Function unusedFunction : unusedFunctions) {
+            destroyFunction(unusedFunction);
+            module.removeFunction(unusedFunction);
+        }
+    }
+
+    private static void destroyFunction(Function function) {
+        for (BasicBlock basicBlock : function.getBasicBlocks()) {
+            for (Instruction instruction : basicBlock.getInstructions()) {
+                instruction.clearOperands();
+            }
+        }
     }
 
     public static boolean runOnModule(Module module) {
