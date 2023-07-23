@@ -95,7 +95,6 @@ public class FunctionInline {
             if (propertyMap.get(inlinedFunction).callees.contains(inlinedFunction) || inlinedFunction.getValueName().equals("main"))
                 continue;
             inlineFunction(inlinedFunction);
-            module.removeFunction(inlinedFunction);
             changed = true;
         }
         return changed;
