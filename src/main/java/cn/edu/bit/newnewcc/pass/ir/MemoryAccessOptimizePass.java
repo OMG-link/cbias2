@@ -64,8 +64,9 @@ public class MemoryAccessOptimizePass {
                     loadInst.replaceAllUsageTo(addressValueMap.get(address));
                     loadInst.waste();
                 }
-            } else if (mainInstruction instanceof StoreInst) { // 内存变动
+            } else if (mainInstruction instanceof StoreInst storeInst) { // 内存变动
                 addressValueMap.clear();
+                addressValueMap.put(storeInst.getAddressOperand(), storeInst.getValueOperand());
             } else if (mainInstruction instanceof CallInst) { // 控制流转移
                 addressValueMap.clear();
             }
