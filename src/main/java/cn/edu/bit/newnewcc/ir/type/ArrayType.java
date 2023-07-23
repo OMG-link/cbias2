@@ -1,7 +1,6 @@
 package cn.edu.bit.newnewcc.ir.type;
 
 import cn.edu.bit.newnewcc.ir.Type;
-import cn.edu.bit.newnewcc.ir.value.Constant;
 import cn.edu.bit.newnewcc.ir.value.constant.ConstArray;
 
 import java.util.ArrayList;
@@ -82,7 +81,7 @@ public class ArrayType extends Type {
     private ConstArray defaultInitialization;
 
     @Override
-    public Constant getZeroInitialization() {
+    public ConstArray getZeroInitialization() {
         if (defaultInitialization == null) {
             defaultInitialization = new ConstArray(baseType, length, new ArrayList<>());
         }

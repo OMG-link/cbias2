@@ -2,7 +2,6 @@ package cn.edu.bit.newnewcc.ir.type;
 
 import cn.edu.bit.newnewcc.ir.Type;
 import cn.edu.bit.newnewcc.ir.exception.IllegalArgumentException;
-import cn.edu.bit.newnewcc.ir.value.Constant;
 import cn.edu.bit.newnewcc.ir.value.constant.ConstInt;
 
 /**
@@ -25,7 +24,7 @@ public class IntegerType extends Type {
     }
 
     @Override
-    public Constant getZeroInitialization() {
+    public ConstInt getZeroInitialization() {
         return ConstInt.getInstance(0);
     }
 

@@ -2,7 +2,6 @@ package cn.edu.bit.newnewcc.ir.type;
 
 import cn.edu.bit.newnewcc.ir.Type;
 import cn.edu.bit.newnewcc.ir.exception.IllegalBitWidthException;
-import cn.edu.bit.newnewcc.ir.value.Constant;
 import cn.edu.bit.newnewcc.ir.value.constant.ConstFloat;
 
 /**
@@ -26,7 +25,7 @@ public class FloatType extends Type {
     }
 
     @Override
-    public Constant getZeroInitialization() {
+    public ConstFloat getZeroInitialization() {
         if (bitWidth != 32)
             throw new IllegalBitWidthException();
 
