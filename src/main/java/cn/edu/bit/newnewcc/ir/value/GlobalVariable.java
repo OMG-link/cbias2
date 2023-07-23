@@ -11,7 +11,7 @@ import cn.edu.bit.newnewcc.ir.type.PointerType;
  */
 public class GlobalVariable extends Value {
 
-    private final boolean isConstant;
+    private boolean isConstant;
     private final Constant initialValue;
 
     /**
@@ -42,6 +42,10 @@ public class GlobalVariable extends Value {
      */
     public boolean isConstant() {
         return isConstant;
+    }
+
+    public void setIsConstant(boolean isConstant) {
+        this.isConstant = isConstant;
     }
 
     /**
