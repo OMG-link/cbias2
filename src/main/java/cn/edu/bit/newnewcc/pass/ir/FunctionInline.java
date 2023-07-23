@@ -80,6 +80,7 @@ public class FunctionInline {
             }
             blockBeta.addInstruction(clonedFunction.getReturnValue());
             callInst.replaceAllUsageTo(clonedFunction.getReturnValue());
+            callInst.waste();
             for (AllocateInst allocateInstruction : clonedFunction.getAllocateInstructions()) {
                 function.getEntryBasicBlock().addInstruction(allocateInstruction);
             }
