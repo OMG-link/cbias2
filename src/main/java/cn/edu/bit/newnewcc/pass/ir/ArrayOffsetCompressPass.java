@@ -4,6 +4,7 @@ import cn.edu.bit.newnewcc.ir.Module;
 import cn.edu.bit.newnewcc.ir.Operand;
 import cn.edu.bit.newnewcc.ir.Type;
 import cn.edu.bit.newnewcc.ir.Value;
+import cn.edu.bit.newnewcc.ir.exception.CompilationProcessCheckFailedException;
 import cn.edu.bit.newnewcc.ir.type.ArrayType;
 import cn.edu.bit.newnewcc.ir.type.PointerType;
 import cn.edu.bit.newnewcc.ir.value.BasicBlock;
@@ -33,20 +34,28 @@ public class ArrayOffsetCompressPass {
     private record ArrayAddress(Value rootAddress, int offset, Type type) {
     }
 
-    private final Map<GetElementPtrInst, ArrayAddress> addressMap = new HashMap<>();
+    private final Map<Value, ArrayAddress> addressMap = new HashMap<>();
 
-    private boolean canCompressGep(GetElementPtrInst getElementPtrInst) {
-        var compressedGep = getCompressedGep(getElementPtrInst);
-        // 当前gep也无法压缩
-        if (compressedGep.rootAddress.getType() == getElementPtrInst.getType()) return false;
-        // 只能压缩一层，相当于没压缩
-        var uncompressedArray = (ArrayType) ((PointerType) compressedGep.rootAddress.getType()).getBaseType();
-        var compressedArray = ((PointerType) compressedGep.type).getBaseType();
-        if (uncompressedArray.getBaseType() == compressedArray) return false;
-        return true;
+    private boolean canCompressAddress(Value address) {
+        var compressedGep = getCompressedAddress(address);
+        int gepCount = 0;
+        int bcCount = 0;
+        while (address != compressedGep.rootAddress) {
+            if (address instanceof GetElementPtrInst getElementPtrInst) {
+                address = getElementPtrInst.getRootOperand();
+                gepCount++;
+            } else if (address instanceof BitCastInst bitCastInst) {
+                address = bitCastInst.getSourceOperand();
+                bcCount++;
+            } else {
+                throw new CompilationProcessCheckFailedException("Cannot trace calculation path of address.");
+            }
+            if (gepCount > 1 || bcCount > 1) return true;
+        }
+        return false;
     }
 
-    private ArrayAddress getCompressedGep_(GetElementPtrInst getElementPtrInst) {
+    private ArrayAddress getCompressedGep(GetElementPtrInst getElementPtrInst) {
         boolean isConstGep = true;
         for (Value indexOperand : getElementPtrInst.getIndexOperands()) {
             if (!(indexOperand instanceof ConstInt)) {
@@ -55,7 +64,7 @@ public class ArrayOffsetCompressPass {
             }
         }
         if (isConstGep) {
-            var rootArrayAddress = getCompressedGep(getElementPtrInst.getRootOperand());
+            var rootArrayAddress = getCompressedAddress(getElementPtrInst.getRootOperand());
             var offset = rootArrayAddress.offset + ((ConstInt) getElementPtrInst.getIndexAt(0)).getValue();
             var type = ((PointerType) rootArrayAddress.type).getBaseType();
             for (int i = 1; i < getElementPtrInst.getIndicesSize(); i++) {
@@ -70,14 +79,40 @@ public class ArrayOffsetCompressPass {
         }
     }
 
-    private ArrayAddress getCompressedGep(Value value) {
-        if (!(value instanceof GetElementPtrInst getElementPtrInst)) {
-            return new ArrayAddress(value, 0, value.getType());
+    private ArrayAddress getCompressedBitCast(BitCastInst bitCastInst) {
+        int rate = 1;
+        var currentType = bitCastInst.getSourceType();
+        if (!(currentType instanceof PointerType)) {
+            return new ArrayAddress(bitCastInst, 0, bitCastInst.getType());
         }
-        if (!addressMap.containsKey(getElementPtrInst)) {
-            addressMap.put(getElementPtrInst, getCompressedGep_(getElementPtrInst));
+        currentType = ((PointerType) currentType).getBaseType();
+        var targetType = bitCastInst.getTargetType();
+        if (!(targetType instanceof PointerType)) {
+            return new ArrayAddress(bitCastInst, 0, bitCastInst.getType());
         }
-        return addressMap.get(getElementPtrInst);
+        targetType = ((PointerType) targetType).getBaseType();
+        while (currentType != targetType && currentType instanceof ArrayType arrayType) {
+            rate *= arrayType.getLength();
+            currentType = arrayType.getBaseType();
+        }
+        if (currentType != targetType) {
+            return new ArrayAddress(bitCastInst, 0, bitCastInst.getType());
+        }
+        var sourceAddress = getCompressedAddress(bitCastInst.getSourceOperand());
+        return new ArrayAddress(sourceAddress.rootAddress, sourceAddress.offset * rate, bitCastInst.getTargetType());
+    }
+
+    private ArrayAddress getCompressedAddress(Value address) {
+        if (!addressMap.containsKey(address)) {
+            if (address instanceof GetElementPtrInst getElementPtrInst) {
+                addressMap.put(address, getCompressedGep(getElementPtrInst));
+            } else if (address instanceof BitCastInst bitCastInst) {
+                addressMap.put(address, getCompressedBitCast(bitCastInst));
+            } else {
+                addressMap.put(address, new ArrayAddress(address, 0, address.getType()));
+            }
+        }
+        return addressMap.get(address);
     }
 
     private boolean runOnFunction() {
@@ -86,8 +121,8 @@ public class ArrayOffsetCompressPass {
             for (Instruction instruction : basicBlock.getMainInstructions()) {
                 if (instruction instanceof GetElementPtrInst) continue;
                 for (Operand operand : instruction.getOperandList()) {
-                    if (operand.getValue() instanceof GetElementPtrInst getElementPtrInst && canCompressGep(getElementPtrInst)) {
-                        var arrayAddress = getCompressedGep(getElementPtrInst);
+                    if (operand.getValue() instanceof GetElementPtrInst getElementPtrInst && canCompressAddress(getElementPtrInst)) {
+                        var arrayAddress = getCompressedAddress(getElementPtrInst);
                         var bitcast = new BitCastInst(arrayAddress.rootAddress, arrayAddress.type);
                         var indices = new ArrayList<Value>();
                         indices.add(ConstInt.getInstance(arrayAddress.offset));
