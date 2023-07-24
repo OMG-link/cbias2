@@ -31,7 +31,7 @@ public class AsmBasicBlock {
     private final AsmFunction function;
     private final BasicBlock irBlock;
     private final Map<BasicBlock, List<AsmInstruction>> phiOperation = new HashMap<>();
-    private final Map<BasicBlock, Map<Value, AsmInstruction>> phiValueMap = new HashMap<>();
+    private final Map<BasicBlock, Map<Value, List<AsmInstruction>>> phiValueMap = new HashMap<>();
 
     public AsmBasicBlock(AsmFunction function, BasicBlock block) {
         this.function = function;
@@ -230,7 +230,10 @@ public class AsmBasicBlock {
                     phiOperation.get(block).add(new AsmLoad(tmp, getConstantVar(constant, (ins)-> phiOperation.get(block).add(ins))));
                 } else {
                     var loadInst = new AsmLoad(tmp, tmp);
-                    phiValueMap.get(block).put(source, loadInst);
+                    if (!phiValueMap.get(block).containsKey(source)) {
+                        phiValueMap.get(block).put(source, new ArrayList<>());
+                    }
+                    phiValueMap.get(block).get(source).add(loadInst);
                     phiOperation.get(block).add(loadInst);
                 }
             }
@@ -243,8 +246,9 @@ public class AsmBasicBlock {
             if (next.phiValueMap.containsKey(irBlock)) {
                 for (Value value : next.phiValueMap.get(irBlock).keySet()) {
                     Register reg = getValueToRegister(value);
-                    var inst = next.phiValueMap.get(irBlock).get(value);
-                    inst.replaceOperand(2, reg);
+                    for (var inst : next.phiValueMap.get(irBlock).get(value)) {
+                        inst.replaceOperand(2, reg);
+                    }
                 }
             }
         }
