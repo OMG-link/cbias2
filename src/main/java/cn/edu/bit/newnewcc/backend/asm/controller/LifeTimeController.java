@@ -32,7 +32,16 @@ public class LifeTimeController {
     }
 
     public Collection<Integer> getWriteVregSet(AsmInstruction inst) {
-        if (inst instanceof AsmStore || inst instanceof AsmJump) {
+        if (inst instanceof AsmStore) {
+            if (inst.getOperand(2) instanceof RegisterReplaceable registerReplaceable) {
+                var reg = registerReplaceable.getRegister();
+                if (reg.isVirtual()) {
+                    return Collections.singleton(reg.getIndex());
+                }
+            }
+            return new HashSet<>();
+        }
+        if (inst instanceof AsmJump) {
             return new HashSet<>();
         }
         if (inst.getOperand(1) instanceof RegisterReplaceable registerReplaceable) {
