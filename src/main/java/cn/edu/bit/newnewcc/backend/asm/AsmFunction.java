@@ -255,6 +255,7 @@ public class AsmFunction {
             throw new RuntimeException("Function parameter mismatch");
         }
         List<Pair<StackVar, Register>> pushList = new ArrayList<>();
+        Map<String, StackVar> paraSaved = new HashMap<>();
         for (int i = 0; i < parameters.size(); i++) {
             var formalPara = calledFunction.formalParameters.get(i);
             if (formalPara instanceof StackVar stackVar) {
@@ -264,6 +265,7 @@ public class AsmFunction {
             if (formalPara instanceof Register reg) {
                 StackVar vreg = stackAllocator.push(8);
                 res.add(new AsmStore(reg, transformStackVar(vreg, res)));
+                paraSaved.put(reg.emit(), vreg);
                 pushList.add(new Pair<>(vreg, reg));
             } else {
                 assert formalPara instanceof ExStackVarContent;
@@ -273,12 +275,21 @@ public class AsmFunction {
             //将参数存储到形参对应位置
             var para = parameters.get(i);
             if (para instanceof Register reg) {
-                res.add(new AsmStore(reg, formalPara));
+                if (paraSaved.containsKey(reg.emit()) && !reg.emit().equals(formalPara.emit())) {
+                    var rs = transformStackVar(paraSaved.get(reg.emit()), res);
+                    if (formalPara instanceof Register formalReg) {
+                        res.add(new AsmLoad(formalReg, rs));
+                    } else {
+                        var tmp = registerAllocator.allocate(reg);
+                        res.add(new AsmLoad(tmp, rs));
+                        res.add(new AsmStore(tmp, formalPara));
+                    }
+                } else {
+                    res.add(new AsmStore(reg, formalPara));
+                }
             } else {
-                if (formalPara instanceof FloatRegister freg) {
-                    FloatRegister ftmp = registerAllocator.allocateFloat();
-                    res.add(new AsmLoad(ftmp, para));
-                    res.add(new AsmStore(ftmp, freg));
+                if (formalPara instanceof Register formalReg) {
+                    res.add(new AsmLoad(formalReg, para));
                 } else {
                     IntRegister tmp = registerAllocator.allocateInt();
                     res.add(new AsmLoad(tmp, para));
