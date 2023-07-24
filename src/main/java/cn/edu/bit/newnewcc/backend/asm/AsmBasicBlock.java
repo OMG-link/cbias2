@@ -148,7 +148,7 @@ public class AsmBasicBlock {
     }
 
     Register getValueToRegister(Value value) {
-        var op = getValue(value);
+        var op = getValueByType(value, value.getType());
         Register res;
         if (op instanceof Register reg) {
             res = function.getRegisterAllocator().allocate(reg);

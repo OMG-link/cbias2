@@ -126,7 +126,6 @@ public class AsmFunction {
                 block.emitToFunction();
             }
             asmOptimizerBeforeRegisterAllocate();
-            //reAllocateStackVar();
             reAllocateRegister();
             asmOptimizerAfterRegisterAllocate();
         }
