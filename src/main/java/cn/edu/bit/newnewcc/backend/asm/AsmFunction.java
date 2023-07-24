@@ -256,18 +256,25 @@ public class AsmFunction {
         }
         List<Pair<StackVar, Register>> pushList = new ArrayList<>();
         Map<String, StackVar> paraSaved = new HashMap<>();
+
+        //若形参中使用了参数保存寄存器，则需先push寄存器保存原有内容，避免受到下一层影响
+        for (AsmOperand formalParameter : formalParameters) {
+            if (formalParameter instanceof Register reg) {
+                StackVar vreg = stackAllocator.push(8);
+                res.add(new AsmStore(reg, transformStackVar(vreg, res)));
+                paraSaved.put(reg.emit(), vreg);
+                pushList.add(new Pair<>(vreg, reg));
+            }
+        }
+
         for (int i = 0; i < parameters.size(); i++) {
             var formalPara = calledFunction.formalParameters.get(i);
             if (formalPara instanceof StackVar stackVar) {
                 formalPara = transformStackVar(stackVar, res);
             }
-            //若形参中使用了参数保存寄存器，则需先push寄存器保存原有内容
-            if (formalPara instanceof Register reg) {
-                StackVar vreg = stackAllocator.push(8);
-                res.add(new AsmStore(reg, transformStackVar(vreg, res)));
-                paraSaved.put(reg.emit(), vreg);
-                pushList.add(new Pair<>(vreg, reg));
-            } else {
+
+            //为下一层的函数参数存储开辟栈空间
+            if (!(formalPara instanceof Register)) {
                 assert formalPara instanceof ExStackVarContent;
                 stackAllocator.push_back((StackVar)formalPara);
             }
@@ -275,7 +282,8 @@ public class AsmFunction {
             //将参数存储到形参对应位置
             var para = parameters.get(i);
             if (para instanceof Register reg) {
-                if (paraSaved.containsKey(reg.emit()) && !reg.emit().equals(formalPara.emit())) {
+                //若当前参数已经被覆盖，则从栈中读取
+                if (paraSaved.containsKey(reg.emit()) && reg.emit().compareTo(formalPara.emit()) < 0) {
                     var rs = transformStackVar(paraSaved.get(reg.emit()), res);
                     if (formalPara instanceof Register formalReg) {
                         res.add(new AsmLoad(formalReg, rs));
