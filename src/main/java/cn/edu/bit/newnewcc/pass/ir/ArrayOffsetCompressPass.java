@@ -80,7 +80,6 @@ public class ArrayOffsetCompressPass {
     }
 
     private ArrayAddress getCompressedBitCast(BitCastInst bitCastInst) {
-        int rate = 1;
         var currentType = bitCastInst.getSourceType();
         if (!(currentType instanceof PointerType)) {
             return new ArrayAddress(bitCastInst, 0, bitCastInst.getType());
@@ -91,13 +90,7 @@ public class ArrayOffsetCompressPass {
             return new ArrayAddress(bitCastInst, 0, bitCastInst.getType());
         }
         targetType = ((PointerType) targetType).getBaseType();
-        while (currentType != targetType && currentType instanceof ArrayType arrayType) {
-            rate *= arrayType.getLength();
-            currentType = arrayType.getBaseType();
-        }
-        if (currentType != targetType) {
-            return new ArrayAddress(bitCastInst, 0, bitCastInst.getType());
-        }
+        int rate = (int) (currentType.getSize() / targetType.getSize());
         var sourceAddress = getCompressedAddress(bitCastInst.getSourceOperand());
         return new ArrayAddress(sourceAddress.rootAddress, sourceAddress.offset * rate, bitCastInst.getTargetType());
     }
