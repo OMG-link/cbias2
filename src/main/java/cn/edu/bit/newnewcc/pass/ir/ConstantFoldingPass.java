@@ -307,6 +307,8 @@ public class ConstantFoldingPass {
             }
             if (!changed) break;
         }
+        mChanged |= BranchSimplifyPass.runOnModule(module);
+        mChanged |= DeadCodeEliminationPass.runOnModule(module);
         return mChanged;
     }
 }
