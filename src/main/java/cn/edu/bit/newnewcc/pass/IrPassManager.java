@@ -48,6 +48,7 @@ public class IrPassManager {
             changed |= FunctionInline.runOnModule(module);
             changed |= ConstLoopUnrollPass.runOnModule(module);
             changed |= ConstantFoldingPass.runOnModule(module);
+            changed |= LocalArrayPromotionPass.runOnModule(module);
             changed |= ConstArrayInlinePass.runOnModule(module);
             changed |= ArrayOffsetCompressPass.runOnModule(module);
             changed |= BranchSimplifyPass.runOnModule(module);
