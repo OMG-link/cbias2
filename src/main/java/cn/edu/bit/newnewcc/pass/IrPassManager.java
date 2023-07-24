@@ -19,19 +19,19 @@ public class IrPassManager {
                 runOptimizePasses(module);
 
                 // 内存访问优化运行单次即可
-                //MemoryAccessOptimizePass.runOnModule(module);
-                //runOptimizePasses(module);
+                MemoryAccessOptimizePass.runOnModule(module);
+                runOptimizePasses(module);
 
                 // 加法合并无法确定是否产生了优化
-                //AddToMulPass.runOnModule(module);
-                //runOptimizePasses(module);
+                AddToMulPass.runOnModule(module);
+                runOptimizePasses(module);
 
                 // GCM无法确定是否产生了优化
-                //GlobalCodeMotionPass.runOnModule(module);
-                //runOptimizePasses(module);
+                GlobalCodeMotionPass.runOnModule(module);
+                runOptimizePasses(module);
 
                 // 最后调整一下指令顺序，以得到更好的寄存器分配结果
-                //InstructionSchedulePass.runOnModule(module);
+                InstructionSchedulePass.runOnModule(module);
 
             }
         }
@@ -41,8 +41,8 @@ public class IrPassManager {
 
     private static void runOptimizePasses(Module module) {
         while (true) {
-            boolean changed = false;
-            changed |= InstructionCombinePass.runOnModule(module);
+            boolean changed;
+            changed = InstructionCombinePass.runOnModule(module);
             changed |= PatternReplacementPass.runOnModule(module);
             changed |= TailRecursionEliminationPass.runOnModule(module);
             changed |= FunctionInline.runOnModule(module);

@@ -30,6 +30,8 @@ import static java.lang.Math.min;
 public class AsmFunction {
     private final String functionName;
 
+    private final boolean DEBUG_MODE = false;
+
     AsmCode globalCode;
     private final List<AsmOperand> formalParameters = new ArrayList<>();
     private final Map<Value, AsmOperand> formalParameterMap = new HashMap<>();
@@ -125,9 +127,11 @@ public class AsmFunction {
             for (var block : basicBlocks) {
                 block.emitToFunction();
             }
-            asmOptimizerBeforeRegisterAllocate();
-            reAllocateRegister();
-            asmOptimizerAfterRegisterAllocate();
+            if (!DEBUG_MODE) {
+                asmOptimizerBeforeRegisterAllocate();
+                reAllocateRegister();
+                asmOptimizerAfterRegisterAllocate();
+            }
         }
     }
 
@@ -140,8 +144,14 @@ public class AsmFunction {
         for (var inst : stackAllocator.emitHead()) {
             res.append(inst.emit());
         }
+        int id = 0;
         for (var inst : instructionList) {
-            res.append(inst.emit());
+            if (DEBUG_MODE) {
+                res.append(String.format("%d: %s", id, inst.emit()));
+            } else {
+                res.append(inst.emit());
+            }
+            id += 1;
         }
         for (var inst : stackAllocator.emitTail()) {
             res.append(inst.emit());

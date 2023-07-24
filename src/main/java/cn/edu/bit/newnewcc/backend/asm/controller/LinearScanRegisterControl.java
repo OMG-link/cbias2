@@ -168,7 +168,7 @@ public class LinearScanRegisterControl extends RegisterControl{
                 Register vreg = registerReplaceable.getRegister();
                 if (vreg.isVirtual()) {
                     if (vregLocation.get(vreg.getIndex()) instanceof Register register) {
-                        used.put(register, register);
+                        used.put(vreg, register);
                     }
                 }
             }
@@ -252,27 +252,25 @@ public class LinearScanRegisterControl extends RegisterControl{
             StackVar writeStack = null;
             var used = getUsedRegisters(inst);
             Set<Register> loaded = new HashSet<>();
-            for (int j = 1; j <= 3; j++) {
-                if (inst.getOperand(j) instanceof RegisterReplaceable registerReplaceable) {
-                    var vreg = registerReplaceable.getRegister();
-                    if (vreg.isVirtual()) {
-                        Register physicRegister = null;
-                        if (vregLocation.get(vreg.getIndex()) instanceof StackVar stackVar) {
-                            physicRegister = getExRegister(used, vreg, registerSaveMap, newInstList);
-                            if (j == 1 && !(inst instanceof AsmStore)) {
-                                writeReg = physicRegister;
-                                writeStack = stackVar;
-                            } else if (!loaded.contains(physicRegister)) {
-                                loaded.add(physicRegister);
-                                loadFromStackVar(newInstList, physicRegister, stackVar);
-                            }
-                        } else if (vregLocation.get(vreg.getIndex()) instanceof Register register) {
-                            physicRegister = register;
-                        }
-                        inst.replaceOperand(j, registerReplaceable.replaceRegister(physicRegister));
+
+            var writeId = LifeTimeController.getWriteVregId(inst);
+            var vregId = LifeTimeController.getVregId(inst);
+            for (int j : vregId) {
+                RegisterReplaceable registerReplaceable = (RegisterReplaceable) inst.getOperand(j);
+                var vreg = registerReplaceable.getRegister();
+                Register physicRegister = getExRegister(used, vreg, registerSaveMap, newInstList);
+                if (vregLocation.get(vreg.getIndex()) instanceof StackVar stackVar) {
+                    if (writeId.contains(j)) {
+                        writeReg = physicRegister;
+                        writeStack = stackVar;
+                    } else if (!loaded.contains(physicRegister)) {
+                        loaded.add(physicRegister);
+                        loadFromStackVar(newInstList, physicRegister, stackVar);
                     }
                 }
+                inst.replaceOperand(j, registerReplaceable.replaceRegister(physicRegister));
             }
+
             if (inst instanceof AsmCall) {
                 Map<Register, StackVar> callSaved = new HashMap<>();
                 for (var reg : registerPool.keySet()) {

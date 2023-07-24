@@ -31,12 +31,12 @@ public class LifeTimeController {
         return lifeTimeRange.get(index);
     }
 
-    public Collection<Integer> getWriteVregSet(AsmInstruction inst) {
+    public static Collection<Integer> getWriteVregId(AsmInstruction inst) {
         if (inst instanceof AsmStore) {
-            if (inst.getOperand(2) instanceof RegisterReplaceable registerReplaceable) {
-                var reg = registerReplaceable.getRegister();
+            if (inst.getOperand(2) instanceof Register register) {
+                var reg = register.getRegister();
                 if (reg.isVirtual()) {
-                    return Collections.singleton(reg.getIndex());
+                    return Collections.singleton(2);
                 }
             }
             return new HashSet<>();
@@ -47,23 +47,49 @@ public class LifeTimeController {
         if (inst.getOperand(1) instanceof RegisterReplaceable registerReplaceable) {
             var reg = registerReplaceable.getRegister();
             if (reg.isVirtual()) {
-                return Collections.singleton(reg.getIndex());
+                return Collections.singleton(1);
             }
         }
         return new HashSet<>();
     }
 
-    public Collection<Integer> getReadVregSet(AsmInstruction inst) {
+    public static Collection<Integer> getReadVregId(AsmInstruction inst) {
         var res = new HashSet<Integer>();
         for (int i = 1; i <= 3; i++) {
             if (inst.getOperand(i) instanceof RegisterReplaceable op) {
-                if ((i == 1 && (inst instanceof AsmStore || inst instanceof AsmJump)) || (i > 1)) {
+                boolean tag = (inst instanceof AsmStore) ? (i == 1 || (i == 2 && !(inst.getOperand(i) instanceof Register))) :
+                        (inst instanceof AsmJump || (i > 1));
+                if (tag) {
                     var reg = op.getRegister();
                     if (reg.isVirtual()) {
-                        res.add(reg.getIndex());
+                        res.add(i);
                     }
                 }
             }
+        }
+        return res;
+    }
+
+    public static Collection<Integer> getVregId(AsmInstruction inst) {
+        var res = getReadVregId(inst);
+        res.addAll(getWriteVregId(inst));
+        return res;
+    }
+
+    public static Collection<Integer> getWriteVregSet(AsmInstruction inst) {
+        var res = new HashSet<Integer>();
+        for (int i : getWriteVregId(inst)) {
+            RegisterReplaceable op = (RegisterReplaceable) inst.getOperand(i);
+            res.add(op.getRegister().getIndex());
+        }
+        return res;
+    }
+
+    public static Collection<Integer> getReadVregSet(AsmInstruction inst) {
+        var res = new HashSet<Integer>();
+        for (int i : getReadVregId(inst)) {
+            RegisterReplaceable op = (RegisterReplaceable) inst.getOperand(i);
+            res.add(op.getRegister().getIndex());
         }
         return res;
     }

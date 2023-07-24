@@ -27,16 +27,23 @@ public class AsmStore extends AsmInstruction {
                 }
             } else if (goal.isRegister()) {
                 setInstructionName("c.mv");
-                setOperand1(goal);
-                setOperand2(source);
             }
         } else {
             setInstructionName("fsw");
             if (goal.isRegister()) {
                 setInstructionName("fmv.s");
-                setOperand1(goal);
-                setOperand2(source);
             }
         }
+    }
+
+    @Override
+    public String emit() {
+        String res = getInstructionName();
+        if (getInstructionName().equals("c.mv") || getInstructionName().equals("fmv.s")) {
+            res += " " + getOperand(2).emit() + ", " + getOperand(1).emit();
+        } else {
+            res += " " + getOperand(1).emit() + ", " + getOperand(2).emit();
+        }
+        return res + "\n";
     }
 }
