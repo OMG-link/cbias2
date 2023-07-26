@@ -105,6 +105,28 @@ public class ConstantFoldingPass {
                                 1
                         );
                     }
+                } else if (arithmeticInst instanceof IntegerSignedRemainderInst) {
+                    // 6%2 = 0
+                    if (op1 instanceof ConstInt constInt1 && op2 instanceof ConstInt constInt2) {
+                        return ConstInteger.getInstance(
+                                integerArithmeticInst.getType().getBitWidth(),
+                                constInt1.getValue() % constInt2.getValue()
+                        );
+                    }
+                    // x%1 = 0
+                    if (op2 instanceof ConstInt constInt2 && constInt2.getValue() == 1) {
+                        return ConstInteger.getInstance(
+                                integerArithmeticInst.getType().getBitWidth(),
+                                0
+                        );
+                    }
+                    // x%x = 0
+                    if (op1 == op2) {
+                        return ConstInteger.getInstance(
+                                integerArithmeticInst.getType().getBitWidth(),
+                                0
+                        );
+                    }
                 }
             } else if (arithmeticInst instanceof FloatArithmeticInst) {
                 if (arithmeticInst instanceof FloatAddInst) {
