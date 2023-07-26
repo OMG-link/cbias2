@@ -204,7 +204,7 @@ public class LinearScanRegisterControl extends RegisterControl{
             instList.add(new AsmLoad(s1, new Immediate(Math.toIntExact(stk.getAddress().getOffset()))));
             instList.add(new AsmAdd(s1, s1, stk.getAddress().getRegister()));
             stk = new StackVar(0, stk.getSize(), true);
-            stk.replaceRegister(s1);
+            stk = stk.replaceRegister(s1);
         }
         instList.add(new AsmLoad(register, stk));
     }
@@ -215,7 +215,7 @@ public class LinearScanRegisterControl extends RegisterControl{
             instList.add(new AsmLoad(s1, new Immediate(Math.toIntExact(stk.getAddress().getOffset()))));
             instList.add(new AsmAdd(s1, s1, stk.getAddress().getRegister()));
             stk = new StackVar(0, stk.getSize(), true);
-            stk.replaceRegister(s1);
+            stk = stk.replaceRegister(s1);
         }
         instList.add(new AsmStore(register, stk));
     }

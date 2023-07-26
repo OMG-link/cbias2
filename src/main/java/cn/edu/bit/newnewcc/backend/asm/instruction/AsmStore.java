@@ -44,6 +44,6 @@ public class AsmStore extends AsmInstruction {
         } else {
             res += " " + getOperand(1).emit() + ", " + getOperand(2).emit();
         }
-        return res + "\n";
+        return "\t" + res + "\n";
     }
 }
