@@ -1,5 +1,6 @@
 package cn.edu.bit.newnewcc.backend.asm.util;
 
+import cn.edu.bit.newnewcc.backend.asm.controller.LifeTimeController;
 import cn.edu.bit.newnewcc.backend.asm.instruction.*;
 import cn.edu.bit.newnewcc.backend.asm.operand.*;
 
@@ -93,7 +94,7 @@ public class BackendOptimizer {
                             if (iAdd instanceof AsmAdd && iAdd.getOperand(3) instanceof IntRegister baseRegister && baseRegister.isS0()) {
                                 if (iMov instanceof AsmLoad iLoad && iLoad.getOperand(2) instanceof StackVar stackVar) {
                                     if (stackVar.getRegister() == iLi.getOperand(1) && stackVar.getAddress().getOffset() == 0) {
-                                        StackVar now = new StackVar(offsetVal, stackVar.getSize(), true);
+                                        ExStackVarContent now = ExStackVarContent.transform(new StackVar(offsetVal, stackVar.getSize(), true));
                                         popx.accept(3);
                                         oldInstructionList.addFirst(new AsmLoad((Register) iLoad.getOperand(1), now));
                                         backward.accept(1);
@@ -101,7 +102,7 @@ public class BackendOptimizer {
                                     }
                                 } else if (iMov instanceof AsmStore iStore && iStore.getOperand(2) instanceof StackVar stackVar) {
                                     if (stackVar.getRegister() == iLi.getOperand(1) && stackVar.getAddress().getOffset() == 0) {
-                                        StackVar now = new StackVar(offsetVal, stackVar.getSize(), true);
+                                        ExStackVarContent now = ExStackVarContent.transform(new StackVar(offsetVal, stackVar.getSize(), true));
                                         popx.accept(3);
                                         oldInstructionList.addFirst(new AsmStore((Register) iStore.getOperand(1), now));
                                         backward.accept(1);
@@ -122,22 +123,26 @@ public class BackendOptimizer {
         LinkedList<AsmInstruction> newInstructionList = new LinkedList<>();
         Set<String> lastWrite = new HashSet<>();
         while (oldInstructionList.size() > 0) {
-            var iMov = oldInstructionList.removeLast();
-            var address = iMov.getOperand(2);
-            if (iMov instanceof AsmAbstractTag) {
+            var inst = oldInstructionList.removeLast();
+            var address = inst.getOperand(2);
+            if (inst instanceof AsmAbstractTag) {
                 lastWrite.clear();
             }
             if (address instanceof StackVar && !(address instanceof ExStackVarContent)) {
-                if (iMov instanceof AsmLoad) {
-                    lastWrite.remove(address.toString());
-                } else if (iMov instanceof AsmStore) {
-                    if (lastWrite.contains(address.toString())) {
-                        continue;
+                String addressStr = address.toString();
+                //仅有s0为基址寄存器的栈变量需要进行该变换
+                if (addressStr.contains("s0")) {
+                    if (inst instanceof AsmLoad) {
+                        lastWrite.remove(addressStr);
+                    } else if (inst instanceof AsmStore) {
+                        if (lastWrite.contains(addressStr)) {
+                            continue;
+                        }
+                        lastWrite.add(address.toString());
                     }
-                    lastWrite.add(address.toString());
                 }
             }
-            newInstructionList.addFirst(iMov);
+            newInstructionList.addFirst(inst);
         }
         return newInstructionList;
     }

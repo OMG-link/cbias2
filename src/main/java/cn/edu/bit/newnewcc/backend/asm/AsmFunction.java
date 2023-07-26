@@ -390,7 +390,7 @@ public class AsmFunction {
     private void asmOptimizerAfterRegisterAllocate() {
         LinkedList<AsmInstruction> linkedInstructionList = new LinkedList<>(instructionList);
         linkedInstructionList = BackendOptimizer.afterAllocateScanForward(linkedInstructionList);
-        //linkedInstructionList = BackendOptimizer.afterAllocateScanBackward(linkedInstructionList);
+        linkedInstructionList = BackendOptimizer.afterAllocateScanBackward(linkedInstructionList);
         instructionList = new ArrayList<>(linkedInstructionList);
     }
 
