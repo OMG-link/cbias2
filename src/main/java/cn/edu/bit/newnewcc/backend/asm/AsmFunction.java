@@ -382,14 +382,14 @@ public class AsmFunction {
 
     //寄存器分配前的优化器，用于合并重复虚拟寄存器
     private void asmOptimizerBeforeRegisterAllocate() {
-        //instructionList = BackwardOptimizer.beforeAllocateScanForward(new ArrayList<>(instructionList));
+        //instructionList = BackendOptimizer.beforeAllocateScanForward(new ArrayList<>(instructionList));
         //由于翻译phi指令导致的寄存器合并无法纳入优化过程
     }
 
 
     private void asmOptimizerAfterRegisterAllocate() {
         LinkedList<AsmInstruction> linkedInstructionList = new LinkedList<>(instructionList);
-        //linkedInstructionList = BackendOptimizer.afterAllocateScanForward(linkedInstructionList);
+        linkedInstructionList = BackendOptimizer.afterAllocateScanForward(linkedInstructionList);
         //linkedInstructionList = BackendOptimizer.afterAllocateScanBackward(linkedInstructionList);
         instructionList = new ArrayList<>(linkedInstructionList);
     }
