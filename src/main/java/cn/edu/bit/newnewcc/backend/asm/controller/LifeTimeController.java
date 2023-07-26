@@ -31,40 +31,54 @@ public class LifeTimeController {
         return lifeTimeRange.get(index);
     }
 
-    public static Collection<Integer> getWriteVregId(AsmInstruction inst) {
+    public static Collection<Integer> getWriteRegId(AsmInstruction inst) {
         if (inst instanceof AsmStore) {
-            if (inst.getOperand(2) instanceof Register register) {
-                var reg = register.getRegister();
-                if (reg.isVirtual()) {
-                    return Collections.singleton(2);
-                }
+            if (inst.getOperand(2) instanceof Register) {
+                return Collections.singleton(2);
             }
             return new HashSet<>();
         }
         if (inst instanceof AsmJump) {
             return new HashSet<>();
         }
-        if (inst.getOperand(1) instanceof RegisterReplaceable registerReplaceable) {
-            var reg = registerReplaceable.getRegister();
-            if (reg.isVirtual()) {
-                return Collections.singleton(1);
-            }
+        if (inst.getOperand(1) instanceof RegisterReplaceable) {
+            return Collections.singleton(1);
         }
         return new HashSet<>();
     }
 
-    public static Collection<Integer> getReadVregId(AsmInstruction inst) {
+    public static Collection<Integer> getWriteVregId(AsmInstruction inst) {
+        var res = new HashSet<Integer>();
+        var regId = getWriteRegId(inst);
+        for (var x : regId) {
+            var reg = ((RegisterReplaceable)inst.getOperand(x)).getRegister();
+            if (reg.isVirtual()) {
+                res.add(x);
+            }
+        }
+        return res;
+    }
+    public static Collection<Integer> getReadRegId(AsmInstruction inst) {
         var res = new HashSet<Integer>();
         for (int i = 1; i <= 3; i++) {
             if (inst.getOperand(i) instanceof RegisterReplaceable op) {
                 boolean tag = (inst instanceof AsmStore) ? (i == 1 || (i == 2 && !(inst.getOperand(i) instanceof Register))) :
                         (inst instanceof AsmJump || (i > 1));
                 if (tag) {
-                    var reg = op.getRegister();
-                    if (reg.isVirtual()) {
-                        res.add(i);
-                    }
+                    res.add(i);
                 }
+            }
+        }
+        return res;
+    }
+
+    public static Collection<Integer> getReadVregId(AsmInstruction inst) {
+        var res = new HashSet<Integer>();
+        var regId = getReadRegId(inst);
+        for (var x : regId) {
+            var reg = ((RegisterReplaceable)inst.getOperand(x)).getRegister();
+            if (reg.isVirtual()) {
+                res.add(x);
             }
         }
         return res;
