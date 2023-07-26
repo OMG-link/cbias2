@@ -122,26 +122,48 @@ public class BackendOptimizer {
     public static LinkedList<AsmInstruction> afterAllocateScanBackward(LinkedList<AsmInstruction> oldInstructionList) {
         LinkedList<AsmInstruction> newInstructionList = new LinkedList<>();
         Set<String> lastWrite = new HashSet<>();
+        Set<String> lastWriteReg = new HashSet<>();
         while (oldInstructionList.size() > 0) {
             var inst = oldInstructionList.removeLast();
-            var address = inst.getOperand(2);
-            if (inst instanceof AsmAbstractTag) {
-                lastWrite.clear();
-            }
-            if (address instanceof StackVar && !(address instanceof ExStackVarContent)) {
-                String addressStr = address.toString();
-                //仅有s0为基址寄存器的栈变量需要进行该变换
-                if (addressStr.contains("s0")) {
-                    if (inst instanceof AsmLoad) {
-                        lastWrite.remove(addressStr);
-                    } else if (inst instanceof AsmStore) {
-                        if (lastWrite.contains(addressStr)) {
-                            continue;
+
+            //此部分为重复写入内存空间的优化
+            {
+                var address = inst.getOperand(2);
+                if (inst instanceof AsmAbstractTag) {
+                    lastWrite.clear();
+                }
+                if (address instanceof StackVar && !(address instanceof ExStackVarContent)) {
+                    String addressStr = address.toString();
+                    //仅有s0为基址寄存器的栈变量需要进行该变换
+                    if (addressStr.contains("s0")) {
+                        if (inst instanceof AsmLoad) {
+                            lastWrite.remove(addressStr);
+                        } else if (inst instanceof AsmStore) {
+                            if (lastWrite.contains(addressStr)) {
+                                continue;
+                            }
+                            lastWrite.add(address.toString());
                         }
-                        lastWrite.add(address.toString());
                     }
                 }
             }
+
+            //此部分为重复写入寄存器的优化
+            {
+                if (inst instanceof AsmAbstractTag) {
+                    lastWriteReg.clear();
+                }
+                for (var reg : LifeTimeController.getWriteRegSet(inst)) {
+                    if (lastWriteReg.contains(reg.toString())) {
+                        continue;
+                    }
+                    lastWriteReg.add(reg.toString());
+                }
+                for (var reg : LifeTimeController.getReadRegSet(inst)) {
+                    lastWriteReg.remove(reg.toString());
+                }
+            }
+
             newInstructionList.addFirst(inst);
         }
         return newInstructionList;

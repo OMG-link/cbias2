@@ -90,11 +90,30 @@ public class LifeTimeController {
         return res;
     }
 
+
+    public static Collection<Register> getWriteRegSet(AsmInstruction inst) {
+        var res = new HashSet<Register>();
+        for (int i : getWriteRegId(inst)) {
+            RegisterReplaceable op = (RegisterReplaceable) inst.getOperand(i);
+            res.add(op.getRegister());
+        }
+        return res;
+    }
+
     public static Collection<Integer> getWriteVregSet(AsmInstruction inst) {
         var res = new HashSet<Integer>();
         for (int i : getWriteVregId(inst)) {
             RegisterReplaceable op = (RegisterReplaceable) inst.getOperand(i);
             res.add(op.getRegister().getIndex());
+        }
+        return res;
+    }
+
+    public static Collection<Register> getReadRegSet(AsmInstruction inst) {
+        var res = new HashSet<Register>();
+        for (int i : getReadRegId(inst)) {
+            RegisterReplaceable op = (RegisterReplaceable) inst.getOperand(i);
+            res.add(op.getRegister());
         }
         return res;
     }
