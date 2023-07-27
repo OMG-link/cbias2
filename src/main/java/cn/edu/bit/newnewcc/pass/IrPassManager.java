@@ -46,6 +46,7 @@ public class IrPassManager {
             changed |= PatternReplacementPass.runOnModule(module);
             changed |= TailRecursionEliminationPass.runOnModule(module);
             changed |= FunctionInline.runOnModule(module);
+            changed |= GvToLvPass.runOnModule(module);
             changed |= ConstLoopUnrollPass.runOnModule(module);
             changed |= ConstantFoldingPass.runOnModule(module);
             changed |= LocalArrayPromotionPass.runOnModule(module);
