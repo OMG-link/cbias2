@@ -76,6 +76,11 @@ public class BasicBlock extends Value {
         instructionList.appendMainInstruction(instruction);
     }
 
+    public void addMainInstructionAtBeginning(Instruction instruction) {
+        assert !isLeadingInstruction(instruction) && !isTerminateInstruction(instruction);
+        instructionList.appendMainInstructionAtBeginning(instruction);
+    }
+
     public void setTerminateInstruction(TerminateInst terminateInstruction) {
         if (getTerminateInstruction() != null) {
             getTerminateInstruction().getExits().forEach(exit -> {

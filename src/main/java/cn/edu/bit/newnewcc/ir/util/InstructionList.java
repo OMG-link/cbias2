@@ -110,6 +110,10 @@ public class InstructionList implements Iterable<Instruction> {
         insertAlphaBeforeBeta(instruction.__getInstructionListNode__(), mainEnd);
     }
 
+    public void appendMainInstructionAtBeginning(Instruction instruction) {
+        insertAlphaAfterBeta(instruction.__getInstructionListNode__(), leadingEnd);
+    }
+
     public Iterator<Instruction> getMainInstructions() {
         return new InstructionIterator(leadingEnd, mainEnd);
     }
