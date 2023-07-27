@@ -72,8 +72,8 @@ public class ConstLoopUnrollPass {
                 }
                 if (exitPhi == null) {
                     exitPhi = new PhiInst(instruction.getType());
+                    loopExitBlock.addInstruction(exitPhi);
                 }
-                loopExitBlock.addInstruction(exitPhi);
                 exitValueMapping.put(instruction, exitPhi);
                 for (Operand usage : instruction.getUsages()) {
                     if (!loopBlocks.contains(usage.getInstruction().getBasicBlock())) {
