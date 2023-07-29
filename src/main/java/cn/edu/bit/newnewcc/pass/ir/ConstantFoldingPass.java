@@ -127,6 +127,8 @@ public class ConstantFoldingPass {
                                 0
                         );
                     }
+                } else {
+                    throw new IllegalArgumentException("Unknown type of integer arithmetic instruction.");
                 }
             } else if (arithmeticInst instanceof FloatArithmeticInst) {
                 if (arithmeticInst instanceof FloatAddInst) {
@@ -181,6 +183,8 @@ public class ConstantFoldingPass {
                     if (op1 == op2) {
                         return ConstFloat.getInstance(1);
                     }
+                } else {
+                    throw new IllegalArgumentException("Unknown type of float arithmetic instruction.");
                 }
             } else {
                 throw new IllegalArgumentException("Unknown type of arithmetic instruction.");
@@ -290,6 +294,11 @@ public class ConstantFoldingPass {
             if (bitCastInst.getSourceType() == bitCastInst.getTargetType()) {
                 return bitCastInst.getSourceOperand();
             }
+        } else if (instruction instanceof CallInst || instruction instanceof GetElementPtrInst ||
+                instruction instanceof MemoryInst || instruction instanceof TerminateInst) {
+            return null;
+        } else {
+            throw new IllegalArgumentException("Unknown type of instruction.");
         }
         return null;
     }
