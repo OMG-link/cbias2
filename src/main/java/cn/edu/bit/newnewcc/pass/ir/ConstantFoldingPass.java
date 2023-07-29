@@ -286,6 +286,17 @@ public class ConstantFoldingPass {
                     default -> throw new IllegalStateException("Unknown target type " + targetType);
                 };
             }
+        } else if (instruction instanceof SignedExtensionInst signedExtensionInst) {
+            var op = signedExtensionInst.getSourceOperand();
+            if (op instanceof ConstInt constInt) {
+                var targetType = signedExtensionInst.getTargetType();
+                return switch (targetType.getBitWidth()) {
+                    case 1 -> ConstBool.getInstance(constInt.getValue() != 0);
+                    case 32 -> ConstInt.getInstance(constInt.getValue());
+                    case 64 -> ConstLong.getInstance(constInt.getValue());
+                    default -> throw new IllegalStateException("Unknown target type " + targetType);
+                };
+            }
         } else if (instruction instanceof BitCastInst bitCastInst) {
             if (bitCastInst.getSourceType() == bitCastInst.getTargetType()) {
                 return bitCastInst.getSourceOperand();
