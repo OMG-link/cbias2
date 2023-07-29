@@ -52,4 +52,10 @@ public class AsmLoad extends AsmInstruction {
             }
         }
     }
+    public AsmLoad(Register goal, AsmOperand source, int bitLength) {
+        this(goal, source);
+        if (bitLength == 64 && getInstructionName().equals("lw")) {
+            setInstructionName("ld");
+        }
+    }
 }

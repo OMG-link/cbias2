@@ -36,6 +36,13 @@ public class AsmStore extends AsmInstruction {
         }
     }
 
+    public AsmStore(Register source, AsmOperand goal, int bitLength) {
+        this(source, goal);
+        if (bitLength == 64 && getInstructionName().equals("sw")) {
+            setInstructionName("sd");
+        }
+    }
+
     @Override
     public String emit() {
         String res = getInstructionName();
