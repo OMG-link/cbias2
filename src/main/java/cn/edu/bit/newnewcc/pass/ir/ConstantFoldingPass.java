@@ -272,28 +272,28 @@ public class ConstantFoldingPass {
             }
         } else if (instruction instanceof SignedIntegerToFloatInst signedIntegerToFloatInst) {
             var op = signedIntegerToFloatInst.getSourceOperand();
-            if (op instanceof ConstInt constInt) {
-                return ConstFloat.getInstance((float) constInt.getValue());
+            if (op instanceof ConstInteger constInt) {
+                return ConstFloat.getInstance((float) ConstInteger.valueOf(constInt));
             }
         } else if (instruction instanceof ZeroExtensionInst zeroExtensionInst) {
             var op = zeroExtensionInst.getSourceOperand();
-            if (op instanceof ConstInt constInt) {
+            if (op instanceof ConstInteger constInt) {
                 var targetType = zeroExtensionInst.getTargetType();
                 return switch (targetType.getBitWidth()) {
-                    case 1 -> ConstBool.getInstance(constInt.getValue() != 0);
-                    case 32 -> ConstInt.getInstance(constInt.getValue());
-                    case 64 -> ConstLong.getInstance(constInt.getValue());
+                    case 1 -> ConstBool.getInstance(ConstInteger.valueOf(constInt) != 0);
+                    case 32 -> ConstInt.getInstance((int) ConstInteger.valueOf(constInt));
+                    case 64 -> ConstLong.getInstance(ConstInteger.valueOf(constInt));
                     default -> throw new IllegalStateException("Unknown target type " + targetType);
                 };
             }
         } else if (instruction instanceof SignedExtensionInst signedExtensionInst) {
             var op = signedExtensionInst.getSourceOperand();
-            if (op instanceof ConstInt constInt) {
+            if (op instanceof ConstInteger constInt) {
                 var targetType = signedExtensionInst.getTargetType();
                 return switch (targetType.getBitWidth()) {
-                    case 1 -> ConstBool.getInstance(constInt.getValue() != 0);
-                    case 32 -> ConstInt.getInstance(constInt.getValue());
-                    case 64 -> ConstLong.getInstance(constInt.getValue());
+                    case 1 -> ConstBool.getInstance(ConstInteger.valueOf(constInt) != 0);
+                    case 32 -> ConstInt.getInstance((int) ConstInteger.valueOf(constInt));
+                    case 64 -> ConstLong.getInstance(ConstInteger.valueOf(constInt));
                     default -> throw new IllegalStateException("Unknown target type " + targetType);
                 };
             }

@@ -34,4 +34,16 @@ public abstract class ConstInteger extends Constant {
         };
     }
 
+    public static long valueOf(ConstInteger constInteger) {
+        if (constInteger instanceof ConstBool constBool) {
+            return constBool.getValue() ? 1 : 0;
+        } else if (constInteger instanceof ConstInt constInt) {
+            return constInt.getValue();
+        } else if (constInteger instanceof ConstLong constLong) {
+            return constLong.getValue();
+        } else {
+            throw new IllegalArgumentException("Unknown const integer class: " + constInteger.getClass());
+        }
+    }
+
 }
