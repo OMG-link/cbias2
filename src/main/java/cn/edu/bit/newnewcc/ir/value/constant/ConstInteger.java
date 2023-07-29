@@ -28,7 +28,9 @@ public abstract class ConstInteger extends Constant {
         return switch (bitWidth) {
             case 1 -> ConstBool.getInstance(value != 0);
             case 32 -> ConstInt.getInstance((int) value);
-            default -> throw new IllegalArgumentException(String.format("Bit width %d not suitable for integer type.", bitWidth));
+            case 64 -> ConstLong.getInstance(value);
+            default ->
+                    throw new IllegalArgumentException(String.format("Bit width %d not suitable for integer type.", bitWidth));
         };
     }
 
