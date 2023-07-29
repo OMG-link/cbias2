@@ -7,10 +7,7 @@ import cn.edu.bit.newnewcc.ir.exception.IllegalStateException;
 import cn.edu.bit.newnewcc.ir.value.BasicBlock;
 import cn.edu.bit.newnewcc.ir.value.Function;
 import cn.edu.bit.newnewcc.ir.value.Instruction;
-import cn.edu.bit.newnewcc.ir.value.constant.ConstBool;
-import cn.edu.bit.newnewcc.ir.value.constant.ConstFloat;
-import cn.edu.bit.newnewcc.ir.value.constant.ConstInt;
-import cn.edu.bit.newnewcc.ir.value.constant.ConstInteger;
+import cn.edu.bit.newnewcc.ir.value.constant.*;
 import cn.edu.bit.newnewcc.ir.value.instruction.*;
 
 import java.util.HashSet;
@@ -282,13 +279,12 @@ public class ConstantFoldingPass {
             var op = zeroExtensionInst.getSourceOperand();
             if (op instanceof ConstInt constInt) {
                 var targetType = zeroExtensionInst.getTargetType();
-                if (targetType.getBitWidth() == 1) {
-                    return ConstBool.getInstance(constInt.getValue() != 0);
-                } else if (targetType.getBitWidth() == 32) {
-                    return ConstInt.getInstance(constInt.getValue());
-                } else {
-                    throw new IllegalStateException("Unknown target type " + targetType);
-                }
+                return switch (targetType.getBitWidth()) {
+                    case 1 -> ConstBool.getInstance(constInt.getValue() != 0);
+                    case 32 -> ConstInt.getInstance(constInt.getValue());
+                    case 64 -> ConstLong.getInstance(constInt.getValue());
+                    default -> throw new IllegalStateException("Unknown target type " + targetType);
+                };
             }
         } else if (instruction instanceof BitCastInst bitCastInst) {
             if (bitCastInst.getSourceType() == bitCastInst.getTargetType()) {
