@@ -461,6 +461,7 @@ public class AsmBasicBlock {
         function.appendInstruction(new AsmLoad(result, source));
     }
 
+    //寄存器中的值已经是符号扩展过后的64位数，因此无需专门sext
     void translateSignedExtensionInst(SignedExtensionInst signedExtensionInst) {
         Register tmp = getValueToRegister(signedExtensionInst.getSourceOperand());
         Register reg = function.getRegisterAllocator().allocate(signedExtensionInst);
