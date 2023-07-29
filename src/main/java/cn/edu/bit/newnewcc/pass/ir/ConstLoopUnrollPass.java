@@ -134,7 +134,7 @@ public class ConstLoopUnrollPass {
             });
             lastClonedLoop = clonedLoop;
         }
-        // 将最后一个块连接到自身
+        // 将最后一个块连接到黑洞
         var blackHole = new BasicBlock();
         function.addBasicBlock(blackHole);
         blackHole.setTerminateInstruction(new UnreachableInst());
