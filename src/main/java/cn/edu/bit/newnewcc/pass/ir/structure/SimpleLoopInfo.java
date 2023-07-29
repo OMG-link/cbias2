@@ -215,7 +215,8 @@ public record SimpleLoopInfo(IntegerCompareInst condition, IntegerArithmeticInst
                 if (stepInstruction instanceof IntegerAddInst) {
                     newStepInstruction = new IntegerAddInst(stepInstruction.getType(), op2, op1);
                 } else {
-                    newStepInstruction = new IntegerSubInst(stepInstruction.getType(), op2, op1);
+                    // 减法无法交换
+                    throw new BuildFailedException();
                 }
                 stepInstruction.replaceInstructionTo(newStepInstruction);
                 return newStepInstruction;
