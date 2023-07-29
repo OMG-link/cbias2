@@ -461,6 +461,12 @@ public class AsmBasicBlock {
         function.appendInstruction(new AsmLoad(result, source));
     }
 
+    void translateSignedExtensionInst(SignedExtensionInst signedExtensionInst) {
+        Register tmp = getValueToRegister(signedExtensionInst.getSourceOperand());
+        Register reg = function.getRegisterAllocator().allocate(signedExtensionInst);
+        function.appendInstruction(new AsmLoad(reg, tmp));
+    }
+
     void translateLoadInst(LoadInst loadInst) {
         var address = getValue(loadInst.getAddressOperand());
         Register register = function.getRegisterAllocator().allocate(loadInst);
@@ -554,6 +560,8 @@ public class AsmBasicBlock {
                 translateLoadInst(loadInst);
             } else if (instruction instanceof ZeroExtensionInst zeroExtensionInst) {
                 translateZeroExtensionInst(zeroExtensionInst);
+            } else if (instruction instanceof SignedExtensionInst signedExtensionInst) {
+                translateSignedExtensionInst(signedExtensionInst);
             } else if (instruction instanceof BranchInst branchInst) {
                 translateBranchInst(branchInst);
             } else if (instruction instanceof JumpInst jumpInst) {
