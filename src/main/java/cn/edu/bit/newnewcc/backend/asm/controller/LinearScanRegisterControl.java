@@ -138,7 +138,7 @@ public class LinearScanRegisterControl extends RegisterControl{
         int recycleHead = 0;
         for (var vreg : vregList) {
             var lifeTime = function.getLifeTimeController().getLifeTimeRange(vreg.getIndex());
-            while (recycleHead < recycleList.size() && recycleList.get(recycleHead).b < lifeTime.a) {
+            while (recycleHead < recycleList.size() && recycleList.get(recycleHead).b <= lifeTime.a) {
                 recycle(recycleList.get(recycleHead).a);
                 recycleHead += 1;
             }
@@ -152,7 +152,7 @@ public class LinearScanRegisterControl extends RegisterControl{
                 continue;
             }
             var lifeTime = function.getLifeTimeController().getLifeTimeRange(vreg.getIndex());
-            while (recycleHead < recycleList.size() && recycleList.get(recycleHead).b < lifeTime.a) {
+            while (recycleHead < recycleList.size() && recycleList.get(recycleHead).b <= lifeTime.a) {
                 recycle(recycleList.get(recycleHead).a);
                 recycleHead += 1;
             }

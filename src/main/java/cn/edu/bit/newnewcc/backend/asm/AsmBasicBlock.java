@@ -31,7 +31,7 @@ public class AsmBasicBlock {
     private final AsmFunction function;
     private final BasicBlock irBlock;
     private final Map<BasicBlock, List<AsmInstruction>> phiOperation = new HashMap<>();
-    private final Map<BasicBlock, Map<Value, List<AsmInstruction>>> phiValueMap = new HashMap<>();
+    private final Map<BasicBlock, Map<Value, List<Register>>> phiValueMap = new HashMap<>();
 
     public AsmBasicBlock(AsmFunction function, BasicBlock block) {
         this.function = function;
@@ -45,10 +45,6 @@ public class AsmBasicBlock {
      * 生成基本块的汇编代码，向函数中输出指令
      */
     void emitToFunction() {
-        for (var block : phiOperation.keySet()) {
-            function.appendAllInstruction(phiOperation.get(block));
-            function.appendInstruction(new AsmJump(blockTag, AsmJump.JUMPTYPE.NON, null, null));
-        }
         function.appendInstruction(instBlockTag);
         for (Instruction instruction : irBlock.getInstructions()) {
             translate(instruction);
@@ -169,9 +165,6 @@ public class AsmBasicBlock {
 
     GlobalTag getJumpGlobalTag(BasicBlock jumpBlock) {
         AsmBasicBlock block = function.getBasicBlock(jumpBlock);
-        if (block.phiOperation.containsKey(irBlock)) {
-            return ((AsmPhiTag) block.phiOperation.get(irBlock).get(0)).getInnerTag();
-        }
         return block.blockTag;
     }
 
@@ -222,19 +215,16 @@ public class AsmBasicBlock {
             for (var block : inst.getEntrySet()) {
                 if (!phiOperation.containsKey(block)) {
                     phiOperation.put(block, new ArrayList<>());
-                    phiOperation.get(block).add(new AsmPhiTag(function.getBlockAsmTag(function.getBasicBlock(block)), instBlockTag));
                     phiValueMap.put(block, new HashMap<>());
                 }
                 Value source = inst.getValue(block);
                 if (source instanceof Constant constant) {
                     phiOperation.get(block).add(new AsmLoad(tmp, getConstantVar(constant, (ins)-> phiOperation.get(block).add(ins))));
                 } else {
-                    var loadInst = new AsmLoad(tmp, tmp);
                     if (!phiValueMap.get(block).containsKey(source)) {
                         phiValueMap.get(block).put(source, new ArrayList<>());
                     }
-                    phiValueMap.get(block).get(source).add(loadInst);
-                    phiOperation.get(block).add(loadInst);
+                    phiValueMap.get(block).get(source).add(tmp);
                 }
             }
         }
@@ -244,10 +234,11 @@ public class AsmBasicBlock {
         for (BasicBlock block : irBlock.getExitBlocks()) {
             var next = function.getBasicBlock(block);
             if (next.phiValueMap.containsKey(irBlock)) {
+                function.appendAllInstruction(next.phiOperation.get(irBlock));
                 for (Value value : next.phiValueMap.get(irBlock).keySet()) {
                     Register reg = getValueToRegister(value);
-                    for (var inst : next.phiValueMap.get(irBlock).get(value)) {
-                        inst.replaceOperand(2, reg);
+                    for (var ar : next.phiValueMap.get(irBlock).get(value)) {
+                        function.appendInstruction(new AsmLoad(ar, reg));
                     }
                 }
             }
