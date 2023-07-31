@@ -57,7 +57,6 @@ public class ConstLoopUnrollPass {
         int loopSize = collectLoopInfo(loop, loopBlocks);
         // 判断展开后循环的大小，实际展开次数为循环次数+1
         if ((long) (loop.getSimpleLoopInfo().getLoopCount() + 1) * loopSize > MAXIMUM_EXTRACTED_SIZE) return false;
-        if (loop.getSimpleLoopInfo().getLoopCount() == 0) return false;
         // 将headBlock中的值引入到出口块中
         var loopExitBlock = loop.getSimpleLoopInfo().exitBlock();
         var exitValueMapping = new HashMap<Instruction, PhiInst>();
@@ -180,7 +179,11 @@ public class ConstLoopUnrollPass {
     public static boolean runOnModule(Module module) {
         boolean changed = false;
         for (Function function : module.getFunctions()) {
-            changed |= runOnFunction(function);
+            boolean result;
+            do {
+                result = runOnFunction(function);
+                changed |= result;
+            } while (result);
         }
         changed |= DeadCodeEliminationPass.runOnModule(module);
         return changed;
