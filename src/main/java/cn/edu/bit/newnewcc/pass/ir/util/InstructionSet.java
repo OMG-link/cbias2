@@ -134,6 +134,9 @@ public class InstructionSet {
         } else if (instruction instanceof ZeroExtensionInst zeroExtensionInst) {
             result.add(zeroExtensionInst.getSourceOperand());
             result.add(zeroExtensionInst.getTargetType());
+        } else if (instruction instanceof SignedExtensionInst signedExtensionInst) {
+            result.add(signedExtensionInst.getSourceOperand());
+            result.add(signedExtensionInst.getTargetType());
         } else if (instruction instanceof BitCastInst bitCastInst) {
             result.add(bitCastInst.getSourceOperand());
             result.add(bitCastInst.getTargetType());
