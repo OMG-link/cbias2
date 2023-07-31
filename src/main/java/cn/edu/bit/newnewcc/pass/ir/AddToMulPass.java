@@ -168,10 +168,15 @@ public class AddToMulPass {
     private Pair<List<Instruction>, Value> getSpawnInstructionList(IngredientList ingredientList) {
         List<Instruction> spawnList = new ArrayList<>();
         ArrayList<Value> addList = new ArrayList<>();
+        ArrayList<Value> subList = new ArrayList<>();
         ingredientList.ingredientCounts.forEach((ingredient, count) -> {
             if (count == 0) return;
             if (count == 1) {
                 addList.add(ingredient);
+                return;
+            }
+            if (count == -1) {
+                subList.add(ingredient);
                 return;
             }
             var multiplyInst = new IntegerMultiplyInst((IntegerType) ingredient.getType(), ingredient, ConstInt.getInstance(count));
@@ -183,6 +188,7 @@ public class AddToMulPass {
             addList.add(ConstInt.getInstance(0));
         }
         addList.sort(this::compareAvailableTime);
+        subList.sort(this::compareAvailableTime);
         Value sum = null;
         for (Value value : addList) {
             if (sum == null) {
@@ -191,6 +197,15 @@ public class AddToMulPass {
                 var addInst = new IntegerAddInst((IntegerType) sum.getType(), sum, value);
                 spawnList.add(addInst);
                 sum = addInst;
+            }
+        }
+        for (Value value : subList) {
+            if (sum == null) {
+                sum = value;
+            } else {
+                var subInst = new IntegerSubInst((IntegerType) sum.getType(), sum, value);
+                spawnList.add(subInst);
+                sum = subInst;
             }
         }
         return new Pair<>(spawnList, sum);
