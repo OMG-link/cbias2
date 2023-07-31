@@ -347,6 +347,7 @@ public class GlobalCodeMotionPass {
      * @param module 运行的模块。需要保证模块内没有无用代码。
      */
     public static void runOnModule(Module module) {
+        DeadCodeEliminationPass.runOnModule(module);
         for (Function function : module.getFunctions()) {
             runOnFunction(function);
         }
