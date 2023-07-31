@@ -18,15 +18,17 @@ public class IrPassManager {
                 MemoryToRegisterPass.runOnModule(module);
                 runOptimizePasses(module);
 
+                // 循环展开并执行GCM
+                LoopUnrollPass.runOnModule(module);
+                GlobalCodeMotionPass.runOnModule(module);
+                runOptimizePasses(module);
+
                 // 内存访问优化运行单次即可
                 MemoryAccessOptimizePass.runOnModule(module);
                 runOptimizePasses(module);
 
                 // 加法合并无法确定是否产生了优化
                 AddToMulPass.runOnModule(module);
-                runOptimizePasses(module);
-
-                // GCM无法确定是否产生了优化
                 GlobalCodeMotionPass.runOnModule(module);
                 runOptimizePasses(module);
 
