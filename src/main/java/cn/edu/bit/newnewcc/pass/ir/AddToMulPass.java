@@ -72,38 +72,40 @@ public class AddToMulPass {
     private final Map<Value, IngredientList> valueIngredientBuffer = new HashMap<>();
 
     private IngredientList createIngredientList(Value targetValue) {
-        // 常整数 n 写做 1*n ，以统一形式
-        if (targetValue instanceof ConstInt constInt) {
-            Map<Value, Integer> ingredientCounts = new HashMap<>();
-            ingredientCounts.put(ConstInt.getInstance(1), constInt.getValue());
-            return new IngredientList(ingredientCounts);
-        }
-        // 整数加法
-        else if (targetValue instanceof IntegerAddInst integerAddInst) {
-            return addIngredientList(
-                    getIngredientList(integerAddInst.getOperand1()),
-                    getIngredientList(integerAddInst.getOperand2())
-            );
-        }
-        // 整数减法
-        else if (targetValue instanceof IntegerSubInst integerSubInst) {
-            return subIngredientList(
-                    getIngredientList(integerSubInst.getOperand1()),
-                    getIngredientList(integerSubInst.getOperand2())
-            );
-        }
-        // 整数乘法
-        else if (targetValue instanceof IntegerMultiplyInst integerMultiplyInst) {
-            if (integerMultiplyInst.getOperand1() instanceof ConstInt constInt) {
-                return multIngredientList(
-                        getIngredientList(integerMultiplyInst.getOperand2()),
-                        constInt.getValue()
+        if (targetValue.getType() == IntegerType.getI32()) {
+            // 常整数 n 写做 1*n ，以统一形式
+            if (targetValue instanceof ConstInt constInt) {
+                Map<Value, Integer> ingredientCounts = new HashMap<>();
+                ingredientCounts.put(ConstInt.getInstance(1), constInt.getValue());
+                return new IngredientList(ingredientCounts);
+            }
+            // 整数加法
+            else if (targetValue instanceof IntegerAddInst integerAddInst) {
+                return addIngredientList(
+                        getIngredientList(integerAddInst.getOperand1()),
+                        getIngredientList(integerAddInst.getOperand2())
                 );
-            } else if (integerMultiplyInst.getOperand2() instanceof ConstInt constInt) {
-                return multIngredientList(
-                        getIngredientList(integerMultiplyInst.getOperand1()),
-                        constInt.getValue()
+            }
+            // 整数减法
+            else if (targetValue instanceof IntegerSubInst integerSubInst) {
+                return subIngredientList(
+                        getIngredientList(integerSubInst.getOperand1()),
+                        getIngredientList(integerSubInst.getOperand2())
                 );
+            }
+            // 整数乘法
+            else if (targetValue instanceof IntegerMultiplyInst integerMultiplyInst) {
+                if (integerMultiplyInst.getOperand1() instanceof ConstInt constInt) {
+                    return multIngredientList(
+                            getIngredientList(integerMultiplyInst.getOperand2()),
+                            constInt.getValue()
+                    );
+                } else if (integerMultiplyInst.getOperand2() instanceof ConstInt constInt) {
+                    return multIngredientList(
+                            getIngredientList(integerMultiplyInst.getOperand1()),
+                            constInt.getValue()
+                    );
+                }
             }
         }
         // 默认情况
