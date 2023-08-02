@@ -32,7 +32,7 @@ public class AsmFunction {
     private final String functionName;
 
     private final boolean DEBUG_MODE = false;
-    private final boolean ASSERT_MODE = true;
+    private final boolean ASSERT_MODE = false;
 
     AsmCode globalCode;
     private final List<AsmOperand> formalParameters = new ArrayList<>();

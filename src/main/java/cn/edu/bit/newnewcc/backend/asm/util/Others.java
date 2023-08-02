@@ -21,7 +21,9 @@ public class Others {
         for (var inst : instructionList) {
             for (var x : LifeTimeController.getReadVregSet(inst)) {
                 for (var y : LifeTimeController.getWriteVregSet(inst)) {
-                    assert !x.equals(y);
+                    if (x.equals(y)) {
+                        throw new RuntimeException("assertion failed");
+                    }
                 }
             }
         }
