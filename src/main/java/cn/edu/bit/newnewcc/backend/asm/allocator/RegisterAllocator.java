@@ -16,6 +16,7 @@ public class RegisterAllocator {
     private final FloatRegisterAllocator floatRegisterAllocator = new FloatRegisterAllocator();
     private final IntRegisterAllocator intRegisterAllocator = new IntRegisterAllocator();
     private final Map<Integer, Register> vregMap = new HashMap<>();
+    public static IntRegister s1 = new IntRegister("s1");
     int total;
     public RegisterAllocator() {
         total = 0;

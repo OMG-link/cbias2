@@ -1,6 +1,7 @@
 package cn.edu.bit.newnewcc.backend.asm.controller;
 
 import cn.edu.bit.newnewcc.backend.asm.AsmFunction;
+import cn.edu.bit.newnewcc.backend.asm.allocator.RegisterAllocator;
 import cn.edu.bit.newnewcc.backend.asm.allocator.StackAllocator;
 import cn.edu.bit.newnewcc.backend.asm.instruction.*;
 import cn.edu.bit.newnewcc.backend.asm.operand.*;
@@ -24,7 +25,7 @@ public class LinearScanRegisterControl extends RegisterControl{
     //寄存器在调用过程中保留与否，保留的寄存器需要在函数头尾额外保存
     private final Map<Register, TYPE> registerPreservedType = new HashMap<>();
     private final Map<Register, StackVar> preservedRegisterSaved = new HashMap<>();
-    private final IntRegister s1 = new IntRegister("s1");
+    private final IntRegister s1 = RegisterAllocator.s1;
     private final StackVar s1saved;
 
     @Override
