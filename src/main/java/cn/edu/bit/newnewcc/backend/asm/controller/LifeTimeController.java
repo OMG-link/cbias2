@@ -152,12 +152,21 @@ public class LifeTimeController {
         return res;
     }
 
+    void clearInterval(int x) {
+        lifeTimeInterval.remove(x);
+        lifeTimeRange.remove(x);
+    }
+
     void insertIntervel(int index, int l, int r) {
         if (!lifeTimeInterval.containsKey(index)) {
             lifeTimeInterval.put(index, new ArrayList<>());
+            lifeTimeRange.put(index, new ComparablePair<>(l, r));
         }
         assert(l < r);
         lifeTimeInterval.get(index).add(new ComparablePair<>(l, r));
+        l = min(lifeTimeRange.get(index).a, l);
+        r = max(lifeTimeRange.get(index).b, r);
+        lifeTimeRange.put(index, new ComparablePair<>(l, r));
     }
 
     /**
@@ -178,7 +187,7 @@ public class LifeTimeController {
             for (var i : iv) {
                 if (lst == null) {
                     lst = i;
-                } else if (lst.b + 1 < i.a) {
+                } else if (lst.b <= i.a) {
                     res.add(lst);
                     lst = i;
                 } else {
@@ -279,13 +288,6 @@ public class LifeTimeController {
             for (var x : defLoc.keySet()) {
                 insertIntervel(x, defLoc.get(x), defLoc.get(x) + 1);
             }
-        }
-        for (var x : lifeTimeInterval.keySet()) {
-            Collections.sort(lifeTimeInterval.get(x));
-            var range = lifeTimeInterval.get(x);
-            int l = range.get(0).a;
-            int r = range.get(range.size() - 1).b;
-            lifeTimeRange.put(x, new ComparablePair<>(l, r));
         }
     }
 }
