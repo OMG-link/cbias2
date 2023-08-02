@@ -9,6 +9,7 @@ import cn.edu.bit.newnewcc.backend.asm.controller.RegisterControl;
 import cn.edu.bit.newnewcc.backend.asm.instruction.*;
 import cn.edu.bit.newnewcc.backend.asm.operand.*;
 import cn.edu.bit.newnewcc.backend.asm.util.BackendOptimizer;
+import cn.edu.bit.newnewcc.backend.asm.util.Others;
 import cn.edu.bit.newnewcc.backend.asm.util.Pair;
 import cn.edu.bit.newnewcc.ir.Value;
 import cn.edu.bit.newnewcc.ir.type.FloatType;
@@ -31,6 +32,7 @@ public class AsmFunction {
     private final String functionName;
 
     private final boolean DEBUG_MODE = false;
+    private final boolean ASSERT_MODE = true;
 
     AsmCode globalCode;
     private final List<AsmOperand> formalParameters = new ArrayList<>();
@@ -126,6 +128,9 @@ public class AsmFunction {
             }
             for (var block : basicBlocks) {
                 block.emitToFunction();
+            }
+            if (ASSERT_MODE) {
+                Others.check(this.instructionList);
             }
             if (!DEBUG_MODE) {
                 asmOptimizerBeforeRegisterAllocate();
