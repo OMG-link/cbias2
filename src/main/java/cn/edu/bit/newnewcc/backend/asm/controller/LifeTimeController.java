@@ -13,36 +13,6 @@ import java.util.*;
 
 public class LifeTimeController {
 
-    public static class LifeTimeIndex implements Comparable<LifeTimeIndex>{
-        public enum TYPE {
-            in, out
-        }
-        int instID;
-        public TYPE type;
-        public LifeTimeIndex(int instID, TYPE type) {
-            this.instID = instID;
-            this.type = type;
-        }
-
-        public int getInstID() {
-            return instID;
-        }
-        public TYPE getType() {
-            return type;
-        }
-
-        @Override
-        public int compareTo(LifeTimeIndex o) {
-            if (instID != o.instID) {
-                return instID - o.instID;
-            }
-            if (type != o.type) {
-                return type == TYPE.in ? -1 : 1;
-            }
-            return 0;
-        }
-    }
-
     public LifeTimeIndex min(LifeTimeIndex a, LifeTimeIndex b) {
         return a.compareTo(b) < 0 ? a : b;
     }
@@ -53,6 +23,7 @@ public class LifeTimeController {
     //虚拟寄存器生命周期的设置过程
     private final Map<Integer, ComparablePair<LifeTimeIndex, LifeTimeIndex>> lifeTimeRange = new HashMap<>();
     private final Map<Integer, List<ComparablePair<LifeTimeIndex, LifeTimeIndex>>> lifeTimeInterval = new HashMap<>();
+    private final Map<Integer, List<LifeTimePoint>> lifeTimePoints = new HashMap<>();
 
     void init() {
         lifeTimeRange.clear();
@@ -67,6 +38,28 @@ public class LifeTimeController {
 
     public ComparablePair<LifeTimeIndex, LifeTimeIndex> getLifeTimeRange(Integer index) {
         return lifeTimeRange.get(index);
+    }
+
+    int upper_bound(List<LifeTimePoint> p, LifeTimeIndex index) {
+        int l = 0, r = p.size() - 1, ans = p.size();
+        while (l <= r) {
+            int mid = (l + r) / 2;
+            if (p.get(mid).getIndex().compareTo(index) > 0) {
+                ans = mid;
+                r = mid - 1;
+            } else {
+                l = mid + 1;
+            }
+        }
+        return ans;
+    }
+    public LifeTimePoint getNextUsePoint(int vRegId, LifeTimeIndex index) {
+        var points = lifeTimePoints.get(vRegId);
+        int x = upper_bound(points, index);
+        if (x >= points.size() || points.get(x).isDef()) {
+            return null;
+        }
+        return points.get(x);
     }
 
     public static Collection<Integer> getWriteRegId(AsmInstruction inst) {
@@ -204,6 +197,13 @@ public class LifeTimeController {
         lifeTimeRange.put(index, new ComparablePair<>(l, r));
     }
 
+    void insertLifeTimePoint(int index, LifeTimePoint p) {
+        if (!lifeTimePoints.containsKey(index)) {
+            lifeTimePoints.put(index, new ArrayList<>());
+        }
+        lifeTimePoints.get(index).add(p);
+    }
+
     /**
      * 把y的生命周期集合合并入x
      * @param x 第一个虚拟寄存器的下标
@@ -250,8 +250,7 @@ public class LifeTimeController {
 
     List<Block> blocks = new ArrayList<>();
     Map<String, Block> blockMap = new HashMap<>();
-    public void getAllVRegLifeTime(List<AsmInstruction> instructionList) {
-        init();
+    void buildBlocks(List<AsmInstruction> instructionList) {
         Block now = null;
         for (int i = 0; i < instructionList.size(); i++) {
             var inst = instructionList.get(i);
@@ -277,6 +276,8 @@ public class LifeTimeController {
             now.def.addAll(getWriteVRegSet(inst));
             blocks.get(blocks.size() - 1).r = i;
         }
+    }
+    void iterateActiveReg() {
         while (true) {
             boolean changeTag = false;
             for (var b : blocks) {
@@ -292,27 +293,37 @@ public class LifeTimeController {
                 break;
             }
         }
+    }
+    void buildLifeTimeMessage(List<AsmInstruction> instructionList) {
         for (var b : blocks) {
             Map<Integer, LifeTimeIndex> defLoc = new HashMap<>();
             Map<Integer, LifeTimeIndex> useLoc = new HashMap<>();
             for (var x : b.in) {
-                defLoc.put(x, new LifeTimeIndex(b.l, LifeTimeIndex.TYPE.in));
+                LifeTimeIndex index = LifeTimeIndex.getInstIn(b.l);
+                defLoc.put(x, index);
+                insertLifeTimePoint(x, LifeTimePoint.getDef(index));
             }
             for (int i = b.l; i <= b.r; i++) {
                 var inst = instructionList.get(i);
                 for (var x : getReadVRegSet(inst)) {
-                    useLoc.put(x, new LifeTimeIndex(i, LifeTimeIndex.TYPE.in));
+                    LifeTimeIndex index = LifeTimeIndex.getInstIn(i);
+                    useLoc.put(x, index);
+                    insertLifeTimePoint(x, LifeTimePoint.getUse(index));
                 }
                 for (var x : getWriteVRegSet(inst)) {
                     if (defLoc.containsKey(x) && useLoc.containsKey(x)) {
                         insertInterval(x, defLoc.get(x), useLoc.get(x));
                         useLoc.remove(x);
                     }
-                    defLoc.put(x, new LifeTimeIndex(i, LifeTimeIndex.TYPE.out));
+                    LifeTimeIndex index = LifeTimeIndex.getInstOut(i);
+                    defLoc.put(x, index);
+                    insertLifeTimePoint(x, LifeTimePoint.getDef(index));
                 }
             }
             for (var x : b.out) {
-                insertInterval(x, defLoc.get(x), new LifeTimeIndex(b.r, LifeTimeIndex.TYPE.out));
+                LifeTimeIndex index = LifeTimeIndex.getInstOut(b.r);
+                insertInterval(x, defLoc.get(x), index);
+                insertLifeTimePoint(x, LifeTimePoint.getUse(index));
                 useLoc.remove(x);
                 defLoc.remove(x);
             }
@@ -321,8 +332,15 @@ public class LifeTimeController {
                 defLoc.remove(x);
             }
             for (var x : defLoc.keySet()) {
-                insertInterval(x, defLoc.get(x), new LifeTimeIndex(defLoc.get(x).getInstID(), LifeTimeIndex.TYPE.out));
+                insertInterval(x, defLoc.get(x), LifeTimeIndex.getInstOut(defLoc.get(x).getInstID()));
             }
         }
+    }
+
+    public void getAllVRegLifeTime(List<AsmInstruction> instructionList) {
+        init();
+        buildBlocks(instructionList);
+        iterateActiveReg();
+        buildLifeTimeMessage(instructionList);
     }
 }
