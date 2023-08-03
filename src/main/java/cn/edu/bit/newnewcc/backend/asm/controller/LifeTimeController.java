@@ -85,7 +85,7 @@ public class LifeTimeController {
         return new HashSet<>();
     }
 
-    public static Collection<Integer> getWriteVregId(AsmInstruction inst) {
+    public static Collection<Integer> getWriteVRegId(AsmInstruction inst) {
         var res = new HashSet<Integer>();
         var regId = getWriteRegId(inst);
         for (var x : regId) {
@@ -122,9 +122,9 @@ public class LifeTimeController {
         return res;
     }
 
-    public static Collection<Integer> getVregId(AsmInstruction inst) {
+    public static Collection<Integer> getVRegId(AsmInstruction inst) {
         var res = getReadVRegId(inst);
-        res.addAll(getWriteVregId(inst));
+        res.addAll(getWriteVRegId(inst));
         return res;
     }
 
@@ -138,9 +138,9 @@ public class LifeTimeController {
         return res;
     }
 
-    public static Collection<Integer> getWriteVregSet(AsmInstruction inst) {
+    public static Collection<Integer> getWriteVRegSet(AsmInstruction inst) {
         var res = new HashSet<Integer>();
-        for (int i : getWriteVregId(inst)) {
+        for (int i : getWriteVRegId(inst)) {
             RegisterReplaceable op = (RegisterReplaceable) inst.getOperand(i);
             res.add(op.getRegister().getIndex());
         }
@@ -156,7 +156,7 @@ public class LifeTimeController {
         return res;
     }
 
-    public static Collection<Integer> getReadVregSet(AsmInstruction inst) {
+    public static Collection<Integer> getReadVRegSet(AsmInstruction inst) {
         var res = new HashSet<Integer>();
         for (int i : getReadVRegId(inst)) {
             RegisterReplaceable op = (RegisterReplaceable) inst.getOperand(i);
@@ -250,7 +250,7 @@ public class LifeTimeController {
 
     List<Block> blocks = new ArrayList<>();
     Map<String, Block> blockMap = new HashMap<>();
-    public void getAllVregLifeTime(List<AsmInstruction> instructionList) {
+    public void getAllVRegLifeTime(List<AsmInstruction> instructionList) {
         init();
         Block now = null;
         for (int i = 0; i < instructionList.size(); i++) {
@@ -269,12 +269,12 @@ public class LifeTimeController {
                     }
                 }
             }
-            for (var reg : getReadVregSet(inst)) {
+            for (var reg : getReadVRegSet(inst)) {
                 if (!now.def.contains(reg)) {
                     now.in.add(reg);
                 }
             }
-            now.def.addAll(getWriteVregSet(inst));
+            now.def.addAll(getWriteVRegSet(inst));
             blocks.get(blocks.size() - 1).r = i;
         }
         while (true) {
@@ -300,10 +300,10 @@ public class LifeTimeController {
             }
             for (int i = b.l; i <= b.r; i++) {
                 var inst = instructionList.get(i);
-                for (var x : getReadVregSet(inst)) {
+                for (var x : getReadVRegSet(inst)) {
                     useLoc.put(x, new LifeTimeIndex(i, LifeTimeIndex.TYPE.in));
                 }
-                for (var x : getWriteVregSet(inst)) {
+                for (var x : getWriteVRegSet(inst)) {
                     if (defLoc.containsKey(x) && useLoc.containsKey(x)) {
                         insertInterval(x, defLoc.get(x), useLoc.get(x));
                         useLoc.remove(x);

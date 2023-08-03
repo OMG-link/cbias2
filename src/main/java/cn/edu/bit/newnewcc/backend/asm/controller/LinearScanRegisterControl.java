@@ -1,9 +1,9 @@
 package cn.edu.bit.newnewcc.backend.asm.controller;
 
 import cn.edu.bit.newnewcc.backend.asm.AsmFunction;
-import cn.edu.bit.newnewcc.backend.asm.allocator.RegisterAllocator;
 import cn.edu.bit.newnewcc.backend.asm.allocator.StackAllocator;
-import cn.edu.bit.newnewcc.backend.asm.instruction.*;
+import cn.edu.bit.newnewcc.backend.asm.instruction.AsmCall;
+import cn.edu.bit.newnewcc.backend.asm.instruction.AsmInstruction;
 import cn.edu.bit.newnewcc.backend.asm.operand.*;
 import cn.edu.bit.newnewcc.backend.asm.util.ImmediateTools;
 import org.antlr.v4.runtime.misc.Pair;
@@ -18,14 +18,9 @@ public class LinearScanRegisterControl extends RegisterControl{
         PRESERVED, UNPRESERVED
     }
     //每个虚拟寄存器的值当前存储的位置
-    private final Map<Integer, AsmOperand> vregLocation = new HashMap<>();
+    private final Map<Integer, AsmOperand> vRegLocation = new HashMap<>();
     //每个寄存器当前存储着哪个虚拟寄存器的内容
     private final Map<Register, Integer> registerPool = new HashMap<>();
-    //寄存器在调用过程中保留与否，保留的寄存器需要在函数头尾额外保存
-    private final Map<Register, TYPE> registerPreservedType = new HashMap<>();
-    private final Map<Register, StackVar> preservedRegisterSaved = new HashMap<>();
-    private final IntRegister s1 = RegisterAllocator.s1;
-    private final StackVar s1saved;
 
     @Override
     public List<AsmInstruction> emitHead() {
@@ -55,7 +50,6 @@ public class LinearScanRegisterControl extends RegisterControl{
     public LinearScanRegisterControl(AsmFunction function, StackAllocator allocator) {
         super(function, allocator);
         //加入目前可使用的寄存器
-        s1saved = stackPool.pop();
         registerPreservedType.put(s1, TYPE.PRESERVED);
         for (int i = 0; i <= 31; i++) {
             if ((6 <= i && i <= 7) || (28 <= i)) {
@@ -81,12 +75,12 @@ public class LinearScanRegisterControl extends RegisterControl{
         }
     }
 
-    void allocateVreg(Register vreg) {
-        var index = vreg.getIndex();
+    void allocateVReg(Register vReg) {
+        var index = vReg.getIndex();
         for (var reg : registerPool.keySet()) {
-            if (reg.getType() == vreg.getType() && registerPool.get(reg) == 0) {
-                registerPool.put(reg, vreg.getIndex());
-                vregLocation.put(vreg.getIndex(), reg);
+            if (reg.getType() == vReg.getType() && registerPool.get(reg) == 0) {
+                registerPool.put(reg, vReg.getIndex());
+                vRegLocation.put(vReg.getIndex(), reg);
                 if (!preservedRegisterSaved.containsKey(reg) && registerPreservedType.get(reg) == TYPE.PRESERVED) {
                     preservedRegisterSaved.put(reg, stackPool.pop());
                 }
@@ -96,7 +90,7 @@ public class LinearScanRegisterControl extends RegisterControl{
         Register spillReg = null;
         int maxR = function.getLifeTimeController().getLifeTimeRange(index).b.getInstID();
         for (var reg : registerPool.keySet()) {
-            if (reg.getType() == vreg.getType()) {
+            if (reg.getType() == vReg.getType()) {
                 int original = registerPool.get(reg);
                 int regR = function.getLifeTimeController().getLifeTimeRange(original).b.getInstID();
                 if (regR > maxR) {
@@ -107,9 +101,9 @@ public class LinearScanRegisterControl extends RegisterControl{
         }
         if (spillReg != null) {
             int original = registerPool.get(spillReg);
-            vregLocation.remove(original);
+            vRegLocation.remove(original);
             registerPool.put(spillReg, index);
-            vregLocation.put(index, spillReg);
+            vRegLocation.put(index, spillReg);
         }
     }
 
@@ -118,13 +112,13 @@ public class LinearScanRegisterControl extends RegisterControl{
      */
     @Override
     public void virtualRegAllocateToPhysics() {
-        List<Register> vregList = new ArrayList<>();
+        List<Register> vRegList = new ArrayList<>();
         List<Pair<Integer, Integer>> recycleList = new ArrayList<>();
         for (var index : function.getLifeTimeController().getKeySet()) {
-            vregList.add(function.getRegisterAllocator().get(index));
+            vRegList.add(function.getRegisterAllocator().get(index));
             recycleList.add(new Pair<>(index, function.getLifeTimeController().getLifeTimeRange(index).b.getInstID()));
         }
-        vregList.sort((a, b) -> {
+        vRegList.sort((a, b) -> {
             var lifeTimeA = function.getLifeTimeController().getLifeTimeRange(a.getIndex());
             var lifeTimeB = function.getLifeTimeController().getLifeTimeRange(b.getIndex());
             return lifeTimeA.compareTo(lifeTimeB);
@@ -133,27 +127,27 @@ public class LinearScanRegisterControl extends RegisterControl{
 
         //第一次扫描，分配寄存器本身
         int recycleHead = 0;
-        for (var vreg : vregList) {
-            var lifeTime = function.getLifeTimeController().getLifeTimeRange(vreg.getIndex());
+        for (var vReg : vRegList) {
+            var lifeTime = function.getLifeTimeController().getLifeTimeRange(vReg.getIndex());
             while (recycleHead < recycleList.size() && recycleList.get(recycleHead).b <= lifeTime.a.getInstID()) {
                 recycle(recycleList.get(recycleHead).a);
                 recycleHead += 1;
             }
-            allocateVreg(vreg);
+            allocateVReg(vReg);
         }
 
         //第二次扫描，分配被spill的寄存器的栈空间
         recycleHead = 0;
-        for (var vreg : vregList) {
-            if (vregLocation.containsKey(vreg.getIndex())) {
+        for (var vReg : vRegList) {
+            if (vRegLocation.containsKey(vReg.getIndex())) {
                 continue;
             }
-            var lifeTime = function.getLifeTimeController().getLifeTimeRange(vreg.getIndex());
+            var lifeTime = function.getLifeTimeController().getLifeTimeRange(vReg.getIndex());
             while (recycleHead < recycleList.size() && recycleList.get(recycleHead).b <= lifeTime.a.getInstID()) {
                 recycle(recycleList.get(recycleHead).a);
                 recycleHead += 1;
             }
-            vregLocation.put(vreg.getIndex(), stackPool.pop());
+            vRegLocation.put(vReg.getIndex(), stackPool.pop());
         }
         stackPool.clear();
     }
@@ -162,10 +156,10 @@ public class LinearScanRegisterControl extends RegisterControl{
         Map<Register, Register> used = new HashMap<>();
         for (int j = 1; j <= 3; j++) {
             if (inst.getOperand(j) instanceof RegisterReplaceable registerReplaceable) {
-                Register vreg = registerReplaceable.getRegister();
-                if (vreg.isVirtual()) {
-                    if (vregLocation.get(vreg.getIndex()) instanceof Register register) {
-                        used.put(vreg, register);
+                Register vReg = registerReplaceable.getRegister();
+                if (vReg.isVirtual()) {
+                    if (vRegLocation.get(vReg.getIndex()) instanceof Register register) {
+                        used.put(vReg, register);
                     }
                 }
             }
@@ -173,19 +167,19 @@ public class LinearScanRegisterControl extends RegisterControl{
         return used;
     }
 
-    Register getExRegister(Map<Register, Register> used, Register vreg, Map<Register, StackVar> registerSaveMap, List<AsmInstruction> newInstList) {
-        if (used.containsKey(vreg)) {
-            return used.get(vreg);
+    Register getExRegister(Map<Register, Register> used, Register vReg, Map<Register, StackVar> registerSaveMap, List<AsmInstruction> newInstList) {
+        if (used.containsKey(vReg)) {
+            return used.get(vReg);
         }
         for (var reg : registerPool.keySet()) {
-            if (reg.getType() == vreg.getType() && !used.containsValue(reg) && registerPool.get(reg) == 0) {
-                used.put(vreg, reg);
+            if (reg.getType() == vReg.getType() && !used.containsValue(reg) && registerPool.get(reg) == 0) {
+                used.put(vReg, reg);
                 return reg;
             }
         }
         for (var reg : registerPool.keySet()) {
-            if (reg.getType() == vreg.getType() && !used.containsValue(reg)) {
-                used.put(vreg, reg);
+            if (reg.getType() == vReg.getType() && !used.containsValue(reg)) {
+                used.put(vReg, reg);
                 var tmp = stackPool.pop();
                 registerSaveMap.put(reg, tmp);
                 saveToStackVar(newInstList, reg, tmp);
@@ -193,28 +187,6 @@ public class LinearScanRegisterControl extends RegisterControl{
             }
         }
         return null;
-    }
-
-    void loadFromStackVar(List<AsmInstruction> instList, Register register, StackVar stk) {
-        if (ImmediateTools.bitlengthNotInLimit(stk.getAddress().getOffset())) {
-            preservedRegisterSaved.put(s1, s1saved);
-            instList.add(new AsmLoad(s1, new Immediate(Math.toIntExact(stk.getAddress().getOffset()))));
-            instList.add(new AsmAdd(s1, s1, stk.getAddress().getRegister()));
-            stk = new StackVar(0, stk.getSize(), true);
-            stk = stk.replaceRegister(s1);
-        }
-        instList.add(new AsmLoad(register, stk));
-    }
-
-    void saveToStackVar(List<AsmInstruction> instList, Register register, StackVar stk) {
-        if (ImmediateTools.bitlengthNotInLimit(stk.getAddress().getOffset())) {
-            preservedRegisterSaved.put(s1, s1saved);
-            instList.add(new AsmLoad(s1, new Immediate(Math.toIntExact(stk.getAddress().getOffset()))));
-            instList.add(new AsmAdd(s1, s1, stk.getAddress().getRegister()));
-            stk = new StackVar(0, stk.getSize(), true);
-            stk = stk.replaceRegister(s1);
-        }
-        instList.add(new AsmStore(register, stk));
     }
 
     @Override
@@ -226,7 +198,7 @@ public class LinearScanRegisterControl extends RegisterControl{
             callSavedRegisters.add(new ArrayList<>());
         }
         for (var index : function.getLifeTimeController().getKeySet()) {
-            if (vregLocation.get(index) instanceof Register) {
+            if (vRegLocation.get(index) instanceof Register) {
                 var lifeTime = function.getLifeTimeController().getLifeTimeRange(index);
                 callSavedRegisters.get(lifeTime.a.getInstID()).add(new Pair<>(index, 1));
                 callSavedRegisters.get(lifeTime.b.getInstID() + 1).add(new Pair<>(index, -1));
@@ -234,7 +206,7 @@ public class LinearScanRegisterControl extends RegisterControl{
         }
         for (int i = 0; i < instructionList.size(); i++) {
             for (var p : callSavedRegisters.get(i)) {
-                Register reg = (Register) vregLocation.get(p.a);
+                Register reg = (Register) vRegLocation.get(p.a);
                 if (p.b == 1) {
                     registerPool.put(reg, p.a);
                 } else {
@@ -250,13 +222,13 @@ public class LinearScanRegisterControl extends RegisterControl{
             var used = getUsedRegisters(inst);
             Set<Register> loaded = new HashSet<>();
 
-            var writeId = LifeTimeController.getWriteVregId(inst);
-            var vregId = LifeTimeController.getVregId(inst);
-            for (int j : vregId) {
+            var writeId = LifeTimeController.getWriteVRegId(inst);
+            var vRegId = LifeTimeController.getVRegId(inst);
+            for (int j : vRegId) {
                 RegisterReplaceable registerReplaceable = (RegisterReplaceable) inst.getOperand(j);
-                var vreg = registerReplaceable.getRegister();
-                Register physicRegister = getExRegister(used, vreg, registerSaveMap, newInstList);
-                if (vregLocation.get(vreg.getIndex()) instanceof StackVar stackVar) {
+                var vReg = registerReplaceable.getRegister();
+                Register physicRegister = getExRegister(used, vReg, registerSaveMap, newInstList);
+                if (vRegLocation.get(vReg.getIndex()) instanceof StackVar stackVar) {
                     if (writeId.contains(j)) {
                         writeReg = physicRegister;
                         writeStack = stackVar;
@@ -299,10 +271,10 @@ public class LinearScanRegisterControl extends RegisterControl{
     }
 
     void recycle(Integer index) {
-        if (!vregLocation.containsKey(index)) {
+        if (!vRegLocation.containsKey(index)) {
             return;
         }
-        var container = vregLocation.get(index);
+        var container = vRegLocation.get(index);
         if (container instanceof Register register) {
             registerPool.put(register, 0);
         } else if (container instanceof StackVar stackVar) {
