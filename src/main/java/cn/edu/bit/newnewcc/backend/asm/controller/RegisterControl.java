@@ -7,18 +7,18 @@ import cn.edu.bit.newnewcc.backend.asm.instruction.AsmAdd;
 import cn.edu.bit.newnewcc.backend.asm.instruction.AsmInstruction;
 import cn.edu.bit.newnewcc.backend.asm.instruction.AsmLoad;
 import cn.edu.bit.newnewcc.backend.asm.instruction.AsmStore;
-import cn.edu.bit.newnewcc.backend.asm.operand.Immediate;
-import cn.edu.bit.newnewcc.backend.asm.operand.IntRegister;
-import cn.edu.bit.newnewcc.backend.asm.operand.Register;
-import cn.edu.bit.newnewcc.backend.asm.operand.StackVar;
+import cn.edu.bit.newnewcc.backend.asm.operand.*;
 import cn.edu.bit.newnewcc.backend.asm.util.ImmediateTools;
 
 import java.util.*;
 
 public abstract class RegisterControl {
+    public enum TYPE {
+        PRESERVED, UNPRESERVED
+    }
     protected final AsmFunction function;
     //寄存器在调用过程中保留与否，保留的寄存器需要在函数头尾额外保存
-    protected final Map<Register, LinearScanRegisterControl.TYPE> registerPreservedType = new HashMap<>();
+    protected final Map<Register, TYPE> registerPreservedType = new HashMap<>();
     protected final Map<Register, StackVar> preservedRegisterSaved = new HashMap<>();
     protected final IntRegister s1 = RegisterAllocator.s1;
     protected final StackVar s1saved;
@@ -46,12 +46,37 @@ public abstract class RegisterControl {
         }
         return res;
     }
-    public abstract void virtualRegAllocateToPhysics();
+    
+    void updateRegisterPreserve(Register register) {
+        if (registerPreservedType.get(register) == TYPE.PRESERVED && !preservedRegisterSaved.containsKey(register)) {
+            preservedRegisterSaved.put(register, stackPool.pop());
+        }
+    }
 
     public RegisterControl(AsmFunction function, StackAllocator allocator) {
         this.function = function;
         stackPool = new StackPool(allocator);
         s1saved = stackPool.pop();
+
+        registerPreservedType.put(s1, TYPE.PRESERVED);
+        for (int i = 0; i <= 31; i++) {
+            if ((6 <= i && i <= 7) || (28 <= i)) {
+                Register register = new IntRegister(i);
+                registerPreservedType.put(register, TYPE.UNPRESERVED);
+            }
+            if (18 <= i && i <= 27) {
+                Register register = new IntRegister(i);
+                registerPreservedType.put(register, TYPE.PRESERVED);
+            }
+            if (18 <= i && i <= 27) {
+                Register register = new FloatRegister(i);
+                registerPreservedType.put(register, TYPE.PRESERVED);
+            }
+            if (i <= 7 || 28 <= i) {
+                Register register = new FloatRegister(i);
+                registerPreservedType.put(register, TYPE.UNPRESERVED);
+            }
+        }
     }
 
     void loadFromStackVar(List<AsmInstruction> instList, Register register, StackVar stk) {
@@ -76,5 +101,7 @@ public abstract class RegisterControl {
         instList.add(new AsmStore(register, stk));
     }
 
+    public abstract void virtualRegAllocateToPhysics();
     public abstract List<AsmInstruction> spillRegisters(List<AsmInstruction> instructionList);
 }
+

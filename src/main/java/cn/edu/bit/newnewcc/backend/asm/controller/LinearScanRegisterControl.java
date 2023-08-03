@@ -5,7 +5,6 @@ import cn.edu.bit.newnewcc.backend.asm.allocator.StackAllocator;
 import cn.edu.bit.newnewcc.backend.asm.instruction.AsmCall;
 import cn.edu.bit.newnewcc.backend.asm.instruction.AsmInstruction;
 import cn.edu.bit.newnewcc.backend.asm.operand.*;
-import cn.edu.bit.newnewcc.backend.asm.util.ImmediateTools;
 import org.antlr.v4.runtime.misc.Pair;
 
 import java.util.*;
@@ -14,9 +13,6 @@ import java.util.*;
  * 线性扫描寄存器分配器
  */
 public class LinearScanRegisterControl extends RegisterControl{
-    public enum TYPE {
-        PRESERVED, UNPRESERVED
-    }
     //每个虚拟寄存器的值当前存储的位置
     private final Map<Integer, AsmOperand> vRegLocation = new HashMap<>();
     //每个寄存器当前存储着哪个虚拟寄存器的内容
@@ -25,29 +21,10 @@ public class LinearScanRegisterControl extends RegisterControl{
     public LinearScanRegisterControl(AsmFunction function, StackAllocator allocator) {
         super(function, allocator);
         //加入目前可使用的寄存器
-        registerPreservedType.put(s1, TYPE.PRESERVED);
-        for (int i = 0; i <= 31; i++) {
-            if ((6 <= i && i <= 7) || (28 <= i)) {
-                Register register = new IntRegister(i);
-                registerPool.put(register, 0);
-                registerPreservedType.put(register, TYPE.UNPRESERVED);
-            }
-            if (18 <= i && i <= 27) {
-                Register register = new IntRegister(i);
-                registerPool.put(register, 0);
-                registerPreservedType.put(register, TYPE.PRESERVED);
-            }
-            if (18 <= i && i <= 27) {
-                Register register = new FloatRegister(i);
-                registerPool.put(register, 0);
-                registerPreservedType.put(register, TYPE.PRESERVED);
-            }
-            if (i <= 7 || 28 <= i) {
-                Register register = new FloatRegister(i);
-                registerPool.put(register, 0);
-                registerPreservedType.put(register, TYPE.UNPRESERVED);
-            }
+        for (var reg : registerPreservedType.keySet()) {
+            registerPool.put(reg, 0);
         }
+        registerPool.remove(s1);
     }
 
     void allocateVReg(Register vReg) {
@@ -56,9 +33,7 @@ public class LinearScanRegisterControl extends RegisterControl{
             if (reg.getType() == vReg.getType() && registerPool.get(reg) == 0) {
                 registerPool.put(reg, vReg.getIndex());
                 vRegLocation.put(vReg.getIndex(), reg);
-                if (!preservedRegisterSaved.containsKey(reg) && registerPreservedType.get(reg) == TYPE.PRESERVED) {
-                    preservedRegisterSaved.put(reg, stackPool.pop());
-                }
+                updateRegisterPreserve(reg);
                 return;
             }
         }
