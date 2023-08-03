@@ -113,8 +113,9 @@ public class AsmBasicBlock {
             int offset = Math.toIntExact(addressTag.getOffset());
             var tmp = function.getRegisterAllocator().allocateInt();
             if (ImmediateTools.bitlengthNotInLimit(offset)) {
-                function.appendInstruction(new AsmLoad(tmp, new Immediate(offset)));
-                function.appendInstruction(new AsmAdd(tmp, tmp, addressTag.getRegister()));
+                var reg = function.getRegisterAllocator().allocateInt();
+                function.appendInstruction(new AsmLoad(reg, new Immediate(offset)));
+                function.appendInstruction(new AsmAdd(tmp, reg, addressTag.getRegister()));
             } else {
                 function.appendInstruction(new AsmAdd(tmp, addressTag.getRegister(), new Immediate(offset)));
             }
@@ -171,8 +172,9 @@ public class AsmBasicBlock {
     AddressTag transformStackVarToAddressTag(StackVar stackVar) {
         IntRegister tmp = function.getRegisterAllocator().allocateInt();
         Address now = stackVar.getAddress();
-        function.appendInstruction(new AsmLoad(tmp, ExStackVarOffset.transform(stackVar, now.getOffset())));
-        function.appendInstruction(new AsmAdd(tmp, tmp, now.getRegister()));
+        IntRegister t2 = function.getRegisterAllocator().allocateInt();
+        function.appendInstruction(new AsmLoad(t2, ExStackVarOffset.transform(stackVar, now.getOffset())));
+        function.appendInstruction(new AsmAdd(tmp, t2, now.getRegister()));
         return now.replaceBaseRegister(tmp).setOffset(0).getAddressTag();
     }
 
@@ -501,22 +503,25 @@ public class AsmBasicBlock {
                 offset += immediate.getValue() * baseSize;
             }
         }
-        IntRegister offsetR = function.getRegisterAllocator().allocateInt(), tmp = null;
+        IntRegister offsetR = function.getRegisterAllocator().allocateInt();
         function.appendInstruction(new AsmLoad(offsetR, new Immediate(Math.toIntExact(offset))));
         for (int i = 0; i < getElementPtrInst.getIndicesSize(); i++) {
             var index = getValue(getElementPtrInst.getIndexAt(i));
             long baseSize = ((PointerType) GetElementPtrInst.inferDereferencedType(rootType, i + 1)).getBaseType().getSize();
             if (!(index instanceof Immediate)) {
-                if (tmp == null) {
-                    tmp = function.getRegisterAllocator().allocateInt();
-                }
+                IntRegister tmp = function.getRegisterAllocator().allocateInt();
+                IntRegister t2 = function.getRegisterAllocator().allocateInt();
+                IntRegister t3 = function.getRegisterAllocator().allocateInt();
                 function.appendInstruction(new AsmLoad(tmp, getOperandToIntRegister(index)));
                 IntRegister muly = getOperandToIntRegister(new Immediate(Math.toIntExact(baseSize)));
-                function.appendInstruction(new AsmMul(tmp, tmp, muly, 64));
-                function.appendInstruction(new AsmAdd(offsetR, offsetR, tmp));
+                function.appendInstruction(new AsmMul(t2, tmp, muly, 64));
+                function.appendInstruction(new AsmAdd(t3, offsetR, t2));
+                offsetR = t3;
             }
         }
-        function.appendInstruction(new AsmAdd(offsetR, offsetR, baseRegister));
+        IntRegister t4 = function.getRegisterAllocator().allocateInt();
+        function.appendInstruction(new AsmAdd(t4, offsetR, baseRegister));
+        offsetR = t4;
         function.getAddressAllocator().allocate(getElementPtrInst, new AddressContent(0, offsetR));
     }
 

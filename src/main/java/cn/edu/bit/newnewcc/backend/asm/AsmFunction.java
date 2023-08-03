@@ -32,7 +32,7 @@ public class AsmFunction {
     private final String functionName;
 
     private final boolean DEBUG_MODE = false;
-    private final boolean ASSERT_MODE = false;
+    private final boolean ASSERT_MODE = true;
 
     AsmCode globalCode;
     private final List<AsmOperand> formalParameters = new ArrayList<>();
@@ -336,8 +336,9 @@ public class AsmFunction {
         ExStackVarOffset offset = ExStackVarOffset.transform(stackVar, stackAddress.getOffset());
         IntRegister tmp = registerAllocator.allocateInt();
         newInstructionList.add(new AsmLoad(tmp, offset));
-        newInstructionList.add(new AsmAdd(tmp, tmp, stackAddress.getRegister()));
-        Address now = new AddressContent(0, tmp);
+        IntRegister t2 = registerAllocator.allocateInt();
+        newInstructionList.add(new AsmAdd(t2, tmp, stackAddress.getRegister()));
+        Address now = new AddressContent(0, t2);
         return ExStackVarContent.transform(stackVar, now);
     }
 
