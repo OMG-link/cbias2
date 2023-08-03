@@ -22,9 +22,6 @@ import cn.edu.bit.newnewcc.ir.value.Function;
 import java.util.*;
 import java.util.function.Consumer;
 
-import static java.lang.Math.max;
-import static java.lang.Math.min;
-
 /**
  * 函数以函数名作为唯一标识符加以区分
  */
