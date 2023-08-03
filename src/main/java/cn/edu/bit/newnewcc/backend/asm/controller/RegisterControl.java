@@ -24,8 +24,28 @@ public abstract class RegisterControl {
     protected final StackVar s1saved;
     protected StackPool stackPool;
 
-    public abstract List<AsmInstruction> emitHead();
-    public abstract List<AsmInstruction> emitTail();
+    public List<AsmInstruction> emitHead() {
+        List<AsmInstruction> res = new ArrayList<>();
+        for (var register : preservedRegisterSaved.keySet()) {
+            var x = preservedRegisterSaved.get(register);
+            if (!ImmediateTools.bitlengthNotInLimit(x.getAddress().getOffset())) {
+                preservedRegisterSaved.put(s1, s1saved);
+                break;
+            }
+        }
+        for (var register : preservedRegisterSaved.keySet()) {
+            saveToStackVar(res, register, preservedRegisterSaved.get(register));
+        }
+        return res;
+    }
+
+    public List<AsmInstruction> emitTail() {
+        List<AsmInstruction> res = new ArrayList<>();
+        for (var register : preservedRegisterSaved.keySet()) {
+            loadFromStackVar(res, register, preservedRegisterSaved.get(register));
+        }
+        return res;
+    }
     public abstract void virtualRegAllocateToPhysics();
 
     public RegisterControl(AsmFunction function, StackAllocator allocator) {

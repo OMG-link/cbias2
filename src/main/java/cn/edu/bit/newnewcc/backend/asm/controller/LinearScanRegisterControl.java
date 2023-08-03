@@ -22,31 +22,6 @@ public class LinearScanRegisterControl extends RegisterControl{
     //每个寄存器当前存储着哪个虚拟寄存器的内容
     private final Map<Register, Integer> registerPool = new HashMap<>();
 
-    @Override
-    public List<AsmInstruction> emitHead() {
-        List<AsmInstruction> res = new ArrayList<>();
-        for (var register : preservedRegisterSaved.keySet()) {
-            var x = preservedRegisterSaved.get(register);
-            if (!ImmediateTools.bitlengthNotInLimit(x.getAddress().getOffset())) {
-                preservedRegisterSaved.put(s1, s1saved);
-                break;
-            }
-        }
-        for (var register : preservedRegisterSaved.keySet()) {
-            saveToStackVar(res, register, preservedRegisterSaved.get(register));
-        }
-        return res;
-    }
-
-    @Override
-    public List<AsmInstruction> emitTail() {
-        List<AsmInstruction> res = new ArrayList<>();
-        for (var register : preservedRegisterSaved.keySet()) {
-            loadFromStackVar(res, register, preservedRegisterSaved.get(register));
-        }
-        return res;
-    }
-
     public LinearScanRegisterControl(AsmFunction function, StackAllocator allocator) {
         super(function, allocator);
         //加入目前可使用的寄存器

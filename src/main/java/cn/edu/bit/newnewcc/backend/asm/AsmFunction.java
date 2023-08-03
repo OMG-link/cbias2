@@ -371,7 +371,7 @@ public class AsmFunction {
 
     //未分配寄存器的分配方法
     private void reAllocateRegister() {
-        lifeTimeController.getAllVregLifeTime(instructionList);
+        lifeTimeController.getAllVRegLifeTime(instructionList);
 
         RegisterControl registerController = new LinearScanRegisterControl(this, stackAllocator);
         registerController.virtualRegAllocateToPhysics();
