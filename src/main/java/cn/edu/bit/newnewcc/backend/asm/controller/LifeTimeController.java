@@ -1,23 +1,58 @@
 package cn.edu.bit.newnewcc.backend.asm.controller;
 
-import cn.edu.bit.newnewcc.backend.asm.AsmFunction;
-import cn.edu.bit.newnewcc.backend.asm.instruction.*;
-import cn.edu.bit.newnewcc.backend.asm.operand.AsmOperand;
+import cn.edu.bit.newnewcc.backend.asm.instruction.AsmAbstractTag;
+import cn.edu.bit.newnewcc.backend.asm.instruction.AsmInstruction;
+import cn.edu.bit.newnewcc.backend.asm.instruction.AsmJump;
+import cn.edu.bit.newnewcc.backend.asm.instruction.AsmStore;
 import cn.edu.bit.newnewcc.backend.asm.operand.GlobalTag;
 import cn.edu.bit.newnewcc.backend.asm.operand.Register;
 import cn.edu.bit.newnewcc.backend.asm.operand.RegisterReplaceable;
 import cn.edu.bit.newnewcc.backend.asm.util.ComparablePair;
-import cn.edu.bit.newnewcc.backend.asm.util.Pair;
 
 import java.util.*;
 
-import static java.lang.Math.max;
-import static java.lang.Math.min;
-
 public class LifeTimeController {
+
+    public static class LifeTimeIndex implements Comparable<LifeTimeIndex>{
+        public enum TYPE {
+            in, out
+        }
+        int instID;
+        public TYPE type;
+        public LifeTimeIndex(int instID, TYPE type) {
+            this.instID = instID;
+            this.type = type;
+        }
+
+        public int getInstID() {
+            return instID;
+        }
+        public TYPE getType() {
+            return type;
+        }
+
+        @Override
+        public int compareTo(LifeTimeIndex o) {
+            if (instID != o.instID) {
+                return instID - o.instID;
+            }
+            if (type != o.type) {
+                return type == TYPE.in ? -1 : 1;
+            }
+            return 0;
+        }
+    }
+
+    public LifeTimeIndex min(LifeTimeIndex a, LifeTimeIndex b) {
+        return a.compareTo(b) < 0 ? a : b;
+    }
+    public LifeTimeIndex max(LifeTimeIndex a, LifeTimeIndex b) {
+        return a.compareTo(b) > 0 ? a : b;
+    }
+
     //虚拟寄存器生命周期的设置过程
-    private final Map<Integer, ComparablePair<Integer, Integer>> lifeTimeRange = new HashMap<>();
-    private final Map<Integer, List<ComparablePair<Integer, Integer>>> lifeTimeInterval = new HashMap<>();
+    private final Map<Integer, ComparablePair<LifeTimeIndex, LifeTimeIndex>> lifeTimeRange = new HashMap<>();
+    private final Map<Integer, List<ComparablePair<LifeTimeIndex, LifeTimeIndex>>> lifeTimeInterval = new HashMap<>();
 
     void init() {
         lifeTimeRange.clear();
@@ -30,7 +65,7 @@ public class LifeTimeController {
         return lifeTimeRange.keySet();
     }
 
-    public ComparablePair<Integer, Integer> getLifeTimeRange(Integer index) {
+    public ComparablePair<LifeTimeIndex, LifeTimeIndex> getLifeTimeRange(Integer index) {
         return lifeTimeRange.get(index);
     }
 
@@ -64,7 +99,7 @@ public class LifeTimeController {
     public static Collection<Integer> getReadRegId(AsmInstruction inst) {
         var res = new HashSet<Integer>();
         for (int i = 1; i <= 3; i++) {
-            if (inst.getOperand(i) instanceof RegisterReplaceable op) {
+            if (inst.getOperand(i) instanceof RegisterReplaceable) {
                 boolean tag = (inst instanceof AsmStore) ? (i == 1 || (i == 2 && !(inst.getOperand(i) instanceof Register))) :
                         (inst instanceof AsmJump || (i > 1));
                 if (tag) {
@@ -75,7 +110,7 @@ public class LifeTimeController {
         return res;
     }
 
-    public static Collection<Integer> getReadVregId(AsmInstruction inst) {
+    public static Collection<Integer> getReadVRegId(AsmInstruction inst) {
         var res = new HashSet<Integer>();
         var regId = getReadRegId(inst);
         for (var x : regId) {
@@ -88,7 +123,7 @@ public class LifeTimeController {
     }
 
     public static Collection<Integer> getVregId(AsmInstruction inst) {
-        var res = getReadVregId(inst);
+        var res = getReadVRegId(inst);
         res.addAll(getWriteVregId(inst));
         return res;
     }
@@ -123,7 +158,7 @@ public class LifeTimeController {
 
     public static Collection<Integer> getReadVregSet(AsmInstruction inst) {
         var res = new HashSet<Integer>();
-        for (int i : getReadVregId(inst)) {
+        for (int i : getReadVRegId(inst)) {
             RegisterReplaceable op = (RegisterReplaceable) inst.getOperand(i);
             res.add(op.getRegister().getIndex());
         }
@@ -157,12 +192,12 @@ public class LifeTimeController {
         lifeTimeRange.remove(x);
     }
 
-    void insertIntervel(int index, int l, int r) {
+    void insertInterval(int index, LifeTimeIndex l, LifeTimeIndex r) {
         if (!lifeTimeInterval.containsKey(index)) {
             lifeTimeInterval.put(index, new ArrayList<>());
             lifeTimeRange.put(index, new ComparablePair<>(l, r));
         }
-        assert(l < r);
+        assert(l.compareTo(r) < 0);
         lifeTimeInterval.get(index).add(new ComparablePair<>(l, r));
         l = min(lifeTimeRange.get(index).a, l);
         r = max(lifeTimeRange.get(index).b, r);
@@ -182,12 +217,12 @@ public class LifeTimeController {
             var iv = lifeTimeInterval.get(x);
             iv.addAll(lifeTimeInterval.get(y));
             Collections.sort(iv);
-            List<ComparablePair<Integer, Integer>> res = new ArrayList<>();
-            ComparablePair<Integer, Integer> lst = null;
+            List<ComparablePair<LifeTimeIndex, LifeTimeIndex>> res = new ArrayList<>();
+            ComparablePair<LifeTimeIndex, LifeTimeIndex> lst = null;
             for (var i : iv) {
                 if (lst == null) {
                     lst = i;
-                } else if (lst.b <= i.a) {
+                } else if (lst.b.compareTo(i.a) <= 0) {
                     res.add(lst);
                     lst = i;
                 } else {
@@ -197,9 +232,9 @@ public class LifeTimeController {
             if (lst != null) {
                 res.add(lst);
             }
-            int l = min(lifeTimeRange.get(x).a, lifeTimeRange.get(y).a);
-            int r = max(lifeTimeRange.get(x).b, lifeTimeRange.get(y).b);
-            lifeTimeInterval.put(x, iv);
+            var l = min(lifeTimeRange.get(x).a, lifeTimeRange.get(y).a);
+            var r = max(lifeTimeRange.get(x).b, lifeTimeRange.get(y).b);
+            lifeTimeInterval.put(x, res);
             lifeTimeRange.put(x, new ComparablePair<>(l, r));
         } else if (lifeTimeInterval.containsKey(y)) {
             lifeTimeInterval.put(x, lifeTimeInterval.get(y));
@@ -209,7 +244,7 @@ public class LifeTimeController {
         lifeTimeRange.remove(y);
     }
 
-    public List<ComparablePair<Integer, Integer>> getInterval(int x) {
+    public List<ComparablePair<LifeTimeIndex, LifeTimeIndex>> getInterval(int x) {
         return lifeTimeInterval.get(x);
     }
 
@@ -258,35 +293,35 @@ public class LifeTimeController {
             }
         }
         for (var b : blocks) {
-            Map<Integer, Integer> defLoc = new HashMap<>();
-            Map<Integer, Integer> useLoc = new HashMap<>();
+            Map<Integer, LifeTimeIndex> defLoc = new HashMap<>();
+            Map<Integer, LifeTimeIndex> useLoc = new HashMap<>();
             for (var x : b.in) {
-                defLoc.put(x, b.l);
+                defLoc.put(x, new LifeTimeIndex(b.l, LifeTimeIndex.TYPE.in));
             }
             for (int i = b.l; i <= b.r; i++) {
                 var inst = instructionList.get(i);
                 for (var x : getReadVregSet(inst)) {
-                    useLoc.put(x, i);
+                    useLoc.put(x, new LifeTimeIndex(i, LifeTimeIndex.TYPE.in));
                 }
                 for (var x : getWriteVregSet(inst)) {
                     if (defLoc.containsKey(x) && useLoc.containsKey(x)) {
-                        insertIntervel(x, defLoc.get(x), useLoc.get(x));
+                        insertInterval(x, defLoc.get(x), useLoc.get(x));
                         useLoc.remove(x);
                     }
-                    defLoc.put(x, i);
+                    defLoc.put(x, new LifeTimeIndex(i, LifeTimeIndex.TYPE.out));
                 }
             }
             for (var x : b.out) {
-                insertIntervel(x, defLoc.get(x), b.r + 1);
+                insertInterval(x, defLoc.get(x), new LifeTimeIndex(b.r, LifeTimeIndex.TYPE.out));
                 useLoc.remove(x);
                 defLoc.remove(x);
             }
             for (var x : useLoc.keySet()) {
-                insertIntervel(x, defLoc.get(x), useLoc.get(x));
+                insertInterval(x, defLoc.get(x), useLoc.get(x));
                 defLoc.remove(x);
             }
             for (var x : defLoc.keySet()) {
-                insertIntervel(x, defLoc.get(x), defLoc.get(x) + 1);
+                insertInterval(x, defLoc.get(x), new LifeTimeIndex(defLoc.get(x).getInstID(), LifeTimeIndex.TYPE.out));
             }
         }
     }

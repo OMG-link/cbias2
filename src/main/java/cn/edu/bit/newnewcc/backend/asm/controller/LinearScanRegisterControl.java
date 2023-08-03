@@ -6,7 +6,6 @@ import cn.edu.bit.newnewcc.backend.asm.allocator.StackAllocator;
 import cn.edu.bit.newnewcc.backend.asm.instruction.*;
 import cn.edu.bit.newnewcc.backend.asm.operand.*;
 import cn.edu.bit.newnewcc.backend.asm.util.ImmediateTools;
-import cn.edu.bit.newnewcc.backend.asm.util.Others;
 import org.antlr.v4.runtime.misc.Pair;
 
 import java.util.*;
@@ -95,11 +94,11 @@ public class LinearScanRegisterControl extends RegisterControl{
             }
         }
         Register spillReg = null;
-        int maxR = function.getLifeTimeController().getLifeTimeRange(index).b;
+        int maxR = function.getLifeTimeController().getLifeTimeRange(index).b.getInstID();
         for (var reg : registerPool.keySet()) {
             if (reg.getType() == vreg.getType()) {
                 int original = registerPool.get(reg);
-                int regR = function.getLifeTimeController().getLifeTimeRange(original).b;
+                int regR = function.getLifeTimeController().getLifeTimeRange(original).b.getInstID();
                 if (regR > maxR) {
                     maxR = regR;
                     spillReg = reg;
@@ -123,15 +122,12 @@ public class LinearScanRegisterControl extends RegisterControl{
         List<Pair<Integer, Integer>> recycleList = new ArrayList<>();
         for (var index : function.getLifeTimeController().getKeySet()) {
             vregList.add(function.getRegisterAllocator().get(index));
-            recycleList.add(new Pair<>(index, function.getLifeTimeController().getLifeTimeRange(index).b));
+            recycleList.add(new Pair<>(index, function.getLifeTimeController().getLifeTimeRange(index).b.getInstID()));
         }
         vregList.sort((a, b) -> {
             var lifeTimeA = function.getLifeTimeController().getLifeTimeRange(a.getIndex());
             var lifeTimeB = function.getLifeTimeController().getLifeTimeRange(b.getIndex());
-            if (Objects.equals(lifeTimeA.a, lifeTimeB.a)) {
-                return lifeTimeA.b - lifeTimeB.b;
-            }
-            return lifeTimeA.a - lifeTimeB.a;
+            return lifeTimeA.compareTo(lifeTimeB);
         });
         recycleList.sort(Comparator.comparingInt(a -> a.b));
 
@@ -139,7 +135,7 @@ public class LinearScanRegisterControl extends RegisterControl{
         int recycleHead = 0;
         for (var vreg : vregList) {
             var lifeTime = function.getLifeTimeController().getLifeTimeRange(vreg.getIndex());
-            while (recycleHead < recycleList.size() && recycleList.get(recycleHead).b <= lifeTime.a) {
+            while (recycleHead < recycleList.size() && recycleList.get(recycleHead).b <= lifeTime.a.getInstID()) {
                 recycle(recycleList.get(recycleHead).a);
                 recycleHead += 1;
             }
@@ -153,7 +149,7 @@ public class LinearScanRegisterControl extends RegisterControl{
                 continue;
             }
             var lifeTime = function.getLifeTimeController().getLifeTimeRange(vreg.getIndex());
-            while (recycleHead < recycleList.size() && recycleList.get(recycleHead).b <= lifeTime.a) {
+            while (recycleHead < recycleList.size() && recycleList.get(recycleHead).b <= lifeTime.a.getInstID()) {
                 recycle(recycleList.get(recycleHead).a);
                 recycleHead += 1;
             }
@@ -232,8 +228,8 @@ public class LinearScanRegisterControl extends RegisterControl{
         for (var index : function.getLifeTimeController().getKeySet()) {
             if (vregLocation.get(index) instanceof Register) {
                 var lifeTime = function.getLifeTimeController().getLifeTimeRange(index);
-                callSavedRegisters.get(lifeTime.a).add(new Pair<>(index, 1));
-                callSavedRegisters.get(lifeTime.b + 1).add(new Pair<>(index, -1));
+                callSavedRegisters.get(lifeTime.a.getInstID()).add(new Pair<>(index, 1));
+                callSavedRegisters.get(lifeTime.b.getInstID() + 1).add(new Pair<>(index, -1));
             }
         }
         for (int i = 0; i < instructionList.size(); i++) {
