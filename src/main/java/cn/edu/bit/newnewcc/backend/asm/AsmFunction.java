@@ -95,6 +95,14 @@ public class AsmFunction {
         appendInstruction.accept(new AsmLoad(tmp, new AddressContent(0, rAddress)));
         return tmp;
     }
+    IntRegister transConstLong(long value, Consumer<AsmInstruction> appendInstruction) {
+        var constantLong = globalCode.getConstLong(value);
+        IntRegister rAddress = registerAllocator.allocateInt();
+        IntRegister tmp = registerAllocator.allocateInt();
+        appendInstruction.accept(new AsmLoad(rAddress, constantLong.getConstantTag()));
+        appendInstruction.accept(new AsmLoad(tmp, new AddressContent(0, rAddress), 64));
+        return tmp;
+    }
 
     public void emitCode() {
         //生成具体函数的汇编代码

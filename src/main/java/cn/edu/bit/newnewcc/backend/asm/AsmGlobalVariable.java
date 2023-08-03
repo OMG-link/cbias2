@@ -44,7 +44,7 @@ public class AsmGlobalVariable {
             if (this.isInitialized) {
                 this.getArrayValues(arrayValue);
             } else {
-                this.valueList.add(new ValueTag(ValueTag.Tag.ZERO, this.size));
+                this.valueList.add(ValueTag.getZeroValue(this.size));
             }
         } else {
             this.align = 2;
@@ -59,7 +59,7 @@ public class AsmGlobalVariable {
             } else if (item instanceof ConstFloat arrayItem) {
                 this.valueList.add(new ValueTag(arrayItem.getValue()));
             }
-        }, (Long offset, Long length) -> this.valueList.add(new ValueTag(ValueTag.Tag.ZERO, length)));
+        }, (Long offset, Long length) -> this.valueList.add(ValueTag.getZeroValue(length)));
     }
 
     private boolean isConstant() {

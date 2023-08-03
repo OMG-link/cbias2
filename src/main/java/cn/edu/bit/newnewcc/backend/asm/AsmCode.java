@@ -11,6 +11,7 @@ public class AsmCode {
     private final Map<BaseFunction, AsmFunction> functionMap = new HashMap<>();
     private final Map<GlobalVariable, AsmGlobalVariable> globalVariableMap = new HashMap<>();
     private final Map<Float, AsmConstantFloat> constFloatMap = new HashMap<>();
+    private final Map<Long, AsmConstantLong> constLongMap = new HashMap<>();
 
     public AsmGlobalVariable getGlobalVariable(GlobalVariable key) {
         return globalVariableMap.get(key);
@@ -21,6 +22,12 @@ public class AsmCode {
             constFloatMap.put(value, new AsmConstantFloat(value));
         }
         return constFloatMap.get(value);
+    }
+    AsmConstantLong getConstLong(long value) {
+        if (!constLongMap.containsKey(value)) {
+            constLongMap.put(value, new AsmConstantLong(value));
+        }
+        return constLongMap.get(value);
     }
     public AsmCode(Module module) {
         for (var globalVariable : module.getGlobalVariables()) {
@@ -60,6 +67,10 @@ public class AsmCode {
         for (var constFloat : constFloatMap.keySet()) {
             var constFloatTag = constFloatMap.get(constFloat);
             res.append(constFloatTag.emit()).append('\n');
+        }
+        for (var constLong : constLongMap.keySet()) {
+            var constLongTag = constLongMap.get(constLong);
+            res.append(constLongTag.emit()).append('\n');
         }
         return res.toString();
     }

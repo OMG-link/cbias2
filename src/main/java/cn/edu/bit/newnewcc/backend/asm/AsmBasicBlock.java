@@ -12,10 +12,7 @@ import cn.edu.bit.newnewcc.ir.type.IntegerType;
 import cn.edu.bit.newnewcc.ir.type.PointerType;
 import cn.edu.bit.newnewcc.ir.type.VoidType;
 import cn.edu.bit.newnewcc.ir.value.*;
-import cn.edu.bit.newnewcc.ir.value.constant.ConstArray;
-import cn.edu.bit.newnewcc.ir.value.constant.ConstBool;
-import cn.edu.bit.newnewcc.ir.value.constant.ConstFloat;
-import cn.edu.bit.newnewcc.ir.value.constant.ConstInt;
+import cn.edu.bit.newnewcc.ir.value.constant.*;
 import cn.edu.bit.newnewcc.ir.value.instruction.*;
 
 import java.util.*;
@@ -93,6 +90,8 @@ public class AsmBasicBlock {
             return function.transConstFloat(constFloat.getValue(), appendInstruction);
         } else if (constant instanceof ConstBool constBool) {
             return new Immediate(constBool.getValue() ? 1 : 0);
+        } else if (constant instanceof ConstLong constLong) {
+            return function.transConstLong(constLong.getValue(), appendInstruction);
         }
         throw new RuntimeException("Constant value error");
     }
