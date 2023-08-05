@@ -32,8 +32,11 @@ public class IrPassManager {
                 GlobalCodeMotionPass.runOnModule(module);
                 runOptimizePasses(module);
 
-                // 最后调整一下指令顺序，以得到更好的寄存器分配结果
+                // 调整指令顺序，以得到更好的寄存器分配结果
                 InstructionSchedulePass.runOnModule(module);
+
+                // 最后执行常数乘法的替换，以避免对前面的优化产生干扰
+                ConstIntMultiplyReducePass.runOnModule(module);
 
             }
         }
