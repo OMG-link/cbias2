@@ -1,7 +1,6 @@
 package cn.edu.bit.newnewcc.backend.asm.controller;
 
 import cn.edu.bit.newnewcc.backend.asm.AsmFunction;
-import cn.edu.bit.newnewcc.backend.asm.allocator.RegisterAllocator;
 import cn.edu.bit.newnewcc.backend.asm.allocator.StackAllocator;
 import cn.edu.bit.newnewcc.backend.asm.instruction.AsmAdd;
 import cn.edu.bit.newnewcc.backend.asm.instruction.AsmInstruction;
@@ -13,12 +12,7 @@ import cn.edu.bit.newnewcc.backend.asm.util.ImmediateTools;
 import java.util.*;
 
 public abstract class RegisterControl {
-    public enum TYPE {
-        PRESERVED, UNPRESERVED
-    }
     protected final AsmFunction function;
-    //寄存器在调用过程中保留与否，保留的寄存器需要在函数头尾额外保存
-    protected static final Map<Register, TYPE> registerPreservedType = new HashMap<>();
     protected final Map<Register, StackVar> preservedRegisterSaved = new HashMap<>();
     protected final IntRegister s1 = IntRegister.s1;
     protected final StackVar s1saved;
@@ -48,7 +42,7 @@ public abstract class RegisterControl {
     }
     
     void updateRegisterPreserve(Register register) {
-        if (registerPreservedType.get(register) == TYPE.PRESERVED && !preservedRegisterSaved.containsKey(register)) {
+        if (Register.registerPreservedType.get(register) == Register.PTYPE.PRESERVED && !preservedRegisterSaved.containsKey(register)) {
             preservedRegisterSaved.put(register, stackPool.pop());
         }
     }
@@ -57,26 +51,7 @@ public abstract class RegisterControl {
         this.function = function;
         stackPool = new StackPool(allocator);
         s1saved = stackPool.pop();
-
-        registerPreservedType.put(s1, TYPE.PRESERVED);
-        for (int i = 0; i <= 31; i++) {
-            if ((5 <= i && i <= 7) || (28 <= i)) {
-                Register register = IntRegister.getPhysical(i);
-                registerPreservedType.put(register, TYPE.UNPRESERVED);
-            }
-            if (18 <= i && i <= 27) {
-                Register register = IntRegister.getPhysical(i);
-                registerPreservedType.put(register, TYPE.PRESERVED);
-            }
-            if (18 <= i && i <= 27) {
-                Register register = FloatRegister.getPhysical(i);
-                registerPreservedType.put(register, TYPE.PRESERVED);
-            }
-            if (i <= 9 || 28 <= i) {
-                Register register = FloatRegister.getPhysical(i);
-                registerPreservedType.put(register, TYPE.UNPRESERVED);
-            }
-        }
+        Register.initPreservedType();
     }
 
     void loadFromStackVar(List<AsmInstruction> instList, Register register, StackVar stk) {

@@ -1,12 +1,34 @@
 package cn.edu.bit.newnewcc.backend.asm.operand;
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 public abstract class Register extends AsmOperand implements RegisterReplaceable {
+    //寄存器在调用过程中保留与否，保留的寄存器需要在函数头尾额外保存
+    public static final Map<Register, PTYPE> registerPreservedType = new HashMap<>();
     int index;
     RTYPE rtype;
+
+    public static void initPreservedType() {
+        if (registerPreservedType.isEmpty()) {
+            for (int i = 0; i <= 31; i++) {
+                if ((i == 2) || (8 <= i && i <= 9) || (18 <= i && i <= 27)) {
+                    registerPreservedType.put(IntRegister.getPhysical(i), PTYPE.PRESERVED);
+                } else {
+                    registerPreservedType.put(IntRegister.getPhysical(i), PTYPE.UNPRESERVED);
+                }
+                if ((8 <= i && i <= 9) || (18 <= i && i <= 27)) {
+                    registerPreservedType.put(FloatRegister.getPhysical(i), PTYPE.PRESERVED);
+                } else {
+                    registerPreservedType.put(FloatRegister.getPhysical(i), PTYPE.UNPRESERVED);
+                }
+            }
+        }
+    }
+
+    public boolean isPreserved() {
+        initPreservedType();
+        return registerPreservedType.get(this) == PTYPE.PRESERVED;
+    }
 
     public enum RTYPE {
         INT, FLOAT
@@ -70,5 +92,9 @@ public abstract class Register extends AsmOperand implements RegisterReplaceable
             }
         }
         return res;
+    }
+
+    public enum PTYPE {
+        PRESERVED, UNPRESERVED
     }
 }
