@@ -119,29 +119,6 @@ public abstract class AsmInstruction {
         return res;
     }
 
-    /**
-     * 获取指令修改的寄存器列表
-     * @return 寄存器列表
-     */
-    public Collection<Register> getDirtyRegs() {
-        if (this instanceof AsmCall) {
-            Set<Register> res = new HashSet<>();
-            for (int i = 0; i <= 31; i++) {
-                Register reg = IntRegister.getPhysical(i);
-                if (!reg.isPreserved()) {
-                    res.add(reg);
-                }
-                reg = FloatRegister.getPhysical(i);
-                if (!reg.isPreserved()) {
-                    res.add(reg);
-                }
-            }
-            return res;
-        } else {
-            return getWriteRegSet();
-        }
-    }
-
     protected void setInstructionName(String name) {
         this.instructionName = name;
     }
