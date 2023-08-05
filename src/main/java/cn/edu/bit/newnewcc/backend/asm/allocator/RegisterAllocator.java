@@ -16,28 +16,27 @@ public class RegisterAllocator {
     private final FloatRegisterAllocator floatRegisterAllocator = new FloatRegisterAllocator();
     private final IntRegisterAllocator intRegisterAllocator = new IntRegisterAllocator();
     private final Map<Integer, Register> vregMap = new HashMap<>();
-    public static IntRegister s1 = new IntRegister("s1");
     int total;
     public RegisterAllocator() {
         total = 0;
     }
     public IntRegister allocateInt() {
-        var reg = intRegisterAllocator.allocate(--total);
+        var reg = intRegisterAllocator.allocate(++total);
         vregMap.put(total, reg);
         return reg;
     }
     public FloatRegister allocateFloat() {
-        var reg = floatRegisterAllocator.allocate(--total);
+        var reg = floatRegisterAllocator.allocate(++total);
         vregMap.put(total, reg);
         return reg;
     }
     public IntRegister allocateInt(Instruction instruction) {
-        var reg = intRegisterAllocator.allocate(instruction, --total);
+        var reg = intRegisterAllocator.allocate(instruction, ++total);
         vregMap.put(total, reg);
         return reg;
     }
     public FloatRegister allocateFloat(Instruction instruction) {
-        var reg = floatRegisterAllocator.allocate(instruction, --total);
+        var reg = floatRegisterAllocator.allocate(instruction, ++total);
         vregMap.put(total, reg);
         return reg;
     }
@@ -69,6 +68,6 @@ public class RegisterAllocator {
         }
     }
     public Register get(Integer index) {
-        return vregMap.get(-index);
+        return vregMap.get(index);
     }
 }

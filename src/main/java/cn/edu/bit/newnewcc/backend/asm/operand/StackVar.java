@@ -19,9 +19,9 @@ public class StackVar extends AsmOperand implements RegisterReplaceable {
         super(TYPE.SVAR);
         this.isS0 = isS0;
         if (isS0) {
-            this.address = new AddressContent(offset, new IntRegister("s0"));
+            this.address = new AddressContent(offset, IntRegister.s0);
         } else {
-            this.address = new AddressContent(offset, new IntRegister("sp"));
+            this.address = new AddressContent(offset, IntRegister.sp);
         }
         this.size = size;
     }

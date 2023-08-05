@@ -417,7 +417,7 @@ public class AsmBasicBlock {
             }, (Long offset, Long length) -> {
                 for (long i = 0; i < length; i += 4) {
                     Address goal = getOperandToAddressContent(addressStore.addOffset(offset));
-                    function.appendInstruction(new AsmStore(new IntRegister("zero"), goal));
+                    function.appendInstruction(new AsmStore(IntRegister.zero, goal));
                     offset += 4;
                 }
             });

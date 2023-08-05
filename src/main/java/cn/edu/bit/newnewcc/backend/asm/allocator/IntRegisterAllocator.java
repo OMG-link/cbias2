@@ -14,13 +14,13 @@ public class IntRegisterAllocator {
     }
 
     public IntRegister allocate(Instruction instruction, int index) {
-        IntRegister reg = new IntRegister(index);
+        IntRegister reg = IntRegister.getVirtual(index);
         registerMap.put(instruction, reg);
         return reg;
     }
 
     public IntRegister allocate(int index) {
-        return new IntRegister(index);
+        return IntRegister.getVirtual(index);
     }
 
     public IntRegister get(Instruction instruction) {

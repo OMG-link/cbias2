@@ -54,8 +54,8 @@ public class AsmFunction {
         this.baseFunction = baseFunction;
 
         {
-            Register a0 = new IntRegister("a0");
-            Register fa0 = new FloatRegister("fa0");
+            Register a0 = IntRegister.getParameter(0);
+            Register fa0 = FloatRegister.getParameter(0);
             this.returnRegister = (baseFunction.getReturnType() instanceof FloatType) ?
                     fa0 : (baseFunction.getReturnType() instanceof IntegerType ? a0 : null);
         }
@@ -66,7 +66,7 @@ public class AsmFunction {
             if (parameterType instanceof IntegerType || parameterType instanceof PointerType) {
                 int needSize = parameterType instanceof IntegerType ? 4 : 8;
                 if (intParameterId < 8) {
-                    formalParameters.add(new IntRegister(String.format("a%d", intParameterId)));
+                    formalParameters.add(IntRegister.getParameter(intParameterId));
                 } else {
                     formalParameters.add(new StackVar(stackSize, needSize, false));
                     stackSize += needSize;
@@ -74,7 +74,7 @@ public class AsmFunction {
                 intParameterId += 1;
             } else if (parameterType instanceof FloatType) {
                 if (floatParameterId < 8) {
-                    formalParameters.add(new FloatRegister(String.format("fa%d", floatParameterId)));
+                    formalParameters.add(FloatRegister.getParameter(floatParameterId));
                 } else {
                     formalParameters.add(new StackVar(stackSize, 4, false));
                     stackSize += 4;

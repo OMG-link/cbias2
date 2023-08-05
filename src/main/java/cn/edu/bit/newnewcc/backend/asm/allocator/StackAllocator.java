@@ -96,10 +96,10 @@ public class StackAllocator {
     public Collection<AsmInstruction> emitHead() {
         add_padding();
         List<AsmInstruction> res = new ArrayList<>();
-        IntRegister sp = new IntRegister("sp");
-        IntRegister ra = new IntRegister("ra");
-        IntRegister s0 = new IntRegister("s0");
-        IntRegister t0 = new IntRegister("t0");
+        IntRegister sp = IntRegister.sp;
+        IntRegister ra = IntRegister.ra;
+        IntRegister s0 = IntRegister.s0;
+        IntRegister t0 = IntRegister.getPhysical(5);
         if (savedRa) {
             res.add(new AsmStore(ra, new StackVar(-8, 8, false)));
         }
@@ -117,10 +117,10 @@ public class StackAllocator {
 
     public Collection<AsmInstruction> emitTail() {
         List<AsmInstruction> res = new ArrayList<>();
-        IntRegister sp = new IntRegister("sp");
-        IntRegister ra = new IntRegister("ra");
-        IntRegister s0 = new IntRegister("s0");
-        IntRegister t0 = new IntRegister("t0");
+        IntRegister sp = IntRegister.sp;
+        IntRegister ra = IntRegister.ra;
+        IntRegister s0 = IntRegister.s0;
+        IntRegister t0 = IntRegister.getPhysical(5);
         if (ImmediateTools.bitlengthNotInLimit(maxSize)) {
             res.add(new AsmLoad(t0, new Immediate(maxSize)));
             res.add(new AsmAdd(sp, sp, t0));
@@ -131,7 +131,7 @@ public class StackAllocator {
             res.add(new AsmLoad(ra, new StackVar(-8, 8, false)));
         }
         res.add(new AsmLoad(s0, new StackVar(-16, 8, false)));
-        res.add(new AsmJump(new IntRegister("ra")));
+        res.add(new AsmJump(ra));
         return res;
     }
 }

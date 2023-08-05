@@ -14,13 +14,13 @@ public class FloatRegisterAllocator {
     }
 
     public FloatRegister allocate(Instruction instruction, int index) {
-        FloatRegister reg = new FloatRegister(index);
+        FloatRegister reg = FloatRegister.getVirtual(index);
         registerMap.put(instruction, reg);
         return reg;
     }
 
     public FloatRegister allocate(int index) {
-        return new FloatRegister(index);
+        return FloatRegister.getVirtual(index);
     }
 
     public FloatRegister get(Instruction instruction) {

@@ -20,7 +20,7 @@ public abstract class RegisterControl {
     //寄存器在调用过程中保留与否，保留的寄存器需要在函数头尾额外保存
     protected final Map<Register, TYPE> registerPreservedType = new HashMap<>();
     protected final Map<Register, StackVar> preservedRegisterSaved = new HashMap<>();
-    protected final IntRegister s1 = RegisterAllocator.s1;
+    protected final IntRegister s1 = IntRegister.s1;
     protected final StackVar s1saved;
     protected StackPool stackPool;
 
@@ -61,19 +61,19 @@ public abstract class RegisterControl {
         registerPreservedType.put(s1, TYPE.PRESERVED);
         for (int i = 0; i <= 31; i++) {
             if ((6 <= i && i <= 7) || (28 <= i)) {
-                Register register = new IntRegister(i);
+                Register register = IntRegister.getPhysical(i);
                 registerPreservedType.put(register, TYPE.UNPRESERVED);
             }
             if (18 <= i && i <= 27) {
-                Register register = new IntRegister(i);
+                Register register = IntRegister.getPhysical(i);
                 registerPreservedType.put(register, TYPE.PRESERVED);
             }
             if (18 <= i && i <= 27) {
-                Register register = new FloatRegister(i);
+                Register register = FloatRegister.getPhysical(i);
                 registerPreservedType.put(register, TYPE.PRESERVED);
             }
             if (i <= 7 || 28 <= i) {
-                Register register = new FloatRegister(i);
+                Register register = FloatRegister.getPhysical(i);
                 registerPreservedType.put(register, TYPE.UNPRESERVED);
             }
         }

@@ -1,5 +1,8 @@
 package cn.edu.bit.newnewcc.backend.asm.operand;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * riscv的普通寄存器为x0~x31
  */
@@ -10,37 +13,37 @@ public class IntRegister extends Register {
      *
      * @param index 下标，下标为负数时代表其为暂时未分配的普通临时寄存器，等待分配过程
      */
-    public IntRegister(int index) {
+    private IntRegister(int index) {
         super(index, RTYPE.INT);
     }
 
-    /**
-     * 生成指定名称的寄存器
-     *
-     * @param name 寄存器名称
-     */
-    public IntRegister(String name) {
-        super(name, RTYPE.INT);
+    final static Map<Integer, IntRegister> physicalRegisters = new HashMap<>();
+    final public static IntRegister zero = getPhysical(0);
+    final public static IntRegister ra = getPhysical(1);
+    final public static IntRegister sp = getPhysical(2);
+    final public static IntRegister s0 = getPhysical(8);
+    final public static IntRegister s1 = getPhysical(9);
+
+    public static IntRegister getVirtual(int index) {
+        return new IntRegister(-index);
     }
 
-    public boolean isS0() {
-        return name != null && name.equals("s0");
+    public static IntRegister getPhysical(int index) {
+        if (!physicalRegisters.containsKey(index)) {
+            physicalRegisters.put(index, new IntRegister(index));
+        }
+        return physicalRegisters.get(index);
+    }
+
+    public static IntRegister getParameter(int index) {
+        return getPhysical(index + 10);
     }
 
     public String emit() {
-        if (name != null) {
-            return name;
+        if (index >= 0) {
+            return "x" + index;
         } else {
-            if (index >= 0) {
-                return "x" + index;
-            } else {
-                return "VRegInt" + (-index);
-            }
+            return "VRegInt" + (-index);
         }
-    }
-
-    @Override
-    public Register replaceIndex(int index) {
-        return new IntRegister(-index);
     }
 }

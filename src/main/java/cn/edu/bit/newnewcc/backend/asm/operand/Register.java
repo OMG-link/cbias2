@@ -1,7 +1,6 @@
 package cn.edu.bit.newnewcc.backend.asm.operand;
 
 public abstract class Register extends AsmOperand implements RegisterReplaceable {
-    String name;
     int index;
     RTYPE rtype;
 
@@ -23,22 +22,12 @@ public abstract class Register extends AsmOperand implements RegisterReplaceable
 
     Register(int index, RTYPE type) {
         super(TYPE.REG);
-        this.name = null;
         this.index = index;
         this.rtype = type;
     }
 
-    Register(String name, RTYPE type) {
-        super(TYPE.REG);
-        this.name = name;
-        this.index = 0;
-        this.rtype = type;
-    }
-
-    public abstract Register replaceIndex(int index);
-
     public boolean isVirtual() {
-        return name == null && index < 0;
+        return index < 0;
     }
 
     /**
@@ -48,6 +37,10 @@ public abstract class Register extends AsmOperand implements RegisterReplaceable
         return Math.abs(index);
     }
 
+    /**
+     * 仅在虚拟寄存器复制合并时使用！！！
+     * @param idx 下标
+     */
     public void setIndex(int idx) {
         this.index = idx;
     }
