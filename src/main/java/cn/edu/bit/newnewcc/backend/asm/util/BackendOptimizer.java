@@ -47,7 +47,7 @@ public class BackendOptimizer {
                         }
                     } else if (iSv instanceof AsmJump jump) {
                         if (iLd instanceof AsmAbstractTag tag) {
-                            if (jump.isNotBranchJump() && ((GlobalTag)jump.getOperand(1)).getPureName().equals(tag.getPureName())) {
+                            if (jump.isUnconditional() && ((GlobalTag)jump.getOperand(1)).getPureName().equals(tag.getPureName())) {
                                 popx.accept(1);
                             }
                         }
