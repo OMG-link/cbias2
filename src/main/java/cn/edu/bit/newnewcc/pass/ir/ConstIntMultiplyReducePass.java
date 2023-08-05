@@ -168,7 +168,6 @@ public class ConstIntMultiplyReducePass {
                 operandMap.put(pair.a, pair.b);
             }
         }
-        System.out.println(operandMap.size());
         isInitialized = true;
     }
 
