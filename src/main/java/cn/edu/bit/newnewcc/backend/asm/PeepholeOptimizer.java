@@ -6,7 +6,9 @@ import cn.edu.bit.newnewcc.backend.asm.operand.Immediate;
 import cn.edu.bit.newnewcc.backend.asm.operand.IntRegister;
 import cn.edu.bit.newnewcc.backend.asm.operand.Register;
 
-import java.util.*;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 public class PeepholeOptimizer {
     private PeepholeOptimizer() {
@@ -96,6 +98,12 @@ public class PeepholeOptimizer {
             return Set.of(2);
         } else if (instr instanceof AsmFloatNegate) {
             return Set.of(2);
+        } else if (instr instanceof AsmShiftRightArithmetic || instr instanceof AsmShiftRightLogical) {
+            if (instr.getOperand(3).isRegister()) {
+                return Set.of(2, 3);
+            } else {
+                return Set.of(2);
+            }
         } else {
             return Set.of(2, 3);
         }

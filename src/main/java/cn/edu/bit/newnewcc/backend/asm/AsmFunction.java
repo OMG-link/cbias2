@@ -235,22 +235,6 @@ public class AsmFunction {
         return lifeTimeController;
     }
 
-    /**
-     * 获取一个可以被调用的实际参数
-     * @param index 参数的下标
-     * @return 参数操作数
-     */
-    public AsmOperand getParameterByIndex(int index) {
-        if (index < 0 || index >= formalParameters.size()) {
-            throw new RuntimeException("parameter id error");
-        }
-        var res = formalParameters.get(index);
-        if (res instanceof StackVar stackVar) {
-            return transformStackVar(stackVar.flip());
-        }
-        return res;
-    }
-
     public AsmOperand getParameterByFormal(Value formalParameter) {
         var res = formalParameterMap.get(formalParameter);
         if (res instanceof StackVar stackVar) {
