@@ -27,7 +27,7 @@ public class AsmAdd extends AsmInstruction {
     private final Opcode opcode;
 
     public AsmAdd(IntRegister dest, IntRegister source1, AsmOperand source2, int bitLength) {
-        super("", dest, source1, source2);
+        super(dest, source1, source2);
 
         if (bitLength != 64 && bitLength != 32)
             throw new IllegalArgumentException();
@@ -41,7 +41,7 @@ public class AsmAdd extends AsmInstruction {
         }
     }
     public AsmAdd(FloatRegister dest, FloatRegister source1, FloatRegister source2) {
-        super("", dest, source1, source2);
+        super(dest, source1, source2);
 
         opcode = Opcode.FADDS;
     }

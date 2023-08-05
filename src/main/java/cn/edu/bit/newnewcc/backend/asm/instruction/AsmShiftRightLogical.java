@@ -28,7 +28,7 @@ public class AsmShiftRightLogical extends AsmInstruction {
     private final Opcode opcode;
 
     public AsmShiftRightLogical(IntRegister dest, IntRegister source1, AsmOperand source2, int bitLength) {
-        super("", dest, source1, source2);
+        super(dest, source1, source2);
 
         if (bitLength != 64 && bitLength != 32)
             throw new IllegalArgumentException();

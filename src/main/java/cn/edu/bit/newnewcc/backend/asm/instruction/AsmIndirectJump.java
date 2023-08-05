@@ -4,7 +4,7 @@ import cn.edu.bit.newnewcc.backend.asm.operand.IntRegister;
 
 public class AsmIndirectJump extends AsmInstruction {
     public AsmIndirectJump(IntRegister addressRegister) {
-        super("", addressRegister, null, null);
+        super(addressRegister, null, null);
     }
 
     @Override

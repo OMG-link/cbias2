@@ -29,7 +29,7 @@ public class AsmJump extends AsmInstruction {
     private final Condition condition;
 
     private AsmJump(Opcode opcode, Condition condition, AsmOperand op1, AsmOperand op2, AsmOperand op3) {
-        super("", op1, op2, op3);
+        super(op1, op2, op3);
         this.opcode = opcode;
         this.condition = condition;
     }

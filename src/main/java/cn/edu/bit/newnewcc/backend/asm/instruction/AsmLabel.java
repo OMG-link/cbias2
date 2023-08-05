@@ -10,7 +10,7 @@ public class AsmLabel extends AsmInstruction {
     private final Label label;
 
     public AsmLabel(Label label) {
-        super("", null, null, null);
+        super(null, null, null);
         this.label = label;
     }
 

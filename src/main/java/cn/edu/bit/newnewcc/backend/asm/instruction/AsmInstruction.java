@@ -16,6 +16,12 @@ public abstract class AsmInstruction {
     private String instructionName;
     AsmOperand operand1, operand2, operand3;
 
+    protected AsmInstruction(AsmOperand operand1, AsmOperand operand2, AsmOperand operand3) {
+        this.operand1 = operand1;
+        this.operand2 = operand2;
+        this.operand3 = operand3;
+    }
+
     protected AsmInstruction(String instructionName, AsmOperand operand1, AsmOperand operand2, AsmOperand operand3) {
         this.instructionName = instructionName;
         this.operand1 = operand1;

@@ -4,7 +4,7 @@ import cn.edu.bit.newnewcc.backend.asm.operand.FloatRegister;
 
 public class AsmFloatDivide extends AsmInstruction {
     public AsmFloatDivide(FloatRegister dest, FloatRegister source1, FloatRegister source2) {
-        super("", dest, source1, source2);
+        super(dest, source1, source2);
     }
 
     @Override

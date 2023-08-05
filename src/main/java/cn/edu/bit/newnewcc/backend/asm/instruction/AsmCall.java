@@ -4,7 +4,7 @@ import cn.edu.bit.newnewcc.backend.asm.operand.Label;
 
 public class AsmCall extends AsmInstruction {
     public AsmCall(Label label) {
-        super("", label, null, null);
+        super(label, null, null);
     }
 
     @Override

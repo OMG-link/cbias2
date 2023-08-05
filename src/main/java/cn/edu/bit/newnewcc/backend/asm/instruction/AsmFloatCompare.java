@@ -28,7 +28,7 @@ public class AsmFloatCompare extends AsmInstruction{
     private final Condition condition;
 
     private AsmFloatCompare(Opcode opcode, Condition condition, IntRegister dest, FloatRegister source1, FloatRegister source2) {
-        super("", dest, source1, source2);
+        super(dest, source1, source2);
         this.opcode = opcode;
         this.condition = condition;
     }

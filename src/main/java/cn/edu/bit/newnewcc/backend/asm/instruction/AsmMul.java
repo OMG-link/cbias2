@@ -26,7 +26,7 @@ public class AsmMul extends AsmInstruction {
     private final Opcode opcode;
 
     public AsmMul(IntRegister dest, IntRegister source1, IntRegister source2, int bitLength) {
-        super("", dest, source1, source2);
+        super(dest, source1, source2);
 
         if (bitLength != 64 && bitLength != 32)
             throw new IllegalArgumentException();
@@ -35,7 +35,7 @@ public class AsmMul extends AsmInstruction {
         else opcode = Opcode.MUL;
     }
     public AsmMul(FloatRegister dest, FloatRegister source1, FloatRegister source2) {
-        super("", dest, source1, source2);
+        super(dest, source1, source2);
 
         opcode = Opcode.FMULS;
     }

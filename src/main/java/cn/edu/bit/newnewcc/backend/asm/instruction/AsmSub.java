@@ -28,7 +28,7 @@ public class AsmSub extends AsmInstruction {
     private final Opcode opcode;
 
     public AsmSub(IntRegister dest, IntRegister source1, IntRegister source2, int bitLength) {
-        super("", dest, source1, source2);
+        super(dest, source1, source2);
 
         if (bitLength != 64 && bitLength != 32)
             throw new IllegalArgumentException();
@@ -37,7 +37,7 @@ public class AsmSub extends AsmInstruction {
         else opcode = Opcode.SUB;
     }
     public AsmSub(FloatRegister dest, FloatRegister source1, FloatRegister source2) {
-        super("", dest, source1, source2);
+        super(dest, source1, source2);
         opcode = Opcode.FSUBS;
     }
 

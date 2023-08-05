@@ -24,7 +24,7 @@ public class AsmSignedIntegerRemainder extends AsmInstruction {
     private final Opcode opcode;
 
     public AsmSignedIntegerRemainder(IntRegister dest, IntRegister source1, IntRegister source2, int bitLength) {
-        super("", dest, source1, source2);
+        super(dest, source1, source2);
 
         if (bitLength != 32 && bitLength != 64)
             throw new IllegalArgumentException();

@@ -30,7 +30,7 @@ public class AsmIntegerCompare extends AsmInstruction {
     private final Condition condition;
 
     private AsmIntegerCompare(Opcode opcode, Condition condition, IntRegister dest, AsmOperand source1, AsmOperand source2) {
-        super("", dest, source1, source2);
+        super(dest, source1, source2);
         this.opcode = opcode;
         this.condition = condition;
     }
