@@ -4,18 +4,19 @@ import cn.edu.bit.newnewcc.backend.asm.instruction.*;
 import cn.edu.bit.newnewcc.backend.asm.operand.*;
 import cn.edu.bit.newnewcc.backend.asm.util.ConstArrayTools;
 import cn.edu.bit.newnewcc.backend.asm.util.ImmediateTools;
-import cn.edu.bit.newnewcc.backend.asm.util.Others;
 import cn.edu.bit.newnewcc.ir.Type;
 import cn.edu.bit.newnewcc.ir.Value;
 import cn.edu.bit.newnewcc.ir.type.FloatType;
 import cn.edu.bit.newnewcc.ir.type.IntegerType;
 import cn.edu.bit.newnewcc.ir.type.PointerType;
-import cn.edu.bit.newnewcc.ir.type.VoidType;
 import cn.edu.bit.newnewcc.ir.value.*;
 import cn.edu.bit.newnewcc.ir.value.constant.*;
 import cn.edu.bit.newnewcc.ir.value.instruction.*;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.function.Consumer;
 
 
@@ -312,6 +313,14 @@ public class AsmBasicBlock {
             var ry = getOperandToFloatRegister(getValue(floatDivideInst.getOperand2()));
             FloatRegister result = function.getRegisterAllocator().allocateFloat(floatDivideInst);
             function.appendInstruction(new AsmFloatDivide(result, rx, ry));
+        } else if (binaryInstruction instanceof ShiftLeftInst shiftLeftInst) {
+            int bitLength = shiftLeftInst.getType().getBitWidth();
+            var shx = getOperandToIntRegister(getValue(shiftLeftInst.getOperand1()));
+            var shy = getValue(shiftLeftInst.getOperand2());
+            IntRegister result = function.getRegisterAllocator().allocateInt(shiftLeftInst);
+            function.appendInstruction(new AsmShiftLeft(result, shx, shy, bitLength));
+        } else {
+            throw new RuntimeException("inst type not translated : " + binaryInstruction);
         }
     }
 
@@ -587,6 +596,8 @@ public class AsmBasicBlock {
                 translateBitCastInst(bitCastInst);
             } else if (instruction instanceof PhiInst phiInst) {
                 translatePhiInst(phiInst);
+            } else {
+                throw new RuntimeException("inst type not translated" + instruction);
             }
         } catch (RuntimeException exception) {
             exception.printStackTrace();
