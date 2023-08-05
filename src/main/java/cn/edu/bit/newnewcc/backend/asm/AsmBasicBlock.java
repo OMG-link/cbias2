@@ -287,7 +287,11 @@ public class AsmBasicBlock {
         } else if (binaryInstruction instanceof IntegerSignedDivideInst integerSignedDivideInst) {
             translateIntegerSignedDivideInst(integerSignedDivideInst);
         } else if (binaryInstruction instanceof IntegerSignedRemainderInst integerSignedRemainderInst) {
-            translateIntegerSignedRemainderInst(integerSignedRemainderInst);
+            int bitLength = integerSignedRemainderInst.getType().getBitWidth();
+            var divx = getOperandToIntRegister(getValue(integerSignedRemainderInst.getOperand1()));
+            var divy = getOperandToIntRegister(getValue(integerSignedRemainderInst.getOperand2()));
+            IntRegister register = function.getRegisterAllocator().allocateInt(integerSignedRemainderInst);
+            function.appendInstruction(new AsmSignedIntegerRemainder(register, divx, divy, bitLength));
         } else if (binaryInstruction instanceof CompareInst compareInst) {
             translateCompareInst(compareInst);
         } else if (binaryInstruction instanceof FloatAddInst floatAddInst) {
@@ -405,25 +409,6 @@ public class AsmBasicBlock {
             var divy = getOperandToIntRegister(getValue(integerSignedDivideInst.getOperand2()));
             IntRegister register = function.getRegisterAllocator().allocateInt(integerSignedDivideInst);
             function.appendInstruction(new AsmSignedIntegerDivide(register, divx, divy, bitLength));
-        }
-    }
-
-    private void translateIntegerSignedRemainderInst(IntegerSignedRemainderInst integerSignedRemainderInst) {
-        if (integerSignedRemainderInst.getOperand2() instanceof ConstInt) {
-            var a = integerSignedRemainderInst.getOperand1();
-            var b = integerSignedRemainderInst.getOperand2();
-            var inst1 = new IntegerSignedDivideInst(integerSignedRemainderInst.getType(), a, b);
-            var inst2 = new IntegerMultiplyInst(integerSignedRemainderInst.getType(), inst1, b);
-            var inst3 = new IntegerSubInst(integerSignedRemainderInst.getType(), a, inst2);
-            translateIntegerSignedDivideInst(inst1);
-            translateBinaryInstruction(inst2);
-            translateBinaryInstruction(inst3);
-        } else {
-            int bitLength = integerSignedRemainderInst.getType().getBitWidth();
-            var divx = getOperandToIntRegister(getValue(integerSignedRemainderInst.getOperand1()));
-            var divy = getOperandToIntRegister(getValue(integerSignedRemainderInst.getOperand2()));
-            IntRegister register = function.getRegisterAllocator().allocateInt(integerSignedRemainderInst);
-            function.appendInstruction(new AsmSignedIntegerRemainder(register, divx, divy, bitLength));
         }
     }
 
