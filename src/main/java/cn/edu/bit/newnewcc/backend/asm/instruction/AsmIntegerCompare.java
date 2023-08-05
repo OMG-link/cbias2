@@ -14,19 +14,15 @@ public class AsmIntegerCompare extends AsmInstruction {
         super(null, dest, source1, source2);
         this.condition = condition;
         switch (condition) {
-            case SEQZ:
-                setInstructionName("seqz");
-                break;
-            case SNEZ:
-                setInstructionName("snez");
-                break;
-            case SLT:
+            case SEQZ -> setInstructionName("seqz");
+            case SNEZ -> setInstructionName("snez");
+            case SLT -> {
                 if (source2 instanceof Immediate) {
                     setInstructionName("slti");
                 } else {
                     setInstructionName("slt");
                 }
-                break;
+            }
         }
     }
 }
