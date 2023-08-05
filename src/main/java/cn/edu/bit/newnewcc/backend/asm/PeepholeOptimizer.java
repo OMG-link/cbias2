@@ -96,7 +96,7 @@ public class PeepholeOptimizer {
             } else {
                 return Set.of(2);
             }
-        } else if (instr instanceof AsmTransFloatInt) {
+        } else if (instr instanceof AsmConvertFloatInt) {
             return Set.of(2);
         } else if (instr instanceof AsmFloatNegate) {
             return Set.of(2);

@@ -553,12 +553,12 @@ public class AsmBasicBlock {
     void translateFloatToSignedIntegerInst(FloatToSignedIntegerInst floatToSignedIntegerInst) {
         IntRegister result = function.getRegisterAllocator().allocateInt(floatToSignedIntegerInst);
         FloatRegister source = getOperandToFloatRegister(getValue(floatToSignedIntegerInst.getSourceOperand()));
-        function.appendInstruction(new AsmTransFloatInt(result, source));
+        function.appendInstruction(new AsmConvertFloatInt(result, source));
     }
     void translateSignedIntegerToFloatInst(SignedIntegerToFloatInst signedIntegerToFloatInst) {
         FloatRegister result = function.getRegisterAllocator().allocateFloat(signedIntegerToFloatInst);
         IntRegister source = getOperandToIntRegister(getValue(signedIntegerToFloatInst.getSourceOperand()));
-        function.appendInstruction(new AsmTransFloatInt(result, source));
+        function.appendInstruction(new AsmConvertFloatInt(result, source));
     }
 
     void translateBitCastInst(BitCastInst bitCastInst) {

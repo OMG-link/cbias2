@@ -3,7 +3,7 @@ package cn.edu.bit.newnewcc.backend.asm.instruction;
 import cn.edu.bit.newnewcc.backend.asm.operand.FloatRegister;
 import cn.edu.bit.newnewcc.backend.asm.operand.IntRegister;
 
-public class AsmTransFloatInt extends AsmInstruction {
+public class AsmConvertFloatInt extends AsmInstruction {
     public enum Opcode {
         FCVTWS("fcvt.w.s"),
         FCVTSW("fcvt.s.w");
@@ -21,12 +21,12 @@ public class AsmTransFloatInt extends AsmInstruction {
 
     private final Opcode opcode;
 
-    public AsmTransFloatInt(IntRegister dest, FloatRegister source) {
+    public AsmConvertFloatInt(IntRegister dest, FloatRegister source) {
         super("", dest, source, null);
         opcode = Opcode.FCVTWS;
     }
 
-    public AsmTransFloatInt(FloatRegister dest, IntRegister source) {
+    public AsmConvertFloatInt(FloatRegister dest, IntRegister source) {
         super("", dest, source, null);
         opcode = Opcode.FCVTSW;
     }
