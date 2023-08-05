@@ -1,7 +1,6 @@
 package cn.edu.bit.newnewcc.backend.asm.controller;
 
 import cn.edu.bit.newnewcc.backend.asm.instruction.*;
-import cn.edu.bit.newnewcc.backend.asm.instruction.AsmAbstractTag;
 import cn.edu.bit.newnewcc.backend.asm.instruction.AsmInstruction;
 import cn.edu.bit.newnewcc.backend.asm.instruction.AsmJump;
 import cn.edu.bit.newnewcc.backend.asm.operand.GlobalTag;
