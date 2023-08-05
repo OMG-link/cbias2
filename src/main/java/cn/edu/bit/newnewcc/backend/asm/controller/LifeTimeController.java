@@ -8,7 +8,6 @@ import cn.edu.bit.newnewcc.backend.asm.operand.GlobalTag;
 import cn.edu.bit.newnewcc.backend.asm.operand.Register;
 import cn.edu.bit.newnewcc.backend.asm.operand.RegisterReplaceable;
 import cn.edu.bit.newnewcc.backend.asm.util.ComparablePair;
-import cn.edu.bit.newnewcc.backend.asm.util.Others;
 
 import java.util.*;
 
@@ -200,7 +199,9 @@ public class LifeTimeController {
             lifeTimeInterval.put(index, new ArrayList<>());
             lifeTimeRange.put(index, new ComparablePair<>(l, r));
         }
-        assert(l.compareTo(r) < 0);
+        if (l.compareTo(r) > 0) {
+            throw new RuntimeException("life time interval error");
+        }
         lifeTimeInterval.get(index).add(new ComparablePair<>(l, r));
         l = min(lifeTimeRange.get(index).a, l);
         r = max(lifeTimeRange.get(index).b, r);
@@ -246,7 +247,7 @@ public class LifeTimeController {
         ComparablePair<LifeTimeIndex, LifeTimeIndex> last = null;
         for (var r : iv) {
             if (last != null) {
-                if (r.a.getSourceInst().isMove()) {
+                if (r.a.getSourceInst().isMoveVToV()) {
                     var ids = r.a.getSourceInst().getMoveVReg();
                     if (trueValue.get(ids.a).equals(trueValue.get(ids.b))) {
                         last.b = r.b;
@@ -283,7 +284,9 @@ public class LifeTimeController {
                 blocks.add(now);
                 blockMap.put(now.blockName, now);
             }
-            assert now != null;
+            if (now == null) {
+                throw new RuntimeException("function with no basic blocks");
+            }
             if (inst instanceof AsmJump) {
                 for (int j = 1; j <= 3; j++) {
                     if (inst.getOperand(j) instanceof GlobalTag tag) {

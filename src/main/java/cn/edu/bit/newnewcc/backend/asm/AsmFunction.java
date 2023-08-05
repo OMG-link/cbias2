@@ -296,7 +296,9 @@ public class AsmFunction {
 
             //为下一层的函数参数存储开辟栈空间
             if (!(formalPara instanceof Register)) {
-                assert formalPara instanceof ExStackVarContent;
+                if (!(formalPara instanceof ExStackVarContent)) {
+                    throw new RuntimeException("formal parameter in wrong place");
+                }
                 stackAllocator.push_back((StackVar)formalPara);
             }
 

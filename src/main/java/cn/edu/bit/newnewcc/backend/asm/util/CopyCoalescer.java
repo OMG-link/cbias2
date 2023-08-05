@@ -61,7 +61,7 @@ public class CopyCoalescer {
             value.put(interval, interval);
             int defID = interval.range.a.getInstID();
             var inst = instructions.get(defID);
-            if (inst.isMove()) {
+            if (inst.isMoveVToV()) {
                 var id = inst.getMoveVReg();
                 if (id.a.equals(interval.vRegID)) {
                     var sourceID = id.b;
@@ -156,7 +156,7 @@ public class CopyCoalescer {
     List<AsmInstruction> filtInstructions() {
         List<AsmInstruction> newInstructionList = new ArrayList<>();
         for (var inst : instructions) {
-            if (inst.isMove()) {
+            if (inst.isMoveVToV()) {
                 var r = inst.getMoveVReg();
                 if (r.a.equals(r.b)) {
                     continue;

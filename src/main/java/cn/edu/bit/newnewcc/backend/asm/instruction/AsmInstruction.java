@@ -40,7 +40,9 @@ public class AsmInstruction {
     }
 
     public void replaceOperand(int index, AsmOperand operand) {
-        assert (1 <= index && index <= 3);
+        if (!(1 <= index && index <= 3)) {
+            throw new RuntimeException("asm operand index out of bound");
+        }
         if (index == 1) {
             this.operand1 = operand;
         } else if (index == 2) {
@@ -89,15 +91,19 @@ public class AsmInstruction {
 
     public boolean isMove() {
         if (this instanceof AsmLoad || this instanceof AsmStore) {
-            if (getOperand(1) instanceof Register reg1 && reg1.isVirtual()) {
-                return getOperand(2) instanceof Register reg2 && reg2.isVirtual();
+            if (getOperand(1) instanceof Register) {
+                return getOperand(2) instanceof Register;
             }
         }
         return false;
     }
 
+    public boolean isMoveVToV() {
+        return isMove() && ((Register)getOperand(1)).isVirtual() && ((Register)getOperand(2)).isVirtual();
+    }
+
     public Pair<Integer, Integer> getMoveVReg() {
-        if (!isMove()) {
+        if (!isMoveVToV()) {
             throw new RuntimeException("error: get move reg from not move instruction");
         }
         var writeSet = LifeTimeController.getWriteVRegSet(this);

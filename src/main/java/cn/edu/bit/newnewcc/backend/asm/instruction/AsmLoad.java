@@ -41,7 +41,7 @@ public class AsmLoad extends AsmInstruction {
                     setInstructionName("la");
                 }
             } else if (source.isRegister() && ((Register) source).isInt()) {
-                setInstructionName("c.mv");
+                setInstructionName("mv");
             } else if (source.isAddressTag()) {
                 throw new RuntimeException("cannot load address to register by one instruction");
             }

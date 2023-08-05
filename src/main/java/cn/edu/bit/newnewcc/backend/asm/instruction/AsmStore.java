@@ -26,7 +26,7 @@ public class AsmStore extends AsmInstruction {
                     setInstructionName("sd");
                 }
             } else if (goal.isRegister()) {
-                setInstructionName("c.mv");
+                setInstructionName("mv");
             }
         } else {
             setInstructionName("fsw");
@@ -46,7 +46,7 @@ public class AsmStore extends AsmInstruction {
     @Override
     public String emit() {
         String res = getInstructionName();
-        if (getInstructionName().equals("c.mv") || getInstructionName().equals("fmv.s")) {
+        if (isMove()) {
             res += " " + getOperand(2).emit() + ", " + getOperand(1).emit();
         } else {
             res += " " + getOperand(1).emit() + ", " + getOperand(2).emit();
