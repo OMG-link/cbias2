@@ -68,6 +68,8 @@ public class PeepholeOptimizer {
             } else {
                 return Set.of();
             }
+        } else if (instr instanceof AsmIndirectJump) {
+            return Set.of(1);
         } else if (instr instanceof AsmLoad) {
             if (instr.getOperand(2).isRegister()) {
                 return Set.of(2);
@@ -113,6 +115,8 @@ public class PeepholeOptimizer {
         if (instr instanceof AsmLabel) {
             throw new UnsupportedOperationException();
         } else if (instr instanceof AsmJump) {
+            return Set.of();
+        } else if (instr instanceof AsmIndirectJump) {
             return Set.of();
         } else if (instr instanceof AsmStore) {
             if (instr.getOperand(2).isRegister()) {

@@ -374,16 +374,16 @@ public class AsmBasicBlock {
         var op2 = getOperandToFloatRegister(getValue(floatCompareInst.getOperand2()));
         IntRegister tmp;
         switch (floatCompareInst.getCondition()) {
-            case OLE -> function.appendInstruction(AsmFloatCompare.FLES(result, op1, op2));
-            case OEQ -> function.appendInstruction(AsmFloatCompare.FEQS(result, op1, op2));
-            case OLT -> function.appendInstruction(AsmFloatCompare.FLTS(result, op1, op2));
+            case OLE -> function.appendInstruction(AsmFloatCompare.createLE(result, op1, op2));
+            case OEQ -> function.appendInstruction(AsmFloatCompare.createEQ(result, op1, op2));
+            case OLT -> function.appendInstruction(AsmFloatCompare.createLT(result, op1, op2));
             case ONE -> {
                 tmp = function.getRegisterAllocator().allocateInt();
-                function.appendInstruction(AsmFloatCompare.FEQS(tmp, op1, op2));
+                function.appendInstruction(AsmFloatCompare.createEQ(tmp, op1, op2));
                 function.appendInstruction(new AsmIntegerCompare(result, tmp, null, AsmIntegerCompare.Condition.SEQZ));
             }
-            case OGE -> function.appendInstruction(AsmFloatCompare.FLES(result, op2, op1));
-            case OGT -> function.appendInstruction(AsmFloatCompare.FLTS(result, op2, op1));
+            case OGE -> function.appendInstruction(AsmFloatCompare.createLE(result, op2, op1));
+            case OGT -> function.appendInstruction(AsmFloatCompare.createLT(result, op2, op1));
         }
     }
 
@@ -392,8 +392,8 @@ public class AsmBasicBlock {
         sufTranslatePhiInstructions();
         var trueLabel = getJumpLabel(branchInst.getTrueExit());
         var falseLabel = getJumpLabel(branchInst.getFalseExit());
-        function.appendInstruction(AsmJump.BNEZ(trueLabel, condition));
-        function.appendInstruction(AsmJump.J(falseLabel));
+        function.appendInstruction(AsmJump.createNEZ(trueLabel, condition));
+        function.appendInstruction(AsmJump.createUnconditional(falseLabel));
     }
 
     void translateStoreInst(StoreInst storeInst) {
@@ -464,7 +464,7 @@ public class AsmBasicBlock {
     void translateJumpInst(JumpInst jumpInst) {
         sufTranslatePhiInstructions();
         var jumpLabel = getJumpLabel(jumpInst.getExit());
-        function.appendInstruction(AsmJump.J(jumpLabel));
+        function.appendInstruction(AsmJump.createUnconditional(jumpLabel));
     }
 
     void translateZeroExtensionInst(ZeroExtensionInst zeroExtensionInst) {
@@ -500,7 +500,7 @@ public class AsmBasicBlock {
             var ret = getOperandToFloatRegister(getValue(returnInst.getReturnValue()));
             function.appendInstruction(new AsmLoad(function.getReturnRegister(), ret));
         }
-        function.appendInstruction(AsmJump.J(function.getRetBlockLabel()));
+        function.appendInstruction(AsmJump.createUnconditional(function.getRetBlockLabel()));
     }
 
     void translateAllocateInst(AllocateInst allocateInst) {

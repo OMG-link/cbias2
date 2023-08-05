@@ -20,15 +20,25 @@ public class AsmFloatCompare extends AsmInstruction{
         }
     }
 
-    private final Opcode opcode;
+    public enum Condition {
+        EQ, LT, LE
+    }
 
-    private AsmFloatCompare(Opcode opcode, IntRegister dest, FloatRegister source1, FloatRegister source2) {
+    private final Opcode opcode;
+    private final Condition condition;
+
+    private AsmFloatCompare(Opcode opcode, Condition condition, IntRegister dest, FloatRegister source1, FloatRegister source2) {
         super("", dest, source1, source2);
         this.opcode = opcode;
+        this.condition = condition;
     }
 
     public Opcode getOpcode() {
         return opcode;
+    }
+
+    public Condition getCondition() {
+        return condition;
     }
 
     @Override
@@ -36,15 +46,15 @@ public class AsmFloatCompare extends AsmInstruction{
         return String.format("\t%s %s, %s, %s\n", getOpcode().getName(), getOperand(1), getOperand(2), getOperand(3));
     }
 
-    public static AsmFloatCompare FEQS(IntRegister dest, FloatRegister source1, FloatRegister source2) {
-        return new AsmFloatCompare(Opcode.FEQS, dest, source1, source2);
+    public static AsmFloatCompare createEQ(IntRegister dest, FloatRegister source1, FloatRegister source2) {
+        return new AsmFloatCompare(Opcode.FEQS, Condition.EQ, dest, source1, source2);
     }
 
-    public static AsmFloatCompare FLTS(IntRegister dest, FloatRegister source1, FloatRegister source2) {
-        return new AsmFloatCompare(Opcode.FLTS, dest, source1, source2);
+    public static AsmFloatCompare createLT(IntRegister dest, FloatRegister source1, FloatRegister source2) {
+        return new AsmFloatCompare(Opcode.FLTS, Condition.LT, dest, source1, source2);
     }
 
-    public static AsmFloatCompare FLES(IntRegister dest, FloatRegister source1, FloatRegister source2) {
-        return new AsmFloatCompare(Opcode.FLES, dest, source1, source2);
+    public static AsmFloatCompare createLE(IntRegister dest, FloatRegister source1, FloatRegister source2) {
+        return new AsmFloatCompare(Opcode.FLES, Condition.LE, dest, source1, source2);
     }
 }
