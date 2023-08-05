@@ -126,15 +126,14 @@ public abstract class AsmInstruction {
     public Collection<Register> getModifiedRegisters() {
         if (this instanceof AsmCall) {
             Set<Register> res = new HashSet<>();
-            Register tmp;
             for (int i = 0; i <= 31; i++) {
-                tmp = IntRegister.getPhysical(i);
-                if (!tmp.isPreserved()) {
-                    res.add(tmp);
+                Register reg = IntRegister.getPhysical(i);
+                if (!reg.isPreserved()) {
+                    res.add(reg);
                 }
-                tmp = FloatRegister.getPhysical(i);
-                if (!tmp.isPreserved()) {
-                    res.add(tmp);
+                reg = FloatRegister.getPhysical(i);
+                if (!reg.isPreserved()) {
+                    res.add(reg);
                 }
             }
             return res;
