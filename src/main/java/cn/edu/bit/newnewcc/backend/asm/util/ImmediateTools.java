@@ -16,4 +16,9 @@ public class ImmediateTools {
         var value = immediate.getValue();
         return value >= -2048 && value < 2048;
     }
+
+    public static boolean isIntValue(long value) {
+        int int_max = 0x7fffffff, int_min = -int_max - 1;
+        return int_min <= value && value <= int_max;
+    }
 }

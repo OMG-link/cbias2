@@ -77,20 +77,27 @@ public class AsmBasicBlock {
         throw new RuntimeException("Value type not found : " + value.getValueNameIR());
     }
 
+    AsmOperand getConstInt(int intValue, Consumer<AsmInstruction> appendInstruction) {
+        if (ImmediateTools.bitlengthNotInLimit(intValue)) {
+            IntRegister tmp = function.getRegisterAllocator().allocateInt();
+            appendInstruction.accept(new AsmLoad(tmp, new Immediate(intValue)));
+            return tmp;
+        }
+        return new Immediate(intValue);
+    }
+
     AsmOperand getConstantVar(Constant constant, Consumer<AsmInstruction> appendInstruction) {
         if (constant instanceof ConstInt constInt) {
             var intValue = constInt.getValue();
-            if (ImmediateTools.bitlengthNotInLimit(intValue)) {
-                IntRegister tmp = function.getRegisterAllocator().allocateInt();
-                appendInstruction.accept(new AsmLoad(tmp, new Immediate(intValue)));
-                return tmp;
-            }
-            return new Immediate(constInt.getValue());
+            return getConstInt(intValue, appendInstruction);
         } else if (constant instanceof ConstFloat constFloat) {
             return function.transConstFloat(constFloat.getValue(), appendInstruction);
         } else if (constant instanceof ConstBool constBool) {
             return new Immediate(constBool.getValue() ? 1 : 0);
         } else if (constant instanceof ConstLong constLong) {
+            if (ImmediateTools.isIntValue(constLong.getValue())) {
+                return getConstInt(Math.toIntExact(constLong.getValue()), appendInstruction);
+            }
             return function.transConstLong(constLong.getValue(), appendInstruction);
         }
         throw new RuntimeException("Constant value error");
