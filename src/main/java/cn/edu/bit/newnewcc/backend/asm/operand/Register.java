@@ -54,23 +54,4 @@ public abstract class Register extends AsmOperand implements RegisterReplaceable
     public Register replaceRegister(Register register) {
         return register;
     }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        if (!super.equals(o)) return false;
-
-        Register register = (Register) o;
-
-        if (index != register.index) return false;
-        return rtype == register.rtype;
-    }
-
-    @Override
-    public int hashCode() {
-        int result = index;
-        result = 31 * result + rtype.hashCode();
-        return result;
-    }
 }
