@@ -374,16 +374,16 @@ public class AsmBasicBlock {
         var op2 = getOperandToFloatRegister(getValue(floatCompareInst.getOperand2()));
         IntRegister tmp;
         switch (floatCompareInst.getCondition()) {
-            case OLE -> function.appendInstruction(new AsmFloatCompare(result, op1, op2, AsmFloatCompare.Condition.OLE));
-            case OEQ -> function.appendInstruction(new AsmFloatCompare(result, op1, op2, AsmFloatCompare.Condition.OEQ));
-            case OLT -> function.appendInstruction(new AsmFloatCompare(result, op1, op2, AsmFloatCompare.Condition.OLT));
+            case OLE -> function.appendInstruction(AsmFloatCompare.FLES(result, op1, op2));
+            case OEQ -> function.appendInstruction(AsmFloatCompare.FEQS(result, op1, op2));
+            case OLT -> function.appendInstruction(AsmFloatCompare.FLTS(result, op1, op2));
             case ONE -> {
                 tmp = function.getRegisterAllocator().allocateInt();
-                function.appendInstruction(new AsmFloatCompare(tmp, op1, op2, AsmFloatCompare.Condition.OEQ));
+                function.appendInstruction(AsmFloatCompare.FEQS(tmp, op1, op2));
                 function.appendInstruction(new AsmIntegerCompare(result, tmp, null, AsmIntegerCompare.Condition.SEQZ));
             }
-            case OGE -> function.appendInstruction(new AsmFloatCompare(result, op2, op1, AsmFloatCompare.Condition.OLE));
-            case OGT -> function.appendInstruction(new AsmFloatCompare(result, op2, op1, AsmFloatCompare.Condition.OLT));
+            case OGE -> function.appendInstruction(AsmFloatCompare.FLES(result, op2, op1));
+            case OGT -> function.appendInstruction(AsmFloatCompare.FLTS(result, op2, op1));
         }
     }
 
