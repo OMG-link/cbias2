@@ -4,7 +4,7 @@ import cn.edu.bit.newnewcc.backend.asm.operand.AsmOperand;
 import cn.edu.bit.newnewcc.backend.asm.operand.Immediate;
 import cn.edu.bit.newnewcc.backend.asm.operand.IntRegister;
 
-public class AsmShiftLeft extends AsmBinaryInstruction {
+public class AsmShiftLeft extends AsmInstruction {
     public enum Opcode {
         SLL("sll"),
         SLLI("slli"),

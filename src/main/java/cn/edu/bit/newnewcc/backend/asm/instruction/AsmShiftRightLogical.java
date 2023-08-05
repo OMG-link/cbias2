@@ -7,7 +7,7 @@ import cn.edu.bit.newnewcc.backend.asm.operand.IntRegister;
 /**
  * 逻辑右移指令
  */
-public class AsmShiftRightLogical extends AsmBinaryInstruction {
+public class AsmShiftRightLogical extends AsmInstruction {
     public enum Opcode {
         SRL("srl"),
         SRLI("srli"),

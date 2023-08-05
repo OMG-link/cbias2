@@ -6,7 +6,7 @@ import cn.edu.bit.newnewcc.backend.asm.operand.IntRegister;
 /**
  * 汇编乘法指令，仅支持寄存器间的乘法
  */
-public class AsmMul extends AsmBinaryInstruction {
+public class AsmMul extends AsmInstruction {
     public enum Opcode {
         MUL("mul"),
         MULW("mulw"),
