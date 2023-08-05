@@ -123,7 +123,7 @@ public abstract class AsmInstruction {
      * 获取指令修改的寄存器列表
      * @return 寄存器列表
      */
-    public Collection<Register> getModifiedRegisters() {
+    public Collection<Register> getDirtyRegs() {
         if (this instanceof AsmCall) {
             Set<Register> res = new HashSet<>();
             for (int i = 0; i <= 31; i++) {
