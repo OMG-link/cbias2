@@ -7,8 +7,15 @@ import cn.edu.bit.newnewcc.backend.asm.util.Others;
  * 标签也被视为一类指令
  */
 public class AsmLabel extends AsmInstruction {
+    private final Label label;
+
     public AsmLabel(Label label) {
-        super(label.labelExpression(), null, null, null);
+        super(label.getLabelName() + ":", null, null, null);
+        this.label = label;
+    }
+
+    public Label getLabel() {
+        return label;
     }
 
     public String getPureName() {

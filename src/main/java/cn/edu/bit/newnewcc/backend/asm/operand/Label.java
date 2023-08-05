@@ -54,6 +54,10 @@ public class Label extends AsmOperand {
         this.baseAddress = null;
     }
 
+    public String getLabelName() {
+        return labelName;
+    }
+
     public String getPureName() {
         return Others.deleteCharString(emit(), ":.\n\t ");
     }
@@ -81,15 +85,6 @@ public class Label extends AsmOperand {
         } else {
             return getOffset() + "(" + baseAddress.emit() + ")";
         }
-    }
-
-    /**
-     * 输出一个带冒号的标签，仅用于标签位置
-     *
-     * @return 返回标签名称+括号
-     */
-    public String labelExpression() {
-        return labelName + ":";
     }
 
     public enum SEGMENT {
