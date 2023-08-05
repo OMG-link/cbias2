@@ -119,6 +119,10 @@ public class AsmInstruction {
         return res;
     }
 
+    /**
+     * 获取参数为<br>寄存器</br>的下标（包含在地址内的寄存器不算在内）
+     * @return 参数下标列表
+     */
     public Collection<Integer> getPureRegisterIndices() {
         Set<Integer> res = new HashSet<>();
         for (int i = 1; i <= 3; i++) {
@@ -129,6 +133,10 @@ public class AsmInstruction {
         return res;
     }
 
+    /**
+     * 获取指令修改的寄存器列表
+     * @return 寄存器列表
+     */
     public Collection<Register> getModifiedRegisters() {
         if (this instanceof AsmCall) {
             Set<Register> res = new HashSet<>();
