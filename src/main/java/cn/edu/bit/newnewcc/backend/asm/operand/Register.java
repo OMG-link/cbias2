@@ -1,5 +1,9 @@
 package cn.edu.bit.newnewcc.backend.asm.operand;
 
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
+
 public abstract class Register extends AsmOperand implements RegisterReplaceable {
     int index;
     RTYPE rtype;
@@ -53,5 +57,18 @@ public abstract class Register extends AsmOperand implements RegisterReplaceable
     @Override
     public Register replaceRegister(Register register) {
         return register;
+    }
+
+    public static Collection<Register> getUsableRegisters() {
+        Set<Register> res = new HashSet<>();
+        for (int i = 0; i <= 31; i++) {
+            if ((5 <= i && i <= 7) || (18 <= i)) {
+                res.add(IntRegister.getPhysical(i));
+            }
+            if (i <= 9 || 18 <= i) {
+                res.add(FloatRegister.getPhysical(i));
+            }
+        }
+        return res;
     }
 }

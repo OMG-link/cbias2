@@ -18,7 +18,7 @@ public abstract class RegisterControl {
     }
     protected final AsmFunction function;
     //寄存器在调用过程中保留与否，保留的寄存器需要在函数头尾额外保存
-    protected final Map<Register, TYPE> registerPreservedType = new HashMap<>();
+    protected static final Map<Register, TYPE> registerPreservedType = new HashMap<>();
     protected final Map<Register, StackVar> preservedRegisterSaved = new HashMap<>();
     protected final IntRegister s1 = IntRegister.s1;
     protected final StackVar s1saved;
