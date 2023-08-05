@@ -140,9 +140,10 @@ public class AsmFunction {
             if (!DEBUG_MODE) {
                 lifeTimeController.getAllVRegLifeTime(instructionList);
                 asmOptimizerBeforeRegisterAllocate(lifeTimeController);
-                PeepholeOptimizer.run(instructionList, registerAllocator);
+                PeepholeOptimizer.runBeforeAllocation(instructionList);
                 reAllocateRegister();
                 asmOptimizerAfterRegisterAllocate();
+                PeepholeOptimizer.runAfterAllocation(instructionList);
             }
         }
     }
