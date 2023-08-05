@@ -27,4 +27,9 @@ public class LifeTimePoint {
     public boolean isUse() {
         return type == TYPE.use;
     }
+
+    @Override
+    public String toString() {
+        return index.toString() + (type == TYPE.use ? ":use" : ":def");
+    }
 }

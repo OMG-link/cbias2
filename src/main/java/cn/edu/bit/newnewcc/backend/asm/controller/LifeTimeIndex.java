@@ -1,11 +1,14 @@
 package cn.edu.bit.newnewcc.backend.asm.controller;
 
+import cn.edu.bit.newnewcc.backend.asm.instruction.AsmInstruction;
+
 public class LifeTimeIndex implements Comparable<LifeTimeIndex> {
     private enum TYPE {
         in, out
     }
 
-    private final int instID;
+    private final LifeTimeController lifeTimeController;
+    private final AsmInstruction sourceInst;
     private final TYPE type;
 
     public boolean isIn() {
@@ -16,31 +19,41 @@ public class LifeTimeIndex implements Comparable<LifeTimeIndex> {
         return type == TYPE.out;
     }
 
-    private LifeTimeIndex(int instID, TYPE type) {
-        this.instID = instID;
+    private LifeTimeIndex(LifeTimeController lifeTimeController, AsmInstruction sourceInst, TYPE type) {
+        this.lifeTimeController = lifeTimeController;
+        this.sourceInst = sourceInst;
         this.type = type;
     }
 
     public int getInstID() {
-        return instID;
+        return lifeTimeController.getInstID(sourceInst);
     }
 
-    static LifeTimeIndex getInstIn(int instID) {
-        return new LifeTimeIndex(instID, TYPE.in);
+    public AsmInstruction getSourceInst() {
+        return sourceInst;
     }
 
-    static LifeTimeIndex getInstOut(int instID) {
-        return new LifeTimeIndex(instID, TYPE.out);
+    static LifeTimeIndex getInstIn(LifeTimeController lifeTimeController, AsmInstruction sourceInst) {
+        return new LifeTimeIndex(lifeTimeController, sourceInst, TYPE.in);
+    }
+
+    static LifeTimeIndex getInstOut(LifeTimeController lifeTimeController, AsmInstruction sourceInst) {
+        return new LifeTimeIndex(lifeTimeController, sourceInst, TYPE.out);
     }
 
     @Override
     public int compareTo(LifeTimeIndex o) {
-        if (instID != o.instID) {
-            return instID - o.instID;
+        if (getInstID() != o.getInstID()) {
+            return getInstID() - o.getInstID();
         }
         if (type != o.type) {
             return type == TYPE.in ? -1 : 1;
         }
         return 0;
+    }
+
+    @Override
+    public String toString() {
+        return getInstID() + ((type == TYPE.in) ? ".in" : ".out");
     }
 }

@@ -138,7 +138,8 @@ public class AsmFunction {
                 Others.check(this.instructionList);
             }
             if (!DEBUG_MODE) {
-                asmOptimizerBeforeRegisterAllocate();
+                lifeTimeController.getAllVRegLifeTime(instructionList);
+                asmOptimizerBeforeRegisterAllocate(lifeTimeController);
                 reAllocateRegister();
                 asmOptimizerAfterRegisterAllocate();
             }
@@ -351,28 +352,9 @@ public class AsmFunction {
         return transformStackVar(stackVar, instructionList);
     }
 
-    /**
-     * 重新分配栈偏移量的过程，避免offset超出11位导致汇编错误
-     */
-    private void reAllocateStackVar() {
-        List<AsmInstruction> newInstructionList = new ArrayList<>();
-        for (var inst : instructionList) {
-            for (int j = 1; j <= 3; j++) {
-                AsmOperand operand = inst.getOperand(j);
-                if (operand instanceof StackVar stackVar && !(operand instanceof ExStackVarContent)) {
-                    inst.replaceOperand(j, transformStackVar(stackVar, newInstructionList));
-                }
-            }
-            newInstructionList.add(inst);
-        }
-        this.instructionList = newInstructionList;
-    }
-
-
     //未分配寄存器的分配方法
-    private void reAllocateRegister() {
-        lifeTimeController.getAllVRegLifeTime(instructionList);
 
+    private void reAllocateRegister() {
         RegisterControl registerController = new LinearScanRegisterControl(this, stackAllocator);
         registerController.virtualRegAllocateToPhysics();
         var newInstructionList = registerController.spillRegisters(instructionList);
@@ -391,10 +373,9 @@ public class AsmFunction {
         this.instructionList.addAll(registerController.emitTail());
     }
 
-    //寄存器分配前的优化器，用于合并重复虚拟寄存器
-    private void asmOptimizerBeforeRegisterAllocate() {
-        //instructionList = BackendOptimizer.beforeAllocateScanForward(new ArrayList<>(instructionList));
-        //由于翻译phi指令导致的寄存器合并无法纳入优化过程
+    //寄存器分配前的优化器，用于合并copy后的权值
+    private void asmOptimizerBeforeRegisterAllocate(LifeTimeController lifeTimeController) {
+        instructionList = BackendOptimizer.beforeAllocateScanForward(instructionList, lifeTimeController);
     }
 
 

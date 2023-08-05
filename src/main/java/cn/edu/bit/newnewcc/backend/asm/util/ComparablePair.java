@@ -16,4 +16,9 @@ public class ComparablePair<A extends Comparable<A>, B extends Comparable<B>> im
         }
         return b.compareTo(o.b);
     }
+
+    @Override
+    public String toString() {
+        return "<" + a.toString() + "," + b.toString() + ">";
+    }
 }

@@ -8,42 +8,11 @@ import java.util.*;
 import java.util.function.Consumer;
 
 public class BackendOptimizer {
-    public static ArrayList<AsmInstruction> beforeAllocateScanForward(ArrayList<AsmInstruction> instructionList) {
-        DSU<Integer> dsu = new DSU<>();
-        for (AsmInstruction iMov : instructionList) {
-            if (iMov instanceof AsmLoad || iMov instanceof AsmStore) {
-                if (iMov.getOperand(1) instanceof Register r1 && iMov.getOperand(2) instanceof Register r2) {
-                    if (r1.isVirtual() && r2.isVirtual() && r1.getType() == r2.getType()) {
-                        dsu.merge(r1.getIndex(), r2.getIndex());
-                    }
-                }
-            }
-        }
-        for (AsmInstruction inst : instructionList) {
-            for (int j = 1; j <= 3; j++) {
-                var op = inst.getOperand(j);
-                if (op instanceof RegisterReplaceable registerReplaceable) {
-                    var reg = registerReplaceable.getRegister();
-                    if (reg.isVirtual()) {
-                        var replaceReg = reg.replaceIndex(dsu.getfa(reg.getIndex()));
-                        inst.replaceOperand(j, registerReplaceable.replaceRegister(replaceReg));
-                    }
-                }
-            }
-        }
-        ArrayList<AsmInstruction> newInstructionList = new ArrayList<>();
-        for (AsmInstruction iMov : instructionList) {
-            if (iMov instanceof AsmLoad || iMov instanceof AsmStore) {
-                if (iMov.getOperand(1) instanceof Register r1 && iMov.getOperand(2) instanceof Register r2) {
-                    if (r1.getIndex() == r2.getIndex()) {
-                        continue;
-                    }
-                }
-            }
-            newInstructionList.add(iMov);
-        }
-        return newInstructionList;
+    public static List<AsmInstruction> beforeAllocateScanForward(List<AsmInstruction> instructionList, LifeTimeController lifeTimeController) {
+        CopyCoalescer copyCoalescer = new CopyCoalescer(new ArrayList<>(instructionList), lifeTimeController);
+        return copyCoalescer.work();
     }
+
     public static LinkedList<AsmInstruction> afterAllocateScanForward(LinkedList<AsmInstruction> oldInstructionList) {
         LinkedList<AsmInstruction> newInstructionList = new LinkedList<>();
         while (oldInstructionList.size() > 0) {

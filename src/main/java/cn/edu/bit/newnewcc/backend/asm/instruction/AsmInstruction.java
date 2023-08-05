@@ -1,7 +1,9 @@
 package cn.edu.bit.newnewcc.backend.asm.instruction;
 
+import cn.edu.bit.newnewcc.backend.asm.controller.LifeTimeController;
 import cn.edu.bit.newnewcc.backend.asm.operand.*;
 import cn.edu.bit.newnewcc.backend.asm.util.Others;
+import cn.edu.bit.newnewcc.backend.asm.util.Pair;
 
 /**
  * 汇编指令基类
@@ -83,6 +85,24 @@ public class AsmInstruction {
             res = '\t' + res;
         }
         return res + "\n";
+    }
+
+    public boolean isMove() {
+        if (this instanceof AsmLoad || this instanceof AsmStore) {
+            if (getOperand(1) instanceof Register reg1 && reg1.isVirtual()) {
+                return getOperand(2) instanceof Register reg2 && reg2.isVirtual();
+            }
+        }
+        return false;
+    }
+
+    public Pair<Integer, Integer> getMoveVReg() {
+        if (!isMove()) {
+            throw new RuntimeException("error: get move reg from not move instruction");
+        }
+        var writeSet = LifeTimeController.getWriteVRegSet(this);
+        var readSet = LifeTimeController.getReadVRegSet(this);
+        return new Pair<>((Integer) writeSet.toArray()[0], (Integer) readSet.toArray()[0]);
     }
 
     @Override
