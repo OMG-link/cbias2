@@ -129,7 +129,6 @@ public class AsmInstruction {
         return res;
     }
 
-    /*
     public Collection<Register> getModifiedRegisters() {
         if (this instanceof AsmCall) {
             Set<Register> res = new HashSet<>();
@@ -148,7 +147,7 @@ public class AsmInstruction {
         } else {
             return getWriteRegSet();
         }
-    }*/
+    }
 
     protected void setInstructionName(String name) {
         this.instructionName = name;

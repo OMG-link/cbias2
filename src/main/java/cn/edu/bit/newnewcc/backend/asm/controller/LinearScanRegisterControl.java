@@ -192,7 +192,7 @@ public class LinearScanRegisterControl extends RegisterControl{
             if (inst instanceof AsmCall) {
                 Map<Register, StackVar> callSaved = new HashMap<>();
                 for (var reg : registerPool.keySet()) {
-                    if (registerPool.get(reg) != 0 && Register.registerPreservedType.get(reg) != Register.PTYPE.PRESERVED) {
+                    if (registerPool.get(reg) != 0 && !reg.isPreserved()) {
                         var tmp = stackPool.pop();
                         callSaved.put(reg, tmp);
                         saveToStackVar(newInstList, reg, tmp);

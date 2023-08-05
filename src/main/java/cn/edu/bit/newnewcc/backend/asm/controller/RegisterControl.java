@@ -42,7 +42,7 @@ public abstract class RegisterControl {
     }
     
     void updateRegisterPreserve(Register register) {
-        if (Register.registerPreservedType.get(register) == Register.PTYPE.PRESERVED && !preservedRegisterSaved.containsKey(register)) {
+        if (register.isPreserved() && !preservedRegisterSaved.containsKey(register)) {
             preservedRegisterSaved.put(register, stackPool.pop());
         }
     }
@@ -51,7 +51,6 @@ public abstract class RegisterControl {
         this.function = function;
         stackPool = new StackPool(allocator);
         s1saved = stackPool.pop();
-        Register.initPreservedType();
     }
 
     void loadFromStackVar(List<AsmInstruction> instList, Register register, StackVar stk) {
