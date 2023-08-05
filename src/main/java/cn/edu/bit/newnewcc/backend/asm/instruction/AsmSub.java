@@ -12,12 +12,12 @@ public class AsmSub extends AsmBinaryInstruction {
     /**
      * 汇编减指令
      *
-     * @param goal    结果存储的寄存器
+     * @param dest    结果存储的寄存器
      * @param source1 源寄存器1，存储被减数
      * @param source2 源2，存储减数，可能为寄存器或立即数
      */
-    public AsmSub(IntRegister goal, IntRegister source1, AsmOperand source2, int bitLength) {
-        super("sub", goal, source1, source2);
+    public AsmSub(IntRegister dest, IntRegister source1, AsmOperand source2, int bitLength) {
+        super("sub", dest, source1, source2);
         if (bitLength == 32) {
             setInstructionName("subw");
         }
@@ -29,7 +29,7 @@ public class AsmSub extends AsmBinaryInstruction {
             setOperand3(new Immediate(-((Immediate)source2).getValue()));
         }
     }
-    public AsmSub(FloatRegister goal, FloatRegister source1, FloatRegister source2) {
-        super("fsub.s", goal, source1, source2);
+    public AsmSub(FloatRegister dest, FloatRegister source1, FloatRegister source2) {
+        super("fsub.s", dest, source1, source2);
     }
 }

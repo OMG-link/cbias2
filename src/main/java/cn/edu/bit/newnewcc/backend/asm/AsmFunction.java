@@ -36,10 +36,10 @@ public class AsmFunction {
     private final Map<Value, AsmOperand> formalParameterMap = new HashMap<>();
     private final List<AsmBasicBlock> basicBlocks = new ArrayList<>();
     private final Map<BasicBlock, AsmBasicBlock> basicBlockMap = new HashMap<>();
-    private final Map<AsmBasicBlock, AsmTag> blockAsmTagMap = new HashMap<>();
-    private final Map<AsmTag, AsmBasicBlock> asmTagBlockMap = new HashMap<>();
+    private final Map<AsmBasicBlock, AsmLabel> blockAsmLabelMap = new HashMap<>();
+    private final Map<AsmLabel, AsmBasicBlock> asmLabelBlockMap = new HashMap<>();
     private List<AsmInstruction> instructionList = new ArrayList<>();
-    private final GlobalTag retBlockTag;
+    private final Label retBlockLabel;
     private final BaseFunction baseFunction;
     private final Register returnRegister;
 
@@ -60,7 +60,7 @@ public class AsmFunction {
                     fa0 : (baseFunction.getReturnType() instanceof IntegerType ? a0 : null);
         }
 
-        retBlockTag = new GlobalTag(functionName + "_ret", false);
+        retBlockLabel = new Label(functionName + "_ret", false);
         int stackSize = 0;
         for (var parameterType : baseFunction.getParameterTypes()) {
             if (parameterType instanceof IntegerType || parameterType instanceof PointerType) {
@@ -88,7 +88,7 @@ public class AsmFunction {
         var constantFloat = globalCode.getConstFloat(value);
         IntRegister rAddress = registerAllocator.allocateInt();
         FloatRegister tmp = registerAllocator.allocateFloat();
-        appendInstruction.accept(new AsmLoad(rAddress, constantFloat.getConstantTag()));
+        appendInstruction.accept(new AsmLoad(rAddress, constantFloat.getConstantLabel()));
         appendInstruction.accept(new AsmLoad(tmp, new AddressContent(0, rAddress)));
         return tmp;
     }
@@ -96,7 +96,7 @@ public class AsmFunction {
         var constantLong = globalCode.getConstLong(value);
         IntRegister rAddress = registerAllocator.allocateInt();
         IntRegister tmp = registerAllocator.allocateInt();
-        appendInstruction.accept(new AsmLoad(rAddress, constantLong.getConstantTag()));
+        appendInstruction.accept(new AsmLoad(rAddress, constantLong.getConstantLabel()));
         appendInstruction.accept(new AsmLoad(tmp, new AddressContent(0, rAddress), 64));
         return tmp;
     }
@@ -198,21 +198,17 @@ public class AsmFunction {
         return basicBlockMap.get(block);
     }
 
-    public AsmTag getBlockAsmTag(AsmBasicBlock block) {
-        return blockAsmTagMap.get(block);
-    }
-
-    public void putBlockAsmTag(AsmBasicBlock block, AsmTag tag) {
-        blockAsmTagMap.put(block, tag);
-        asmTagBlockMap.put(tag, block);
+    public void putBlockAsmLabel(AsmBasicBlock block, AsmLabel label) {
+        blockAsmLabelMap.put(block, label);
+        asmLabelBlockMap.put(label, block);
     }
 
     public String getFunctionName() {
         return Objects.requireNonNull(functionName);
     }
 
-    public GlobalTag getRetBlockTag() {
-        return retBlockTag;
+    public Label getRetBlockLabel() {
+        return retBlockLabel;
     }
 
     public AsmCode getGlobalCode() {
@@ -357,7 +353,7 @@ public class AsmFunction {
         }
         this.instructionList = registerController.emitHead();
         this.instructionList.addAll(newInstructionList);
-        this.instructionList.add(new AsmTag(retBlockTag));
+        this.instructionList.add(new AsmLabel(retBlockLabel));
         this.instructionList.addAll(registerController.emitTail());
     }
 

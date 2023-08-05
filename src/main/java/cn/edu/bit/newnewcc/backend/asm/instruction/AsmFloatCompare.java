@@ -7,8 +7,8 @@ public class AsmFloatCompare extends AsmInstruction{
     public enum Condition {
         OEQ, OLT, OLE
     }
-    public AsmFloatCompare(IntRegister result, FloatRegister operand1, FloatRegister operand2, Condition condition) {
-        super(null, result, operand1, operand2);
+    public AsmFloatCompare(IntRegister dest, FloatRegister source1, FloatRegister source2, Condition condition) {
+        super(null, dest, source1, source2);
         switch (condition) {
             case OEQ -> setInstructionName("feq.s");
             case OLT -> setInstructionName("flt.s");

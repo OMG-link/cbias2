@@ -64,13 +64,13 @@ public class AsmCode {
             }
         }
         res.append(".section .rodata\n");
-        for (var constFloat : constFloatMap.keySet()) {
-            var constFloatTag = constFloatMap.get(constFloat);
-            res.append(constFloatTag.emit()).append('\n');
+        for (var key : constFloatMap.keySet()) {
+            var constFloat = constFloatMap.get(key);
+            res.append(constFloat.emit()).append('\n');
         }
-        for (var constLong : constLongMap.keySet()) {
-            var constLongTag = constLongMap.get(constLong);
-            res.append(constLongTag.emit()).append('\n');
+        for (var key : constLongMap.keySet()) {
+            var constLong = constLongMap.get(key);
+            res.append(constLong.emit()).append('\n');
         }
         return res.toString();
     }

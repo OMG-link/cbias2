@@ -1,14 +1,14 @@
 package cn.edu.bit.newnewcc.backend.asm.instruction;
 
-import cn.edu.bit.newnewcc.backend.asm.operand.GlobalTag;
+import cn.edu.bit.newnewcc.backend.asm.operand.Label;
 import cn.edu.bit.newnewcc.backend.asm.util.Others;
 
 /**
  * 标签也被视为一类指令
  */
-public class AsmTag extends AsmInstruction {
-    public AsmTag(GlobalTag tag) {
-        super(tag.tagExpress(), null, null, null);
+public class AsmLabel extends AsmInstruction {
+    public AsmLabel(Label label) {
+        super(label.labelExpression(), null, null, null);
     }
 
     public String getPureName() {

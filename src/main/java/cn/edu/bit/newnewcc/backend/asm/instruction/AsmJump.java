@@ -1,6 +1,6 @@
 package cn.edu.bit.newnewcc.backend.asm.instruction;
 
-import cn.edu.bit.newnewcc.backend.asm.operand.GlobalTag;
+import cn.edu.bit.newnewcc.backend.asm.operand.Label;
 import cn.edu.bit.newnewcc.backend.asm.operand.IntRegister;
 
 public class AsmJump extends AsmInstruction {
@@ -12,26 +12,23 @@ public class AsmJump extends AsmInstruction {
         NEZ
     }
 
-    private GlobalTag goalTag;
-
     /**
      * 基本跳转指令，按照条件向指定位置跳转
      *
-     * @param goalTag  跳转的目标位置
+     * @param targetLabel  跳转的目标位置
      * @param type     跳转条件的类型
-     * @param operand1 跳转条件参数1
-     * @param operand2 跳转条件参数2
+     * @param source1 跳转条件参数1
+     * @param source2 跳转条件参数2
      */
-    public AsmJump(GlobalTag goalTag, JUMPTYPE type, IntRegister operand1, IntRegister operand2) {
+    public AsmJump(Label targetLabel, JUMPTYPE type, IntRegister source1, IntRegister source2) {
         super("", null, null, null);
-        this.goalTag = goalTag;
         if (type == JUMPTYPE.NON) {
             setInstructionName("j");
-            setOperand1(goalTag);
+            setOperand1(targetLabel);
         } else if (type == JUMPTYPE.NEZ) {
             setInstructionName("bnez");
-            setOperand1(operand1);
-            setOperand2(goalTag);
+            setOperand1(source1);
+            setOperand2(targetLabel);
         }
     }
 

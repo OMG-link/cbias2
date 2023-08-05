@@ -56,7 +56,7 @@ public class PeepholeOptimizer {
     );
 
     private static Set<Integer> getSourceRegIndices(AsmInstruction instr) {
-        if (instr instanceof AsmTag) {
+        if (instr instanceof AsmLabel) {
             throw new UnsupportedOperationException();
         } else if (instr instanceof AsmCall) {
             return Set.of();
@@ -110,7 +110,7 @@ public class PeepholeOptimizer {
     }
 
     private static Set<Register> getModifiedRegs(AsmInstruction instr) {
-        if (instr instanceof AsmTag) {
+        if (instr instanceof AsmLabel) {
             throw new UnsupportedOperationException();
         } else if (instr instanceof AsmJump) {
             return Set.of();
@@ -132,7 +132,7 @@ public class PeepholeOptimizer {
         Set<Register> zeroRegs = new HashSet<>();
 
         for (AsmInstruction instr : instrList) {
-            if (instr instanceof AsmTag) {
+            if (instr instanceof AsmLabel) {
                 zeroRegs.clear();
             } else if (instr instanceof AsmLoad && instr.getOperand(2).isImmediate() && ((Immediate) instr.getOperand(2)).getValue() == 0) {
                 zeroRegs.add((Register) instr.getOperand(1));

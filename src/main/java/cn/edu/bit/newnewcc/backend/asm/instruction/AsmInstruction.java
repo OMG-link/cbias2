@@ -55,9 +55,9 @@ public abstract class AsmInstruction {
         var res = new HashSet<Integer>();
         for (int i = 1; i <= 3; i++) {
             if (getOperand(i) instanceof RegisterReplaceable) {
-                boolean tag = (this instanceof AsmStore) ? (i == 1 || (i == 2 && !(getOperand(i) instanceof Register))) :
+                boolean flag = (this instanceof AsmStore) ? (i == 1 || (i == 2 && !(getOperand(i) instanceof Register))) :
                         (this instanceof AsmJump || (i > 1));
-                if (tag) {
+                if (flag) {
                     res.add(i);
                 }
             }
@@ -222,7 +222,7 @@ public abstract class AsmInstruction {
                 }
             }
         }
-        if (!(this instanceof AsmTag)) {
+        if (!(this instanceof AsmLabel)) {
             res = '\t' + res;
         }
         return res + "\n";

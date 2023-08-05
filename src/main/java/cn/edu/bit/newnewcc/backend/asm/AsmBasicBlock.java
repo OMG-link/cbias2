@@ -28,8 +28,8 @@ import static java.lang.Math.abs;
  * 汇编基本块
  */
 public class AsmBasicBlock {
-    private final GlobalTag blockTag;
-    private final AsmTag instBlockTag;
+    private final Label blockLabel;
+    private final AsmLabel instBlockLabel;
     private final AsmFunction function;
     private final BasicBlock irBlock;
     private final Map<BasicBlock, List<AsmInstruction>> phiOperation = new HashMap<>();
@@ -37,17 +37,17 @@ public class AsmBasicBlock {
 
     public AsmBasicBlock(AsmFunction function, BasicBlock block) {
         this.function = function;
-        this.blockTag = new GlobalTag(function.getFunctionName() + "_" + block.getValueName(), false);
+        this.blockLabel = new Label(function.getFunctionName() + "_" + block.getValueName(), false);
         this.irBlock = block;
-        this.instBlockTag = new AsmTag(blockTag);
-        function.putBlockAsmTag(this, instBlockTag);
+        this.instBlockLabel = new AsmLabel(blockLabel);
+        function.putBlockAsmLabel(this, instBlockLabel);
     }
 
     /**
      * 生成基本块的汇编代码，向函数中输出指令
      */
     void emitToFunction() {
-        function.appendInstruction(instBlockTag);
+        function.appendInstruction(instBlockLabel);
         for (Instruction instruction : irBlock.getInstructions()) {
             translate(instruction);
         }
@@ -63,7 +63,7 @@ public class AsmBasicBlock {
         if (value instanceof GlobalVariable globalVariable) {
             AsmGlobalVariable asmGlobalVariable = function.getGlobalCode().getGlobalVariable(globalVariable);
             IntRegister reg = function.getRegisterAllocator().allocateInt();
-            function.appendInstruction(new AsmLoad(reg, asmGlobalVariable.emitNoSegmentTag()));
+            function.appendInstruction(new AsmLoad(reg, asmGlobalVariable.emitNoSegmentLabel()));
             return new AddressContent(0, reg);
         } else if (value instanceof Function.FormalParameter formalParameter) {
             return function.getParameterByFormal(formalParameter);
@@ -112,24 +112,24 @@ public class AsmBasicBlock {
     AsmOperand getValueByType(Value value, Type type) {
         var result = getValue(value);
         if (type instanceof PointerType && result instanceof Address address) {
-            return getAddressToIntRegister(address.getAddressTag());
+            return getAddressToIntRegister(address.getAddressDirective());
         } else {
             return result;
         }
     }
 
-    IntRegister getAddressToIntRegister(Address addressTag) {
-        if (addressTag.getOffset() == 0) {
-            return addressTag.getRegister();
+    IntRegister getAddressToIntRegister(Address addressDirective) {
+        if (addressDirective.getOffset() == 0) {
+            return addressDirective.getRegister();
         } else {
-            int offset = Math.toIntExact(addressTag.getOffset());
+            int offset = Math.toIntExact(addressDirective.getOffset());
             var tmp = function.getRegisterAllocator().allocateInt();
             if (ImmediateTools.bitlengthNotInLimit(offset)) {
                 var reg = function.getRegisterAllocator().allocateInt();
                 function.appendInstruction(new AsmLoad(reg, new Immediate(offset)));
-                function.appendInstruction(new AsmAdd(tmp, reg, addressTag.getRegister()));
+                function.appendInstruction(new AsmAdd(tmp, reg, addressDirective.getRegister()));
             } else {
-                function.appendInstruction(new AsmAdd(tmp, addressTag.getRegister(), new Immediate(offset)));
+                function.appendInstruction(new AsmAdd(tmp, addressDirective.getRegister(), new Immediate(offset)));
             }
             return tmp;
         }
@@ -138,8 +138,8 @@ public class AsmBasicBlock {
     IntRegister getOperandToIntRegister(AsmOperand operand) {
         if (operand instanceof IntRegister intRegister) {
             return intRegister;
-        } else if (operand instanceof AddressTag addressTag) {
-            return getAddressToIntRegister(addressTag);
+        } else if (operand instanceof AddressDirective addressDirective) {
+            return getAddressToIntRegister(addressDirective);
         }
         IntRegister res = function.getRegisterAllocator().allocateInt();
         function.appendInstruction(new AsmLoad(res, operand));
@@ -176,43 +176,43 @@ public class AsmBasicBlock {
         return res;
     }
 
-    GlobalTag getJumpGlobalTag(BasicBlock jumpBlock) {
+    Label getJumpLabel(BasicBlock jumpBlock) {
         AsmBasicBlock block = function.getBasicBlock(jumpBlock);
-        return block.blockTag;
+        return block.blockLabel;
     }
 
-    AddressTag transformStackVarToAddressTag(StackVar stackVar) {
+    AddressDirective transformStackVarToAddressTag(StackVar stackVar) {
         IntRegister tmp = function.getRegisterAllocator().allocateInt();
         Address now = stackVar.getAddress();
         IntRegister t2 = function.getRegisterAllocator().allocateInt();
         function.appendInstruction(new AsmLoad(t2, ExStackVarOffset.transform(stackVar, now.getOffset())));
         function.appendInstruction(new AsmAdd(tmp, t2, now.getRegister()));
-        return now.replaceBaseRegister(tmp).setOffset(0).getAddressTag();
+        return now.replaceBaseRegister(tmp).setOffset(0).getAddressDirective();
     }
 
-    AddressTag getOperandToAddressTag(AsmOperand operand) {
+    AddressDirective getOperandToAddressDirective(AsmOperand operand) {
         if (operand instanceof Address address) {
             var offset = address.getOffset();
             if (ImmediateTools.bitlengthNotInLimit(offset)) {
                 var tmp = getAddressToIntRegister(address);
-                return new AddressTag(0, tmp);
+                return new AddressDirective(0, tmp);
             } else {
-                return address.getAddressTag();
+                return address.getAddressDirective();
             }
         } else if (operand instanceof StackVar stackVar) {
             if (stackVar instanceof ExStackVarContent) {
-                return stackVar.getAddress().getAddressTag();
+                return stackVar.getAddress().getAddressDirective();
             }
             return transformStackVarToAddressTag(stackVar);
         } else if (operand instanceof IntRegister intRegister) {
-            return new AddressTag(0, intRegister);
+            return new AddressDirective(0, intRegister);
         } else {
             throw new RuntimeException("address not found!");
         }
     }
 
     AddressContent getOperandToAddressContent(AsmOperand operand) {
-        return getOperandToAddressTag(operand).getAddressContent();
+        return getOperandToAddressDirective(operand).getAddressContent();
     }
 
     public void preTranslatePhiInstructions() {
@@ -496,10 +496,10 @@ public class AsmBasicBlock {
     void translateBranchInst(BranchInst branchInst) {
         var condition = getOperandToIntRegister(getValue(branchInst.getCondition()));
         sufTranslatePhiInstructions();
-        var trueTag = getJumpGlobalTag(branchInst.getTrueExit());
-        var falseTag = getJumpGlobalTag(branchInst.getFalseExit());
-        function.appendInstruction(new AsmJump(trueTag, AsmJump.JUMPTYPE.NEZ, condition, null));
-        function.appendInstruction(new AsmJump(falseTag, AsmJump.JUMPTYPE.NON, null, null));
+        var trueLabel = getJumpLabel(branchInst.getTrueExit());
+        var falseLabel = getJumpLabel(branchInst.getFalseExit());
+        function.appendInstruction(new AsmJump(trueLabel, AsmJump.JUMPTYPE.NEZ, condition, null));
+        function.appendInstruction(new AsmJump(falseLabel, AsmJump.JUMPTYPE.NON, null, null));
     }
 
     void translateStoreInst(StoreInst storeInst) {
@@ -518,16 +518,16 @@ public class AsmBasicBlock {
             final Address addressStore = getAddress.apply(1);
             ConstArrayTools.workOnArray(constArray, 0, (Long offset, Constant item) -> {
                 if (item instanceof ConstInt constInt) {
-                    Address goal = getOperandToAddressContent(addressStore.addOffset(offset));
+                    Address dest = getOperandToAddressContent(addressStore.addOffset(offset));
                     Immediate source = new Immediate(constInt.getValue());
                     IntRegister tmp = function.getRegisterAllocator().allocateInt();
                     function.appendInstruction(new AsmLoad(tmp, source));
-                    function.appendInstruction(new AsmStore(tmp, goal));
+                    function.appendInstruction(new AsmStore(tmp, dest));
                 }
             }, (Long offset, Long length) -> {
                 for (long i = 0; i < length; i += 4) {
-                    Address goal = getOperandToAddressContent(addressStore.addOffset(offset));
-                    function.appendInstruction(new AsmStore(IntRegister.zero, goal));
+                    Address dest = getOperandToAddressContent(addressStore.addOffset(offset));
+                    function.appendInstruction(new AsmStore(IntRegister.zero, dest));
                     offset += 4;
                 }
             });
@@ -569,8 +569,8 @@ public class AsmBasicBlock {
 
     void translateJumpInst(JumpInst jumpInst) {
         sufTranslatePhiInstructions();
-        var jumpTag = getJumpGlobalTag(jumpInst.getExit());
-        function.appendInstruction(new AsmJump(jumpTag, AsmJump.JUMPTYPE.NON, null, null));
+        var jumpLabel = getJumpLabel(jumpInst.getExit());
+        function.appendInstruction(new AsmJump(jumpLabel, AsmJump.JUMPTYPE.NON, null, null));
     }
 
     void translateZeroExtensionInst(ZeroExtensionInst zeroExtensionInst) {
@@ -606,7 +606,7 @@ public class AsmBasicBlock {
             var ret = getOperandToFloatRegister(getValue(returnInst.getReturnValue()));
             function.appendInstruction(new AsmLoad(function.getReturnRegister(), ret));
         }
-        function.appendInstruction(new AsmJump(function.getRetBlockTag(), AsmJump.JUMPTYPE.NON, null, null));
+        function.appendInstruction(new AsmJump(function.getRetBlockLabel(), AsmJump.JUMPTYPE.NON, null, null));
     }
 
     void translateAllocateInst(AllocateInst allocateInst) {
@@ -617,7 +617,7 @@ public class AsmBasicBlock {
     }
 
     void translateGetElementPtrInst(GetElementPtrInst getElementPtrInst) {
-        AddressTag baseAddress = getOperandToAddressTag(getValue(getElementPtrInst.getRootOperand()));
+        AddressDirective baseAddress = getOperandToAddressDirective(getValue(getElementPtrInst.getRootOperand()));
         long offset = baseAddress.getOffset();
         IntRegister baseRegister = baseAddress.getRegister();
         var rootType = getElementPtrInst.getRootOperand().getType();
@@ -669,7 +669,7 @@ public class AsmBasicBlock {
     }
 
     void translateBitCastInst(BitCastInst bitCastInst) {
-        var address = getOperandToAddressTag(getValue(bitCastInst.getSourceOperand())).getAddressContent();
+        var address = getOperandToAddressDirective(getValue(bitCastInst.getSourceOperand())).getAddressContent();
         function.getAddressAllocator().allocate(bitCastInst, address);
     }
 
@@ -712,7 +712,7 @@ public class AsmBasicBlock {
             }
         } catch (RuntimeException exception) {
             exception.printStackTrace();
-            throw new RuntimeException("get exception at instruction " + instruction + "\n" + "basic block : " + blockTag.emit() + "\n" + exception.getMessage());
+            throw new RuntimeException("get exception at instruction " + instruction + "\n" + "basic block : " + blockLabel.emit() + "\n" + exception.getMessage());
         }
     }
 }

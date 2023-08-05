@@ -13,15 +13,15 @@ import cn.edu.bit.newnewcc.backend.asm.operand.*;
  */
 public class AsmLoad extends AsmInstruction {
     /**
-     * 创建一个汇编加载指令，将source中的内容加载到寄存器goal中
+     * 创建一个汇编加载指令，将source中的内容加载到寄存器dest中
      * 注意，load一个地址的时候默认是将地址中的内容读出（一个字节），而非将地址的值读入
      *
-     * @param goal   目标寄存器
+     * @param dest   目标寄存器
      * @param source 加载内容源
      */
-    public AsmLoad(Register goal, AsmOperand source) {
-        super("lw", goal, source, null);
-        if (goal.isInt()) {
+    public AsmLoad(Register dest, AsmOperand source) {
+        super("lw", dest, source, null);
+        if (dest.isInt()) {
             if (source.isImmediate()) {
                 setInstructionName("li");
             } else if (source.isStackVar()) {
@@ -31,18 +31,18 @@ public class AsmLoad extends AsmInstruction {
                 } else if (stackVar.getSize() == 4) {
                     setInstructionName("lw");
                 }
-            } else if (source.isGlobalTag()) {
-                GlobalTag globalTag = (GlobalTag) source;
-                if (globalTag.isHighSegment()) {
+            } else if (source.isLabel()) {
+                Label label = (Label) source;
+                if (label.isHighSegment()) {
                     setInstructionName("lui");
-                } else if (globalTag.isLowSegment()) {
+                } else if (label.isLowSegment()) {
                     setInstructionName("li");
                 } else {
                     setInstructionName("la");
                 }
             } else if (source.isRegister() && ((Register) source).isInt()) {
                 setInstructionName("mv");
-            } else if (source.isAddressTag()) {
+            } else if (source.isAddressDirective()) {
                 throw new RuntimeException("cannot load address to register by one instruction");
             }
         } else {
@@ -52,8 +52,8 @@ public class AsmLoad extends AsmInstruction {
             }
         }
     }
-    public AsmLoad(Register goal, AsmOperand source, int bitLength) {
-        this(goal, source);
+    public AsmLoad(Register dest, AsmOperand source, int bitLength) {
+        this(dest, source);
         if (bitLength == 64 && getInstructionName().equals("lw")) {
             setInstructionName("ld");
         }

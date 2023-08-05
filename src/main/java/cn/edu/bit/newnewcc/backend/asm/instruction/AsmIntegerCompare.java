@@ -10,8 +10,8 @@ public class AsmIntegerCompare extends AsmInstruction {
         SEQZ, SNEZ, SLT
     }
     Condition condition;
-    public AsmIntegerCompare(IntRegister goal, IntRegister rsource1, AsmOperand source2, Condition condition) {
-        super(null, goal, rsource1, source2);
+    public AsmIntegerCompare(IntRegister dest, IntRegister source1, AsmOperand source2, Condition condition) {
+        super(null, dest, source1, source2);
         this.condition = condition;
         switch (condition) {
             case SEQZ:

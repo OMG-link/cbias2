@@ -12,32 +12,32 @@ import cn.edu.bit.newnewcc.backend.asm.operand.*;
  */
 public class AsmStore extends AsmInstruction {
     /**
-     * 创建一个保存指令，将寄存器source中的内容保存至地址goal中，goal可能为栈变量或内存地址
+     * 创建一个保存指令，将寄存器source中的内容保存至地址dest中，dest可能为栈变量或内存地址
      *
      * @param source 需要保存的寄存器
-     * @param goal   保存到的目标地址
+     * @param dest   保存到的目标地址
      */
-    public AsmStore(Register source, AsmOperand goal) {
-        super("sw", source, goal, null);
+    public AsmStore(Register source, AsmOperand dest) {
+        super("sw", source, dest, null);
         if (source.isInt()) {
-            if (goal.isStackVar()) {
-                StackVar stackVar = (StackVar) goal;
+            if (dest.isStackVar()) {
+                StackVar stackVar = (StackVar) dest;
                 if (stackVar.getSize() == 8) {
                     setInstructionName("sd");
                 }
-            } else if (goal.isRegister()) {
+            } else if (dest.isRegister()) {
                 setInstructionName("mv");
             }
         } else {
             setInstructionName("fsw");
-            if (goal.isRegister()) {
+            if (dest.isRegister()) {
                 setInstructionName("fmv.s");
             }
         }
     }
 
-    public AsmStore(Register source, AsmOperand goal, int bitLength) {
-        this(source, goal);
+    public AsmStore(Register source, AsmOperand dest, int bitLength) {
+        this(source, dest);
         if (bitLength == 64 && getInstructionName().equals("sw")) {
             setInstructionName("sd");
         }
