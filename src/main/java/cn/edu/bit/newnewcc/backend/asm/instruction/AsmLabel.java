@@ -10,7 +10,7 @@ public class AsmLabel extends AsmInstruction {
     private final Label label;
 
     public AsmLabel(Label label) {
-        super(label.getLabelName() + ":", null, null, null);
+        super("", null, null, null);
         this.label = label;
     }
 
@@ -20,5 +20,10 @@ public class AsmLabel extends AsmInstruction {
 
     public String getPureName() {
         return Others.deleteCharString(emit(), ":.\n\t ");
+    }
+
+    @Override
+    public String emit() {
+        return String.format("%s:\n", getLabel().getLabelName());
     }
 }

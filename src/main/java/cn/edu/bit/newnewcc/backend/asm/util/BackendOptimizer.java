@@ -47,7 +47,7 @@ public class BackendOptimizer {
                         }
                     } else if (iSv instanceof AsmJump jump) {
                         if (iLd instanceof AsmLabel label) {
-                            if (jump.isUnconditional() && ((Label)jump.getOperand(1)).getPureName().equals(label.getPureName())) {
+                            if (jump.getOpcode() == AsmJump.Opcode.J && ((Label)jump.getOperand(1)).getPureName().equals(label.getPureName())) {
                                 popx.accept(1);
                             }
                         }

@@ -392,8 +392,8 @@ public class AsmBasicBlock {
         sufTranslatePhiInstructions();
         var trueLabel = getJumpLabel(branchInst.getTrueExit());
         var falseLabel = getJumpLabel(branchInst.getFalseExit());
-        function.appendInstruction(new AsmJump(trueLabel, AsmJump.JUMPTYPE.NEZ, condition, null));
-        function.appendInstruction(new AsmJump(falseLabel, AsmJump.JUMPTYPE.UNCONDITIONAL, null, null));
+        function.appendInstruction(AsmJump.BNEZ(trueLabel, condition));
+        function.appendInstruction(AsmJump.J(falseLabel));
     }
 
     void translateStoreInst(StoreInst storeInst) {
@@ -464,7 +464,7 @@ public class AsmBasicBlock {
     void translateJumpInst(JumpInst jumpInst) {
         sufTranslatePhiInstructions();
         var jumpLabel = getJumpLabel(jumpInst.getExit());
-        function.appendInstruction(new AsmJump(jumpLabel, AsmJump.JUMPTYPE.UNCONDITIONAL, null, null));
+        function.appendInstruction(AsmJump.J(jumpLabel));
     }
 
     void translateZeroExtensionInst(ZeroExtensionInst zeroExtensionInst) {
@@ -500,7 +500,7 @@ public class AsmBasicBlock {
             var ret = getOperandToFloatRegister(getValue(returnInst.getReturnValue()));
             function.appendInstruction(new AsmLoad(function.getReturnRegister(), ret));
         }
-        function.appendInstruction(new AsmJump(function.getRetBlockLabel(), AsmJump.JUMPTYPE.UNCONDITIONAL, null, null));
+        function.appendInstruction(AsmJump.J(function.getRetBlockLabel()));
     }
 
     void translateAllocateInst(AllocateInst allocateInst) {

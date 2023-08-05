@@ -131,7 +131,7 @@ public class StackAllocator {
             res.add(new AsmLoad(ra, new StackVar(-8, 8, false)));
         }
         res.add(new AsmLoad(s0, new StackVar(-16, 8, false)));
-        res.add(new AsmJump(ra));
+        res.add(AsmJump.JR(ra));
         return res;
     }
 }
