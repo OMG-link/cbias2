@@ -8,7 +8,7 @@ public class AsmJump extends AsmInstruction {
      * 跳转条件，目前阶段无需条件跳转，因此只有不等于0的时候跳转和无条件跳转
      */
     public enum JUMPTYPE {
-        NON,
+        UNCONDITIONAL,
         NEZ
     }
 
@@ -22,7 +22,7 @@ public class AsmJump extends AsmInstruction {
      */
     public AsmJump(Label targetLabel, JUMPTYPE type, IntRegister source1, IntRegister source2) {
         super("", null, null, null);
-        if (type == JUMPTYPE.NON) {
+        if (type == JUMPTYPE.UNCONDITIONAL) {
             setInstructionName("j");
             setOperand1(targetLabel);
         } else if (type == JUMPTYPE.NEZ) {
