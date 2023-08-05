@@ -12,11 +12,11 @@ import java.util.Set;
 /**
  * 汇编指令基类
  */
-public class AsmInstruction {
+public abstract class AsmInstruction {
     private String instructionName;
     AsmOperand operand1, operand2, operand3;
 
-    public AsmInstruction(String instructionName, AsmOperand operand1, AsmOperand operand2, AsmOperand operand3) {
+    protected AsmInstruction(String instructionName, AsmOperand operand1, AsmOperand operand2, AsmOperand operand3) {
         this.instructionName = instructionName;
         this.operand1 = operand1;
         this.operand2 = operand2;
