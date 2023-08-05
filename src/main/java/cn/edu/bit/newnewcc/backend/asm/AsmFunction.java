@@ -327,7 +327,7 @@ public class AsmFunction {
         IntRegister tmp = registerAllocator.allocateInt();
         newInstructionList.add(new AsmLoad(tmp, offset));
         IntRegister t2 = registerAllocator.allocateInt();
-        newInstructionList.add(new AsmAdd(t2, tmp, stackAddress.getRegister()));
+        newInstructionList.add(new AsmAdd(t2, tmp, stackAddress.getRegister(), 64));
         Address now = new AddressContent(0, t2);
         return ExStackVarContent.transform(stackVar, now);
     }

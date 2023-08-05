@@ -122,9 +122,9 @@ public class AsmBasicBlock {
             if (ImmediateTools.bitlengthNotInLimit(offset)) {
                 var reg = function.getRegisterAllocator().allocateInt();
                 function.appendInstruction(new AsmLoad(reg, new Immediate(offset)));
-                function.appendInstruction(new AsmAdd(tmp, reg, addressDirective.getRegister()));
+                function.appendInstruction(new AsmAdd(tmp, reg, addressDirective.getRegister(), 64));
             } else {
-                function.appendInstruction(new AsmAdd(tmp, addressDirective.getRegister(), new Immediate(offset)));
+                function.appendInstruction(new AsmAdd(tmp, addressDirective.getRegister(), new Immediate(offset), 64));
             }
             return tmp;
         }
@@ -181,7 +181,7 @@ public class AsmBasicBlock {
         Address now = stackVar.getAddress();
         IntRegister t2 = function.getRegisterAllocator().allocateInt();
         function.appendInstruction(new AsmLoad(t2, ExStackVarOffset.transform(stackVar, now.getOffset())));
-        function.appendInstruction(new AsmAdd(tmp, t2, now.getRegister()));
+        function.appendInstruction(new AsmAdd(tmp, t2, now.getRegister(), 64));
         return now.replaceBaseRegister(tmp).setOffset(0).getAddressDirective();
     }
 
@@ -534,12 +534,12 @@ public class AsmBasicBlock {
                 function.appendInstruction(new AsmLoad(tmp, getOperandToIntRegister(index)));
                 IntRegister muly = getOperandToIntRegister(new Immediate(Math.toIntExact(baseSize)));
                 function.appendInstruction(new AsmMul(t2, tmp, muly, 64));
-                function.appendInstruction(new AsmAdd(t3, offsetR, t2));
+                function.appendInstruction(new AsmAdd(t3, offsetR, t2, 64));
                 offsetR = t3;
             }
         }
         IntRegister t4 = function.getRegisterAllocator().allocateInt();
-        function.appendInstruction(new AsmAdd(t4, offsetR, baseRegister));
+        function.appendInstruction(new AsmAdd(t4, offsetR, baseRegister, 64));
         offsetR = t4;
         function.getAddressAllocator().allocate(getElementPtrInst, new AddressContent(0, offsetR));
     }

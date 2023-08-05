@@ -107,10 +107,10 @@ public class StackAllocator {
         if (ImmediateTools.bitlengthNotInLimit(maxSize)) {
             res.add(new AsmLoad(t0, new Immediate(maxSize)));
             res.add(new AsmSub(sp, sp, t0, 64));
-            res.add(new AsmAdd(s0, sp, t0));
+            res.add(new AsmAdd(s0, sp, t0, 64));
         } else {
-            res.add(new AsmAdd(sp, sp, new Immediate(-maxSize)));
-            res.add(new AsmAdd(s0, sp, new Immediate(maxSize)));
+            res.add(new AsmAdd(sp, sp, new Immediate(-maxSize), 64));
+            res.add(new AsmAdd(s0, sp, new Immediate(maxSize), 64));
         }
         return res;
     }
@@ -123,9 +123,9 @@ public class StackAllocator {
         IntRegister t0 = IntRegister.getPhysical(5);
         if (ImmediateTools.bitlengthNotInLimit(maxSize)) {
             res.add(new AsmLoad(t0, new Immediate(maxSize)));
-            res.add(new AsmAdd(sp, sp, t0));
+            res.add(new AsmAdd(sp, sp, t0, 64));
         } else {
-            res.add(new AsmAdd(sp, sp, new Immediate(maxSize)));
+            res.add(new AsmAdd(sp, sp, new Immediate(maxSize), 64));
         }
         if (savedRa) {
             res.add(new AsmLoad(ra, new StackVar(-8, 8, false)));

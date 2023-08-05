@@ -28,10 +28,6 @@ public class AsmAdd extends AsmInstruction {
 
     private final Opcode opcode;
 
-    public AsmAdd(IntRegister dest, IntRegister source1, AsmOperand source2) {
-        this(dest, source1, source2, 64);
-    }
-
     public AsmAdd(IntRegister dest, IntRegister source1, AsmOperand source2, int bitLength) {
         super("", dest, source1, source2);
 
