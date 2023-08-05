@@ -172,8 +172,8 @@ public class LinearScanRegisterControl extends RegisterControl{
             var used = getUsedRegisters(inst);
             Set<Register> loaded = new HashSet<>();
 
-            var writeId = LifeTimeController.getWriteVRegId(inst);
-            var vRegId = LifeTimeController.getVRegId(inst);
+            var writeId = inst.getWriteVRegId();
+            var vRegId = inst.getVRegId();
             for (int j : vRegId) {
                 RegisterReplaceable registerReplaceable = (RegisterReplaceable) inst.getOperand(j);
                 var vReg = registerReplaceable.getRegister();

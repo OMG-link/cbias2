@@ -146,7 +146,7 @@ public class CopyCoalescer {
             lifeTimeController.reconstructInterval(v, trueValue);
         }
         for (var inst : instructions) {
-            for (int i : LifeTimeController.getVRegId(inst)) {
+            for (int i : inst.getVRegId()) {
                 Register reg = ((RegisterReplaceable) inst.getOperand(i)).getRegister();
                 reg.setIndex(-trueValue.get(reg.getIndex()));
             }

@@ -1,9 +1,13 @@
 package cn.edu.bit.newnewcc.backend.asm.instruction;
 
-import cn.edu.bit.newnewcc.backend.asm.controller.LifeTimeController;
 import cn.edu.bit.newnewcc.backend.asm.operand.*;
 import cn.edu.bit.newnewcc.backend.asm.util.Others;
 import cn.edu.bit.newnewcc.backend.asm.util.Pair;
+
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * 汇编指令基类
@@ -18,6 +22,133 @@ public class AsmInstruction {
         this.operand2 = operand2;
         this.operand3 = operand3;
     }
+
+    public Collection<Integer> getWriteRegId() {
+        if (this instanceof AsmStore) {
+            if (getOperand(2) instanceof Register) {
+                return Collections.singleton(2);
+            }
+            return new HashSet<>();
+        }
+        if (this instanceof AsmJump) {
+            return new HashSet<>();
+        }
+        if (getOperand(1) instanceof RegisterReplaceable) {
+            return Collections.singleton(1);
+        }
+        return new HashSet<>();
+    }
+
+    public Collection<Integer> getWriteVRegId() {
+        var res = new HashSet<Integer>();
+        var regId = getWriteRegId();
+        for (var x : regId) {
+            var reg = ((RegisterReplaceable)this.getOperand(x)).getRegister();
+            if (reg.isVirtual()) {
+                res.add(x);
+            }
+        }
+        return res;
+    }
+
+    public Collection<Integer> getReadRegId() {
+        var res = new HashSet<Integer>();
+        for (int i = 1; i <= 3; i++) {
+            if (getOperand(i) instanceof RegisterReplaceable) {
+                boolean tag = (this instanceof AsmStore) ? (i == 1 || (i == 2 && !(getOperand(i) instanceof Register))) :
+                        (this instanceof AsmJump || (i > 1));
+                if (tag) {
+                    res.add(i);
+                }
+            }
+        }
+        return res;
+    }
+
+    public Collection<Integer> getReadVRegId() {
+        var res = new HashSet<Integer>();
+        var regId = getReadRegId();
+        for (var x : regId) {
+            var reg = ((RegisterReplaceable)this.getOperand(x)).getRegister();
+            if (reg.isVirtual()) {
+                res.add(x);
+            }
+        }
+        return res;
+    }
+
+    public Collection<Integer> getVRegId() {
+        var res = getReadVRegId();
+        res.addAll(getWriteVRegId());
+        return res;
+    }
+
+    public Collection<Register> getWriteRegSet() {
+        var res = new HashSet<Register>();
+        for (int i : getWriteRegId()) {
+            RegisterReplaceable op = (RegisterReplaceable) this.getOperand(i);
+            res.add(op.getRegister());
+        }
+        return res;
+    }
+
+    public Collection<Integer> getWriteVRegSet() {
+        var res = new HashSet<Integer>();
+        for (int i : getWriteVRegId()) {
+            RegisterReplaceable op = (RegisterReplaceable) this.getOperand(i);
+            res.add(op.getRegister().getIndex());
+        }
+        return res;
+    }
+
+    public Collection<Register> getReadRegSet() {
+        var res = new HashSet<Register>();
+        for (int i : getReadRegId()) {
+            RegisterReplaceable op = (RegisterReplaceable) this.getOperand(i);
+            res.add(op.getRegister());
+        }
+        return res;
+    }
+
+    public Collection<Integer> getReadVRegSet() {
+        var res = new HashSet<Integer>();
+        for (int i : getReadVRegId()) {
+            RegisterReplaceable op = (RegisterReplaceable) this.getOperand(i);
+            res.add(op.getRegister().getIndex());
+        }
+        return res;
+    }
+
+    public Collection<Integer> getPureRegisterIndices() {
+        Set<Integer> res = new HashSet<>();
+        for (int i = 1; i <= 3; i++) {
+            if (getOperand(i) instanceof Register) {
+                res.add(i);
+            }
+        }
+        return res;
+    }
+
+    /*
+    public Collection<Register> getModifiedRegisters() {
+        if (this instanceof AsmCall) {
+            Set<Register> res = new HashSet<>();
+            Register tmp;
+            for (int i = 0; i <= 31; i++) {
+                tmp = IntRegister.getPhysical(i);
+                if (!tmp.isPreserved()) {
+                    res.add(tmp);
+                }
+                tmp = FloatRegister.getPhysical(i);
+                if (!tmp.isPreserved()) {
+                    res.add(tmp);
+                }
+            }
+            return res;
+        } else {
+            return getWriteRegSet();
+        }
+    }*/
 
     protected void setInstructionName(String name) {
         this.instructionName = name;
@@ -106,8 +237,8 @@ public class AsmInstruction {
         if (!isMoveVToV()) {
             throw new RuntimeException("error: get move reg from not move instruction");
         }
-        var writeSet = LifeTimeController.getWriteVRegSet(this);
-        var readSet = LifeTimeController.getReadVRegSet(this);
+        var writeSet = this.getWriteVRegSet();
+        var readSet = this.getReadVRegSet();
         return new Pair<>((Integer) writeSet.toArray()[0], (Integer) readSet.toArray()[0]);
     }
 

@@ -22,8 +22,8 @@ public class Others {
     }
     public static void check(List<AsmInstruction> instructionList) {
         for (var inst : instructionList) {
-            for (var x : LifeTimeController.getReadVRegSet(inst)) {
-                for (var y : LifeTimeController.getWriteVRegSet(inst)) {
+            for (var x : inst.getReadVRegSet()) {
+                for (var y : inst.getWriteVRegSet()) {
                     if (x.equals(y)) {
                         throw new RuntimeException("assertion failed");
                     }

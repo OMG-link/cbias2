@@ -122,13 +122,13 @@ public class BackendOptimizer {
                 if (inst instanceof AsmTag) {
                     lastWriteReg.clear();
                 }
-                for (var reg : LifeTimeController.getWriteRegSet(inst)) {
+                for (var reg : inst.getWriteRegSet()) {
                     if (lastWriteReg.contains(reg.toString())) {
                         continue;
                     }
                     lastWriteReg.add(reg.toString());
                 }
-                for (var reg : LifeTimeController.getReadRegSet(inst)) {
+                for (var reg : inst.getReadRegSet()) {
                     lastWriteReg.remove(reg.toString());
                 }
             }

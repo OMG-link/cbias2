@@ -1,9 +1,10 @@
 package cn.edu.bit.newnewcc.backend.asm.controller;
 
 import cn.edu.bit.newnewcc.backend.asm.instruction.*;
+import cn.edu.bit.newnewcc.backend.asm.instruction.AsmAbstractTag;
+import cn.edu.bit.newnewcc.backend.asm.instruction.AsmInstruction;
+import cn.edu.bit.newnewcc.backend.asm.instruction.AsmJump;
 import cn.edu.bit.newnewcc.backend.asm.operand.GlobalTag;
-import cn.edu.bit.newnewcc.backend.asm.operand.Register;
-import cn.edu.bit.newnewcc.backend.asm.operand.RegisterReplaceable;
 import cn.edu.bit.newnewcc.backend.asm.util.ComparablePair;
 
 import java.util.*;
@@ -73,101 +74,6 @@ public class LifeTimeController {
         return points.get(x);
     }
 
-    public static Collection<Integer> getWriteRegId(AsmInstruction inst) {
-        if (inst instanceof AsmStore) {
-            if (inst.getOperand(2) instanceof Register) {
-                return Collections.singleton(2);
-            }
-            return new HashSet<>();
-        }
-        if (inst instanceof AsmJump) {
-            return new HashSet<>();
-        }
-        if (inst.getOperand(1) instanceof RegisterReplaceable) {
-            return Collections.singleton(1);
-        }
-        return new HashSet<>();
-    }
-
-    public static Collection<Integer> getWriteVRegId(AsmInstruction inst) {
-        var res = new HashSet<Integer>();
-        var regId = getWriteRegId(inst);
-        for (var x : regId) {
-            var reg = ((RegisterReplaceable)inst.getOperand(x)).getRegister();
-            if (reg.isVirtual()) {
-                res.add(x);
-            }
-        }
-        return res;
-    }
-    public static Collection<Integer> getReadRegId(AsmInstruction inst) {
-        var res = new HashSet<Integer>();
-        for (int i = 1; i <= 3; i++) {
-            if (inst.getOperand(i) instanceof RegisterReplaceable) {
-                boolean tag = (inst instanceof AsmStore) ? (i == 1 || (i == 2 && !(inst.getOperand(i) instanceof Register))) :
-                        (inst instanceof AsmJump || (i > 1));
-                if (tag) {
-                    res.add(i);
-                }
-            }
-        }
-        return res;
-    }
-
-    public static Collection<Integer> getReadVRegId(AsmInstruction inst) {
-        var res = new HashSet<Integer>();
-        var regId = getReadRegId(inst);
-        for (var x : regId) {
-            var reg = ((RegisterReplaceable)inst.getOperand(x)).getRegister();
-            if (reg.isVirtual()) {
-                res.add(x);
-            }
-        }
-        return res;
-    }
-
-    public static Collection<Integer> getVRegId(AsmInstruction inst) {
-        var res = getReadVRegId(inst);
-        res.addAll(getWriteVRegId(inst));
-        return res;
-    }
-
-
-    public static Collection<Register> getWriteRegSet(AsmInstruction inst) {
-        var res = new HashSet<Register>();
-        for (int i : getWriteRegId(inst)) {
-            RegisterReplaceable op = (RegisterReplaceable) inst.getOperand(i);
-            res.add(op.getRegister());
-        }
-        return res;
-    }
-
-    public static Collection<Integer> getWriteVRegSet(AsmInstruction inst) {
-        var res = new HashSet<Integer>();
-        for (int i : getWriteVRegId(inst)) {
-            RegisterReplaceable op = (RegisterReplaceable) inst.getOperand(i);
-            res.add(op.getRegister().getIndex());
-        }
-        return res;
-    }
-
-    public static Collection<Register> getReadRegSet(AsmInstruction inst) {
-        var res = new HashSet<Register>();
-        for (int i : getReadRegId(inst)) {
-            RegisterReplaceable op = (RegisterReplaceable) inst.getOperand(i);
-            res.add(op.getRegister());
-        }
-        return res;
-    }
-
-    public static Collection<Integer> getReadVRegSet(AsmInstruction inst) {
-        var res = new HashSet<Integer>();
-        for (int i : getReadVRegId(inst)) {
-            RegisterReplaceable op = (RegisterReplaceable) inst.getOperand(i);
-            res.add(op.getRegister().getIndex());
-        }
-        return res;
-    }
 
     static class Block {
         String blockName;
@@ -291,12 +197,12 @@ public class LifeTimeController {
                     }
                 }
             }
-            for (var reg : getReadVRegSet(inst)) {
+            for (var reg : inst.getReadVRegSet()) {
                 if (!now.def.contains(reg)) {
                     now.in.add(reg);
                 }
             }
-            now.def.addAll(getWriteVRegSet(inst));
+            now.def.addAll(inst.getWriteVRegSet());
             blocks.get(blocks.size() - 1).r = i;
         }
     }
@@ -328,12 +234,12 @@ public class LifeTimeController {
             }
             for (int i = b.l; i <= b.r; i++) {
                 var inst = instructionList.get(i);
-                for (var x : getReadVRegSet(inst)) {
+                for (var x : inst.getReadVRegSet()) {
                     LifeTimeIndex index = LifeTimeIndex.getInstIn(this, instructionList.get(i));
                     useLoc.put(x, index);
                     insertLifeTimePoint(x, LifeTimePoint.getUse(index));
                 }
-                for (var x : getWriteVRegSet(inst)) {
+                for (var x : inst.getWriteVRegSet()) {
                     if (defLoc.containsKey(x) && useLoc.containsKey(x)) {
                         insertInterval(x, defLoc.get(x), useLoc.get(x));
                         useLoc.remove(x);
