@@ -346,24 +346,24 @@ public class AsmBasicBlock {
             case EQ -> {
                 tmp = function.getRegisterAllocator().allocateInt();
                 function.appendInstruction(new AsmSub(tmp, rop1, rop2, bitLength));
-                function.appendInstruction(new AsmIntegerCompare(result, tmp, null, AsmIntegerCompare.Condition.SEQZ));
+                function.appendInstruction(AsmIntegerCompare.createEQZ(result, tmp));
             }
             case NE -> {
                 tmp = function.getRegisterAllocator().allocateInt();
                 function.appendInstruction(new AsmSub(tmp, rop1, rop2, bitLength));
-                function.appendInstruction(new AsmIntegerCompare(result, tmp, null, AsmIntegerCompare.Condition.SNEZ));
+                function.appendInstruction(AsmIntegerCompare.createNEZ(result, tmp));
             }
-            case SLT -> function.appendInstruction(new AsmIntegerCompare(result, rop1, rop2, AsmIntegerCompare.Condition.SLT));
+            case SLT -> function.appendInstruction(AsmIntegerCompare.createLT(result, rop1, rop2));
             case SLE -> {
                 tmp = function.getRegisterAllocator().allocateInt();
-                function.appendInstruction(new AsmIntegerCompare(tmp, rop2, rop1, AsmIntegerCompare.Condition.SLT));
-                function.appendInstruction(new AsmIntegerCompare(result, tmp, null, AsmIntegerCompare.Condition.SEQZ));
+                function.appendInstruction(AsmIntegerCompare.createLT(tmp, rop2, rop1));
+                function.appendInstruction(AsmIntegerCompare.createEQZ(result, tmp));
             }
-            case SGT -> function.appendInstruction(new AsmIntegerCompare(result, rop2, rop1, AsmIntegerCompare.Condition.SLT));
+            case SGT -> function.appendInstruction(AsmIntegerCompare.createLT(result, rop2, rop1));
             case SGE -> {
                 tmp = function.getRegisterAllocator().allocateInt();
-                function.appendInstruction(new AsmIntegerCompare(tmp, rop1, rop2, AsmIntegerCompare.Condition.SLT));
-                function.appendInstruction(new AsmIntegerCompare(result, tmp, null, AsmIntegerCompare.Condition.SEQZ));
+                function.appendInstruction(AsmIntegerCompare.createLT(tmp, rop1, rop2));
+                function.appendInstruction(AsmIntegerCompare.createEQZ(result, tmp));
             }
         }
     }
@@ -380,7 +380,7 @@ public class AsmBasicBlock {
             case ONE -> {
                 tmp = function.getRegisterAllocator().allocateInt();
                 function.appendInstruction(AsmFloatCompare.createEQ(tmp, op1, op2));
-                function.appendInstruction(new AsmIntegerCompare(result, tmp, null, AsmIntegerCompare.Condition.SEQZ));
+                function.appendInstruction(AsmIntegerCompare.createEQZ(result, tmp));
             }
             case OGE -> function.appendInstruction(AsmFloatCompare.createLE(result, op2, op1));
             case OGT -> function.appendInstruction(AsmFloatCompare.createLT(result, op2, op1));
