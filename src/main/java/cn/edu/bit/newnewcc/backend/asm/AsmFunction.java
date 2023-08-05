@@ -309,7 +309,7 @@ public class AsmFunction {
                 }
             }
         }
-        res.add(new AsmCall(calledFunction.getFunctionName()));
+        res.add(new AsmCall(new Label(calledFunction.getFunctionName(), true)));
         if (returnRegister != null) {
             res.add(new AsmLoad(returnRegister, calledFunction.getReturnRegister()));
         }
