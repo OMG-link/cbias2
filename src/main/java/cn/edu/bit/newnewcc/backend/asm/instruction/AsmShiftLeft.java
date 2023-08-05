@@ -4,16 +4,49 @@ import cn.edu.bit.newnewcc.backend.asm.operand.AsmOperand;
 import cn.edu.bit.newnewcc.backend.asm.operand.Immediate;
 import cn.edu.bit.newnewcc.backend.asm.operand.IntRegister;
 
-public class AsmShiftLeft extends AsmBinaryInstruction {
-    public AsmShiftLeft(IntRegister rd, IntRegister rs1, AsmOperand shiftLength, int bitLength) {
-        super("sll", rd, rs1, shiftLength);
-        if (shiftLength instanceof Immediate) {
-            setInstructionName("slli");
-        } else if (!(shiftLength instanceof IntRegister)) {
-            throw new RuntimeException("shift operand not register or immediate");
+public class AsmShiftLeft extends AsmInstruction {
+    public enum Opcode {
+        SLL("sll"),
+        SLLI("slli"),
+        SLLW("sllw"),
+        SLLIW("slliw");
+
+        private final String name;
+
+        Opcode(String name) {
+            this.name = name;
         }
+        public String getName() {
+            return name;
+        }
+    }
+
+    private final Opcode opcode;
+
+    public AsmShiftLeft(IntRegister dest, IntRegister source1, AsmOperand source2, int bitLength) {
+        super("sll", dest, source1, source2);
+
+        if (bitLength != 64 && bitLength != 32)
+            throw new IllegalArgumentException();
+
+        if (!(source2 instanceof IntRegister) && !(source2 instanceof Immediate))
+            throw new IllegalArgumentException();
+
         if (bitLength == 32) {
-            setInstructionName(getInstructionName() + "w");
+            if (source2 instanceof Immediate) opcode = Opcode.SLLIW;
+            else opcode = Opcode.SLLW;
+        } else {
+            if (source2 instanceof Immediate) opcode = Opcode.SLLI;
+            else opcode = Opcode.SLL;
         }
+    }
+
+    public Opcode getOpcode() {
+        return opcode;
+    }
+
+    @Override
+    public String emit() {
+        return String.format("\t%s %s, %s, %s\n", getOpcode().getName(), getOperand(1), getOperand(2), getOperand(3));
     }
 }

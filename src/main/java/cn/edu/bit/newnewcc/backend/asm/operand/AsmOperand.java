@@ -1,19 +1,17 @@
 package cn.edu.bit.newnewcc.backend.asm.operand;
 
-import cn.edu.bit.newnewcc.backend.asm.util.Others;
-
 public abstract class AsmOperand {
     TYPE type;
 
-    public boolean isGlobalTag() {
-        return type == TYPE.GTAG;
+    public boolean isLabel() {
+        return type == TYPE.LABEL;
     }
 
     public boolean isAddressContent() {
         return type == TYPE.ADDC;
     }
 
-    public boolean isAddressTag() { return type == TYPE.ADDT;}
+    public boolean isAddressDirective() { return type == TYPE.ADDD;}
 
     public boolean isStackVar() {
         return type == TYPE.SVAR;
@@ -25,8 +23,8 @@ public abstract class AsmOperand {
         IMM,
         REG,
         ADDC,
-        ADDT,
-        GTAG,
+        ADDD,
+        LABEL,
         SVAR,
         NON
     }

@@ -1,50 +1,60 @@
 package cn.edu.bit.newnewcc.backend.asm.instruction;
 
-import cn.edu.bit.newnewcc.backend.asm.operand.GlobalTag;
+import cn.edu.bit.newnewcc.backend.asm.operand.AsmOperand;
+import cn.edu.bit.newnewcc.backend.asm.operand.Label;
 import cn.edu.bit.newnewcc.backend.asm.operand.IntRegister;
 
 public class AsmJump extends AsmInstruction {
-    /**
-     * 跳转条件，目前阶段无需条件跳转，因此只有不等于0的时候跳转和无条件跳转
-     */
-    public enum JUMPTYPE {
-        NON,
-        NEZ
-    }
+    public enum Opcode {
+        J("j"),
+        BNEZ("bnez");
 
-    private GlobalTag goalTag;
+        private final String name;
 
-    /**
-     * 基本跳转指令，按照条件向指定位置跳转
-     *
-     * @param goalTag  跳转的目标位置
-     * @param type     跳转条件的类型
-     * @param operand1 跳转条件参数1
-     * @param operand2 跳转条件参数2
-     */
-    public AsmJump(GlobalTag goalTag, JUMPTYPE type, IntRegister operand1, IntRegister operand2) {
-        super("", null, null, null);
-        this.goalTag = goalTag;
-        if (type == JUMPTYPE.NON) {
-            setInstructionName("j");
-            setOperand1(goalTag);
-        } else if (type == JUMPTYPE.NEZ) {
-            setInstructionName("bnez");
-            setOperand1(operand1);
-            setOperand2(goalTag);
+        Opcode(String name) {
+            this.name = name;
+        }
+
+        public String getName() {
+            return name;
         }
     }
 
-    /**
-     * 寄存器跳转指令
-     *
-     * @param addressRegister 存储这目标地址的寄存器
-     */
-    public AsmJump(IntRegister addressRegister) {
-        super("jr", addressRegister, null, null);
+    public enum Condition {
+        UNCONDITIONAL,
+        NEZ
     }
 
-    public boolean isUnconditional() {
-        return getInstructionName().equals("j");
+    private final Opcode opcode;
+    private final Condition condition;
+
+    private AsmJump(Opcode opcode, Condition condition, AsmOperand op1, AsmOperand op2, AsmOperand op3) {
+        super("", op1, op2, op3);
+        this.opcode = opcode;
+        this.condition = condition;
+    }
+
+    public Opcode getOpcode() {
+        return opcode;
+    }
+
+    public Condition getCondition() {
+        return condition;
+    }
+
+    @Override
+    public String emit() {
+        return switch (getOpcode()) {
+            case J -> String.format("\t%s %s\n", getOpcode().getName(), getOperand(1));
+            case BNEZ -> String.format("\t%s %s, %s\n", getOpcode().getName(), getOperand(1), getOperand(2));
+        };
+    }
+
+    public static AsmJump createUnconditional(Label targetLabel) {
+        return new AsmJump(Opcode.J, Condition.UNCONDITIONAL, targetLabel, null, null);
+    }
+
+    public static AsmJump createNEZ(Label targetLabel, IntRegister source) {
+        return new AsmJump(Opcode.BNEZ, Condition.NEZ, source, targetLabel, null);
     }
 }

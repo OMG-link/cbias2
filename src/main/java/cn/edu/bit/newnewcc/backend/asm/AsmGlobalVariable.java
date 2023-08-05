@@ -1,6 +1,6 @@
 package cn.edu.bit.newnewcc.backend.asm;
 
-import cn.edu.bit.newnewcc.backend.asm.operand.GlobalTag;
+import cn.edu.bit.newnewcc.backend.asm.operand.Label;
 import cn.edu.bit.newnewcc.backend.asm.util.ConstArrayTools;
 import cn.edu.bit.newnewcc.ir.value.Constant;
 import cn.edu.bit.newnewcc.ir.value.GlobalVariable;
@@ -19,7 +19,7 @@ public class AsmGlobalVariable {
     private final boolean isConstant, isInitialized, isSmallSection;
     private final long size;
     //存储了该全局变量的全部数据
-    private final List<ValueTag> valueList;
+    private final List<ValueDirective> valueList;
     private final int align;
 
     public AsmGlobalVariable(GlobalVariable globalVariable) {
@@ -32,11 +32,11 @@ public class AsmGlobalVariable {
         this.valueList = new ArrayList<>();
         if (initialValue instanceof ConstInt intValue) {
             this.align = 2;
-            this.valueList.add(new ValueTag(intValue.getValue()));
+            this.valueList.add(new ValueDirective(intValue.getValue()));
             this.isSmallSection = true;
         } else if (initialValue instanceof ConstFloat floatValue) {
             this.align = 2;
-            this.valueList.add(new ValueTag(floatValue.getValue()));
+            this.valueList.add(new ValueDirective(floatValue.getValue()));
             this.isSmallSection = true;
         } else if (initialValue instanceof ConstArray arrayValue) {
             this.align = 3;
@@ -44,7 +44,7 @@ public class AsmGlobalVariable {
             if (this.isInitialized) {
                 this.getArrayValues(arrayValue);
             } else {
-                this.valueList.add(ValueTag.getZeroValue(this.size));
+                this.valueList.add(ValueDirective.getZeroValue(this.size));
             }
         } else {
             this.align = 2;
@@ -55,27 +55,15 @@ public class AsmGlobalVariable {
     private void getArrayValues(ConstArray arrayValue) {
         ConstArrayTools.workOnArray(arrayValue, 0, (Long offset, Constant item) -> {
             if (item instanceof ConstInt arrayItem) {
-                this.valueList.add(new ValueTag(arrayItem.getValue()));
+                this.valueList.add(new ValueDirective(arrayItem.getValue()));
             } else if (item instanceof ConstFloat arrayItem) {
-                this.valueList.add(new ValueTag(arrayItem.getValue()));
+                this.valueList.add(new ValueDirective(arrayItem.getValue()));
             }
-        }, (Long offset, Long length) -> this.valueList.add(ValueTag.getZeroValue(length)));
+        }, (Long offset, Long length) -> this.valueList.add(ValueDirective.getZeroValue(length)));
     }
 
-    private boolean isConstant() {
-        return isConstant;
-    }
-
-    public GlobalTag emitTag(boolean isHigh) {
-        if (isHigh) {
-            return new GlobalTag(globalVariableName, GlobalTag.SEGMENT.HIGH);
-        } else {
-            return new GlobalTag(globalVariableName, GlobalTag.SEGMENT.LOW);
-        }
-    }
-
-    public GlobalTag emitNoSegmentTag() {
-        return new GlobalTag(globalVariableName, true);
+    public Label emitNoSegmentLabel() {
+        return new Label(globalVariableName, true);
     }
 
     private String getSectionStr() {

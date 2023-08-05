@@ -7,33 +7,53 @@ import cn.edu.bit.newnewcc.backend.asm.operand.IntRegister;
 /**
  * 汇编加指令，分为普通加和加立即数两种
  */
-public class AsmAdd extends AsmBinaryInstruction {
-    /**
-     * 汇编加指令
-     *
-     * @param goal    结果存储的寄存器
-     * @param source1 源寄存器1，存储第一个加数
-     * @param source2 源2，存储第二个加数，可能为寄存器或立即数
-     */
-    public AsmAdd(IntRegister goal, IntRegister source1, AsmOperand source2) {
-        super("add", goal, source1, source2);
-        if (source2.isImmediate() || source2.isGlobalTag() || source2.isAddressTag()) {
-            setInstructionName("addi");
+public class AsmAdd extends AsmInstruction {
+    public enum Opcode {
+        ADD("add"),
+        ADDI("addi"),
+        ADDW("addw"),
+        ADDIW("addiw"),
+        FADDS("fadd.s");
+
+        private final String name;
+
+        Opcode(String name) {
+            this.name = name;
+        }
+
+        public String getName() {
+            return name;
         }
     }
-    public AsmAdd(IntRegister goal, IntRegister source1, AsmOperand source2, int bitLength) {
-        super("add", goal, source1, source2);
-        if (bitLength == 32) {
-            setInstructionName("addw");
-        }
-        if (source2.isImmediate() || source2.isGlobalTag() || source2.isAddressTag()) {
-            setInstructionName("addi");
-            if (bitLength == 32) {
-                setInstructionName("addiw");
-            }
+
+    private final Opcode opcode;
+
+    public AsmAdd(IntRegister dest, IntRegister source1, AsmOperand source2, int bitLength) {
+        super("", dest, source1, source2);
+
+        if (bitLength != 64 && bitLength != 32)
+            throw new IllegalArgumentException();
+
+        if (source2.isImmediate() || source2.isLabel() || source2.isAddressDirective()) {
+            if (bitLength == 32) opcode = Opcode.ADDIW;
+            else opcode = Opcode.ADDI;
+        } else {
+            if (bitLength == 32) opcode = Opcode.ADDW;
+            else opcode = Opcode.ADD;
         }
     }
-    public AsmAdd(FloatRegister goal, FloatRegister source1, FloatRegister source2) {
-        super("fadd.s", goal, source1, source2);
+    public AsmAdd(FloatRegister dest, FloatRegister source1, FloatRegister source2) {
+        super("", dest, source1, source2);
+
+        opcode = Opcode.FADDS;
+    }
+
+    public Opcode getOpcode() {
+        return opcode;
+    }
+
+    @Override
+    public String emit() {
+        return String.format("\t%s %s, %s, %s\n", getOpcode().getName(), getOperand(1), getOperand(2), getOperand(3));
     }
 }

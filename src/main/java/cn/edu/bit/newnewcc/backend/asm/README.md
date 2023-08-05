@@ -6,12 +6,12 @@
 
 ### 基本结构
 
-+ .globl tag
++ .globl label
 + 段描述符（见下）
 + .align k -> 按照2^k对齐
-+ .type tag, @object
-+ .size tag, size
-+ tag:
++ .type label, @object
++ .size label, size
++ label:
 + 数据内容
 
 ### 未初始化普通变量

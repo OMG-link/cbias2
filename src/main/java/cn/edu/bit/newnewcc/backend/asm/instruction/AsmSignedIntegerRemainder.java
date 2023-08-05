@@ -5,11 +5,40 @@ import cn.edu.bit.newnewcc.backend.asm.operand.IntRegister;
 /**
  * 有符号整数求余数运算
  */
-public class AsmSignedIntegerRemainder extends AsmBinaryInstruction {
-    public AsmSignedIntegerRemainder(IntRegister goal, IntRegister rsource1, IntRegister rsource2, int bitLength) {
-        super("rem", goal, rsource1, rsource2);
-        if (bitLength == 32) {
-            setInstructionName("remw");
+public class AsmSignedIntegerRemainder extends AsmInstruction {
+    public enum Opcode {
+        REM("rem"),
+        REMW("remw");
+
+        private final String name;
+
+        Opcode(String name) {
+            this.name = name;
         }
+
+        public String getName() {
+            return name;
+        }
+    }
+
+    private final Opcode opcode;
+
+    public AsmSignedIntegerRemainder(IntRegister dest, IntRegister source1, IntRegister source2, int bitLength) {
+        super("", dest, source1, source2);
+
+        if (bitLength != 32 && bitLength != 64)
+            throw new IllegalArgumentException();
+
+        if (bitLength == 32) opcode = Opcode.REMW;
+        else opcode = Opcode.REM;
+    }
+
+    public Opcode getOpcode() {
+        return opcode;
+    }
+
+    @Override
+    public String emit() {
+        return String.format("\t%s %s, %s, %s\n", getOpcode().getName(), getOperand(1), getOperand(2), getOperand(3));
     }
 }

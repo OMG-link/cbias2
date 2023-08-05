@@ -57,7 +57,7 @@ public abstract class RegisterControl {
         if (ImmediateTools.bitlengthNotInLimit(stk.getAddress().getOffset())) {
             preservedRegisterSaved.put(s1, s1saved);
             instList.add(new AsmLoad(s1, new Immediate(Math.toIntExact(stk.getAddress().getOffset()))));
-            instList.add(new AsmAdd(s1, s1, stk.getAddress().getRegister()));
+            instList.add(new AsmAdd(s1, s1, stk.getAddress().getRegister(), 64));
             stk = new StackVar(0, stk.getSize(), true);
             stk = stk.replaceRegister(s1);
         }
@@ -68,7 +68,7 @@ public abstract class RegisterControl {
         if (ImmediateTools.bitlengthNotInLimit(stk.getAddress().getOffset())) {
             preservedRegisterSaved.put(s1, s1saved);
             instList.add(new AsmLoad(s1, new Immediate(Math.toIntExact(stk.getAddress().getOffset()))));
-            instList.add(new AsmAdd(s1, s1, stk.getAddress().getRegister()));
+            instList.add(new AsmAdd(s1, s1, stk.getAddress().getRegister(), 64));
             stk = new StackVar(0, stk.getSize(), true);
             stk = stk.replaceRegister(s1);
         }

@@ -3,7 +3,7 @@ package cn.edu.bit.newnewcc.backend.asm.controller;
 import cn.edu.bit.newnewcc.backend.asm.instruction.*;
 import cn.edu.bit.newnewcc.backend.asm.instruction.AsmInstruction;
 import cn.edu.bit.newnewcc.backend.asm.instruction.AsmJump;
-import cn.edu.bit.newnewcc.backend.asm.operand.GlobalTag;
+import cn.edu.bit.newnewcc.backend.asm.operand.Label;
 import cn.edu.bit.newnewcc.backend.asm.util.ComparablePair;
 
 import java.util.*;
@@ -81,8 +81,8 @@ public class LifeTimeController {
         Set<Integer> out = new HashSet<>();
         Set<Integer> def = new HashSet<>();
         Set<String> nextBlockName = new HashSet<>();
-        Block(AsmTag tag) {
-            blockName = tag.getPureName();
+        Block(AsmLabel label) {
+            blockName = label.getPureName();
         }
     }
 
@@ -180,8 +180,8 @@ public class LifeTimeController {
         Block now = null;
         for (int i = 0; i < instructionList.size(); i++) {
             var inst = instructionList.get(i);
-            if (inst instanceof AsmTag tag) {
-                now = new Block(tag);
+            if (inst instanceof AsmLabel label) {
+                now = new Block(label);
                 now.l = i;
                 blocks.add(now);
                 blockMap.put(now.blockName, now);
@@ -191,8 +191,8 @@ public class LifeTimeController {
             }
             if (inst instanceof AsmJump) {
                 for (int j = 1; j <= 3; j++) {
-                    if (inst.getOperand(j) instanceof GlobalTag tag) {
-                        now.nextBlockName.add(tag.getPureName());
+                    if (inst.getOperand(j) instanceof Label label) {
+                        now.nextBlockName.add(label.getPureName());
                     }
                 }
             }
@@ -207,17 +207,17 @@ public class LifeTimeController {
     }
     void iterateActiveReg() {
         while (true) {
-            boolean changeTag = false;
+            boolean changeLabel = false;
             for (var b : blocks) {
                 for (var nextName : b.nextBlockName) {
                     var next = blockMap.get(nextName);
                     if (next != null) {
-                        changeTag |= b.out.addAll(next.in);
+                        changeLabel |= b.out.addAll(next.in);
                     }
                 }
-                changeTag |= b.in.addAll(minus(b.out, b.def));
+                changeLabel |= b.in.addAll(minus(b.out, b.def));
             }
-            if (!changeTag) {
+            if (!changeLabel) {
                 break;
             }
         }

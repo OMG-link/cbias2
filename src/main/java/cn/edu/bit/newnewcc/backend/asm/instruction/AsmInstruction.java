@@ -55,9 +55,9 @@ public abstract class AsmInstruction {
         var res = new HashSet<Integer>();
         for (int i = 1; i <= 3; i++) {
             if (getOperand(i) instanceof RegisterReplaceable) {
-                boolean tag = (this instanceof AsmStore) ? (i == 1 || (i == 2 && !(getOperand(i) instanceof Register))) :
+                boolean flag = (this instanceof AsmStore) ? (i == 1 || (i == 2 && !(getOperand(i) instanceof Register))) :
                         (this instanceof AsmJump || (i > 1));
-                if (tag) {
+                if (flag) {
                     res.add(i);
                 }
             }
@@ -119,45 +119,6 @@ public abstract class AsmInstruction {
         return res;
     }
 
-    /**
-     * 获取源参数为<br>寄存器</br>的下标（包含在地址内的寄存器不算在内）
-     * @return 源参数下标列表
-     */
-    public Collection<Integer> getSourcePureRegisterIndices() {
-        Set<Integer> res = new HashSet<>();
-        for (int i = 1; i <= 3; i++) {
-            boolean tag = (this instanceof AsmLoad) ? (i == 1) : (i > 1);
-            if (tag && getOperand(i) instanceof Register) {
-                res.add(i);
-            }
-        }
-        return res;
-    }
-
-    /**
-     * 获取指令修改的寄存器列表
-     * @return 寄存器列表
-     */
-    public Collection<Register> getModifiedRegisters() {
-        if (this instanceof AsmCall) {
-            Set<Register> res = new HashSet<>();
-            Register tmp;
-            for (int i = 0; i <= 31; i++) {
-                tmp = IntRegister.getPhysical(i);
-                if (!tmp.isPreserved()) {
-                    res.add(tmp);
-                }
-                tmp = FloatRegister.getPhysical(i);
-                if (!tmp.isPreserved()) {
-                    res.add(tmp);
-                }
-            }
-            return res;
-        } else {
-            return getWriteRegSet();
-        }
-    }
-
     protected void setInstructionName(String name) {
         this.instructionName = name;
     }
@@ -180,7 +141,7 @@ public abstract class AsmInstruction {
 
     public void replaceOperand(int index, AsmOperand operand) {
         if (!(1 <= index && index <= 3)) {
-            throw new RuntimeException("asm operand index out of bound");
+            throw new IndexOutOfBoundsException();
         }
         if (index == 1) {
             this.operand1 = operand;
@@ -204,7 +165,7 @@ public abstract class AsmInstruction {
         } else if (index == 3) {
             return this.operand3;
         } else {
-            throw new RuntimeException("Asm Operand index error : " + index);
+            throw new IndexOutOfBoundsException();
         }
     }
 
@@ -222,7 +183,7 @@ public abstract class AsmInstruction {
                 }
             }
         }
-        if (!(this instanceof AsmTag)) {
+        if (!(this instanceof AsmLabel)) {
             res = '\t' + res;
         }
         return res + "\n";
@@ -243,7 +204,7 @@ public abstract class AsmInstruction {
 
     public Pair<Integer, Integer> getMoveVReg() {
         if (!isMoveVToV()) {
-            throw new RuntimeException("error: get move reg from not move instruction");
+            throw new IllegalArgumentException();
         }
         var writeSet = this.getWriteVRegSet();
         var readSet = this.getReadVRegSet();

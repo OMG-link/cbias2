@@ -56,7 +56,7 @@ public class PeepholeOptimizer {
     );
 
     private static Set<Integer> getSourceRegIndices(AsmInstruction instr) {
-        if (instr instanceof AsmTag) {
+        if (instr instanceof AsmLabel) {
             throw new UnsupportedOperationException();
         } else if (instr instanceof AsmCall) {
             return Set.of();
@@ -68,6 +68,8 @@ public class PeepholeOptimizer {
             } else {
                 return Set.of();
             }
+        } else if (instr instanceof AsmIndirectJump) {
+            return Set.of(1);
         } else if (instr instanceof AsmLoad) {
             if (instr.getOperand(2).isRegister()) {
                 return Set.of(2);
@@ -94,7 +96,7 @@ public class PeepholeOptimizer {
             } else {
                 return Set.of(2);
             }
-        } else if (instr instanceof AsmTransFloatInt) {
+        } else if (instr instanceof AsmConvertFloatInt) {
             return Set.of(2);
         } else if (instr instanceof AsmFloatNegate) {
             return Set.of(2);
@@ -110,9 +112,11 @@ public class PeepholeOptimizer {
     }
 
     private static Set<Register> getModifiedRegs(AsmInstruction instr) {
-        if (instr instanceof AsmTag) {
+        if (instr instanceof AsmLabel) {
             throw new UnsupportedOperationException();
         } else if (instr instanceof AsmJump) {
+            return Set.of();
+        } else if (instr instanceof AsmIndirectJump) {
             return Set.of();
         } else if (instr instanceof AsmStore) {
             if (instr.getOperand(2).isRegister()) {
@@ -132,7 +136,7 @@ public class PeepholeOptimizer {
         Set<Register> zeroRegs = new HashSet<>();
 
         for (AsmInstruction instr : instrList) {
-            if (instr instanceof AsmTag) {
+            if (instr instanceof AsmLabel) {
                 zeroRegs.clear();
             } else if (instr instanceof AsmLoad && instr.getOperand(2).isImmediate() && ((Immediate) instr.getOperand(2)).getValue() == 0) {
                 zeroRegs.add((Register) instr.getOperand(1));

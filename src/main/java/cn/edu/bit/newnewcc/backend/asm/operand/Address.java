@@ -13,7 +13,7 @@ public abstract class Address extends AsmOperand implements RegisterReplaceable 
         if (isAddressContent()) {
             return new AddressContent(offset, newBaseRegister);
         } else {
-            return new AddressTag(offset, newBaseRegister);
+            return new AddressDirective(offset, newBaseRegister);
         }
     }
 
@@ -21,7 +21,7 @@ public abstract class Address extends AsmOperand implements RegisterReplaceable 
         if (isAddressContent()) {
             return new AddressContent(offset + offsetDiff, baseAddress);
         } else {
-            return new AddressTag(offset + offsetDiff, baseAddress);
+            return new AddressDirective(offset + offsetDiff, baseAddress);
         }
     }
 
@@ -29,7 +29,7 @@ public abstract class Address extends AsmOperand implements RegisterReplaceable 
         if (isAddressContent()) {
             return new AddressContent(newOffset, baseAddress);
         } else {
-            return new AddressTag(newOffset, baseAddress);
+            return new AddressDirective(newOffset, baseAddress);
         }
     }
 
@@ -37,8 +37,8 @@ public abstract class Address extends AsmOperand implements RegisterReplaceable 
         return new AddressContent(offset, baseAddress);
     }
 
-    public AddressTag getAddressTag() {
-        return new AddressTag(offset, baseAddress);
+    public AddressDirective getAddressDirective() {
+        return new AddressDirective(offset, baseAddress);
     }
 
     public String emit() {
