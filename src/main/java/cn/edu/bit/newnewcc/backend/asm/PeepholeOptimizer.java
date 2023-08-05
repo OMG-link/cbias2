@@ -61,9 +61,9 @@ public class PeepholeOptimizer {
         } else if (instr instanceof AsmCall) {
             return Set.of();
         } else if (instr instanceof AsmJump) {
-            if (instr.getOperand(1).isRegister() && instr.getOperand(2).isRegister()) {
+            if (instr.getOperand(1) instanceof Register && instr.getOperand(2) instanceof Register) {
                 return Set.of(1, 2);
-            } else if (instr.getOperand(1).isRegister()) {
+            } else if (instr.getOperand(1) instanceof Register) {
                 return Set.of(1);
             } else {
                 return Set.of();
@@ -71,7 +71,7 @@ public class PeepholeOptimizer {
         } else if (instr instanceof AsmIndirectJump) {
             return Set.of(1);
         } else if (instr instanceof AsmLoad) {
-            if (instr.getOperand(2).isRegister()) {
+            if (instr.getOperand(2) instanceof Register) {
                 return Set.of(2);
             } else {
                 return Set.of();
@@ -79,19 +79,19 @@ public class PeepholeOptimizer {
         } else if (instr instanceof AsmStore) {
             return Set.of(1);
         } else if (instr instanceof AsmAdd || instr instanceof AsmSub) {
-            if (instr.getOperand(3).isRegister()) {
+            if (instr.getOperand(3) instanceof Register) {
                 return Set.of(2, 3);
             } else {
                 return Set.of(2);
             }
         } else if (instr instanceof AsmIntegerCompare) {
-            if (instr.getOperand(3) != null && instr.getOperand(3).isRegister()) {
+            if (instr.getOperand(3) instanceof Register) {
                 return Set.of(2, 3);
             } else {
                 return Set.of(2);
             }
         } else if (instr instanceof AsmShiftLeft) {
-            if (instr.getOperand(3).isRegister()) {
+            if (instr.getOperand(3) instanceof Register) {
                 return Set.of(2, 3);
             } else {
                 return Set.of(2);
@@ -101,7 +101,7 @@ public class PeepholeOptimizer {
         } else if (instr instanceof AsmFloatNegate) {
             return Set.of(2);
         } else if (instr instanceof AsmShiftRightArithmetic || instr instanceof AsmShiftRightLogical) {
-            if (instr.getOperand(3).isRegister()) {
+            if (instr.getOperand(3) instanceof Register) {
                 return Set.of(2, 3);
             } else {
                 return Set.of(2);
@@ -119,7 +119,7 @@ public class PeepholeOptimizer {
         } else if (instr instanceof AsmIndirectJump) {
             return Set.of();
         } else if (instr instanceof AsmStore) {
-            if (instr.getOperand(2).isRegister()) {
+            if (instr.getOperand(2) instanceof Register) {
                 return Set.of((Register) instr.getOperand(2));
             } else {
                 return Set.of();
@@ -138,7 +138,7 @@ public class PeepholeOptimizer {
         for (AsmInstruction instr : instrList) {
             if (instr instanceof AsmLabel) {
                 zeroRegs.clear();
-            } else if (instr instanceof AsmLoad && instr.getOperand(2).isImmediate() && ((Immediate) instr.getOperand(2)).getValue() == 0) {
+            } else if (instr instanceof AsmLoad && instr.getOperand(2) instanceof Immediate && ((Immediate) instr.getOperand(2)).getValue() == 0) {
                 zeroRegs.add((Register) instr.getOperand(1));
             } else {
                 for (int i : getSourceRegIndices(instr)) {

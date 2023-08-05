@@ -11,6 +11,21 @@ public class AddressContent extends Address {
      * @param baseAddress 基址寄存器
      */
     public AddressContent(long offset, IntRegister baseAddress) {
-        super(TYPE.ADDC, offset, baseAddress);
+        super(offset, baseAddress);
+    }
+
+    @Override
+    public Address replaceBaseRegister(IntRegister newBaseRegister) {
+        return new AddressContent(offset, newBaseRegister);
+    }
+
+    @Override
+    public Address addOffset(long offsetDiff) {
+        return new AddressContent(offset + offsetDiff, baseAddress);
+    }
+
+    @Override
+    public Address setOffset(long newOffset) {
+        return new AddressContent(newOffset, baseAddress);
     }
 }

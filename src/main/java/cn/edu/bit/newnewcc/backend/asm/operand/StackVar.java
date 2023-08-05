@@ -16,7 +16,6 @@ public class StackVar extends AsmOperand implements RegisterReplaceable {
      * @param size   变量占据的大小
      */
     public StackVar(long offset, int size, boolean isS0) {
-        super(TYPE.SVAR);
         this.isS0 = isS0;
         if (isS0) {
             this.address = new AddressContent(offset, IntRegister.s0);
@@ -27,7 +26,6 @@ public class StackVar extends AsmOperand implements RegisterReplaceable {
     }
 
     protected StackVar(Address address, int size, boolean isS0Based) {
-        super(TYPE.SVAR);
         this.address = address;
         this.size = size;
         this.isS0 = isS0Based;
@@ -69,7 +67,7 @@ public class StackVar extends AsmOperand implements RegisterReplaceable {
     }
 
     @Override
-    public boolean equals(Object v) {
-        return v instanceof StackVar stackVar && size == stackVar.getSize() && emit().equals(stackVar.emit());
+    public boolean equals(Object o) {
+        return o instanceof StackVar stackVar && size == stackVar.getSize() && emit().equals(stackVar.emit());
     }
 }

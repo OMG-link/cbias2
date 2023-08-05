@@ -5,6 +5,21 @@ package cn.edu.bit.newnewcc.backend.asm.operand;
  */
 public class AddressDirective extends Address {
     public AddressDirective(long offset, IntRegister baseAddress) {
-        super(TYPE.ADDD, offset, baseAddress);
+        super(offset, baseAddress);
+    }
+
+    @Override
+    public Address replaceBaseRegister(IntRegister newBaseRegister) {
+        return new AddressDirective(offset, newBaseRegister);
+    }
+
+    @Override
+    public Address addOffset(long offsetDiff) {
+        return new AddressDirective(offset + offsetDiff, baseAddress);
+    }
+
+    @Override
+    public Address setOffset(long newOffset) {
+        return new AddressDirective(newOffset, baseAddress);
     }
 }

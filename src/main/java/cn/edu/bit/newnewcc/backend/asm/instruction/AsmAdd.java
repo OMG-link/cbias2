@@ -1,8 +1,6 @@
 package cn.edu.bit.newnewcc.backend.asm.instruction;
 
-import cn.edu.bit.newnewcc.backend.asm.operand.AsmOperand;
-import cn.edu.bit.newnewcc.backend.asm.operand.FloatRegister;
-import cn.edu.bit.newnewcc.backend.asm.operand.IntRegister;
+import cn.edu.bit.newnewcc.backend.asm.operand.*;
 
 /**
  * 汇编加指令，分为普通加和加立即数两种
@@ -34,7 +32,7 @@ public class AsmAdd extends AsmInstruction {
         if (bitLength != 64 && bitLength != 32)
             throw new IllegalArgumentException();
 
-        if (source2.isImmediate() || source2.isLabel() || source2.isAddressDirective()) {
+        if (source2 instanceof Immediate || source2 instanceof Label || source2 instanceof AddressDirective) {
             if (bitLength == 32) opcode = Opcode.ADDIW;
             else opcode = Opcode.ADDI;
         } else {

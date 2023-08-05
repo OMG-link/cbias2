@@ -22,17 +22,16 @@ public class AsmLoad extends AsmInstruction {
     public AsmLoad(Register dest, AsmOperand source) {
         super("lw", dest, source, null);
         if (dest.isInt()) {
-            if (source.isImmediate()) {
+            if (source instanceof Immediate) {
                 setInstructionName("li");
-            } else if (source.isStackVar()) {
+            } else if (source instanceof StackVar) {
                 StackVar stackVar = (StackVar) source;
                 if (stackVar.getSize() == 8) {
                     setInstructionName("ld");
                 } else if (stackVar.getSize() == 4) {
                     setInstructionName("lw");
                 }
-            } else if (source.isLabel()) {
-                Label label = (Label) source;
+            } else if (source instanceof Label label) {
                 if (label.isHighSegment()) {
                     setInstructionName("lui");
                 } else if (label.isLowSegment()) {
@@ -40,14 +39,14 @@ public class AsmLoad extends AsmInstruction {
                 } else {
                     setInstructionName("la");
                 }
-            } else if (source.isRegister() && ((Register) source).isInt()) {
+            } else if (source instanceof Register && ((Register) source).isInt()) {
                 setInstructionName("mv");
-            } else if (source.isAddressDirective()) {
+            } else if (source instanceof AddressDirective) {
                 throw new RuntimeException("cannot load address to register by one instruction");
             }
         } else {
             setInstructionName("flw");
-            if (source.isRegister() && ((Register) source).isFloat()) {
+            if (source instanceof Register && ((Register) source).isFloat()) {
                 setInstructionName("fmv.s");
             }
         }

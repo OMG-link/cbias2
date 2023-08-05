@@ -20,17 +20,16 @@ public class AsmStore extends AsmInstruction {
     public AsmStore(Register source, AsmOperand dest) {
         super("sw", source, dest, null);
         if (source.isInt()) {
-            if (dest.isStackVar()) {
-                StackVar stackVar = (StackVar) dest;
+            if (dest instanceof StackVar stackVar) {
                 if (stackVar.getSize() == 8) {
                     setInstructionName("sd");
                 }
-            } else if (dest.isRegister()) {
+            } else if (dest instanceof Register) {
                 setInstructionName("mv");
             }
         } else {
             setInstructionName("fsw");
-            if (dest.isRegister()) {
+            if (dest instanceof Register) {
                 setInstructionName("fmv.s");
             }
         }

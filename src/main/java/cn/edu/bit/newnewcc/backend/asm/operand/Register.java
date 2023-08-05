@@ -24,7 +24,6 @@ public abstract class Register extends AsmOperand implements RegisterReplaceable
     }
 
     Register(int index, RTYPE type) {
-        super(TYPE.REG);
         this.index = index;
         this.rtype = type;
     }

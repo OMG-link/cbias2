@@ -20,7 +20,6 @@ public class Label extends AsmOperand {
      * @param baseAddress 取的基地址，若为null则仅返回偏移量
      */
     public Label(String labelName, SEGMENT segment, IntRegister baseAddress) {
-        super(TYPE.LABEL);
         this.labelName = labelName;
         this.segment = segment;
         this.baseAddress = baseAddress;
@@ -37,7 +36,6 @@ public class Label extends AsmOperand {
      * @param isLinkedLabel 是否是带有标记的全局类标签
      */
     public Label(String labelName, boolean isLinkedLabel) {
-        super(TYPE.LABEL);
         if (isLinkedLabel) {
             this.labelName = labelName;
         } else {
@@ -48,7 +46,6 @@ public class Label extends AsmOperand {
     }
 
     public Label(String labelName, SEGMENT segment) {
-        super(TYPE.LABEL);
         this.labelName = labelName;
         this.segment = segment;
         this.baseAddress = null;

@@ -3,35 +3,16 @@ package cn.edu.bit.newnewcc.backend.asm.operand;
 public abstract class Address extends AsmOperand implements RegisterReplaceable {
     protected final long offset;
     protected final IntRegister baseAddress;
-    Address(TYPE type, long offset, IntRegister baseAddress) {
-        super(type);
+    Address(long offset, IntRegister baseAddress) {
         this.offset = offset;
         this.baseAddress = baseAddress;
     }
 
-    public Address replaceBaseRegister(IntRegister newBaseRegister) {
-        if (isAddressContent()) {
-            return new AddressContent(offset, newBaseRegister);
-        } else {
-            return new AddressDirective(offset, newBaseRegister);
-        }
-    }
+    public abstract Address replaceBaseRegister(IntRegister newBaseRegister);
 
-    public Address addOffset(long offsetDiff) {
-        if (isAddressContent()) {
-            return new AddressContent(offset + offsetDiff, baseAddress);
-        } else {
-            return new AddressDirective(offset + offsetDiff, baseAddress);
-        }
-    }
+    public abstract Address addOffset(long offsetDiff);
 
-    public Address setOffset(long newOffset) {
-        if (isAddressContent()) {
-            return new AddressContent(newOffset, baseAddress);
-        } else {
-            return new AddressDirective(newOffset, baseAddress);
-        }
-    }
+    public abstract Address setOffset(long newOffset);
 
     public AddressContent getAddressContent() {
         return new AddressContent(offset, baseAddress);

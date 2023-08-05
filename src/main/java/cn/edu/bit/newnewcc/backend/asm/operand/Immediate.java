@@ -5,7 +5,6 @@ public class Immediate extends AsmOperand {
     private int value;
 
     public Immediate(int value) {
-        super(TYPE.IMM);
         this.value = value;
     }
 
