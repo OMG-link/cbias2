@@ -1,9 +1,6 @@
 package cn.edu.bit.newnewcc.backend.asm.controller;
 
-import cn.edu.bit.newnewcc.backend.asm.instruction.AsmAbstractTag;
-import cn.edu.bit.newnewcc.backend.asm.instruction.AsmInstruction;
-import cn.edu.bit.newnewcc.backend.asm.instruction.AsmJump;
-import cn.edu.bit.newnewcc.backend.asm.instruction.AsmStore;
+import cn.edu.bit.newnewcc.backend.asm.instruction.*;
 import cn.edu.bit.newnewcc.backend.asm.operand.GlobalTag;
 import cn.edu.bit.newnewcc.backend.asm.operand.Register;
 import cn.edu.bit.newnewcc.backend.asm.operand.RegisterReplaceable;
@@ -179,7 +176,7 @@ public class LifeTimeController {
         Set<Integer> out = new HashSet<>();
         Set<Integer> def = new HashSet<>();
         Set<String> nextBlockName = new HashSet<>();
-        Block(AsmAbstractTag tag) {
+        Block(AsmTag tag) {
             blockName = tag.getPureName();
         }
     }
@@ -278,7 +275,7 @@ public class LifeTimeController {
         Block now = null;
         for (int i = 0; i < instructionList.size(); i++) {
             var inst = instructionList.get(i);
-            if (inst instanceof AsmAbstractTag tag) {
+            if (inst instanceof AsmTag tag) {
                 now = new Block(tag);
                 now.l = i;
                 blocks.add(now);

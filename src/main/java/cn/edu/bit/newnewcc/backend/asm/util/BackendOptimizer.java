@@ -46,7 +46,7 @@ public class BackendOptimizer {
                             continue;
                         }
                     } else if (iSv instanceof AsmJump jump) {
-                        if (iLd instanceof AsmAbstractTag tag) {
+                        if (iLd instanceof AsmTag tag) {
                             if (jump.isUnconditional() && ((GlobalTag)jump.getOperand(1)).getPureName().equals(tag.getPureName())) {
                                 popx.accept(1);
                             }
@@ -98,7 +98,7 @@ public class BackendOptimizer {
             //此部分为重复写入内存空间的优化
             {
                 var address = inst.getOperand(2);
-                if (inst instanceof AsmAbstractTag) {
+                if (inst instanceof AsmTag) {
                     lastWrite.clear();
                 }
                 if (address instanceof StackVar && !(address instanceof ExStackVarContent)) {
@@ -119,7 +119,7 @@ public class BackendOptimizer {
 
             //此部分为重复写入寄存器的优化
             {
-                if (inst instanceof AsmAbstractTag) {
+                if (inst instanceof AsmTag) {
                     lastWriteReg.clear();
                 }
                 for (var reg : LifeTimeController.getWriteRegSet(inst)) {
