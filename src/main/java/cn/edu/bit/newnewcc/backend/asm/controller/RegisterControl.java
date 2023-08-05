@@ -60,7 +60,7 @@ public abstract class RegisterControl {
 
         registerPreservedType.put(s1, TYPE.PRESERVED);
         for (int i = 0; i <= 31; i++) {
-            if ((6 <= i && i <= 7) || (28 <= i)) {
+            if ((5 <= i && i <= 7) || (28 <= i)) {
                 Register register = IntRegister.getPhysical(i);
                 registerPreservedType.put(register, TYPE.UNPRESERVED);
             }
@@ -72,7 +72,7 @@ public abstract class RegisterControl {
                 Register register = FloatRegister.getPhysical(i);
                 registerPreservedType.put(register, TYPE.PRESERVED);
             }
-            if (i <= 7 || 28 <= i) {
+            if (i <= 9 || 28 <= i) {
                 Register register = FloatRegister.getPhysical(i);
                 registerPreservedType.put(register, TYPE.UNPRESERVED);
             }
