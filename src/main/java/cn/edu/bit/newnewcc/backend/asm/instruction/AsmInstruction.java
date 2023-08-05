@@ -120,21 +120,6 @@ public abstract class AsmInstruction {
     }
 
     /**
-     * 获取源参数为<br>寄存器</br>的下标（包含在地址内的寄存器不算在内）
-     * @return 源参数下标列表
-     */
-    public Collection<Integer> getSourcePureRegisterIndices() {
-        Set<Integer> res = new HashSet<>();
-        for (int i = 1; i <= 3; i++) {
-            boolean tag = (this instanceof AsmLoad) ? (i == 1) : (i > 1);
-            if (tag && getOperand(i) instanceof Register) {
-                res.add(i);
-            }
-        }
-        return res;
-    }
-
-    /**
      * 获取指令修改的寄存器列表
      * @return 寄存器列表
      */
