@@ -277,7 +277,11 @@ public class AsmBasicBlock {
             var subx = getOperandToIntRegister(getValue(integerSubInst.getOperand1()));
             var suby = getValue(integerSubInst.getOperand2());
             IntRegister register = function.getRegisterAllocator().allocateInt(integerSubInst);
-            function.appendInstruction(new AsmSub(register, subx, suby, bitLength));
+            if (suby instanceof Immediate) {
+                function.appendInstruction(new AsmAdd(register, subx, new Immediate(-((Immediate) suby).getValue()), bitLength));
+            } else {
+                function.appendInstruction(new AsmSub(register, subx, (IntRegister) suby, bitLength));
+            }
         } else if (binaryInstruction instanceof IntegerMultiplyInst integerMultiplyInst) {
             int bitLength = integerMultiplyInst.getType().getBitWidth();
             var mulx = getOperandToIntRegister(getValue(integerMultiplyInst.getOperand1()));

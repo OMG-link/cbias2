@@ -8,28 +8,41 @@ import cn.edu.bit.newnewcc.backend.asm.operand.IntRegister;
 /**
  * 汇编加指令，分为普通加和加立即数两种
  */
-public class AsmSub extends AsmBinaryInstruction {
-    /**
-     * 汇编减指令
-     *
-     * @param dest    结果存储的寄存器
-     * @param source1 源寄存器1，存储被减数
-     * @param source2 源2，存储减数，可能为寄存器或立即数
-     */
-    public AsmSub(IntRegister dest, IntRegister source1, AsmOperand source2, int bitLength) {
-        super("sub", dest, source1, source2);
-        if (bitLength == 32) {
-            setInstructionName("subw");
+public class AsmSub extends AsmInstruction {
+    public enum Opcode {
+        SUB("sub"),
+        SUBW("subw"),
+        FSUBS("fsub.s");
+
+        private final String name;
+
+        Opcode(String name) {
+            this.name = name;
         }
-        if (source2.isImmediate()) {
-            setInstructionName("addi");
-            if (bitLength == 32) {
-                setInstructionName("addiw");
-            }
-            setOperand3(new Immediate(-((Immediate)source2).getValue()));
+
+        public String getName() {
+            return name;
         }
     }
+
+    private final Opcode opcode;
+
+    public AsmSub(IntRegister dest, IntRegister source1, IntRegister source2, int bitLength) {
+        super("", dest, source1, source2);
+
+        if (bitLength != 64 && bitLength != 32)
+            throw new IllegalArgumentException();
+
+        if (bitLength == 32) opcode = Opcode.SUBW;
+        else opcode = Opcode.SUB;
+    }
     public AsmSub(FloatRegister dest, FloatRegister source1, FloatRegister source2) {
-        super("fsub.s", dest, source1, source2);
+        super("", dest, source1, source2);
+        opcode = Opcode.FSUBS;
+    }
+
+    @Override
+    public String emit() {
+        return String.format("\t%s %s, %s, %s\n", opcode.getName(), getOperand(1), getOperand(2), getOperand(3));
     }
 }
