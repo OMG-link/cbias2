@@ -141,7 +141,7 @@ public abstract class AsmInstruction {
 
     public void replaceOperand(int index, AsmOperand operand) {
         if (!(1 <= index && index <= 3)) {
-            throw new RuntimeException("asm operand index out of bound");
+            throw new IndexOutOfBoundsException();
         }
         if (index == 1) {
             this.operand1 = operand;
@@ -165,7 +165,7 @@ public abstract class AsmInstruction {
         } else if (index == 3) {
             return this.operand3;
         } else {
-            throw new RuntimeException("Asm Operand index error : " + index);
+            throw new IndexOutOfBoundsException();
         }
     }
 
@@ -204,7 +204,7 @@ public abstract class AsmInstruction {
 
     public Pair<Integer, Integer> getMoveVReg() {
         if (!isMoveVToV()) {
-            throw new RuntimeException("error: get move reg from not move instruction");
+            throw new IllegalArgumentException();
         }
         var writeSet = this.getWriteVRegSet();
         var readSet = this.getReadVRegSet();
