@@ -12,7 +12,6 @@ public class CopyCoalescer {
     private final ArrayList<AsmInstruction> instructions;
     private final LifeTimeController lifeTimeController;
     private final Map<LifeTimeInterval, LifeTimeInterval> value = new HashMap<>();
-    private final Map<Integer, List<LifeTimeInterval>> intervalMap = new HashMap<>();
     private final DSU<Integer> dsu = new DSU<>();
     private final List<LifeTimeInterval> intervals = new ArrayList<>();
     private final Map<Integer, Set<Integer>> clique = new HashMap<>();
@@ -32,11 +31,7 @@ public class CopyCoalescer {
 
     private void getIntervals() {
         for (int x : lifeTimeController.getKeySet()) {
-            intervalMap.put(x, new ArrayList<>());
-            for (var i : lifeTimeController.getInterval(x)) {
-                intervals.add(i);
-                intervalMap.get(x).add(i);
-            }
+            intervals.addAll(lifeTimeController.getInterval(x));
         }
         Collections.sort(intervals);
     }
