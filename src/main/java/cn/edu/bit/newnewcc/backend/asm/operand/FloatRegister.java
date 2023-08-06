@@ -30,10 +30,10 @@ public class FloatRegister extends Register {
     }
 
     public String emit() {
-        if (getIndex() >= 0) {
-            return "f" + getAbsoluteIndex();
+        if (isVirtual()) {
+            return "vf" + getAbsoluteIndex();
         } else {
-            return "vf" + (-getAbsoluteIndex());
+            return "f" + getAbsoluteIndex();
         }
     }
 }

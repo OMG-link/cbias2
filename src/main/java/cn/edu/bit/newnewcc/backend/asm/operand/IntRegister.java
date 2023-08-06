@@ -43,7 +43,7 @@ public class IntRegister extends Register {
         if (isVirtual()) {
             return "vx" + getAbsoluteIndex();
         } else {
-            return "x" + (getAbsoluteIndex());
+            return "x" + getAbsoluteIndex();
         }
     }
 }
