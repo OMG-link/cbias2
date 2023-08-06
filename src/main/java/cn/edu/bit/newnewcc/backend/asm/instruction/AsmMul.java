@@ -2,6 +2,9 @@ package cn.edu.bit.newnewcc.backend.asm.instruction;
 
 import cn.edu.bit.newnewcc.backend.asm.operand.FloatRegister;
 import cn.edu.bit.newnewcc.backend.asm.operand.IntRegister;
+import cn.edu.bit.newnewcc.backend.asm.operand.Register;
+
+import java.util.Set;
 
 /**
  * 汇编乘法指令，仅支持寄存器间的乘法
@@ -31,8 +34,8 @@ public class AsmMul extends AsmInstruction {
         if (bitLength != 64 && bitLength != 32)
             throw new IllegalArgumentException();
 
-        if (bitLength == 32) opcode = Opcode.MULW;
-        else opcode = Opcode.MUL;
+        if (bitLength == 64) opcode = Opcode.MUL;
+        else opcode = Opcode.MULW;
     }
     public AsmMul(FloatRegister dest, FloatRegister source1, FloatRegister source2) {
         super(dest, source1, source2);
@@ -52,5 +55,15 @@ public class AsmMul extends AsmInstruction {
     @Override
     public String emit() {
         return "\t" + this + "\n";
+    }
+
+    @Override
+    public Set<Register> getDef() {
+        return Set.of((Register) getOperand(1));
+    }
+
+    @Override
+    public Set<Integer> getUse() {
+        return Set.of(2, 3);
     }
 }

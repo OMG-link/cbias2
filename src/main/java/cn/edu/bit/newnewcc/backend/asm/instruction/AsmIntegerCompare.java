@@ -3,6 +3,9 @@ package cn.edu.bit.newnewcc.backend.asm.instruction;
 import cn.edu.bit.newnewcc.backend.asm.operand.AsmOperand;
 import cn.edu.bit.newnewcc.backend.asm.operand.Immediate;
 import cn.edu.bit.newnewcc.backend.asm.operand.IntRegister;
+import cn.edu.bit.newnewcc.backend.asm.operand.Register;
+
+import java.util.Set;
 
 public class AsmIntegerCompare extends AsmInstruction {
     public enum Opcode {
@@ -62,6 +65,16 @@ public class AsmIntegerCompare extends AsmInstruction {
     @Override
     public String emit() {
         return "\t" + this + "\n";
+    }
+
+    @Override
+    public Set<Register> getDef() {
+        return Set.of((Register) getOperand(1));
+    }
+
+    @Override
+    public Set<Integer> getUse() {
+        return Set.of(2, 3);
     }
 
     public static AsmIntegerCompare createLT(IntRegister dest, IntRegister source1, IntRegister source2) {

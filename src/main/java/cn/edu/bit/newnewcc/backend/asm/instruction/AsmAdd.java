@@ -2,6 +2,8 @@ package cn.edu.bit.newnewcc.backend.asm.instruction;
 
 import cn.edu.bit.newnewcc.backend.asm.operand.*;
 
+import java.util.Set;
+
 /**
  * 汇编加指令，分为普通加和加立即数两种
  */
@@ -32,17 +34,18 @@ public class AsmAdd extends AsmInstruction {
         if (bitLength != 64 && bitLength != 32)
             throw new IllegalArgumentException();
 
-        if (source2 instanceof Immediate || source2 instanceof Label || source2 instanceof AddressDirective) {
-            if (bitLength == 32) opcode = Opcode.ADDIW;
-            else opcode = Opcode.ADDI;
+        if (source2 instanceof Register) {
+            if (bitLength == 64) opcode = Opcode.ADD;
+            else opcode = Opcode.ADDW;
+        } else if (source2 instanceof Immediate || source2 instanceof Label || source2 instanceof AddressDirective) {
+            if (bitLength == 64) opcode = Opcode.ADDI;
+            else opcode = Opcode.ADDIW;
         } else {
-            if (bitLength == 32) opcode = Opcode.ADDW;
-            else opcode = Opcode.ADD;
+            throw new IllegalArgumentException();
         }
     }
     public AsmAdd(FloatRegister dest, FloatRegister source1, FloatRegister source2) {
         super(dest, source1, source2);
-
         opcode = Opcode.FADDS;
     }
 
@@ -58,5 +61,18 @@ public class AsmAdd extends AsmInstruction {
     @Override
     public String emit() {
         return "\t" + this + "\n";
+    }
+
+    @Override
+    public Set<Register> getDef() {
+        return Set.of((Register) getOperand(1));
+    }
+
+    @Override
+    public Set<Integer> getUse() {
+        return switch (getOpcode()) {
+            case ADD, ADDW, FADDS -> Set.of(2, 3);
+            case ADDI, ADDIW -> Set.of(2);
+        };
     }
 }

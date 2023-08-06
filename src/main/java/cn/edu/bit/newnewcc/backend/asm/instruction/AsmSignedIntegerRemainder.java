@@ -1,6 +1,9 @@
 package cn.edu.bit.newnewcc.backend.asm.instruction;
 
 import cn.edu.bit.newnewcc.backend.asm.operand.IntRegister;
+import cn.edu.bit.newnewcc.backend.asm.operand.Register;
+
+import java.util.Set;
 
 /**
  * 有符号整数求余数运算
@@ -29,8 +32,8 @@ public class AsmSignedIntegerRemainder extends AsmInstruction {
         if (bitLength != 32 && bitLength != 64)
             throw new IllegalArgumentException();
 
-        if (bitLength == 32) opcode = Opcode.REMW;
-        else opcode = Opcode.REM;
+        if (bitLength == 64) opcode = Opcode.REM;
+        else opcode = Opcode.REMW;
     }
 
     public Opcode getOpcode() {
@@ -45,5 +48,15 @@ public class AsmSignedIntegerRemainder extends AsmInstruction {
     @Override
     public String emit() {
         return "\t" + this + "\n";
+    }
+
+    @Override
+    public Set<Register> getDef() {
+        return Set.of((Register) getOperand(1));
+    }
+
+    @Override
+    public Set<Integer> getUse() {
+        return Set.of(2, 3);
     }
 }

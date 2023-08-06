@@ -3,6 +3,9 @@ package cn.edu.bit.newnewcc.backend.asm.instruction;
 import cn.edu.bit.newnewcc.backend.asm.operand.AsmOperand;
 import cn.edu.bit.newnewcc.backend.asm.operand.Label;
 import cn.edu.bit.newnewcc.backend.asm.operand.IntRegister;
+import cn.edu.bit.newnewcc.backend.asm.operand.Register;
+
+import java.util.Set;
 
 public class AsmJump extends AsmInstruction {
     public enum Opcode {
@@ -79,6 +82,20 @@ public class AsmJump extends AsmInstruction {
     @Override
     public String emit() {
         return "\t" + this + "\n";
+    }
+
+    @Override
+    public Set<Register> getDef() {
+        return Set.of();
+    }
+
+    @Override
+    public Set<Integer> getUse() {
+        return switch (getCondition()) {
+            case UNCONDITIONAL -> Set.of();
+            case LTZ, GTZ, LEZ, GEZ, EQZ, NEZ -> Set.of(1);
+            case LT, GT, LE, GE, EQ, NE -> Set.of(1, 2);
+        };
     }
 
     public static AsmJump createUnconditional(Label targetLabel) {

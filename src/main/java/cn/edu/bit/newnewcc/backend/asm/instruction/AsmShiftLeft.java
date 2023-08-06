@@ -3,6 +3,9 @@ package cn.edu.bit.newnewcc.backend.asm.instruction;
 import cn.edu.bit.newnewcc.backend.asm.operand.AsmOperand;
 import cn.edu.bit.newnewcc.backend.asm.operand.Immediate;
 import cn.edu.bit.newnewcc.backend.asm.operand.IntRegister;
+import cn.edu.bit.newnewcc.backend.asm.operand.Register;
+
+import java.util.Set;
 
 public class AsmShiftLeft extends AsmInstruction {
     public enum Opcode {
@@ -32,12 +35,12 @@ public class AsmShiftLeft extends AsmInstruction {
         if (!(source2 instanceof IntRegister) && !(source2 instanceof Immediate))
             throw new IllegalArgumentException();
 
-        if (bitLength == 32) {
-            if (source2 instanceof Immediate) opcode = Opcode.SLLIW;
-            else opcode = Opcode.SLLW;
-        } else {
+        if (bitLength == 64) {
             if (source2 instanceof Immediate) opcode = Opcode.SLLI;
             else opcode = Opcode.SLL;
+        } else {
+            if (source2 instanceof Immediate) opcode = Opcode.SLLIW;
+            else opcode = Opcode.SLLW;
         }
     }
 
@@ -53,5 +56,18 @@ public class AsmShiftLeft extends AsmInstruction {
     @Override
     public String emit() {
         return "\t" + this + "\n";
+    }
+
+    @Override
+    public Set<Register> getDef() {
+        return Set.of((Register) getOperand(1));
+    }
+
+    @Override
+    public Set<Integer> getUse() {
+        return switch (getOpcode()) {
+            case SLL, SLLW -> Set.of(2, 3);
+            case SLLI, SLLIW -> Set.of(2);
+        };
     }
 }

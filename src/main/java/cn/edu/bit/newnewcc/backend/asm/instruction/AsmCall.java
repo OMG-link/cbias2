@@ -1,6 +1,10 @@
 package cn.edu.bit.newnewcc.backend.asm.instruction;
 
 import cn.edu.bit.newnewcc.backend.asm.operand.Label;
+import cn.edu.bit.newnewcc.backend.asm.operand.Register;
+import cn.edu.bit.newnewcc.backend.asm.operand.Registers;
+
+import java.util.Set;
 
 public class AsmCall extends AsmInstruction {
     public AsmCall(Label label) {
@@ -15,5 +19,15 @@ public class AsmCall extends AsmInstruction {
     @Override
     public String emit() {
         return "\t" + this + "\n";
+    }
+
+    @Override
+    public Set<Register> getDef() {
+        return Registers.getCallerSavedRegisters();
+    }
+
+    @Override
+    public Set<Integer> getUse() {
+        return Set.of();
     }
 }

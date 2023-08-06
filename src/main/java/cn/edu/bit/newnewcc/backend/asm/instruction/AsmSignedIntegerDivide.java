@@ -1,6 +1,9 @@
 package cn.edu.bit.newnewcc.backend.asm.instruction;
 
 import cn.edu.bit.newnewcc.backend.asm.operand.IntRegister;
+import cn.edu.bit.newnewcc.backend.asm.operand.Register;
+
+import java.util.Set;
 
 /**
  * 汇编有符号整数除法指令，仅支持寄存器间的除法
@@ -29,8 +32,8 @@ public class AsmSignedIntegerDivide extends AsmInstruction {
         if (bitLength != 64 && bitLength != 32)
             throw new IllegalArgumentException();
 
-        if (bitLength == 32) opcode = Opcode.DIVW;
-        else opcode = Opcode.DIV;
+        if (bitLength == 64) opcode = Opcode.DIV;
+        else opcode = Opcode.DIVW;
     }
 
     public Opcode getOpcode() {
@@ -45,5 +48,15 @@ public class AsmSignedIntegerDivide extends AsmInstruction {
     @Override
     public String emit() {
         return "\t" + this + "\n";
+    }
+
+    @Override
+    public Set<Register> getDef() {
+        return Set.of((Register) getOperand(1));
+    }
+
+    @Override
+    public Set<Integer> getUse() {
+        return Set.of(2, 3);
     }
 }

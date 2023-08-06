@@ -2,10 +2,12 @@ package cn.edu.bit.newnewcc.backend.asm.instruction;
 
 import cn.edu.bit.newnewcc.backend.asm.operand.*;
 
+import java.util.Set;
+
 public class AsmLoad extends AsmInstruction {
     public enum Opcode {
-        LW("lw"),
         LD("ld"),
+        LW("lw"),
         LUI("lui"),
         LI("li"),
         LA("la"),
@@ -55,16 +57,16 @@ public class AsmLoad extends AsmInstruction {
                 throw new IllegalArgumentException();
             }
         } else {
-            if (source instanceof Register register) {
+            if (source instanceof StackVar stackVar) {
+                if (stackVar.getSize() == 8) opcode = Opcode.FLD;
+                else if (stackVar.getSize() == 4) opcode = Opcode.FLW;
+                else throw new IllegalArgumentException();
+            } else if (source instanceof Register register) {
                 if (register.isFloat()) {
                     opcode = Opcode.FMVS;
                 } else {
                     throw new IllegalArgumentException();
                 }
-            } else if (source instanceof StackVar stackVar) {
-                if (stackVar.getSize() == 8) opcode = Opcode.FLD;
-                else if (stackVar.getSize() == 4) opcode = Opcode.FLW;
-                else throw new IllegalArgumentException();
             } else {
                 throw new IllegalArgumentException();
             }
@@ -98,5 +100,18 @@ public class AsmLoad extends AsmInstruction {
     @Override
     public String emit() {
         return "\t" + this + "\n";
+    }
+
+    @Override
+    public Set<Register> getDef() {
+        return Set.of((Register) getOperand(1));
+    }
+
+    @Override
+    public Set<Integer> getUse() {
+        return switch (getOpcode()) {
+            case MV, FMVS -> Set.of(2);
+            case LD, LW, LUI, LI, LA, FLD, FLW -> Set.of();
+        };
     }
 }

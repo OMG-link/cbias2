@@ -3,6 +3,8 @@ package cn.edu.bit.newnewcc.backend.asm.instruction;
 import cn.edu.bit.newnewcc.backend.asm.operand.*;
 import cn.edu.bit.newnewcc.ir.exception.IllegalArgumentException;
 
+import java.util.Set;
+
 public class AsmStore extends AsmInstruction {
     public enum Opcode {
         SD("sd"),
@@ -64,5 +66,15 @@ public class AsmStore extends AsmInstruction {
     @Override
     public String emit() {
         return "\t" + this + "\n";
+    }
+
+    @Override
+    public Set<Register> getDef() {
+        return Set.of();
+    }
+
+    @Override
+    public Set<Integer> getUse() {
+        return Set.of(1);
     }
 }

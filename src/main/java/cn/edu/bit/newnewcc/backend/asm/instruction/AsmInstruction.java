@@ -2,6 +2,8 @@ package cn.edu.bit.newnewcc.backend.asm.instruction;
 
 import cn.edu.bit.newnewcc.backend.asm.operand.*;
 
+import java.util.Set;
+
 /**
  * 汇编指令基类
  */
@@ -57,4 +59,8 @@ public abstract class AsmInstruction {
     }
 
     public abstract String emit();
+
+    public abstract Set<Register> getDef();
+
+    public abstract Set<Integer> getUse();
 }

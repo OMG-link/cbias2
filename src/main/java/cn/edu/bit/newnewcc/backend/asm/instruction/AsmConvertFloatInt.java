@@ -2,6 +2,9 @@ package cn.edu.bit.newnewcc.backend.asm.instruction;
 
 import cn.edu.bit.newnewcc.backend.asm.operand.FloatRegister;
 import cn.edu.bit.newnewcc.backend.asm.operand.IntRegister;
+import cn.edu.bit.newnewcc.backend.asm.operand.Register;
+
+import java.util.Set;
 
 public class AsmConvertFloatInt extends AsmInstruction {
     public enum Opcode {
@@ -37,14 +40,24 @@ public class AsmConvertFloatInt extends AsmInstruction {
 
     @Override
     public String toString() {
-        if (opcode == Opcode.FCVTWS)
-            return String.format("%s %s, %s, rtz", getOpcode().getName(), getOperand(1), getOperand(2));
-        else
-            return String.format("%s %s, %s", getOpcode().getName(), getOperand(1), getOperand(2));
+        return switch (getOpcode()) {
+            case FCVTWS -> String.format("%s %s, %s, rtz", getOpcode().getName(), getOperand(1), getOperand(2));
+            case FCVTSW -> String.format("%s %s, %s", getOpcode().getName(), getOperand(1), getOperand(2));
+        };
     }
 
     @Override
     public String emit() {
         return "\t" + this + "\n";
+    }
+
+    @Override
+    public Set<Register> getDef() {
+        return Set.of((Register) getOperand(1));
+    }
+
+    @Override
+    public Set<Integer> getUse() {
+        return Set.of(2);
     }
 }

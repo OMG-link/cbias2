@@ -2,6 +2,9 @@ package cn.edu.bit.newnewcc.backend.asm.instruction;
 
 import cn.edu.bit.newnewcc.backend.asm.operand.FloatRegister;
 import cn.edu.bit.newnewcc.backend.asm.operand.IntRegister;
+import cn.edu.bit.newnewcc.backend.asm.operand.Register;
+
+import java.util.Set;
 
 /**
  * 汇编加指令，分为普通加和加立即数两种
@@ -31,8 +34,8 @@ public class AsmSub extends AsmInstruction {
         if (bitLength != 64 && bitLength != 32)
             throw new IllegalArgumentException();
 
-        if (bitLength == 32) opcode = Opcode.SUBW;
-        else opcode = Opcode.SUB;
+        if (bitLength == 64) opcode = Opcode.SUB;
+        else opcode = Opcode.SUBW;
     }
     public AsmSub(FloatRegister dest, FloatRegister source1, FloatRegister source2) {
         super(dest, source1, source2);
@@ -47,5 +50,15 @@ public class AsmSub extends AsmInstruction {
     @Override
     public String emit() {
         return "\t" + this + "\n";
+    }
+
+    @Override
+    public Set<Register> getDef() {
+        return Set.of((Register) getOperand(1));
+    }
+
+    @Override
+    public Set<Integer> getUse() {
+        return Set.of(2, 3);
     }
 }
