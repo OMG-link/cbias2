@@ -15,7 +15,7 @@ public class BackendOptimizer {
 
     public static LinkedList<AsmInstruction> afterAllocateScanForward(LinkedList<AsmInstruction> oldInstructionList) {
         LinkedList<AsmInstruction> newInstructionList = new LinkedList<>();
-        while (oldInstructionList.size() > 0) {
+        while (!oldInstructionList.isEmpty()) {
             Consumer<Integer> popx = (Integer x) -> {
                 for (int j = 0; j < x; j++) {
                     oldInstructionList.removeFirst();
@@ -92,7 +92,7 @@ public class BackendOptimizer {
         LinkedList<AsmInstruction> newInstructionList = new LinkedList<>();
         Set<String> lastWrite = new HashSet<>();
         Set<String> lastWriteReg = new HashSet<>();
-        while (oldInstructionList.size() > 0) {
+        while (!oldInstructionList.isEmpty()) {
             var inst = oldInstructionList.removeLast();
 
             //此部分为重复写入内存空间的优化

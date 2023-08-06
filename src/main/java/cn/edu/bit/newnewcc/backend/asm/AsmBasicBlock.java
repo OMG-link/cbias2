@@ -186,7 +186,7 @@ public class AsmBasicBlock {
         IntRegister tmp = function.getRegisterAllocator().allocateInt();
         Address now = stackVar.getAddress();
         IntRegister t2 = function.getRegisterAllocator().allocateInt();
-        function.appendInstruction(new AsmLoad(t2, ExStackVarOffset.transform(stackVar, now.getOffset())));
+        function.appendInstruction(new AsmLoad(t2, ExStackVarOffset.transform(now.getOffset())));
         function.appendInstruction(new AsmAdd(tmp, t2, now.getRegister(), 64));
         return now.replaceBaseRegister(tmp).setOffset(0).getAddressDirective();
     }

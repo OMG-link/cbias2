@@ -1,7 +1,5 @@
 package cn.edu.bit.newnewcc.backend.asm.operand;
 
-import java.util.*;
-
 public abstract class Register extends AsmOperand implements RegisterReplaceable {
     //寄存器在调用过程中保留与否，保留的寄存器需要在函数头尾额外保存
     private int index;

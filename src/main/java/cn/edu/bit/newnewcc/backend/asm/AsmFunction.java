@@ -186,10 +186,6 @@ public class AsmFunction {
         instrList.add(instruction);
     }
 
-    public int getInstructionListSize() {
-        return instrList.size();
-    }
-
     public void appendAllInstruction(Collection<AsmInstruction> instructions) {
         instrList.addAll(instructions);
     }
@@ -328,7 +324,7 @@ public class AsmFunction {
 
     public ExStackVarContent transformStackVar(StackVar stackVar, List<AsmInstruction> newInstructionList) {
         Address stackAddress = stackVar.getAddress();
-        ExStackVarOffset offset = ExStackVarOffset.transform(stackVar, stackAddress.getOffset());
+        ExStackVarOffset offset = ExStackVarOffset.transform(stackAddress.getOffset());
         IntRegister tmp = registerAllocator.allocateInt();
         newInstructionList.add(new AsmLoad(tmp, offset));
         IntRegister t2 = registerAllocator.allocateInt();

@@ -3,7 +3,7 @@ package cn.edu.bit.newnewcc.backend.asm.controller;
 import cn.edu.bit.newnewcc.backend.asm.operand.Register;
 import cn.edu.bit.newnewcc.backend.asm.operand.StackVar;
 
-class SLInst {
+public class SLInst {
     private enum TYPE {
         store, load
     }
@@ -12,19 +12,19 @@ class SLInst {
     private final StackVar stackVar;
     private final TYPE type;
 
-    Register getRegister() {
+    public Register getRegister() {
         return register;
     }
 
-    StackVar getStackVar() {
+    public StackVar getStackVar() {
         return stackVar;
     }
 
-    boolean isLoad() {
+    public boolean isLoad() {
         return type == TYPE.load;
     }
 
-    boolean isStore() {
+    public boolean isStore() {
         return type == TYPE.store;
     }
 

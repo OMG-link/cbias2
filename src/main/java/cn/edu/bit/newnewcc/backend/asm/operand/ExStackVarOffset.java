@@ -7,7 +7,7 @@ public class ExStackVarOffset extends Immediate implements ExStackVarAdd {
     ExStackVarOffset(int val) {
         super(val);
     }
-    public static ExStackVarOffset transform(StackVar stackVar, long value) {
+    public static ExStackVarOffset transform(long value) {
         return new ExStackVarOffset(Math.toIntExact(value));
     }
 
