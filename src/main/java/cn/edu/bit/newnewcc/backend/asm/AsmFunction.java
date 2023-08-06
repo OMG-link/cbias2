@@ -273,42 +273,45 @@ public class AsmFunction {
         }
 
         for (int i = 0; i < parameters.size(); i++) {
-            var formalPara = calledFunction.formalParameters.get(i);
-            if (formalPara instanceof StackVar stackVar) {
-                formalPara = transformStackVar(stackVar, res);
+            var formalParam = calledFunction.formalParameters.get(i);
+            if (formalParam instanceof StackVar stackVar) {
+                formalParam = transformStackVar(stackVar, res);
             }
 
             //为下一层的函数参数存储开辟栈空间
-            if (!(formalPara instanceof Register)) {
-                if (!(formalPara instanceof ExStackVarContent)) {
+            if (!(formalParam instanceof Register)) {
+                if (!(formalParam instanceof ExStackVarContent)) {
                     throw new RuntimeException("formal parameter in wrong place");
                 }
-                stackAllocator.push_back((StackVar)formalPara);
+                stackAllocator.push_back((StackVar)formalParam);
             }
 
             //将参数存储到形参对应位置
             var para = parameters.get(i);
             if (para instanceof Register reg) {
                 //若当前参数已经被覆盖，则从栈中读取
-                if (paraSaved.containsKey(reg.emit()) && reg.emit().compareTo(formalPara.emit()) < 0) {
+                if (paraSaved.containsKey(reg.emit()) && reg.emit().compareTo(formalParam.emit()) < 0) {
                     var rs = transformStackVar(paraSaved.get(reg.emit()), res);
-                    if (formalPara instanceof Register formalReg) {
+                    if (formalParam instanceof Register formalReg) {
                         res.add(new AsmLoad(formalReg, rs));
                     } else {
                         var tmp = registerAllocator.allocate(reg);
                         res.add(new AsmLoad(tmp, rs));
-                        res.add(new AsmStore(tmp, formalPara));
+                        res.add(new AsmStore(tmp, (StackVar) formalParam));
                     }
                 } else {
-                    res.add(new AsmStore(reg, formalPara));
+                    if (formalParam instanceof Register)
+                        res.add(new AsmLoad((Register) formalParam, reg));
+                    else
+                        res.add(new AsmStore(reg, (StackVar) formalParam));
                 }
             } else {
-                if (formalPara instanceof Register formalReg) {
+                if (formalParam instanceof Register formalReg) {
                     res.add(new AsmLoad(formalReg, para));
                 } else {
                     IntRegister tmp = registerAllocator.allocateInt();
                     res.add(new AsmLoad(tmp, para));
-                    res.add(new AsmStore(tmp, formalPara));
+                    res.add(new AsmStore(tmp, (StackVar) formalParam));
                 }
             }
         }

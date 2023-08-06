@@ -110,12 +110,7 @@ public class AsmInstructions {
     }
 
     public static boolean isMove(AsmInstruction instr) {
-        if (instr instanceof AsmLoad || instr instanceof AsmStore) {
-            if (instr.getOperand(1) instanceof Register) {
-                return instr.getOperand(2) instanceof Register;
-            }
-        }
-        return false;
+        return instr instanceof AsmLoad && ((AsmLoad) instr).getOpcode() == AsmLoad.Opcode.MV;
     }
 
     public static boolean isMoveVToV(AsmInstruction instr) {

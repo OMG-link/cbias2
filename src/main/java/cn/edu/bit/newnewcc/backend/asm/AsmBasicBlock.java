@@ -16,6 +16,7 @@ import cn.edu.bit.newnewcc.ir.value.constant.*;
 import cn.edu.bit.newnewcc.ir.value.instruction.*;
 
 import java.math.BigInteger;
+import java.sql.Ref;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -565,12 +566,12 @@ public class AsmBasicBlock {
                     Immediate source = new Immediate(constInt.getValue());
                     IntRegister tmp = function.getRegisterAllocator().allocateInt();
                     function.appendInstruction(new AsmLoad(tmp, source));
-                    function.appendInstruction(new AsmStore(tmp, dest));
+                    function.appendInstruction(new AsmStore(tmp, dest, 64));
                 }
             }, (Long offset, Long length) -> {
                 for (long i = 0; i < length; i += 4) {
                     Address dest = getOperandToAddressContent(addressStore.addOffset(offset));
-                    function.appendInstruction(new AsmStore(IntRegister.zero, dest));
+                    function.appendInstruction(new AsmStore(IntRegister.zero, dest, 64));
                     offset += 4;
                 }
             });
@@ -581,7 +582,12 @@ public class AsmBasicBlock {
                 bitLength = integerType.getBitWidth();
             }
             if (source instanceof Register register) {
-                function.appendInstruction(new AsmStore(register, address, bitLength));
+                if (address instanceof Register)
+                    function.appendInstruction(new AsmLoad((Register) address, register));
+                else if (address instanceof Address)
+                    function.appendInstruction(new AsmStore(register, (Address) address, bitLength));
+                else
+                    function.appendInstruction(new AsmStore(register, (StackVar) address));
             } else {
                 Register register;
                 if (storeInst.getValueOperand().getType() instanceof FloatType) {
@@ -591,10 +597,20 @@ public class AsmBasicBlock {
                 }
                 if (source instanceof Address) {
                     function.appendInstruction(new AsmLoad(register, (Address) source, bitLength));
-                    function.appendInstruction(new AsmStore(register, address, bitLength));
+                    if (address instanceof Register)
+                        function.appendInstruction(new AsmLoad((Register) address, register));
+                    else if (address instanceof Address)
+                        function.appendInstruction(new AsmStore(register, (Address) address, bitLength));
+                    else
+                        function.appendInstruction(new AsmStore(register, (StackVar) address));
                 } else {
                     function.appendInstruction(new AsmLoad(register, source));
-                    function.appendInstruction(new AsmStore(register, address));
+                    if (address instanceof Register)
+                        function.appendInstruction(new AsmLoad((Register) address, register));
+                    else if (address instanceof Address)
+                        function.appendInstruction(new AsmStore(register, (Address) address, bitLength));
+                    else
+                        function.appendInstruction(new AsmStore(register, (StackVar) address));
                 }
             }
         }
