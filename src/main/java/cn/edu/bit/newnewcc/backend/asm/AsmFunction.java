@@ -34,6 +34,7 @@ public class AsmFunction {
     AsmCode globalCode;
     private final List<AsmOperand> formalParameters = new ArrayList<>();
     private final Map<Value, AsmOperand> formalParameterMap = new HashMap<>();
+    private final Map<Value, AsmOperand> parameterValueMap = new HashMap<>();
     private final List<AsmBasicBlock> basicBlocks = new ArrayList<>();
     private final Map<BasicBlock, AsmBasicBlock> basicBlockMap = new HashMap<>();
     private final Map<AsmBasicBlock, AsmLabel> blockAsmLabelMap = new HashMap<>();
@@ -101,8 +102,10 @@ public class AsmFunction {
         return tmp;
     }
 
+
     public void emitCode() {
         //生成具体函数的汇编代码
+        //emitParameterHead();
         if (baseFunction instanceof Function function) {
             var functionParameterList = function.getFormalParameters();
             for (var i = 0; i < functionParameterList.size(); i++) {
