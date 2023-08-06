@@ -9,13 +9,12 @@ public class AsmConstantFloat {
         constantName = "constant_float_" + "_" + Integer.toUnsignedString(Float.floatToIntBits(value));
         directive = new ValueDirective(value);
     }
-    Label getConstantLabel() {
+    public Label getConstantLabel() {
         return new Label(constantName, false);
     }
     public String emit() {
-        String res = ".align 2\n";
-        res += getConstantLabel().emit() + ":\n";
-        res += directive.emit();
-        return res;
+        return ".align 2\n"
+            + getConstantLabel().emit() + ":\n"
+            + directive.emit();
     }
 }

@@ -44,4 +44,22 @@ public abstract class Address extends AsmOperand implements RegisterReplaceable 
         }
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        if (!super.equals(o)) return false;
+
+        Address address = (Address) o;
+
+        if (offset != address.offset) return false;
+        return baseAddress.equals(address.baseAddress);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = (int) (offset ^ (offset >>> 32));
+        result = 31 * result + baseAddress.hashCode();
+        return result;
+    }
 }

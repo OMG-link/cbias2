@@ -72,14 +72,14 @@ public class LifeTimeController {
         }
     }
 
-    private Set<Integer> minus(Set<Integer> a, Set<Integer> b) {
-        Set<Integer> res = new HashSet<>();
+    private Set<Integer> difference(Set<Integer> a, Set<Integer> b) {
+        Set<Integer> result = new HashSet<>();
         for (var x : a) {
             if (!b.contains(x)) {
-                res.add(x);
+                result.add(x);
             }
         }
-        return res;
+        return result;
     }
 
     private void insertLifeTimePoint(int index, LifeTimePoint p) {
@@ -176,7 +176,7 @@ public class LifeTimeController {
                         changeLabel |= b.out.addAll(next.in);
                     }
                 }
-                changeLabel |= b.in.addAll(minus(b.out, b.def));
+                changeLabel |= b.in.addAll(difference(b.out, b.def));
             }
             if (!changeLabel) {
                 break;

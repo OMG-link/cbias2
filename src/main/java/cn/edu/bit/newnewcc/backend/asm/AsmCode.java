@@ -66,11 +66,11 @@ public class AsmCode {
         builder.append(".section .rodata\n");
         for (var key : constFloatMap.keySet()) {
             var constFloat = constFloatMap.get(key);
-            builder.append(constFloat.emit()).append('\n');
+            builder.append(constFloat.emit());
         }
         for (var key : constLongMap.keySet()) {
             var constLong = constLongMap.get(key);
-            builder.append(constLong.emit()).append('\n');
+            builder.append(constLong.emit());
         }
         return builder.toString();
     }

@@ -43,11 +43,11 @@ public class ValueDirective {
 
     public String emit() {
         if (type == Type.WORD) {
-            return String.format(".word %d", value);
+            return String.format(".word %d\n", value);
         } else if (type == Type.ZERO) {
-            return String.format(".zero %d", length);
+            return String.format(".zero %d\n", length);
         } else {
-            return String.format(".dword %d", lvalue);
+            return String.format(".dword %d\n", lvalue);
         }
     }
 

@@ -142,9 +142,9 @@ public class AsmBasicBlock {
         } else if (operand instanceof AddressDirective addressDirective) {
             return getAddressToIntRegister(addressDirective);
         }
-        IntRegister res = function.getRegisterAllocator().allocateInt();
-        function.appendInstruction(new AsmLoad(res, operand));
-        return res;
+        IntRegister result = function.getRegisterAllocator().allocateInt();
+        function.appendInstruction(new AsmLoad(result, operand));
+        return result;
     }
 
     private FloatRegister getOperandToFloatRegister(AsmOperand operand) {
@@ -159,22 +159,22 @@ public class AsmBasicBlock {
 
     private Register getValueToRegister(Value value) {
         var op = getValueByType(value, value.getType());
-        Register res;
+        Register result;
         if (op instanceof Register reg) {
-            res = function.getRegisterAllocator().allocate(reg);
-            function.appendInstruction(new AsmLoad(res, reg));
+            result = function.getRegisterAllocator().allocate(reg);
+            function.appendInstruction(new AsmLoad(result, reg));
         } else {
             if (value.getType() instanceof FloatType) {
                 var tmp = function.getRegisterAllocator().allocateFloat();
                 function.appendInstruction(new AsmLoad(tmp, op));
-                res = tmp;
+                result = tmp;
             } else {
                 var tmp = function.getRegisterAllocator().allocateInt();
                 function.appendInstruction(new AsmLoad(tmp, op));
-                res = tmp;
+                result = tmp;
             }
         }
-        return res;
+        return result;
     }
 
     private Label getJumpLabel(BasicBlock jumpBlock) {

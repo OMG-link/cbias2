@@ -100,7 +100,7 @@ public class AsmGlobalVariable {
         output.append(String.format(".size %s, %d\n", this.globalVariableName, this.size));
         output.append(String.format("%s:\n", this.globalVariableName));
         for (var i : valueList) {
-            output.append(i.emit()).append('\n');
+            output.append(i.emit());
         }
         return output.toString();
     }

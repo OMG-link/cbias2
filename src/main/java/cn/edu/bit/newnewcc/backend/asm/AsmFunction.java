@@ -27,9 +27,6 @@ import java.util.function.Consumer;
 public class AsmFunction {
     private final String functionName;
 
-    private final boolean DEBUG_MODE = false;
-    private final boolean ASSERT_MODE = true;
-
     private final AsmCode globalCode;
     private final List<AsmOperand> formalParameters = new ArrayList<>();
     private final Map<Value, AsmOperand> formalParameterMap = new HashMap<>();
@@ -133,51 +130,41 @@ public class AsmFunction {
             for (var block : basicBlocks) {
                 block.emitToFunction();
             }
-            if (ASSERT_MODE) {
-                for (var inst : instrList) {
-                    for (var x : AsmInstructions.getReadVRegSet(inst)) {
-                        for (var y : AsmInstructions.getWriteVRegSet(inst)) {
-                            if (x.equals(y)) {
-                                throw new AssertionError();
-                            }
+            for (var inst : instrList) {
+                for (var x : AsmInstructions.getReadVRegSet(inst)) {
+                    for (var y : AsmInstructions.getWriteVRegSet(inst)) {
+                        if (x.equals(y)) {
+                            throw new AssertionError();
                         }
                     }
                 }
             }
-            if (!DEBUG_MODE) {
-                lifeTimeController.getAllVRegLifeTime(instrList);
-                asmOptimizerBeforeRegisterAllocate(lifeTimeController);
-                PeepholeOptimizer.runBeforeAllocation(instrList);
-                reAllocateRegister();
-                asmOptimizerAfterRegisterAllocate();
-                PeepholeOptimizer.runAfterAllocation(instrList);
-            }
+            lifeTimeController.getAllVRegLifeTime(instrList);
+            asmOptimizerBeforeRegisterAllocate(lifeTimeController);
+            PeepholeOptimizer.runBeforeAllocation(instrList);
+            reAllocateRegister();
+            asmOptimizerAfterRegisterAllocate();
+            PeepholeOptimizer.runAfterAllocation(instrList);
         }
     }
 
     public String emit() {
-        StringBuilder res = new StringBuilder();
-        res.append(".text\n.align 1\n");
-        res.append(String.format(".globl %s\n", functionName));
-        res.append(String.format(".type %s, @function\n", functionName));
-        res.append(String.format("%s:\n", functionName));
+        StringBuilder builder = new StringBuilder();
+        builder.append(".text\n.align 1\n");
+        builder.append(String.format(".globl %s\n", functionName));
+        builder.append(String.format(".type %s, @function\n", functionName));
+        builder.append(String.format("%s:\n", functionName));
         for (var inst : stackAllocator.emitPrologue()) {
-            res.append(inst.emit());
+            builder.append(inst.emit());
         }
-        int id = 0;
         for (var inst : instrList) {
-            if (DEBUG_MODE) {
-                res.append(String.format("%d: %s", id, inst.emit()));
-            } else {
-                res.append(inst.emit());
-            }
-            id += 1;
+            builder.append(inst.emit());
         }
         for (var inst : stackAllocator.emitEpilogue()) {
-            res.append(inst.emit());
+            builder.append(inst.emit());
         }
-        res.append(String.format(".size %s, .-%s\n", functionName, functionName));
-        return res.toString();
+        builder.append(String.format(".size %s, .-%s\n", functionName, functionName));
+        return builder.toString();
     }
 
 
@@ -230,11 +217,11 @@ public class AsmFunction {
     }
 
     public AsmOperand getParameterByFormal(Value formalParameter) {
-        var res = formalParameterMap.get(formalParameter);
-        if (res instanceof StackVar stackVar) {
+        var result = formalParameterMap.get(formalParameter);
+        if (result instanceof StackVar stackVar) {
             return transformStackVar(stackVar.flip());
         }
-        return res;
+        return result;
     }
 
     public int getParameterSize() {
@@ -249,7 +236,7 @@ public class AsmFunction {
     //调用另一个函数的汇编代码
     public Collection<AsmInstruction> call(AsmFunction calledFunction, List<AsmOperand> parameters, Register returnRegister) {
         stackAllocator.callFunction();
-        List<AsmInstruction> res = new ArrayList<>();
+        List<AsmInstruction> instrList = new ArrayList<>();
         //参数数量不匹配
         if (parameters.size() != calledFunction.formalParameters.size()) {
             throw new RuntimeException("Function parameter mismatch");
@@ -261,7 +248,7 @@ public class AsmFunction {
         for (AsmOperand formalParameter : formalParameters) {
             if (formalParameter instanceof Register reg) {
                 StackVar vreg = stackAllocator.push(8);
-                res.add(new AsmStore(reg, transformStackVar(vreg, res)));
+                instrList.add(new AsmStore(reg, transformStackVar(vreg, instrList)));
                 paraSaved.put(reg.emit(), vreg);
                 pushList.add(new Pair<>(vreg, reg));
             }
@@ -270,7 +257,7 @@ public class AsmFunction {
         for (int i = 0; i < parameters.size(); i++) {
             var formalParam = calledFunction.formalParameters.get(i);
             if (formalParam instanceof StackVar stackVar) {
-                formalParam = transformStackVar(stackVar, res);
+                formalParam = transformStackVar(stackVar, instrList);
             }
 
             //为下一层的函数参数存储开辟栈空间
@@ -286,40 +273,40 @@ public class AsmFunction {
             if (para instanceof Register reg) {
                 //若当前参数已经被覆盖，则从栈中读取
                 if (paraSaved.containsKey(reg.emit()) && reg.emit().compareTo(formalParam.emit()) < 0) {
-                    var rs = transformStackVar(paraSaved.get(reg.emit()), res);
+                    var rs = transformStackVar(paraSaved.get(reg.emit()), instrList);
                     if (formalParam instanceof Register formalReg) {
-                        res.add(new AsmLoad(formalReg, rs));
+                        instrList.add(new AsmLoad(formalReg, rs));
                     } else {
                         var tmp = registerAllocator.allocate(reg);
-                        res.add(new AsmLoad(tmp, rs));
-                        res.add(new AsmStore(tmp, (StackVar) formalParam));
+                        instrList.add(new AsmLoad(tmp, rs));
+                        instrList.add(new AsmStore(tmp, (StackVar) formalParam));
                     }
                 } else {
                     if (formalParam instanceof Register)
-                        res.add(new AsmLoad((Register) formalParam, reg));
+                        instrList.add(new AsmLoad((Register) formalParam, reg));
                     else
-                        res.add(new AsmStore(reg, (StackVar) formalParam));
+                        instrList.add(new AsmStore(reg, (StackVar) formalParam));
                 }
             } else {
                 if (formalParam instanceof Register formalReg) {
-                    res.add(new AsmLoad(formalReg, para));
+                    instrList.add(new AsmLoad(formalReg, para));
                 } else {
                     IntRegister tmp = registerAllocator.allocateInt();
-                    res.add(new AsmLoad(tmp, para));
-                    res.add(new AsmStore(tmp, (StackVar) formalParam));
+                    instrList.add(new AsmLoad(tmp, para));
+                    instrList.add(new AsmStore(tmp, (StackVar) formalParam));
                 }
             }
         }
-        res.add(new AsmCall(new Label(calledFunction.getFunctionName(), true)));
+        instrList.add(new AsmCall(new Label(calledFunction.getFunctionName(), true)));
         if (returnRegister != null) {
-            res.add(new AsmLoad(returnRegister, calledFunction.getReturnRegister()));
+            instrList.add(new AsmLoad(returnRegister, calledFunction.getReturnRegister()));
         }
         //执行完成后恢复寄存器现场
         for (var p : pushList) {
-            res.add(new AsmLoad(p.b, transformStackVar(p.a, res)));
+            instrList.add(new AsmLoad(p.b, transformStackVar(p.a, instrList)));
             stackAllocator.pop(8);
         }
-        return res;
+        return instrList;
     }
 
     public ExStackVarContent transformStackVar(StackVar stackVar, List<AsmInstruction> newInstructionList) {

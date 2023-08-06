@@ -17,9 +17,8 @@ public class AsmConstantLong {
         return new Label(constantName, false);
     }
     public String emit() {
-        String res = ".align 2\n";
-        res += getConstantLabel().emit() + ":\n";
-        res += directive.emit();
-        return res;
+        return ".align 2\n"
+            + getConstantLabel().emit() + ":\n"
+            + directive.emit();
     }
 }

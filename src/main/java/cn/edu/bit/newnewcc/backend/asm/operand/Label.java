@@ -70,6 +70,7 @@ public class Label extends AsmOperand {
         return segment == SEGMENT.LOW;
     }
 
+    @Override
     public String emit() {
         if (baseAddress == null) {
             return getOffset();

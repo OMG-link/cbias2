@@ -15,7 +15,7 @@ import java.util.*;
 
 public class FunctionInline {
 
-    record FunctionProperty(int size, Set<Function> callees) {
+    private record FunctionProperty(int size, Set<Function> callees) {
 
     }
 
