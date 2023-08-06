@@ -174,12 +174,12 @@ public class LifeTimeController {
                     }
                 }
             }
-            for (var reg : inst.getReadVRegSet()) {
+            for (var reg : AsmInstructions.getReadVRegSet(inst)) {
                 if (!now.def.contains(reg)) {
                     now.in.add(reg);
                 }
             }
-            now.def.addAll(inst.getWriteVRegSet());
+            now.def.addAll(AsmInstructions.getWriteVRegSet(inst));
             blocks.get(blocks.size() - 1).r = i;
         }
     }
@@ -208,11 +208,11 @@ public class LifeTimeController {
             }
             for (int i = b.l; i <= b.r; i++) {
                 var inst = instructionList.get(i);
-                for (var x : inst.getReadVRegSet()) {
+                for (var x : AsmInstructions.getReadVRegSet(inst)) {
                     LifeTimeIndex index = LifeTimeIndex.getInstIn(this, instructionList.get(i));
                     insertLifeTimePoint(x, LifeTimePoint.getUse(index));
                 }
-                for (var x : inst.getWriteVRegSet()) {
+                for (var x : AsmInstructions.getWriteVRegSet(inst)) {
                     LifeTimeIndex index = LifeTimeIndex.getInstOut(this, instructionList.get(i));
                     insertLifeTimePoint(x, LifeTimePoint.getDef(index));
                 }
