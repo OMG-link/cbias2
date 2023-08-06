@@ -8,6 +8,9 @@ import cn.edu.bit.newnewcc.backend.asm.util.ComparablePair;
 
 import java.util.*;
 
+/**
+ * 生命周期控制器，
+ */
 public class LifeTimeController {
 
     public LifeTimeIndex min(LifeTimeIndex a, LifeTimeIndex b) {
@@ -44,7 +47,7 @@ public class LifeTimeController {
     }
 
     public Set<Integer> getKeySet() {
-        return lifeTimeRange.keySet();
+        return lifeTimePoints.keySet();
     }
 
     public ComparablePair<LifeTimeIndex, LifeTimeIndex> getLifeTimeRange(Integer index) {
@@ -96,20 +99,6 @@ public class LifeTimeController {
         return res;
     }
 
-    void insertInterval(int index, LifeTimeIndex l, LifeTimeIndex r) {
-        if (!lifeTimeInterval.containsKey(index)) {
-            lifeTimeInterval.put(index, new ArrayList<>());
-            lifeTimeRange.put(index, new ComparablePair<>(l, r));
-        }
-        if (l.compareTo(r) > 0) {
-            throw new RuntimeException("life time interval error");
-        }
-        lifeTimeInterval.get(index).add(new ComparablePair<>(l, r));
-        l = min(lifeTimeRange.get(index).a, l);
-        r = max(lifeTimeRange.get(index).b, r);
-        lifeTimeRange.put(index, new ComparablePair<>(l, r));
-    }
-
     void insertLifeTimePoint(int index, LifeTimePoint p) {
         if (!lifeTimePoints.containsKey(index)) {
             lifeTimePoints.put(index, new ArrayList<>());
@@ -118,56 +107,45 @@ public class LifeTimeController {
     }
 
     /**
-     * 把y的生命周期集合合并入x
-     * 这里进行的是直接合并，mv a, a这类指令删除后还需要进行生存区间的重构，使用reconstructInterval函数进行重构
+     * 把y的引用点集合合并入x
+     * 这里进行的是直接合并，生命周期还需要使用constructInterval函数进行重构
      * @param x 第一个虚拟寄存器的下标
      * @param y 第二个虚拟寄存器的下标
      */
-    public void mergeRange(int x, int y) {
-        if (x == y) {
+    public void mergePoints(int x, int y) {
+        if (x == y || !lifeTimePoints.containsKey(y)) {
             return;
         }
-        if (lifeTimeInterval.containsKey(x) && lifeTimeInterval.containsKey(y)) {
-            var iv = lifeTimeInterval.get(x);
-            iv.addAll(lifeTimeInterval.get(y));
-            Collections.sort(iv);
-            var l = min(lifeTimeRange.get(x).a, lifeTimeRange.get(y).a);
-            var r = max(lifeTimeRange.get(x).b, lifeTimeRange.get(y).b);
-            lifeTimeInterval.put(x, iv);
-            lifeTimeRange.put(x, new ComparablePair<>(l, r));
-        } else if (lifeTimeInterval.containsKey(y)) {
-            lifeTimeInterval.put(x, lifeTimeInterval.get(y));
-            lifeTimeRange.put(x, lifeTimeRange.get(y));
+        if (lifeTimePoints.containsKey(x)) {
+            lifeTimePoints.get(x).addAll(lifeTimePoints.get(y));
+            lifeTimePoints.get(x).sort(Comparator.comparing(LifeTimePoint::getIndex));
+        } else {
+            lifeTimePoints.put(x, lifeTimePoints.get(y));
         }
         lifeTimeInterval.remove(y);
         lifeTimeRange.remove(y);
+        lifeTimePoints.remove(y);
     }
 
-    public void reconstructInterval(int x, Map<Integer, Integer> trueValue) {
-        var iv = lifeTimeInterval.get(x);
-        List<ComparablePair<LifeTimeIndex, LifeTimeIndex>> newInterval = new ArrayList<>();
-        ComparablePair<LifeTimeIndex, LifeTimeIndex> last = null;
-        for (var r : iv) {
-            if (last != null) {
-                if (AsmInstructions.isMoveVToV(r.a.getSourceInst())) {
-                    var ids = AsmInstructions.getMoveVReg(r.a.getSourceInst());
-                    if (trueValue.get(ids.a).equals(trueValue.get(ids.b))) {
-                        last.b = r.b;
-                        continue;
-                    }
-                }
-                if (r.a.compareTo(last.b) <= 0) {
-                    last.b = r.b;
-                    continue;
-                }
-                newInterval.add(last);
+    public void constructInterval(int x) {
+        if (!lifeTimePoints.containsKey(x)) {
+            throw new RuntimeException("construct null interval");
+        }
+        lifeTimePoints.get(x).removeIf((point) -> !instIDMap.containsKey(point.getIndex().getSourceInst()));
+        if (lifeTimePoints.get(x).isEmpty()) {
+            throw new RuntimeException("no points");
+        }
+        lifeTimePoints.get(x).sort(Comparator.comparing(LifeTimePoint::getIndex));
+        var points = lifeTimePoints.get(x);
+        lifeTimeRange.put(x, new ComparablePair<>(points.get(0).getIndex(), points.get(points.size() - 1).getIndex()));
+        List<ComparablePair<LifeTimeIndex, LifeTimeIndex>> intervals = new ArrayList<>();
+        for (var p : points) {
+            if (p.isDef()) {
+                intervals.add(new ComparablePair<>(p.getIndex(), null));
             }
-            last = r;
+            intervals.get(intervals.size() - 1).b = p.getIndex();
         }
-        if (last != null) {
-            newInterval.add(last);
-        }
-        lifeTimeInterval.put(x, newInterval);
+        lifeTimeInterval.put(x, intervals);
     }
 
     public List<ComparablePair<LifeTimeIndex, LifeTimeIndex>> getInterval(int x) {
@@ -196,12 +174,12 @@ public class LifeTimeController {
                     }
                 }
             }
-            for (var reg : AsmInstructions.getReadVRegSet(inst)) {
+            for (var reg : inst.getReadVRegSet()) {
                 if (!now.def.contains(reg)) {
                     now.in.add(reg);
                 }
             }
-            now.def.addAll(AsmInstructions.getWriteVRegSet(inst));
+            now.def.addAll(inst.getWriteVRegSet());
             blocks.get(blocks.size() - 1).r = i;
         }
     }
@@ -222,46 +200,33 @@ public class LifeTimeController {
             }
         }
     }
-    void buildLifeTimeMessage(List<AsmInstruction> instructionList) {
+    void buildLifeTimePoints(List<AsmInstruction> instructionList) {
         for (var b : blocks) {
-            Map<Integer, LifeTimeIndex> defLoc = new HashMap<>();
-            Map<Integer, LifeTimeIndex> useLoc = new HashMap<>();
             for (var x : b.in) {
-                LifeTimeIndex index = LifeTimeIndex.getInstIn(this, instructionList.get(b.l));
-                defLoc.put(x, index);
+                LifeTimeIndex index = LifeTimeIndex.getInstOut(this, instructionList.get(b.l));
                 insertLifeTimePoint(x, LifeTimePoint.getDef(index));
             }
             for (int i = b.l; i <= b.r; i++) {
                 var inst = instructionList.get(i);
-                for (var x : AsmInstructions.getReadVRegSet(inst)) {
+                for (var x : inst.getReadVRegSet()) {
                     LifeTimeIndex index = LifeTimeIndex.getInstIn(this, instructionList.get(i));
-                    useLoc.put(x, index);
                     insertLifeTimePoint(x, LifeTimePoint.getUse(index));
                 }
-                for (var x : AsmInstructions.getWriteVRegSet(inst)) {
-                    if (defLoc.containsKey(x) && useLoc.containsKey(x)) {
-                        insertInterval(x, defLoc.get(x), useLoc.get(x));
-                        useLoc.remove(x);
-                    }
+                for (var x : inst.getWriteVRegSet()) {
                     LifeTimeIndex index = LifeTimeIndex.getInstOut(this, instructionList.get(i));
-                    defLoc.put(x, index);
                     insertLifeTimePoint(x, LifeTimePoint.getDef(index));
                 }
             }
             for (var x : b.out) {
-                LifeTimeIndex index = LifeTimeIndex.getInstOut(this, instructionList.get(b.r));
-                insertInterval(x, defLoc.get(x), index);
+                LifeTimeIndex index = LifeTimeIndex.getInstIn(this, instructionList.get(b.r));
                 insertLifeTimePoint(x, LifeTimePoint.getUse(index));
-                useLoc.remove(x);
-                defLoc.remove(x);
             }
-            for (var x : useLoc.keySet()) {
-                insertInterval(x, defLoc.get(x), useLoc.get(x));
-                defLoc.remove(x);
-            }
-            for (var x : defLoc.keySet()) {
-                insertInterval(x, defLoc.get(x), LifeTimeIndex.getInstOut(this, instructionList.get(defLoc.get(x).getInstID())));
-            }
+        }
+    }
+    void buildLifeTimeMessage(List<AsmInstruction> instructionList) {
+        buildLifeTimePoints(instructionList);
+        for (var x : getKeySet()) {
+            constructInterval(x);
         }
     }
 

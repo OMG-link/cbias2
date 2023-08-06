@@ -110,6 +110,7 @@ public class CopyCoalescer {
         }
     }
 
+    List<Integer> constructList = new ArrayList<>();
     void coalesce() {
         Map<Integer, Integer> trueValue = new HashMap<>();
         for (var x : lifeTimeController.getKeySet()) {
@@ -142,9 +143,9 @@ public class CopyCoalescer {
             for (int i = 1; i < array.length; i++) {
                 int u = (Integer)array[i];
                 trueValue.put(u, v);
-                lifeTimeController.mergeRange(v, u);
+                lifeTimeController.mergePoints(v, u);
             }
-            lifeTimeController.reconstructInterval(v, trueValue);
+            constructList.add(v);
         }
         for (var inst : instructions) {
             for (int i : AsmInstructions.getVRegId(inst)) {
@@ -154,7 +155,7 @@ public class CopyCoalescer {
         }
     }
 
-    List<AsmInstruction> filtInstructions() {
+    List<AsmInstruction> instructionFilter() {
         List<AsmInstruction> newInstructionList = new ArrayList<>();
         for (var inst : instructions) {
             if (AsmInstructions.isMoveVToV(inst)) {
@@ -166,6 +167,9 @@ public class CopyCoalescer {
             newInstructionList.add(inst);
         }
         lifeTimeController.buildInstID(newInstructionList);
+        for (var x : constructList) {
+            lifeTimeController.constructInterval(x);
+        }
         return newInstructionList;
     }
 
@@ -174,6 +178,6 @@ public class CopyCoalescer {
         getValues();
         getEdges();
         coalesce();
-        return filtInstructions();
+        return instructionFilter();
     }
 }
