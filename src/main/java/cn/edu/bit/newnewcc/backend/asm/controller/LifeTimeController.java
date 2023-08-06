@@ -12,21 +12,13 @@ import java.util.*;
  * 生命周期控制器，
  */
 public class LifeTimeController {
-
-    public LifeTimeIndex min(LifeTimeIndex a, LifeTimeIndex b) {
-        return a.compareTo(b) < 0 ? a : b;
-    }
-    public LifeTimeIndex max(LifeTimeIndex a, LifeTimeIndex b) {
-        return a.compareTo(b) > 0 ? a : b;
-    }
-
     //虚拟寄存器生命周期的设置过程
     private final Map<Integer, ComparablePair<LifeTimeIndex, LifeTimeIndex>> lifeTimeRange = new HashMap<>();
     private final Map<Integer, List<ComparablePair<LifeTimeIndex, LifeTimeIndex>>> lifeTimeInterval = new HashMap<>();
     private final Map<Integer, List<LifeTimePoint>> lifeTimePoints = new HashMap<>();
     private final Map<AsmInstruction, Integer> instIDMap = new HashMap<>();
 
-    void init() {
+    private void init() {
         lifeTimeRange.clear();
         lifeTimeInterval.clear();
         lifeTimePoints.clear();
@@ -54,7 +46,7 @@ public class LifeTimeController {
         return lifeTimeRange.get(index);
     }
 
-    int upper_bound(List<LifeTimePoint> p, LifeTimeIndex index) {
+    private int upperBound(List<LifeTimePoint> p, LifeTimeIndex index) {
         int l = 0, r = p.size() - 1, ans = p.size();
         while (l <= r) {
             int mid = (l + r) / 2;
@@ -67,17 +59,8 @@ public class LifeTimeController {
         }
         return ans;
     }
-    public LifeTimePoint getNextUsePoint(int vRegId, LifeTimeIndex index) {
-        var points = lifeTimePoints.get(vRegId);
-        int x = upper_bound(points, index);
-        if (x >= points.size() || points.get(x).isDef()) {
-            return null;
-        }
-        return points.get(x);
-    }
 
-
-    static class Block {
+    private static class Block {
         String blockName;
         int l, r;
         Set<Integer> in = new HashSet<>();
@@ -85,11 +68,11 @@ public class LifeTimeController {
         Set<Integer> def = new HashSet<>();
         Set<String> nextBlockName = new HashSet<>();
         Block(AsmLabel label) {
-            blockName = label.getPureName();
+            blockName = label.getLabel().getLabelName();
         }
     }
 
-    Set<Integer> minus(Set<Integer> a, Set<Integer> b) {
+    private Set<Integer> minus(Set<Integer> a, Set<Integer> b) {
         Set<Integer> res = new HashSet<>();
         for (var x : a) {
             if (!b.contains(x)) {
@@ -99,7 +82,7 @@ public class LifeTimeController {
         return res;
     }
 
-    void insertLifeTimePoint(int index, LifeTimePoint p) {
+    private void insertLifeTimePoint(int index, LifeTimePoint p) {
         if (!lifeTimePoints.containsKey(index)) {
             lifeTimePoints.put(index, new ArrayList<>());
         }
@@ -152,8 +135,8 @@ public class LifeTimeController {
         return lifeTimeInterval.get(x);
     }
 
-    List<Block> blocks = new ArrayList<>();
-    Map<String, Block> blockMap = new HashMap<>();
+    private final List<Block> blocks = new ArrayList<>();
+    private final Map<String, Block> blockMap = new HashMap<>();
     void buildBlocks(List<AsmInstruction> instructionList) {
         Block now = null;
         for (int i = 0; i < instructionList.size(); i++) {
@@ -170,7 +153,7 @@ public class LifeTimeController {
             if (inst instanceof AsmJump) {
                 for (int j = 1; j <= 3; j++) {
                     if (inst.getOperand(j) instanceof Label label) {
-                        now.nextBlockName.add(label.getPureName());
+                        now.nextBlockName.add(label.getLabelName());
                     }
                 }
             }
@@ -183,7 +166,7 @@ public class LifeTimeController {
             blocks.get(blocks.size() - 1).r = i;
         }
     }
-    void iterateActiveReg() {
+    private void iterateActiveReg() {
         while (true) {
             boolean changeLabel = false;
             for (var b : blocks) {
@@ -200,7 +183,7 @@ public class LifeTimeController {
             }
         }
     }
-    void buildLifeTimePoints(List<AsmInstruction> instructionList) {
+    private void buildLifeTimePoints(List<AsmInstruction> instructionList) {
         for (var b : blocks) {
             for (var x : b.in) {
                 LifeTimeIndex index = LifeTimeIndex.getInstOut(this, instructionList.get(b.l));
@@ -223,7 +206,7 @@ public class LifeTimeController {
             }
         }
     }
-    void buildLifeTimeMessage(List<AsmInstruction> instructionList) {
+    private void buildLifeTimeMessage(List<AsmInstruction> instructionList) {
         buildLifeTimePoints(instructionList);
         for (var x : getKeySet()) {
             constructInterval(x);

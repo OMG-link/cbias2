@@ -12,17 +12,17 @@ public class FloatRegister extends Register {
         super(index, Type.FLOAT);
     }
 
-    static Map<Integer, FloatRegister> physicalRegisters = new HashMap<>();
+    private static final Map<Integer, FloatRegister> PHYSICAL_REGISTERS = new HashMap<>();
 
     public static FloatRegister getVirtual(int index) {
         return new FloatRegister(-index);
     }
 
     public static FloatRegister getPhysical(int index) {
-        if (!physicalRegisters.containsKey(index)) {
-            physicalRegisters.put(index, new FloatRegister(index));
+        if (!PHYSICAL_REGISTERS.containsKey(index)) {
+            PHYSICAL_REGISTERS.put(index, new FloatRegister(index));
         }
-        return physicalRegisters.get(index);
+        return PHYSICAL_REGISTERS.get(index);
     }
 
     public static FloatRegister getParameter(int index) {
@@ -30,11 +30,10 @@ public class FloatRegister extends Register {
     }
 
     public String emit() {
-        if (index >= 0) {
-            return "f" + index;
+        if (getIndex() >= 0) {
+            return "f" + getIndex();
         } else {
-            return "VRegFloat" + (-index);
+            return "VRegFloat" + (-getIndex());
         }
     }
 }
-

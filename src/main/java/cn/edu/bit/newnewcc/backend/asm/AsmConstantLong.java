@@ -5,13 +5,15 @@ import cn.edu.bit.newnewcc.backend.asm.operand.Label;
 public class AsmConstantLong {
     private final String constantName;
     private final ValueDirective directive;
-    static int index = 0;
+
+    private static int counter = 0;
+
     public AsmConstantLong(long value) {
-        constantName = "constant_long_" + "_" + index;
-        index += 1;
+        constantName = "constant_long_" + "_" + counter;
+        counter += 1;
         directive = new ValueDirective(value);
     }
-    Label getConstantLabel() {
+    public Label getConstantLabel() {
         return new Label(constantName, false);
     }
     public String emit() {

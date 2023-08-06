@@ -9,7 +9,6 @@ import cn.edu.bit.newnewcc.backend.asm.controller.RegisterControl;
 import cn.edu.bit.newnewcc.backend.asm.instruction.*;
 import cn.edu.bit.newnewcc.backend.asm.operand.*;
 import cn.edu.bit.newnewcc.backend.asm.util.BackendOptimizer;
-import cn.edu.bit.newnewcc.backend.asm.util.Misc;
 import cn.edu.bit.newnewcc.backend.asm.util.Pair;
 import cn.edu.bit.newnewcc.ir.Value;
 import cn.edu.bit.newnewcc.ir.type.FloatType;
@@ -31,21 +30,18 @@ public class AsmFunction {
     private final boolean DEBUG_MODE = false;
     private final boolean ASSERT_MODE = true;
 
-    AsmCode globalCode;
+    private final AsmCode globalCode;
     private final List<AsmOperand> formalParameters = new ArrayList<>();
     private final Map<Value, AsmOperand> formalParameterMap = new HashMap<>();
-    private final Map<Value, AsmOperand> parameterValueMap = new HashMap<>();
     private final List<AsmBasicBlock> basicBlocks = new ArrayList<>();
     private final Map<BasicBlock, AsmBasicBlock> basicBlockMap = new HashMap<>();
-    private final Map<AsmBasicBlock, AsmLabel> blockAsmLabelMap = new HashMap<>();
-    private final Map<AsmLabel, AsmBasicBlock> asmLabelBlockMap = new HashMap<>();
-    private List<AsmInstruction> instructionList = new ArrayList<>();
+    private List<AsmInstruction> instrList = new ArrayList<>();
     private final Label retBlockLabel;
     private final BaseFunction baseFunction;
     private final Register returnRegister;
 
     public boolean isExternal() {
-        return basicBlocks.size() == 0;
+        return basicBlocks.isEmpty();
     }
 
     public AsmFunction(BaseFunction baseFunction, AsmCode code) {
@@ -85,7 +81,7 @@ public class AsmFunction {
         }
     }
 
-    FloatRegister transConstFloat(Float value, Consumer<AsmInstruction> appendInstruction) {
+    public FloatRegister transConstFloat(Float value, Consumer<AsmInstruction> appendInstruction) {
         var constantFloat = globalCode.getConstFloat(value);
         IntRegister rAddress = registerAllocator.allocateInt();
         FloatRegister tmp = registerAllocator.allocateFloat();
@@ -93,7 +89,7 @@ public class AsmFunction {
         appendInstruction.accept(new AsmLoad(tmp, new AddressContent(0, rAddress), 32));
         return tmp;
     }
-    IntRegister transConstLong(long value, Consumer<AsmInstruction> appendInstruction) {
+    public IntRegister transConstLong(long value, Consumer<AsmInstruction> appendInstruction) {
         var constantLong = globalCode.getConstLong(value);
         IntRegister rAddress = registerAllocator.allocateInt();
         IntRegister tmp = registerAllocator.allocateInt();
@@ -138,15 +134,23 @@ public class AsmFunction {
                 block.emitToFunction();
             }
             if (ASSERT_MODE) {
-                Misc.check(this.instructionList);
+                for (var inst : instrList) {
+                    for (var x : AsmInstructions.getReadVRegSet(inst)) {
+                        for (var y : AsmInstructions.getWriteVRegSet(inst)) {
+                            if (x.equals(y)) {
+                                throw new AssertionError();
+                            }
+                        }
+                    }
+                }
             }
             if (!DEBUG_MODE) {
-                lifeTimeController.getAllVRegLifeTime(instructionList);
+                lifeTimeController.getAllVRegLifeTime(instrList);
                 asmOptimizerBeforeRegisterAllocate(lifeTimeController);
-                PeepholeOptimizer.runBeforeAllocation(instructionList);
+                PeepholeOptimizer.runBeforeAllocation(instrList);
                 reAllocateRegister();
                 asmOptimizerAfterRegisterAllocate();
-                PeepholeOptimizer.runAfterAllocation(instructionList);
+                PeepholeOptimizer.runAfterAllocation(instrList);
             }
         }
     }
@@ -157,11 +161,11 @@ public class AsmFunction {
         res.append(String.format(".globl %s\n", functionName));
         res.append(String.format(".type %s, @function\n", functionName));
         res.append(String.format("%s:\n", functionName));
-        for (var inst : stackAllocator.emitHead()) {
+        for (var inst : stackAllocator.emitPrologue()) {
             res.append(inst.emit());
         }
         int id = 0;
-        for (var inst : instructionList) {
+        for (var inst : instrList) {
             if (DEBUG_MODE) {
                 res.append(String.format("%d: %s", id, inst.emit()));
             } else {
@@ -169,7 +173,7 @@ public class AsmFunction {
             }
             id += 1;
         }
-        for (var inst : stackAllocator.emitTail()) {
+        for (var inst : stackAllocator.emitEpilogue()) {
             res.append(inst.emit());
         }
         res.append(String.format(".size %s, .-%s\n", functionName, functionName));
@@ -179,15 +183,15 @@ public class AsmFunction {
 
     //向函数添加指令的方法
     public void appendInstruction(AsmInstruction instruction) {
-        instructionList.add(instruction);
+        instrList.add(instruction);
     }
 
     public int getInstructionListSize() {
-        return instructionList.size();
+        return instrList.size();
     }
 
     public void appendAllInstruction(Collection<AsmInstruction> instructions) {
-        instructionList.addAll(instructions);
+        instrList.addAll(instructions);
     }
 
     //函数内部资源分配器
@@ -199,11 +203,6 @@ public class AsmFunction {
     //资源对应的get方法
     public AsmBasicBlock getBasicBlock(BasicBlock block) {
         return basicBlockMap.get(block);
-    }
-
-    public void putBlockAsmLabel(AsmBasicBlock block, AsmLabel label) {
-        blockAsmLabelMap.put(block, label);
-        asmLabelBlockMap.put(label, block);
     }
 
     public String getFunctionName() {
@@ -252,7 +251,7 @@ public class AsmFunction {
 
 
     //调用另一个函数的汇编代码
-    Collection<AsmInstruction> call(AsmFunction calledFunction, List<AsmOperand> parameters, Register returnRegister) {
+    public Collection<AsmInstruction> call(AsmFunction calledFunction, List<AsmOperand> parameters, Register returnRegister) {
         stackAllocator.callFunction();
         List<AsmInstruction> res = new ArrayList<>();
         //参数数量不匹配
@@ -283,7 +282,7 @@ public class AsmFunction {
                 if (!(formalParam instanceof ExStackVarContent)) {
                     throw new RuntimeException("formal parameter in wrong place");
                 }
-                stackAllocator.push_back((StackVar)formalParam);
+                stackAllocator.pushBack((StackVar)formalParam);
             }
 
             //将参数存储到形参对应位置
@@ -339,7 +338,7 @@ public class AsmFunction {
     }
 
     public ExStackVarContent transformStackVar(StackVar stackVar) {
-        return transformStackVar(stackVar, instructionList);
+        return transformStackVar(stackVar, instrList);
     }
 
     //未分配寄存器的分配方法
@@ -347,7 +346,7 @@ public class AsmFunction {
     private void reAllocateRegister() {
         RegisterControl registerController = new LinearScanRegisterControl(this, stackAllocator);
         registerController.virtualRegAllocateToPhysics();
-        var newInstructionList = registerController.spillRegisters(instructionList);
+        var newInstructionList = registerController.spillRegisters(instrList);
 
         for (var inst : newInstructionList) {
             for (int j = 1; j <= 3; j++) {
@@ -357,23 +356,24 @@ public class AsmFunction {
                 }
             }
         }
-        this.instructionList = registerController.emitHead();
-        this.instructionList.addAll(newInstructionList);
-        this.instructionList.add(new AsmLabel(retBlockLabel));
-        this.instructionList.addAll(registerController.emitTail());
+        instrList = new ArrayList<>();
+        instrList.addAll(registerController.emitPrologue());
+        instrList.addAll(newInstructionList);
+        instrList.add(new AsmLabel(retBlockLabel));
+        instrList.addAll(registerController.emitEpilogue());
     }
 
     //寄存器分配前的优化器，用于合并copy后的权值
     private void asmOptimizerBeforeRegisterAllocate(LifeTimeController lifeTimeController) {
-        instructionList = BackendOptimizer.beforeAllocateScanForward(instructionList, lifeTimeController);
+        instrList = BackendOptimizer.beforeAllocateScanForward(instrList, lifeTimeController);
     }
 
 
     private void asmOptimizerAfterRegisterAllocate() {
-        LinkedList<AsmInstruction> linkedInstructionList = new LinkedList<>(instructionList);
+        LinkedList<AsmInstruction> linkedInstructionList = new LinkedList<>(instrList);
         linkedInstructionList = BackendOptimizer.afterAllocateScanForward(linkedInstructionList);
         linkedInstructionList = BackendOptimizer.afterAllocateScanBackward(linkedInstructionList);
-        instructionList = new ArrayList<>(linkedInstructionList);
+        instrList = new ArrayList<>(linkedInstructionList);
     }
 
 }

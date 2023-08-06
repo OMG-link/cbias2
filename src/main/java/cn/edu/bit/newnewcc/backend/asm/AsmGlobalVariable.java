@@ -1,7 +1,7 @@
 package cn.edu.bit.newnewcc.backend.asm;
 
 import cn.edu.bit.newnewcc.backend.asm.operand.Label;
-import cn.edu.bit.newnewcc.backend.asm.util.ConstArrayUtil;
+import cn.edu.bit.newnewcc.backend.asm.util.Utility;
 import cn.edu.bit.newnewcc.ir.value.Constant;
 import cn.edu.bit.newnewcc.ir.value.GlobalVariable;
 import cn.edu.bit.newnewcc.ir.value.constant.ConstArray;
@@ -53,7 +53,7 @@ public class AsmGlobalVariable {
     }
 
     private void getArrayValues(ConstArray arrayValue) {
-        ConstArrayUtil.workOnArray(arrayValue, 0, (Long offset, Constant item) -> {
+        Utility.workOnArray(arrayValue, 0, (Long offset, Constant item) -> {
             if (item instanceof ConstInt arrayItem) {
                 this.valueList.add(new ValueDirective(arrayItem.getValue()));
             } else if (item instanceof ConstFloat arrayItem) {

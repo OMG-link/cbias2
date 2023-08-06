@@ -17,13 +17,13 @@ public class AsmCode {
         return globalVariableMap.get(key);
     }
 
-    AsmConstantFloat getConstFloat(float value) {
+    public AsmConstantFloat getConstFloat(float value) {
         if (!constFloatMap.containsKey(value)) {
             constFloatMap.put(value, new AsmConstantFloat(value));
         }
         return constFloatMap.get(value);
     }
-    AsmConstantLong getConstLong(long value) {
+    public AsmConstantLong getConstLong(long value) {
         if (!constLongMap.containsKey(value)) {
             constLongMap.put(value, new AsmConstantLong(value));
         }
@@ -47,31 +47,31 @@ public class AsmCode {
         }
     }
 
-    AsmFunction getFunction(BaseFunction baseFunction) {
+    public AsmFunction getFunction(BaseFunction baseFunction) {
         return functionMap.get(baseFunction);
     }
 
     public String emit() {
-        StringBuilder res = new StringBuilder(".option nopic\n.attribute arch, \"rv64i2p0_m2p0_a2p0_f2p0_d2p0_c2p0\"\n");
-        res.append(".attribute unaligned_access, 0\n");
-        res.append(".attribute stack_align, 16\n");
+        StringBuilder builder = new StringBuilder(".option nopic\n.attribute arch, \"rv64i2p0_m2p0_a2p0_f2p0_d2p0_c2p0\"\n");
+        builder.append(".attribute unaligned_access, 0\n");
+        builder.append(".attribute stack_align, 16\n");
         for (var gvar : globalVariableMap.values()) {
-            res.append(gvar.emit());
+            builder.append(gvar.emit());
         }
         for (var fvar : functionMap.values()) {
             if (!fvar.isExternal()) {
-                res.append(fvar.emit());
+                builder.append(fvar.emit());
             }
         }
-        res.append(".section .rodata\n");
+        builder.append(".section .rodata\n");
         for (var key : constFloatMap.keySet()) {
             var constFloat = constFloatMap.get(key);
-            res.append(constFloat.emit()).append('\n');
+            builder.append(constFloat.emit()).append('\n');
         }
         for (var key : constLongMap.keySet()) {
             var constLong = constLongMap.get(key);
-            res.append(constLong.emit()).append('\n');
+            builder.append(constLong.emit()).append('\n');
         }
-        return res.toString();
+        return builder.toString();
     }
 }

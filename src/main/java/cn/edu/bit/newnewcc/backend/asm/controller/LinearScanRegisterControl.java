@@ -27,7 +27,7 @@ public class LinearScanRegisterControl extends RegisterControl{
         }
     }
 
-    void allocateVReg(Register vReg) {
+    private void allocateVReg(Register vReg) {
         var index = vReg.getIndex();
         for (var reg : registerPool.keySet()) {
             if (reg.getType() == vReg.getType() && registerPool.get(reg) == 0) {
@@ -102,7 +102,7 @@ public class LinearScanRegisterControl extends RegisterControl{
         stackPool.clear();
     }
 
-    Map<Register, Register> getUsedRegisters(AsmInstruction inst) {
+    private Map<Register, Register> getUsedRegisters(AsmInstruction inst) {
         Map<Register, Register> used = new HashMap<>();
         for (int j = 1; j <= 3; j++) {
             if (inst.getOperand(j) instanceof RegisterReplaceable registerReplaceable) {
@@ -117,7 +117,7 @@ public class LinearScanRegisterControl extends RegisterControl{
         return used;
     }
 
-    Register getExRegister(Map<Register, Register> used, Register vReg, Map<Register, StackVar> registerSaveMap, List<AsmInstruction> newInstList) {
+    private Register getExRegister(Map<Register, Register> used, Register vReg, Map<Register, StackVar> registerSaveMap, List<AsmInstruction> newInstList) {
         if (used.containsKey(vReg)) {
             return used.get(vReg);
         }
@@ -220,7 +220,7 @@ public class LinearScanRegisterControl extends RegisterControl{
         return newInstList;
     }
 
-    void recycle(Integer index) {
+    private void recycle(Integer index) {
         if (!vRegLocation.containsKey(index)) {
             return;
         }

@@ -14,12 +14,12 @@ import java.util.*;
 public abstract class RegisterControl {
     protected final AsmFunction function;
     protected final Map<Register, StackVar> preservedRegisterSaved = new HashMap<>();
-    protected final IntRegister s1 = IntRegister.s1;
+    protected final IntRegister s1 = IntRegister.S1;
     protected final StackVar s1saved;
-    protected StackPool stackPool;
+    protected final StackPool stackPool;
 
-    public List<AsmInstruction> emitHead() {
-        List<AsmInstruction> res = new ArrayList<>();
+    public List<AsmInstruction> emitPrologue() {
+        List<AsmInstruction> instrList = new ArrayList<>();
         for (var register : preservedRegisterSaved.keySet()) {
             var x = preservedRegisterSaved.get(register);
             if (!Immediates.bitLengthNotInLimit(x.getAddress().getOffset())) {
@@ -28,20 +28,20 @@ public abstract class RegisterControl {
             }
         }
         for (var register : preservedRegisterSaved.keySet()) {
-            saveToStackVar(res, register, preservedRegisterSaved.get(register));
+            saveToStackVar(instrList, register, preservedRegisterSaved.get(register));
         }
-        return res;
+        return Collections.unmodifiableList(instrList);
     }
 
-    public List<AsmInstruction> emitTail() {
-        List<AsmInstruction> res = new ArrayList<>();
+    public List<AsmInstruction> emitEpilogue() {
+        List<AsmInstruction> instrList = new ArrayList<>();
         for (var register : preservedRegisterSaved.keySet()) {
-            loadFromStackVar(res, register, preservedRegisterSaved.get(register));
+            loadFromStackVar(instrList, register, preservedRegisterSaved.get(register));
         }
-        return res;
+        return Collections.unmodifiableList(instrList);
     }
-    
-    void updateRegisterPreserve(Register register) {
+
+    public void updateRegisterPreserve(Register register) {
         if (Registers.isPreservedAcrossCalls(register) && !preservedRegisterSaved.containsKey(register)) {
             preservedRegisterSaved.put(register, stackPool.pop());
         }
@@ -53,29 +53,28 @@ public abstract class RegisterControl {
         s1saved = stackPool.pop();
     }
 
-    void loadFromStackVar(List<AsmInstruction> instList, Register register, StackVar stk) {
-        if (Immediates.bitLengthNotInLimit(stk.getAddress().getOffset())) {
+    public void loadFromStackVar(List<AsmInstruction> instList, Register register, StackVar stackVar) {
+        if (Immediates.bitLengthNotInLimit(stackVar.getAddress().getOffset())) {
             preservedRegisterSaved.put(s1, s1saved);
-            instList.add(new AsmLoad(s1, new Immediate(Math.toIntExact(stk.getAddress().getOffset()))));
-            instList.add(new AsmAdd(s1, s1, stk.getAddress().getRegister(), 64));
-            stk = new StackVar(0, stk.getSize(), true);
-            stk = stk.replaceRegister(s1);
+            instList.add(new AsmLoad(s1, new Immediate(Math.toIntExact(stackVar.getAddress().getOffset()))));
+            instList.add(new AsmAdd(s1, s1, stackVar.getAddress().getRegister(), 64));
+            stackVar = new StackVar(0, stackVar.getSize(), true);
+            stackVar = stackVar.replaceRegister(s1);
         }
-        instList.add(new AsmLoad(register, stk));
+        instList.add(new AsmLoad(register, stackVar));
     }
 
-    void saveToStackVar(List<AsmInstruction> instList, Register register, StackVar stk) {
-        if (Immediates.bitLengthNotInLimit(stk.getAddress().getOffset())) {
+    public void saveToStackVar(List<AsmInstruction> instList, Register register, StackVar stackVar) {
+        if (Immediates.bitLengthNotInLimit(stackVar.getAddress().getOffset())) {
             preservedRegisterSaved.put(s1, s1saved);
-            instList.add(new AsmLoad(s1, new Immediate(Math.toIntExact(stk.getAddress().getOffset()))));
-            instList.add(new AsmAdd(s1, s1, stk.getAddress().getRegister(), 64));
-            stk = new StackVar(0, stk.getSize(), true);
-            stk = stk.replaceRegister(s1);
+            instList.add(new AsmLoad(s1, new Immediate(Math.toIntExact(stackVar.getAddress().getOffset()))));
+            instList.add(new AsmAdd(s1, s1, stackVar.getAddress().getRegister(), 64));
+            stackVar = new StackVar(0, stackVar.getSize(), true);
+            stackVar = stackVar.replaceRegister(s1);
         }
-        instList.add(new AsmStore(register, stk));
+        instList.add(new AsmStore(register, stackVar));
     }
 
     public abstract void virtualRegAllocateToPhysics();
     public abstract List<AsmInstruction> spillRegisters(List<AsmInstruction> instructionList);
 }
-

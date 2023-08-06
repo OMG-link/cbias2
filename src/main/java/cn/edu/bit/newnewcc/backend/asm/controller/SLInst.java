@@ -8,9 +8,9 @@ class SLInst {
         store, load
     }
 
-    Register register;
-    StackVar stackVar;
-    TYPE type;
+    private final Register register;
+    private final StackVar stackVar;
+    private final TYPE type;
 
     Register getRegister() {
         return register;
@@ -34,11 +34,11 @@ class SLInst {
         this.type = type;
     }
 
-    public SLInst getLoad(Register reg, StackVar stk) {
+    public SLInst createLoad(Register reg, StackVar stk) {
         return new SLInst(reg, stk, TYPE.load);
     }
 
-    public SLInst getStore(Register reg, StackVar stk) {
+    public SLInst createStore(Register reg, StackVar stk) {
         return new SLInst(reg, stk, TYPE.store);
     }
 }

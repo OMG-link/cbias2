@@ -10,9 +10,9 @@ import cn.edu.bit.newnewcc.backend.asm.operand.RegisterReplaceable;
 import java.util.*;
 
 public class CopyCoalescer {
-    ArrayList<AsmInstruction> instructions;
-    LifeTimeController lifeTimeController;
-    static class LifeTimeInterval {
+    private final ArrayList<AsmInstruction> instructions;
+    private final LifeTimeController lifeTimeController;
+    private static class LifeTimeInterval {
         ComparablePair<LifeTimeIndex, LifeTimeIndex> range;
         int vRegID;
         public LifeTimeInterval(int vRegID, ComparablePair<LifeTimeIndex, LifeTimeIndex> range) {
@@ -37,14 +37,14 @@ public class CopyCoalescer {
         this.lifeTimeController = lifeTimeController;
     }
 
-    LifeTimeInterval getValue(LifeTimeInterval lifeTimeInterval) {
+    private LifeTimeInterval getValue(LifeTimeInterval lifeTimeInterval) {
         if (!value.get(lifeTimeInterval).equals(lifeTimeInterval)) {
             value.put(lifeTimeInterval, getValue(value.get(lifeTimeInterval)));
         }
         return value.get(lifeTimeInterval);
     }
 
-    void getIntervals() {
+    private void getIntervals() {
         for (int x : lifeTimeController.getKeySet()) {
             intervalMap.put(x, new ArrayList<>());
             for (var i : lifeTimeController.getInterval(x)) {
@@ -56,7 +56,7 @@ public class CopyCoalescer {
         intervals.sort(Comparator.comparing(a -> a.range));
     }
 
-    void getValues() {
+    private void getValues() {
         Map<Integer, LifeTimeInterval> lastActive = new HashMap<>();
         for (var interval : intervals) {
             value.put(interval, interval);
@@ -74,7 +74,7 @@ public class CopyCoalescer {
         }
     }
 
-    void addEdge(int x, int y) {
+    private void addEdge(int x, int y) {
         if (x == y) {
             throw new RuntimeException("coalesce error! conference on same value");
         }
@@ -82,12 +82,12 @@ public class CopyCoalescer {
         edges.get(y).add(x);
     }
 
-    void removeEdge(int x, int y) {
+    private void removeEdge(int x, int y) {
         edges.get(x).remove(y);
         edges.get(y).remove(x);
     }
 
-    void getEdges() {
+    private void getEdges() {
         Set<LifeTimeInterval> activeSet = new HashSet<>();
         for (var x : lifeTimeController.getKeySet()) {
             edges.put(x, new HashSet<>());
@@ -110,8 +110,8 @@ public class CopyCoalescer {
         }
     }
 
-    List<Integer> constructList = new ArrayList<>();
-    void coalesce() {
+    private final List<Integer> constructList = new ArrayList<>();
+    private void coalesce() {
         Map<Integer, Integer> trueValue = new HashMap<>();
         for (var x : lifeTimeController.getKeySet()) {
             trueValue.put(x, x);
@@ -155,7 +155,7 @@ public class CopyCoalescer {
         }
     }
 
-    List<AsmInstruction> instructionFilter() {
+    private List<AsmInstruction> instructionFilter() {
         List<AsmInstruction> newInstructionList = new ArrayList<>();
         for (var inst : instructions) {
             if (AsmInstructions.isMoveVToV(inst)) {

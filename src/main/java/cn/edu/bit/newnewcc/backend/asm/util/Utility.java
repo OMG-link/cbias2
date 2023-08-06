@@ -5,14 +5,10 @@ import cn.edu.bit.newnewcc.ir.value.constant.ConstArray;
 
 import java.util.function.BiConsumer;
 
-public class ConstArrayUtil {
-    /**
-     * 处理ConstArray相关的操作
-     * @param arrayValue ConstArray值
-     * @param offset 当前处理到数组的偏移量，通常传入0
-     * @param workItem 对数组中单个元素进行的操作，传入参数为(offset, item)
-     * @param workZeroSegment 对数组中一段0值进行的操作，传入参数为(offset, length)
-     */
+public class Utility {
+    private Utility() {
+    }
+
     public static void workOnArray(ConstArray arrayValue, long offset, BiConsumer<Long, Constant> workItem, BiConsumer<Long, Long> workZeroSegment) {
         int length = arrayValue.getLength();
         int filledLength = arrayValue.getInitializedLength();
@@ -42,4 +38,15 @@ public class ConstArrayUtil {
         }
     }
 
+    public static boolean isPowerOf2(int x) { return x > 0 && ((x & (x - 1)) == 0);}
+
+    public static int log2(int x) {
+        if (x <= 0) return -1;
+        int count = 0;
+        while (x > 1) {
+            count++;
+            x >>= 1;
+        }
+        return count;
+    }
 }

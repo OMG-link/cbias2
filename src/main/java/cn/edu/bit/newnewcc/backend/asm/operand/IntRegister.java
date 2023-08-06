@@ -17,22 +17,22 @@ public class IntRegister extends Register {
         super(index, Type.INT);
     }
 
-    final static Map<Integer, IntRegister> physicalRegisters = new HashMap<>();
-    final public static IntRegister zero = getPhysical(0);
-    final public static IntRegister ra = getPhysical(1);
-    final public static IntRegister sp = getPhysical(2);
-    final public static IntRegister s0 = getPhysical(8);
-    final public static IntRegister s1 = getPhysical(9);
+    private static final Map<Integer, IntRegister> PHYSICAL_REGISTERS = new HashMap<>();
+    public static final IntRegister ZERO = getPhysical(0);
+    public static final IntRegister RA = getPhysical(1);
+    public static final IntRegister SP = getPhysical(2);
+    public static final IntRegister S0 = getPhysical(8);
+    public static final IntRegister S1 = getPhysical(9);
 
     public static IntRegister getVirtual(int index) {
         return new IntRegister(-index);
     }
 
     public static IntRegister getPhysical(int index) {
-        if (!physicalRegisters.containsKey(index)) {
-            physicalRegisters.put(index, new IntRegister(index));
+        if (!PHYSICAL_REGISTERS.containsKey(index)) {
+            PHYSICAL_REGISTERS.put(index, new IntRegister(index));
         }
-        return physicalRegisters.get(index);
+        return PHYSICAL_REGISTERS.get(index);
     }
 
     public static IntRegister getParameter(int index) {
@@ -40,10 +40,10 @@ public class IntRegister extends Register {
     }
 
     public String emit() {
-        if (index >= 0) {
-            return "x" + index;
+        if (getIndex() >= 0) {
+            return "x" + getIndex();
         } else {
-            return "VRegInt" + (-index);
+            return "VRegInt" + (-getIndex());
         }
     }
 }

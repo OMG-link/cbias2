@@ -2,7 +2,7 @@ package cn.edu.bit.newnewcc.backend.asm.operand;
 
 public abstract class AsmOperand {
 
-    abstract public String emit();
+    public abstract String emit();
 
     @Override
     public boolean equals(Object o) {

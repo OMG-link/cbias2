@@ -5,9 +5,9 @@ package cn.edu.bit.newnewcc.backend.asm.operand;
  */
 public class StackVar extends AsmOperand implements RegisterReplaceable {
 
-    Address address;
-    int size;
-    boolean isS0;
+    protected Address address;
+    protected int size;
+    protected boolean isS0;
 
     /**
      * 创建一个栈上变量
@@ -18,9 +18,9 @@ public class StackVar extends AsmOperand implements RegisterReplaceable {
     public StackVar(long offset, int size, boolean isS0) {
         this.isS0 = isS0;
         if (isS0) {
-            this.address = new AddressContent(offset, IntRegister.s0);
+            this.address = new AddressContent(offset, IntRegister.S0);
         } else {
-            this.address = new AddressContent(offset, IntRegister.sp);
+            this.address = new AddressContent(offset, IntRegister.SP);
         }
         this.size = size;
     }

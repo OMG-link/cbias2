@@ -1,7 +1,6 @@
 package cn.edu.bit.newnewcc.backend.asm.instruction;
 
 import cn.edu.bit.newnewcc.backend.asm.operand.Label;
-import cn.edu.bit.newnewcc.backend.asm.util.Misc;
 
 /**
  * 标签也被视为一类指令
@@ -16,10 +15,6 @@ public class AsmLabel extends AsmInstruction {
 
     public Label getLabel() {
         return label;
-    }
-
-    public String getPureName() {
-        return Misc.deleteCharString(emit(), ":.\n\t ");
     }
 
     @Override

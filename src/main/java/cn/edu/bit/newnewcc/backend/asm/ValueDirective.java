@@ -9,14 +9,14 @@ public class ValueDirective {
     private final long length;
     private final long lvalue;
 
-    ValueDirective(Type type, int value, long length, long lvalue) {
+    private ValueDirective(Type type, int value, long length, long lvalue) {
         this.type = type;
         this.value = value;
         this.length = length;
         this.lvalue = lvalue;
     }
 
-    static public ValueDirective getZeroValue(long length) {
+    public static ValueDirective getZeroValue(long length) {
         return new ValueDirective(Type.ZERO, 0, length, 0);
     }
 

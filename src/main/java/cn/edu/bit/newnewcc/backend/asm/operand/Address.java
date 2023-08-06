@@ -3,7 +3,7 @@ package cn.edu.bit.newnewcc.backend.asm.operand;
 public abstract class Address extends AsmOperand implements RegisterReplaceable {
     protected final long offset;
     protected final IntRegister baseAddress;
-    Address(long offset, IntRegister baseAddress) {
+    protected Address(long offset, IntRegister baseAddress) {
         this.offset = offset;
         this.baseAddress = baseAddress;
     }

@@ -6,15 +6,15 @@ import cn.edu.bit.newnewcc.backend.asm.operand.StackVar;
 import java.util.ArrayDeque;
 import java.util.Queue;
 
-class StackPool {
-    StackAllocator allocator;
-    Queue<StackVar> queue = new ArrayDeque<>();
+public class StackPool {
+    private final StackAllocator allocator;
+    private final Queue<StackVar> queue = new ArrayDeque<>();
 
     public StackPool(StackAllocator allocator) {
         this.allocator = allocator;
     }
 
-    void push(StackVar stackVar) {
+    public void push(StackVar stackVar) {
         queue.add(stackVar);
     }
 
@@ -22,9 +22,9 @@ class StackPool {
         queue.clear();
     }
 
-    StackVar pop() {
+    public StackVar pop() {
         if (queue.isEmpty()) {
-            return allocator.push_ex();
+            return allocator.pushEx();
         }
         return queue.remove();
     }

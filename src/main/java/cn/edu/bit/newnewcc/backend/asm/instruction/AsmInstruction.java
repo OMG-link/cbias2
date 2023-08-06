@@ -1,7 +1,6 @@
 package cn.edu.bit.newnewcc.backend.asm.instruction;
 
 import cn.edu.bit.newnewcc.backend.asm.operand.*;
-import cn.edu.bit.newnewcc.backend.asm.util.Misc;
 
 /**
  * 汇编指令基类
@@ -58,9 +57,4 @@ public abstract class AsmInstruction {
     }
 
     public abstract String emit();
-
-    @Override
-    public String toString() {
-        return Misc.deleteCharString(emit(), "\t\n");
-    }
 }

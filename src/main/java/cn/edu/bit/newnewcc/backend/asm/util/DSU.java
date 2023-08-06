@@ -5,9 +5,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 class DSU<T> {
-    final ArrayList<Integer> fa = new ArrayList<>();
-    final ArrayList<T> item = new ArrayList<>();
-    final Map<String, Integer> id = new HashMap<>();
+    private final ArrayList<Integer> fa = new ArrayList<>();
+    private final ArrayList<T> item = new ArrayList<>();
+    private final Map<String, Integer> id = new HashMap<>();
 
     public DSU() {}
 

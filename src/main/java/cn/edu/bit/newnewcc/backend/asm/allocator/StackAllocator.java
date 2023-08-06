@@ -17,20 +17,19 @@ import static java.lang.Integer.max;
 public class StackAllocator {
     private int top = 16, maxSize = 16, backSize = 0, backMaxSize = 0;
     private boolean savedRa = false;
-    private Map<Instruction, StackVar> stackVarMap = new HashMap<>();
+    private final Map<Instruction, StackVar> stackVarMap = new HashMap<>();
 
-    public StackVar allocate(Instruction instruction, int size) {
-        StackVar res = push(size);
-        stackVarMap.put(instruction, res);
-        return res;
+    public void allocate(Instruction instruction, int size) {
+        StackVar stackVar = push(size);
+        stackVarMap.put(instruction, stackVar);
     }
 
-    public StackVar get(Instruction instruction) {
-        return stackVarMap.get(instruction);
+    public StackVar get(Instruction instr) {
+        return stackVarMap.get(instr);
     }
 
-    public boolean contain(Instruction instruction) {
-        return stackVarMap.containsKey(instruction);
+    public boolean contain(Instruction instr) {
+        return stackVarMap.containsKey(instr);
     }
 
     /**
@@ -63,13 +62,13 @@ public class StackAllocator {
     public int getExSize() {
         return exSize;
     }
-    public StackVar push_ex() {
+    public StackVar pushEx() {
         maxSize += 8;
         exSize += 8;
         return new StackVar(-exSize - 16, 8, true);
     }
 
-    public void push_back(StackVar stackVar) {
+    public void pushBack(StackVar stackVar) {
         backSize += stackVar.getSize();
         backMaxSize = max(backMaxSize, backSize);
     }
@@ -83,7 +82,7 @@ public class StackAllocator {
         top -= size;
     }
 
-    public void add_padding() {
+    public void addPadding() {
         maxSize += backMaxSize;
         maxSize += (16 - maxSize % 16) % 16;
     }
@@ -93,45 +92,45 @@ public class StackAllocator {
      * <p>
      * 注意，emit操作仅当maxSize初始化完成后进行，避免栈帧大小分配错误
      */
-    public Collection<AsmInstruction> emitHead() {
-        add_padding();
-        List<AsmInstruction> res = new ArrayList<>();
-        IntRegister sp = IntRegister.sp;
-        IntRegister ra = IntRegister.ra;
-        IntRegister s0 = IntRegister.s0;
+    public Collection<AsmInstruction> emitPrologue() {
+        addPadding();
+        List<AsmInstruction> instrList = new ArrayList<>();
+        IntRegister sp = IntRegister.SP;
+        IntRegister ra = IntRegister.RA;
+        IntRegister s0 = IntRegister.S0;
         IntRegister t0 = IntRegister.getPhysical(5);
         if (savedRa) {
-            res.add(new AsmStore(ra, new StackVar(-8, 8, false)));
+            instrList.add(new AsmStore(ra, new StackVar(-8, 8, false)));
         }
-        res.add(new AsmStore(s0, new StackVar(-16, 8, false)));
+        instrList.add(new AsmStore(s0, new StackVar(-16, 8, false)));
         if (Immediates.bitLengthNotInLimit(maxSize)) {
-            res.add(new AsmLoad(t0, new Immediate(maxSize)));
-            res.add(new AsmSub(sp, sp, t0, 64));
-            res.add(new AsmAdd(s0, sp, t0, 64));
+            instrList.add(new AsmLoad(t0, new Immediate(maxSize)));
+            instrList.add(new AsmSub(sp, sp, t0, 64));
+            instrList.add(new AsmAdd(s0, sp, t0, 64));
         } else {
-            res.add(new AsmAdd(sp, sp, new Immediate(-maxSize), 64));
-            res.add(new AsmAdd(s0, sp, new Immediate(maxSize), 64));
+            instrList.add(new AsmAdd(sp, sp, new Immediate(-maxSize), 64));
+            instrList.add(new AsmAdd(s0, sp, new Immediate(maxSize), 64));
         }
-        return res;
+        return Collections.unmodifiableList(instrList);
     }
 
-    public Collection<AsmInstruction> emitTail() {
-        List<AsmInstruction> res = new ArrayList<>();
-        IntRegister sp = IntRegister.sp;
-        IntRegister ra = IntRegister.ra;
-        IntRegister s0 = IntRegister.s0;
+    public Collection<AsmInstruction> emitEpilogue() {
+        List<AsmInstruction> instrList = new ArrayList<>();
+        IntRegister sp = IntRegister.SP;
+        IntRegister ra = IntRegister.RA;
+        IntRegister s0 = IntRegister.S0;
         IntRegister t0 = IntRegister.getPhysical(5);
         if (Immediates.bitLengthNotInLimit(maxSize)) {
-            res.add(new AsmLoad(t0, new Immediate(maxSize)));
-            res.add(new AsmAdd(sp, sp, t0, 64));
+            instrList.add(new AsmLoad(t0, new Immediate(maxSize)));
+            instrList.add(new AsmAdd(sp, sp, t0, 64));
         } else {
-            res.add(new AsmAdd(sp, sp, new Immediate(maxSize), 64));
+            instrList.add(new AsmAdd(sp, sp, new Immediate(maxSize), 64));
         }
         if (savedRa) {
-            res.add(new AsmLoad(ra, new StackVar(-8, 8, false)));
+            instrList.add(new AsmLoad(ra, new StackVar(-8, 8, false)));
         }
-        res.add(new AsmLoad(s0, new StackVar(-16, 8, false)));
-        res.add(new AsmIndirectJump(ra));
-        return res;
+        instrList.add(new AsmLoad(s0, new StackVar(-16, 8, false)));
+        instrList.add(new AsmIndirectJump(ra));
+        return Collections.unmodifiableList(instrList);
     }
 }

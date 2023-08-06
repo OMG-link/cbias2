@@ -4,8 +4,7 @@ package cn.edu.bit.newnewcc.backend.asm.operand;
  * 栈变量内容，专用于栈帧重新分配过程.
  */
 public class ExStackVarContent extends StackVar implements ExStackVarAdd {
-    boolean isS0Based;
-    ExStackVarContent(Address address, int size, boolean isS0Based) {
+    private ExStackVarContent(Address address, int size, boolean isS0Based) {
         super(address, size, isS0Based);
     }
     public static ExStackVarContent transform(StackVar stackVar) {

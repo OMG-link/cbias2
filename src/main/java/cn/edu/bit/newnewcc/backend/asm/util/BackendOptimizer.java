@@ -47,7 +47,7 @@ public class BackendOptimizer {
                         }
                     } else if (iSv instanceof AsmJump jump) {
                         if (iLd instanceof AsmLabel label) {
-                            if (jump.getCondition() == AsmJump.Condition.UNCONDITIONAL && ((Label)jump.getOperand(1)).getPureName().equals(label.getPureName())) {
+                            if (jump.getCondition() == AsmJump.Condition.UNCONDITIONAL && ((Label)jump.getOperand(1)).getLabelName().equals(label.getLabel().getLabelName())) {
                                 popx.accept(1);
                             }
                         }
@@ -60,7 +60,7 @@ public class BackendOptimizer {
                     if (iLi instanceof AsmLoad && iLi.getOperand(2) instanceof Immediate offset) {
                         int offsetVal = offset.getValue();
                         if (!Immediates.bitLengthNotInLimit(offsetVal)) {
-                            if (iAdd instanceof AsmAdd && iAdd.getOperand(3) instanceof IntRegister baseRegister && baseRegister.equals(IntRegister.s0)) {
+                            if (iAdd instanceof AsmAdd && iAdd.getOperand(3) instanceof IntRegister baseRegister && baseRegister.equals(IntRegister.S0)) {
                                 if (iMov instanceof AsmLoad iLoad && iLoad.getOperand(2) instanceof StackVar stackVar) {
                                     if (stackVar.getRegister() == iLi.getOperand(1) && stackVar.getAddress().getOffset() == 0) {
                                         ExStackVarContent now = ExStackVarContent.transform(new StackVar(offsetVal, stackVar.getSize(), true));
