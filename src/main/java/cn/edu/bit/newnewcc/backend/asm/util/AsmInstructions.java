@@ -137,6 +137,6 @@ public class AsmInstructions {
                 }
             }
         }
-        throw new RuntimeException("find register in wrong instruction");
+        return -1;
     }
 }

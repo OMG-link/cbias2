@@ -186,7 +186,7 @@ public class AsmFunction {
     private final StackAllocator stackAllocator = new StackAllocator();
     private final RegisterAllocator registerAllocator = new RegisterAllocator();
     private final AddressAllocator addressAllocator = new AddressAllocator();
-    private final LifeTimeController lifeTimeController = new LifeTimeController();
+    private final LifeTimeController lifeTimeController = new LifeTimeController(this);
 
     //资源对应的get方法
     public AsmBasicBlock getBasicBlock(BasicBlock block) {

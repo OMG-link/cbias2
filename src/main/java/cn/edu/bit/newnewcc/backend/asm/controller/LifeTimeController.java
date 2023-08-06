@@ -1,5 +1,6 @@
 package cn.edu.bit.newnewcc.backend.asm.controller;
 
+import cn.edu.bit.newnewcc.backend.asm.AsmFunction;
 import cn.edu.bit.newnewcc.backend.asm.instruction.*;
 import cn.edu.bit.newnewcc.backend.asm.instruction.AsmInstruction;
 import cn.edu.bit.newnewcc.backend.asm.instruction.AsmJump;
@@ -14,14 +15,19 @@ import java.util.*;
  */
 public class LifeTimeController {
     //虚拟寄存器生命周期的设置过程
+    private final AsmFunction function;
     private final Map<Integer, ComparablePair<LifeTimeIndex, LifeTimeIndex>> lifeTimeRange = new HashMap<>();
-    private final Map<Integer, List<LifeTimeInterval>> lifeTimeInterval = new HashMap<>();
+    private final Map<Integer, List<LifeTimeInterval>> lifeTimeIntervals = new HashMap<>();
     private final Map<Integer, List<LifeTimePoint>> lifeTimePoints = new HashMap<>();
     private final Map<AsmInstruction, Integer> instIDMap = new HashMap<>();
 
+    public LifeTimeController(AsmFunction function) {
+        this.function = function;
+    }
+
     private void init() {
         lifeTimeRange.clear();
-        lifeTimeInterval.clear();
+        lifeTimeIntervals.clear();
         lifeTimePoints.clear();
         blocks.clear();
         blockMap.clear();
@@ -106,18 +112,24 @@ public class LifeTimeController {
         } else {
             lifeTimePoints.put(x, lifeTimePoints.get(y));
         }
-        lifeTimeInterval.remove(y);
+        lifeTimeIntervals.remove(y);
         lifeTimeRange.remove(y);
         lifeTimePoints.remove(y);
     }
 
-    public void constructInterval(int x) {
+    public boolean constructInterval(int x) {
         if (!lifeTimePoints.containsKey(x)) {
             throw new RuntimeException("construct null interval");
         }
-        lifeTimePoints.get(x).removeIf((point) -> !instIDMap.containsKey(point.getIndex().getSourceInst()));
+        lifeTimePoints.get(x).removeIf((point) -> {
+            if (!instIDMap.containsKey(point.getIndex().getSourceInst())) {
+                return true;
+            }
+            var reg = function.getRegisterAllocator().get(x);
+            return AsmInstructions.getRegIndexInInst(point.getIndex().getSourceInst(), reg) == -1;
+        });
         if (lifeTimePoints.get(x).isEmpty()) {
-            throw new RuntimeException("no points");
+            return false;
         }
         lifeTimePoints.get(x).sort(Comparator.comparing(LifeTimePoint::getIndex));
         var points = lifeTimePoints.get(x);
@@ -129,11 +141,12 @@ public class LifeTimeController {
             }
             intervals.get(intervals.size() - 1).range.b = p.getIndex();
         }
-        lifeTimeInterval.put(x, intervals);
+        lifeTimeIntervals.put(x, intervals);
+        return true;
     }
 
     public List<LifeTimeInterval> getInterval(int x) {
-        return lifeTimeInterval.get(x);
+        return lifeTimeIntervals.get(x);
     }
 
     private final List<Block> blocks = new ArrayList<>();
@@ -209,8 +222,16 @@ public class LifeTimeController {
     }
     private void buildLifeTimeMessage(List<AsmInstruction> instructionList) {
         buildLifeTimePoints(instructionList);
+        List<Integer> removeList = new ArrayList<>();
         for (var x : getKeySet()) {
-            constructInterval(x);
+            if (!constructInterval(x)) {
+                removeList.add(x);
+            }
+        }
+        for (var x : removeList) {
+            lifeTimePoints.remove(x);
+            lifeTimeRange.remove(x);
+            lifeTimeIntervals.remove(x);
         }
     }
 
@@ -229,8 +250,17 @@ public class LifeTimeController {
      */
     public void rebuildLifeTimeInterval(List<AsmInstruction> instructionList) {
         buildInstID(instructionList);
+
+        List<Integer> removeList = new ArrayList<>();
         for (var x : getKeySet()) {
-            constructInterval(x);
+            if (!constructInterval(x)) {
+                removeList.add(x);
+            }
+        }
+        for (var x : removeList) {
+            lifeTimePoints.remove(x);
+            lifeTimeRange.remove(x);
+            lifeTimeIntervals.remove(x);
         }
     }
 }
