@@ -37,7 +37,6 @@ public class IrPassManager {
 
                 // 最后执行一些指令展开，不在之前做是为了避免干扰其他Pass识别可以优化的位置
                 ConstIntRemainderReducePass.runOnModule(module);
-                ConstIntMultiplyReducePass.runOnModule(module);
 
             }
         }

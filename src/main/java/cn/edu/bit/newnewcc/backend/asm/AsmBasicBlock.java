@@ -3,10 +3,12 @@ package cn.edu.bit.newnewcc.backend.asm;
 import cn.edu.bit.newnewcc.backend.asm.instruction.*;
 import cn.edu.bit.newnewcc.backend.asm.operand.*;
 import cn.edu.bit.newnewcc.backend.asm.util.ConstArrayUtil;
+import cn.edu.bit.newnewcc.backend.asm.util.ConstantMultiplyPlanner;
 import cn.edu.bit.newnewcc.backend.asm.operand.Immediates;
 import cn.edu.bit.newnewcc.backend.asm.util.Misc;
 import cn.edu.bit.newnewcc.ir.Type;
 import cn.edu.bit.newnewcc.ir.Value;
+import cn.edu.bit.newnewcc.ir.exception.CompilationProcessCheckFailedException;
 import cn.edu.bit.newnewcc.ir.type.FloatType;
 import cn.edu.bit.newnewcc.ir.type.IntegerType;
 import cn.edu.bit.newnewcc.ir.type.PointerType;
@@ -284,11 +286,7 @@ public class AsmBasicBlock {
                 function.appendInstruction(new AsmSub(register, subx, (IntRegister) suby, bitLength));
             }
         } else if (binaryInstruction instanceof IntegerMultiplyInst integerMultiplyInst) {
-            int bitLength = integerMultiplyInst.getType().getBitWidth();
-            var mulx = getOperandToIntRegister(getValue(integerMultiplyInst.getOperand1()));
-            var muly = getOperandToIntRegister(getValue(integerMultiplyInst.getOperand2()));
-            IntRegister register = function.getRegisterAllocator().allocateInt(integerMultiplyInst);
-            function.appendInstruction(new AsmMul(register, mulx, muly, bitLength));
+            translateIntegerMultiplyInst(integerMultiplyInst);
         } else if (binaryInstruction instanceof IntegerSignedDivideInst integerSignedDivideInst) {
             translateIntegerSignedDivideInst(integerSignedDivideInst);
         } else if (binaryInstruction instanceof IntegerSignedRemainderInst integerSignedRemainderInst) {
@@ -327,6 +325,58 @@ public class AsmBasicBlock {
             function.appendInstruction(new AsmShiftLeft(result, shx, shy, bitLength));
         } else {
             throw new RuntimeException("inst type not translated : " + binaryInstruction);
+        }
+    }
+
+    public AsmOperand translateConstantMultiplyPlan(IntRegister variable, ConstantMultiplyPlanner.Operand plan) {
+        if (plan instanceof ConstantMultiplyPlanner.VariableOperand) {
+            return variable;
+        } else if (plan instanceof ConstantMultiplyPlanner.ConstantOperand constantOperand) {
+            return getValue(ConstInt.getInstance(constantOperand.value));
+        } else if (plan instanceof ConstantMultiplyPlanner.Operation operation) {
+            var reg1 = getOperandToIntRegister(translateConstantMultiplyPlan(variable, operation.operand1));
+            var operand2 = translateConstantMultiplyPlan(variable, operation.operand2);
+            var finalRegister = function.getRegisterAllocator().allocateInt();
+            var asmInstruction = switch (operation.type) {
+                case ADD -> new AsmAdd(finalRegister, reg1, operand2, 32);
+                case SUB -> new AsmSub(finalRegister, reg1, operand2, 32);
+                case SHL -> new AsmShiftLeft(finalRegister, reg1, operand2, 32);
+            };
+            function.appendInstruction(asmInstruction);
+            return finalRegister;
+        } else {
+            throw new CompilationProcessCheckFailedException("Unknown type of operand: " + plan.getClass());
+        }
+    }
+
+    private void translateIntegerMultiplyInst(IntegerMultiplyInst integerMultiplyInst) {
+        if (integerMultiplyInst.getOperand1() instanceof ConstInt ||
+                integerMultiplyInst.getOperand2() instanceof ConstInt) {
+            IntRegister variable;
+            int multipliedConstant;
+            if (integerMultiplyInst.getOperand1() instanceof ConstInt constInt) {
+                variable = (IntRegister) getValueToRegister(integerMultiplyInst.getOperand2());
+                multipliedConstant = constInt.getValue();
+            } else {
+                variable = (IntRegister) getValueToRegister(integerMultiplyInst.getOperand1());
+                multipliedConstant = ((ConstInt) integerMultiplyInst.getOperand2()).getValue();
+            }
+            var plan = ConstantMultiplyPlanner.makePlan(multipliedConstant);
+            if (plan instanceof ConstantMultiplyPlanner.NotReducible) {
+                var finalReg = function.getRegisterAllocator().allocateInt(integerMultiplyInst);
+                IntRegister immConstant = (IntRegister) getValueToRegister(ConstInt.getInstance(multipliedConstant));
+                function.appendInstruction(new AsmMul(finalReg, variable, immConstant, 32));
+            } else {
+                var planReg = translateConstantMultiplyPlan(variable, plan);
+                var finalReg = function.getRegisterAllocator().allocateInt(integerMultiplyInst);
+                function.appendInstruction(new AsmLoad(finalReg, planReg));
+            }
+        } else {
+            int bitLength = integerMultiplyInst.getType().getBitWidth();
+            var mulx = getOperandToIntRegister(getValue(integerMultiplyInst.getOperand1()));
+            var muly = getOperandToIntRegister(getValue(integerMultiplyInst.getOperand2()));
+            IntRegister register = function.getRegisterAllocator().allocateInt(integerMultiplyInst);
+            function.appendInstruction(new AsmMul(register, mulx, muly, bitLength));
         }
     }
 

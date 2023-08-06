@@ -1,32 +1,14 @@
-package cn.edu.bit.newnewcc.pass.ir;
-
-import cn.edu.bit.newnewcc.ir.Module;
-import cn.edu.bit.newnewcc.ir.Value;
-import cn.edu.bit.newnewcc.ir.exception.CompilationProcessCheckFailedException;
-import cn.edu.bit.newnewcc.ir.type.IntegerType;
-import cn.edu.bit.newnewcc.ir.value.BasicBlock;
-import cn.edu.bit.newnewcc.ir.value.Function;
-import cn.edu.bit.newnewcc.ir.value.Instruction;
-import cn.edu.bit.newnewcc.ir.value.constant.ConstInt;
-import cn.edu.bit.newnewcc.ir.value.instruction.IntegerAddInst;
-import cn.edu.bit.newnewcc.ir.value.instruction.IntegerMultiplyInst;
-import cn.edu.bit.newnewcc.ir.value.instruction.IntegerSubInst;
-import cn.edu.bit.newnewcc.ir.value.instruction.ShiftLeftInst;
-import org.antlr.v4.runtime.misc.Pair;
+package cn.edu.bit.newnewcc.backend.asm.util;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * 常数乘法强度削减
- */
-public class ConstIntMultiplyReducePass {
-
+public class ConstantMultiplyPlanner {
     /**
      * 构建乘法值的操作数
      */
-    private static abstract class Operand {
+    public static abstract class Operand {
         /**
          * 操作的等级，每进行一次算数运算加一级
          */
@@ -41,7 +23,7 @@ public class ConstIntMultiplyReducePass {
     /**
      * 常数
      */
-    private static class ConstantOperand extends Operand {
+    public static class ConstantOperand extends Operand {
         public final int value;
 
         public ConstantOperand(int value) {
@@ -54,7 +36,7 @@ public class ConstIntMultiplyReducePass {
     /**
      * 乘法的原始值
      */
-    private static class VariableOperand extends Operand {
+    public static class VariableOperand extends Operand {
         private VariableOperand() {
             super(0);
         }
@@ -70,7 +52,7 @@ public class ConstIntMultiplyReducePass {
     /**
      * 用于标记某个值不可削减
      */
-    private static class NotReducible extends Operand {
+    public static class NotReducible extends Operand {
         private NotReducible() {
             super(0x3fffffff); // 使用该值以避免两个值相加产生溢出
         }
@@ -86,7 +68,7 @@ public class ConstIntMultiplyReducePass {
     /**
      * 另一个操作作为操作数
      */
-    private static class Operation extends Operand {
+    public static class Operation extends Operand {
         public enum Type {
             ADD, SUB, SHL
         }
@@ -171,72 +153,8 @@ public class ConstIntMultiplyReducePass {
         isInitialized = true;
     }
 
-    private static Operand reduceValue(int multipliedConstant) {
+    public static Operand makePlan(int multipliedConstant) {
+        if (!isInitialized) initialize();
         return operandMap.getOrDefault(multipliedConstant, NotReducible.getInstance());
     }
-
-    private static Pair<Value, ArrayList<Instruction>> generateConstructInstructions(Value variable, Operand plan) {
-        ArrayList<Instruction> instructions = new ArrayList<>();
-        if (plan instanceof VariableOperand) {
-            return new Pair<>(variable, instructions);
-        } else if (plan instanceof ConstantOperand constantOperand) {
-            return new Pair<>(ConstInt.getInstance(constantOperand.value), instructions);
-        } else if (plan instanceof Operation operation) {
-            var pair1 = generateConstructInstructions(variable, operation.operand1);
-            var pair2 = generateConstructInstructions(variable, operation.operand2);
-            instructions.addAll(pair1.b);
-            instructions.addAll(pair2.b);
-            var finalInstruction = switch (operation.type) {
-                case ADD -> new IntegerAddInst(IntegerType.getI32(), pair1.a, pair2.a);
-                case SUB -> new IntegerSubInst(IntegerType.getI32(), pair1.a, pair2.a);
-                case SHL -> new ShiftLeftInst(IntegerType.getI32(), pair1.a, pair2.a);
-            };
-            instructions.add(finalInstruction);
-            return new Pair<>(finalInstruction, instructions);
-        } else {
-            throw new CompilationProcessCheckFailedException("Unknown type of operand: " + plan.getClass());
-        }
-    }
-
-    public static boolean runOnInstruction(Instruction instruction) {
-        if (!(instruction instanceof IntegerMultiplyInst integerMultiplyInst
-                && integerMultiplyInst.getOperand2() instanceof ConstInt multipliedConstant)) return false;
-        if (!isInitialized) initialize();
-        Operand plan = reduceValue(multipliedConstant.getValue());
-        if (plan instanceof NotReducible) return false;
-        var pair = generateConstructInstructions(integerMultiplyInst.getOperand1(), plan);
-        var finalValue = pair.a;
-        var instructionList = pair.b;
-        for (Instruction constructingInstruction : instructionList) {
-            constructingInstruction.insertBefore(integerMultiplyInst);
-        }
-        integerMultiplyInst.replaceAllUsageTo(finalValue);
-        integerMultiplyInst.waste();
-        return true;
-    }
-
-    public static boolean runOnBasicBlock(BasicBlock basicBlock) {
-        boolean changed = false;
-        for (Instruction instruction : basicBlock.getInstructions()) {
-            changed |= runOnInstruction(instruction);
-        }
-        return changed;
-    }
-
-    public static boolean runOnFunction(Function function) {
-        boolean changed = false;
-        for (BasicBlock basicBlock : function.getBasicBlocks()) {
-            changed |= runOnBasicBlock(basicBlock);
-        }
-        return changed;
-    }
-
-    public static boolean runOnModule(Module module) {
-        boolean changed = false;
-        for (Function function : module.getFunctions()) {
-            changed |= runOnFunction(function);
-        }
-        return changed;
-    }
-
 }
