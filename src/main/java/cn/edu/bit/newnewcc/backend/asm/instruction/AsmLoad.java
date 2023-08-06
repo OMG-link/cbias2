@@ -2,15 +2,6 @@ package cn.edu.bit.newnewcc.backend.asm.instruction;
 
 import cn.edu.bit.newnewcc.backend.asm.operand.*;
 
-/**
- * 汇编部分中的load指令，在本语言中分为
- * <ul>
- *     <li>ld 双字加载，仅当加载64位的栈变量时使用</li>
- *     <li>lw 字加载，在加载任何变量时使用，默认指令均为lw</li>
- *     <li>lui 高位立即数加载，仅当加载全局符号地址中的高位时使用</li>
- *     <li>li 立即数加载</li>
- * </ul>
- */
 public class AsmLoad extends AsmInstruction {
     public enum Opcode {
         LW("lw"),
@@ -100,7 +91,12 @@ public class AsmLoad extends AsmInstruction {
     }
 
     @Override
+    public String toString() {
+        return String.format("%s %s, %s", getOpcode().getName(), getOperand(1), getOperand(2));
+    }
+
+    @Override
     public String emit() {
-        return String.format("\t%s %s, %s\n", getOpcode().getName(), getOperand(1), getOperand(2));
+        return "\t" + this + "\n";
     }
 }

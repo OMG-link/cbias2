@@ -9,6 +9,11 @@ public class AsmBlockEnd extends AsmInstruction {
     }
 
     @Override
+    public String toString() {
+        return "";
+    }
+
+    @Override
     public String emit() {
         return "";
     }

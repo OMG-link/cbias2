@@ -23,7 +23,12 @@ public class AsmLabel extends AsmInstruction {
     }
 
     @Override
+    public String toString() {
+        return String.format("%s:", getLabel().getLabelName());
+    }
+
+    @Override
     public String emit() {
-        return String.format("%s:\n", getLabel().getLabelName());
+        return this + "\n";
     }
 }

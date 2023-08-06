@@ -45,7 +45,12 @@ public class AsmMul extends AsmInstruction {
     }
 
     @Override
+    public String toString() {
+        return String.format("%s %s, %s, %s", getOpcode().getName(), getOperand(1), getOperand(2), getOperand(3));
+    }
+
+    @Override
     public String emit() {
-        return String.format("\t%s %s, %s, %s\n", getOpcode().getName(), getOperand(1), getOperand(2), getOperand(3));
+        return "\t" + this + "\n";
     }
 }

@@ -57,7 +57,12 @@ public class AsmStore extends AsmInstruction {
     }
 
     @Override
+    public String toString() {
+        return String.format("%s %s, %s", getOpcode().getName(), getOperand(1), getOperand(2));
+    }
+
+    @Override
     public String emit() {
-        return String.format("\t%s %s, %s\n", getOpcode().getName(), getOperand(1), getOperand(2));
+        return "\t" + this + "\n";
     }
 }

@@ -43,11 +43,16 @@ public class AsmJump extends AsmInstruction {
     }
 
     @Override
-    public String emit() {
+    public String toString() {
         return switch (getOpcode()) {
-            case J -> String.format("\t%s %s\n", getOpcode().getName(), getOperand(1));
-            case BNEZ -> String.format("\t%s %s, %s\n", getOpcode().getName(), getOperand(1), getOperand(2));
+            case J -> String.format("%s %s", getOpcode().getName(), getOperand(1));
+            case BNEZ -> String.format("%s %s, %s", getOpcode().getName(), getOperand(1), getOperand(2));
         };
+    }
+
+    @Override
+    public String emit() {
+        return "\t" + this + "\n";
     }
 
     public static AsmJump createUnconditional(Label targetLabel) {

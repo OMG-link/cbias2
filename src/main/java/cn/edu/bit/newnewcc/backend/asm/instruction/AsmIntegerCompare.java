@@ -52,11 +52,16 @@ public class AsmIntegerCompare extends AsmInstruction {
     }
 
     @Override
-    public String emit() {
+    public String toString() {
         return switch (getOpcode()) {
-            case SEQZ, SNEZ -> String.format("\t%s %s, %s\n", getOpcode().getName(), getOperand(1), getOperand(2));
-            case SLT, SLTI -> String.format("\t%s %s, %s, %s\n", getOpcode().getName(), getOperand(1), getOperand(2), getOperand(3));
+            case SEQZ, SNEZ -> String.format("%s %s, %s", getOpcode().getName(), getOperand(1), getOperand(2));
+            case SLT, SLTI -> String.format("%s %s, %s, %s", getOpcode().getName(), getOperand(1), getOperand(2), getOperand(3));
         };
+    }
+
+    @Override
+    public String emit() {
+        return "\t" + this + "\n";
     }
 
     public static AsmIntegerCompare createLT(IntRegister dest, IntRegister source1, IntRegister source2) {

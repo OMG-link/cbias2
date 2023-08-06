@@ -36,10 +36,15 @@ public class AsmConvertFloatInt extends AsmInstruction {
     }
 
     @Override
-    public String emit() {
+    public String toString() {
         if (opcode == Opcode.FCVTWS)
-            return String.format("\t%s %s, %s, rtz\n", getOpcode().getName(), getOperand(1), getOperand(2));
+            return String.format("%s %s, %s, rtz", getOpcode().getName(), getOperand(1), getOperand(2));
         else
-            return String.format("\t%s %s, %s\n", getOpcode().getName(), getOperand(1), getOperand(2));
+            return String.format("%s %s, %s", getOpcode().getName(), getOperand(1), getOperand(2));
+    }
+
+    @Override
+    public String emit() {
+        return "\t" + this + "\n";
     }
 }
