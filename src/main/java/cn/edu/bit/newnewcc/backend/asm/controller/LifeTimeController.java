@@ -15,7 +15,7 @@ import java.util.*;
 public class LifeTimeController {
     //虚拟寄存器生命周期的设置过程
     private final Map<Integer, ComparablePair<LifeTimeIndex, LifeTimeIndex>> lifeTimeRange = new HashMap<>();
-    private final Map<Integer, List<ComparablePair<LifeTimeIndex, LifeTimeIndex>>> lifeTimeInterval = new HashMap<>();
+    private final Map<Integer, List<LifeTimeInterval>> lifeTimeInterval = new HashMap<>();
     private final Map<Integer, List<LifeTimePoint>> lifeTimePoints = new HashMap<>();
     private final Map<AsmInstruction, Integer> instIDMap = new HashMap<>();
 
@@ -122,17 +122,17 @@ public class LifeTimeController {
         lifeTimePoints.get(x).sort(Comparator.comparing(LifeTimePoint::getIndex));
         var points = lifeTimePoints.get(x);
         lifeTimeRange.put(x, new ComparablePair<>(points.get(0).getIndex(), points.get(points.size() - 1).getIndex()));
-        List<ComparablePair<LifeTimeIndex, LifeTimeIndex>> intervals = new ArrayList<>();
+        List<LifeTimeInterval> intervals = new ArrayList<>();
         for (var p : points) {
             if (p.isDef()) {
-                intervals.add(new ComparablePair<>(p.getIndex(), null));
+                intervals.add(new LifeTimeInterval(x, new ComparablePair<>(p.getIndex(), null)));
             }
-            intervals.get(intervals.size() - 1).b = p.getIndex();
+            intervals.get(intervals.size() - 1).range.b = p.getIndex();
         }
         lifeTimeInterval.put(x, intervals);
     }
 
-    public List<ComparablePair<LifeTimeIndex, LifeTimeIndex>> getInterval(int x) {
+    public List<LifeTimeInterval> getInterval(int x) {
         return lifeTimeInterval.get(x);
     }
 

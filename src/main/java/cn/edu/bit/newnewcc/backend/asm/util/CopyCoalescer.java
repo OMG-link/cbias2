@@ -34,12 +34,11 @@ public class CopyCoalescer {
         for (int x : lifeTimeController.getKeySet()) {
             intervalMap.put(x, new ArrayList<>());
             for (var i : lifeTimeController.getInterval(x)) {
-                LifeTimeInterval interval = new LifeTimeInterval(x, i);
-                intervals.add(interval);
-                intervalMap.get(x).add(interval);
+                intervals.add(i);
+                intervalMap.get(x).add(i);
             }
         }
-        intervals.sort(Comparator.comparing(a -> a.range));
+        Collections.sort(intervals);
     }
 
     private void getValues() {
