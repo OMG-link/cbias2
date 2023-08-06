@@ -5,27 +5,27 @@ import java.util.*;
 public abstract class Register extends AsmOperand implements RegisterReplaceable {
     //寄存器在调用过程中保留与否，保留的寄存器需要在函数头尾额外保存
     protected int index;
-    private final RTYPE rtype;
+    private final Type type;
 
-    public enum RTYPE {
+    public enum Type {
         INT, FLOAT
     }
 
     public boolean isInt() {
-        return rtype == RTYPE.INT;
+        return type == Type.INT;
     }
 
     public boolean isFloat() {
-        return rtype == RTYPE.FLOAT;
+        return type == Type.FLOAT;
     }
 
-    public RTYPE getType() {
-        return rtype;
+    public Type getType() {
+        return type;
     }
 
-    Register(int index, RTYPE type) {
+    Register(int index, Type type) {
         this.index = index;
-        this.rtype = type;
+        this.type = type;
     }
 
     public boolean isVirtual() {

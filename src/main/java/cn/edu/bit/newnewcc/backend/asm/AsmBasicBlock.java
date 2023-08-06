@@ -539,8 +539,13 @@ public class AsmBasicBlock {
                 } else {
                     register = function.getRegisterAllocator().allocateInt();
                 }
-                function.appendInstruction(new AsmLoad(register, source, bitLength));
-                function.appendInstruction(new AsmStore(register, address, bitLength));
+                if (source instanceof Address) {
+                    function.appendInstruction(new AsmLoad(register, (Address) source, bitLength));
+                    function.appendInstruction(new AsmStore(register, address, bitLength));
+                } else {
+                    function.appendInstruction(new AsmLoad(register, source));
+                    function.appendInstruction(new AsmStore(register, address));
+                }
             }
         }
     }
@@ -580,7 +585,7 @@ public class AsmBasicBlock {
     }
 
     void translateLoadInst(LoadInst loadInst) {
-        var address = getValue(loadInst.getAddressOperand());
+        Address address = (Address) getValue(loadInst.getAddressOperand());
         Register register = function.getRegisterAllocator().allocate(loadInst);
         Type type = loadInst.getType();
         if (type instanceof IntegerType integerType) {

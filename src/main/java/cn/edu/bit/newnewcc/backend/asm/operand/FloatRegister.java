@@ -9,7 +9,7 @@ public class FloatRegister extends Register {
      * 生成指定下标的浮点寄存器
      */
     private FloatRegister(int index) {
-        super(index, RTYPE.FLOAT);
+        super(index, Type.FLOAT);
     }
 
     static Map<Integer, FloatRegister> physicalRegisters = new HashMap<>();

@@ -14,7 +14,7 @@ public class IntRegister extends Register {
      * @param index 下标，下标为负数时代表其为暂时未分配的普通临时寄存器，等待分配过程
      */
     private IntRegister(int index) {
-        super(index, RTYPE.INT);
+        super(index, Type.INT);
     }
 
     final static Map<Integer, IntRegister> physicalRegisters = new HashMap<>();

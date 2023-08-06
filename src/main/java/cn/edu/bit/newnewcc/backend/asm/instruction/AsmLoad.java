@@ -12,49 +12,87 @@ import cn.edu.bit.newnewcc.backend.asm.operand.*;
  * </ul>
  */
 public class AsmLoad extends AsmInstruction {
-    /**
-     * 创建一个汇编加载指令，将source中的内容加载到寄存器dest中
-     * 注意，load一个地址的时候默认是将地址中的内容读出（一个字节），而非将地址的值读入
-     *
-     * @param dest   目标寄存器
-     * @param source 加载内容源
-     */
+    public enum Opcode {
+        LW("lw"),
+        LD("ld"),
+        LUI("lui"),
+        LI("li"),
+        LA("la"),
+        MV("mv"),
+        FLWS("flw"),
+        FMV("fmv.s");
+
+        private final String name;
+
+        Opcode(String name) {
+            this.name = name;
+        }
+
+        public String getName() {
+            return name;
+        }
+    }
+
+    private final Opcode opcode;
+
     public AsmLoad(Register dest, AsmOperand source) {
-        super("lw", dest, source, null);
+        super(dest, source, null);
+
         if (dest.isInt()) {
-            if (source instanceof Immediate) {
-                setInstructionName("li");
-            } else if (source instanceof StackVar) {
-                StackVar stackVar = (StackVar) source;
-                if (stackVar.getSize() == 8) {
-                    setInstructionName("ld");
-                } else if (stackVar.getSize() == 4) {
-                    setInstructionName("lw");
-                }
+            if (source instanceof StackVar stackVar) {
+                if (stackVar.getSize() == 8) opcode = Opcode.LD;
+                else if (stackVar.getSize() == 4) opcode = Opcode.LW;
+                else throw new IllegalArgumentException();
+            } else if (source instanceof Immediate) {
+                opcode = Opcode.LI;
             } else if (source instanceof Label label) {
                 if (label.isHighSegment()) {
-                    setInstructionName("lui");
+                    opcode = Opcode.LUI;
                 } else if (label.isLowSegment()) {
-                    setInstructionName("li");
+                    opcode = Opcode.LI;
                 } else {
-                    setInstructionName("la");
+                    opcode = Opcode.LA;
                 }
-            } else if (source instanceof Register && ((Register) source).isInt()) {
-                setInstructionName("mv");
-            } else if (source instanceof AddressDirective) {
-                throw new RuntimeException("cannot load address to register by one instruction");
+            } else if (source instanceof Register register) {
+                if (register.isInt()) {
+                    opcode = Opcode.MV;
+                } else {
+                    throw new IllegalArgumentException();
+                }
+            } else {
+                throw new IllegalArgumentException();
             }
         } else {
-            setInstructionName("flw");
-            if (source instanceof Register && ((Register) source).isFloat()) {
-                setInstructionName("fmv.s");
+            if (source instanceof Register register) {
+                if (register.isFloat()) {
+                    opcode = Opcode.FMV;
+                } else {
+                    throw new IllegalArgumentException();
+                }
+            } else if (source instanceof Address || source instanceof StackVar) {
+                opcode = Opcode.FLWS;
+            } else {
+                throw new IllegalArgumentException();
             }
         }
     }
-    public AsmLoad(Register dest, AsmOperand source, int bitLength) {
-        this(dest, source);
-        if (bitLength == 64 && getInstructionName().equals("lw")) {
-            setInstructionName("ld");
-        }
+
+    public AsmLoad(Register dest, Address source, int bitLength) {
+        super(dest, source, null);
+
+        if (bitLength != 32 && bitLength != 64)
+            throw new IllegalArgumentException();
+
+        if (bitLength == 64) opcode = Opcode.LD;
+        else opcode = Opcode.LW;
+    }
+
+    public Opcode getOpcode() {
+        return opcode;
+    }
+
+    @Override
+    public String emit() {
+        return String.format("\t%s %s, %s\n", getOpcode().getName(), getOperand(1), getOperand(2));
     }
 }
