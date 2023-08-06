@@ -6,6 +6,6 @@ import java.util.List;
 
 public class OptimizerManager {
     public void runOn(List<AsmInstruction> instrList) {
-        System.out.println(new LI0ToX0().runOn(instrList));
+        new LI0ToX0().runOn(instrList);
     }
 }
