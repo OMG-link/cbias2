@@ -13,12 +13,12 @@ public class AsmCall extends AsmInstruction {
 
     @Override
     public String toString() {
-        return String.format("call %s", getOperand(1));
+        return String.format("AsmCall(%s)", getOperand(1));
     }
 
     @Override
     public String emit() {
-        return "\t" + this + "\n";
+        return String.format("\tcall %s\n", getOperand(1).emit());
     }
 
     @Override

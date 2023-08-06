@@ -14,7 +14,7 @@ public class AsmBlockEnd extends AsmInstruction {
 
     @Override
     public String toString() {
-        return "";
+        return "AsmBlockEnd()";
     }
 
     @Override

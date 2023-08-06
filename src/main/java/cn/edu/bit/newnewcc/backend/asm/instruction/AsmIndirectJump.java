@@ -12,12 +12,12 @@ public class AsmIndirectJump extends AsmInstruction {
 
     @Override
     public String toString() {
-        return String.format("jr %s", getOperand(1));
+        return String.format("AsmIndirectJump(%s)", getOperand(1));
     }
 
     @Override
     public String emit() {
-        return "\t" + this + "\n";
+        return String.format("\tjr %s\n", getOperand(1).emit());
     }
 
     @Override

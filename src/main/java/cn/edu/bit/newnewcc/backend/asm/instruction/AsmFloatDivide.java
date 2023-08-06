@@ -12,12 +12,12 @@ public class AsmFloatDivide extends AsmInstruction {
 
     @Override
     public String toString() {
-        return String.format("fdiv.s %s, %s, %s", getOperand(1), getOperand(2), getOperand(3));
+        return String.format("AsmFloatDivide(%s, %s, %s)", getOperand(1), getOperand(2), getOperand(3));
     }
 
     @Override
     public String emit() {
-        return "\t" + this + "\n";
+        return String.format("\tfdiv.s %s, %s, %s\n", getOperand(1).emit(), getOperand(2).emit(), getOperand(3).emit());
     }
 
     @Override

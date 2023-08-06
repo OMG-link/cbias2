@@ -54,12 +54,12 @@ public class AsmShiftRightArithmetic extends AsmInstruction {
 
     @Override
     public String toString() {
-        return String.format("%s %s, %s, %s", getOpcode().getName(), getOperand(1), getOperand(2), getOperand(3));
+        return String.format("AsmShiftRightArithmetic(%s, %s, %s, %s)", getOpcode().getName(), getOperand(1), getOperand(2), getOperand(3));
     }
 
     @Override
     public String emit() {
-        return "\t" + this + "\n";
+        return String.format("\t%s %s, %s, %s\n", getOpcode().getName(), getOperand(1), getOperand(2), getOperand(3));
     }
 
     @Override

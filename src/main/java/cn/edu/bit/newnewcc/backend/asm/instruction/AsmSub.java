@@ -44,12 +44,12 @@ public class AsmSub extends AsmInstruction {
 
     @Override
     public String toString() {
-        return String.format("%s %s, %s, %s", opcode.getName(), getOperand(1), getOperand(2), getOperand(3));
+        return String.format("AsmSub(%s, %s, %s, %s)", opcode.getName(), getOperand(1), getOperand(2), getOperand(3));
     }
 
     @Override
     public String emit() {
-        return "\t" + this + "\n";
+        return String.format("\t%s %s, %s, %s\n", opcode.getName(), getOperand(1).emit(), getOperand(2).emit(), getOperand(3).emit());
     }
 
     @Override

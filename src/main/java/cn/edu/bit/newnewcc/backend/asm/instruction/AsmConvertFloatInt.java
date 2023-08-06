@@ -40,15 +40,15 @@ public class AsmConvertFloatInt extends AsmInstruction {
 
     @Override
     public String toString() {
-        return switch (getOpcode()) {
-            case FCVTWS -> String.format("%s %s, %s, rtz", getOpcode().getName(), getOperand(1), getOperand(2));
-            case FCVTSW -> String.format("%s %s, %s", getOpcode().getName(), getOperand(1), getOperand(2));
-        };
+        return String.format("AsmConvertFloatInt(%s, %s, %s)", getOpcode().getName(), getOperand(1), getOperand(2));
     }
 
     @Override
     public String emit() {
-        return "\t" + this + "\n";
+        return switch (getOpcode()) {
+            case FCVTWS -> String.format("\t%s %s, %s, rtz\n", getOpcode().getName(), getOperand(1).emit(), getOperand(2).emit());
+            case FCVTSW -> String.format("\t%s %s, %s\n", getOpcode().getName(), getOperand(1).emit(), getOperand(2).emit());
+        };
     }
 
     @Override
