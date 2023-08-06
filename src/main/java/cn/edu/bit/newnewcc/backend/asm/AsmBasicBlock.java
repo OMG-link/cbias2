@@ -4,7 +4,6 @@ import cn.edu.bit.newnewcc.backend.asm.instruction.*;
 import cn.edu.bit.newnewcc.backend.asm.operand.*;
 import cn.edu.bit.newnewcc.backend.asm.util.ConstArrayUtil;
 import cn.edu.bit.newnewcc.backend.asm.util.ConstantMultiplyPlanner;
-import cn.edu.bit.newnewcc.backend.asm.operand.Immediates;
 import cn.edu.bit.newnewcc.backend.asm.util.Misc;
 import cn.edu.bit.newnewcc.ir.Type;
 import cn.edu.bit.newnewcc.ir.Value;
@@ -339,7 +338,7 @@ public class AsmBasicBlock {
             var finalRegister = function.getRegisterAllocator().allocateInt();
             var asmInstruction = switch (operation.type) {
                 case ADD -> new AsmAdd(finalRegister, reg1, operand2, 32);
-                case SUB -> new AsmSub(finalRegister, reg1, operand2, 32);
+                case SUB -> new AsmSub(finalRegister, reg1, (IntRegister) operand2, 32);
                 case SHL -> new AsmShiftLeft(finalRegister, reg1, operand2, 32);
             };
             function.appendInstruction(asmInstruction);
