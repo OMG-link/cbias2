@@ -220,4 +220,16 @@ public class LifeTimeController {
         iterateActiveReg();
         buildLifeTimeMessage(instructionList);
     }
+
+    /**
+     * 在寄存器引用点信息保持维护的情况下重新构建每个寄存器的生存区间集合，用于指令删除后重新构建
+     * 也可在维护好添加的指令中变量引用点的情况下进行维护
+     * @param instructionList 新指令列表
+     */
+    public void rebuildLifeTimeInterval(List<AsmInstruction> instructionList) {
+        buildInstID(instructionList);
+        for (var x : getKeySet()) {
+            constructInterval(x);
+        }
+    }
 }

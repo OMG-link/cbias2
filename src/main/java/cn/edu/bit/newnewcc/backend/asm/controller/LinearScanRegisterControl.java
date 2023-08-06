@@ -60,7 +60,6 @@ public class LinearScanRegisterControl extends RegisterControl{
     /**
      * 进行两次线性扫描，第一次分配寄存器并进行spill操作，第二次为spill操作后的寄存器分配栈空间
      */
-    @Override
     public void virtualRegAllocateToPhysics() {
         List<Register> vRegList = new ArrayList<>();
         List<Pair<Integer, Integer>> recycleList = new ArrayList<>();
@@ -139,7 +138,6 @@ public class LinearScanRegisterControl extends RegisterControl{
         return null;
     }
 
-    @Override
     public List<AsmInstruction> spillRegisters(List<AsmInstruction> instructionList) {
         registerPool.replaceAll((r, v) -> 0);
         List<AsmInstruction> newInstList = new ArrayList<>();
@@ -230,5 +228,11 @@ public class LinearScanRegisterControl extends RegisterControl{
         } else if (container instanceof StackVar stackVar) {
             stackPool.push(stackVar);
         }
+    }
+
+    @Override
+    public List<AsmInstruction> work(List<AsmInstruction> instructionList) {
+        virtualRegAllocateToPhysics();
+        return spillRegisters(instructionList);
     }
 }

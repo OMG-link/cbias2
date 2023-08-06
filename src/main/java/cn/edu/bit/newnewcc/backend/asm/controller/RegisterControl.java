@@ -75,6 +75,5 @@ public abstract class RegisterControl {
         instList.add(new AsmStore(register, stackVar));
     }
 
-    public abstract void virtualRegAllocateToPhysics();
-    public abstract List<AsmInstruction> spillRegisters(List<AsmInstruction> instructionList);
+    public abstract List<AsmInstruction> work(List<AsmInstruction> instructionList);
 }

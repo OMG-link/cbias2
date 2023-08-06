@@ -328,8 +328,7 @@ public class AsmFunction {
 
     private void reAllocateRegister() {
         RegisterControl registerController = new LinearScanRegisterControl(this, stackAllocator);
-        registerController.virtualRegAllocateToPhysics();
-        var newInstructionList = registerController.spillRegisters(instrList);
+        var newInstructionList = registerController.work(instrList);
 
         for (var inst : newInstructionList) {
             for (int j = 1; j <= 3; j++) {
