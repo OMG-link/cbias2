@@ -27,7 +27,7 @@ public abstract class Register extends AsmOperand implements RegisterReplaceable
     }
 
     public boolean isVirtual() {
-        return index < 0;
+        return getIndex() < 0;
     }
 
     /**

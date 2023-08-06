@@ -94,12 +94,12 @@ public class AsmLoad extends AsmInstruction {
 
     @Override
     public String toString() {
-        return String.format("%s %s, %s", getOpcode().getName(), getOperand(1), getOperand(2));
+        return String.format("AsmLoad(%s, %s, %s)", getOpcode().getName(), getOperand(1), getOperand(2));
     }
 
     @Override
     public String emit() {
-        return "\t" + this + "\n";
+        return String.format("\t%s %s, %s\n", getOpcode().getName(), getOperand(1).emit(), getOperand(2).emit());
     }
 
     @Override

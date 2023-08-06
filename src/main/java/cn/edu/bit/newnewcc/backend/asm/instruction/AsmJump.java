@@ -71,17 +71,24 @@ public class AsmJump extends AsmInstruction {
     public String toString() {
         return switch (getOpcode()) {
             case J ->
-                String.format("%s %s", getOpcode().getName(), getOperand(1));
+                String.format("AsmJump(%s, %s)", getOpcode().getName(), getOperand(1));
             case BLTZ, BGTZ, BLEZ, BGEZ, BEQZ, BNEZ ->
-                String.format("%s %s, %s", getOpcode().getName(), getOperand(1), getOperand(2));
+                String.format("AsmJump(%s, %s, %s)", getOpcode().getName(), getOperand(1), getOperand(2));
             case BLT, BGT, BLE, BGE, BEQ, BNE ->
-                String.format("%s %s, %s, %s", getOpcode().getName(), getOperand(1), getOperand(2), getOperand(3));
+                String.format("AsmJump(%s, %s, %s, %s)", getOpcode().getName(), getOperand(1), getOperand(2), getOperand(3));
         };
     }
 
     @Override
     public String emit() {
-        return "\t" + this + "\n";
+        return switch (getOpcode()) {
+            case J ->
+                String.format("\t%s %s\n", getOpcode().getName(), getOperand(1).emit());
+            case BLTZ, BGTZ, BLEZ, BGEZ, BEQZ, BNEZ ->
+                String.format("\t%s %s, %s\n", getOpcode().getName(), getOperand(1).emit(), getOperand(2).emit());
+            case BLT, BGT, BLE, BGE, BEQ, BNE ->
+                String.format("\t%s %s, %s, %s\n", getOpcode().getName(), getOperand(1).emit(), getOperand(2).emit(), getOperand(3).emit());
+        };
     }
 
     @Override

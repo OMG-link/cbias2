@@ -12,12 +12,12 @@ public class AsmFloatNegate extends AsmInstruction {
 
     @Override
     public String toString() {
-        return String.format("fneg.s %s, %s", getOperand(1), getOperand(2));
+        return String.format("AsmFloatNegate(%s, %s)", getOperand(1), getOperand(2));
     }
 
     @Override
     public String emit() {
-        return "\t" + this + "\n";
+        return String.format("\tfneg.s %s, %s\n", getOperand(1).emit(), getOperand(2).emit());
     }
 
     @Override

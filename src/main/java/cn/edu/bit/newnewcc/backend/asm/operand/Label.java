@@ -71,6 +71,11 @@ public class Label extends AsmOperand {
     }
 
     @Override
+    public String toString() {
+        return String.format("Label(%s)", getLabelName());
+    }
+
+    @Override
     public String emit() {
         if (baseAddress == null) {
             return getOffset();
