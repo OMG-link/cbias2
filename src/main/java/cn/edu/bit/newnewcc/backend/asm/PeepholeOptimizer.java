@@ -161,7 +161,7 @@ public class PeepholeOptimizer {
     }
 
     public static void runBeforeAllocation(List<AsmInstruction> instrList) {
-        lI0ToX0(instrList);
+//        lI0ToX0(instrList);
     }
 
     public static void runAfterAllocation(List<AsmInstruction> instrList) {
