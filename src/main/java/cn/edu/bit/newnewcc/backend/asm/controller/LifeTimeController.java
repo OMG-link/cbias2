@@ -126,6 +126,10 @@ public class LifeTimeController {
                 return true;
             }
             var reg = function.getRegisterAllocator().get(x);
+            var instr = point.getIndex().getSourceInst();
+            if (instr instanceof AsmLabel || instr instanceof AsmBlockEnd) {
+                return false;
+            }
             return AsmInstructions.getRegIndexInInst(point.getIndex().getSourceInst(), reg) == -1;
         });
         if (lifeTimePoints.get(x).isEmpty()) {
