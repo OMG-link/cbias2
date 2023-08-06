@@ -12,8 +12,6 @@ import java.util.List;
 import java.util.Set;
 
 public class LI0ToX0 implements Optimizer {
-    private static final Register X0 = IntRegister.getPhysical(0);
-
     private boolean isLI0(AsmInstruction instr) {
         return instr instanceof AsmLoad && ((AsmLoad) instr).getOpcode() == AsmLoad.Opcode.LI && ((Immediate) instr.getOperand(2)).getValue() == 0;
     }
@@ -33,7 +31,7 @@ public class LI0ToX0 implements Optimizer {
             } else {
                 for (int i : instr.getUse()) {
                     if (zeroRegs.contains((Register) instr.getOperand(i))) {
-                        instr.replaceOperand(i, X0);
+                        instr.replaceOperand(i, IntRegister.ZERO);
                         madeChange = true;
                     }
                 }
