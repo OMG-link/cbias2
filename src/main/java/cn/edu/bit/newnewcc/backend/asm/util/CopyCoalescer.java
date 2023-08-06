@@ -1,7 +1,7 @@
 package cn.edu.bit.newnewcc.backend.asm.util;
 
 import cn.edu.bit.newnewcc.backend.asm.controller.LifeTimeController;
-import cn.edu.bit.newnewcc.backend.asm.controller.LifeTimeIndex;
+import cn.edu.bit.newnewcc.backend.asm.controller.LifeTimeInterval;
 import cn.edu.bit.newnewcc.backend.asm.instruction.AsmInstruction;
 import cn.edu.bit.newnewcc.backend.asm.instruction.AsmInstructions;
 import cn.edu.bit.newnewcc.backend.asm.operand.Register;
@@ -12,19 +12,6 @@ import java.util.*;
 public class CopyCoalescer {
     private final ArrayList<AsmInstruction> instructions;
     private final LifeTimeController lifeTimeController;
-    private static class LifeTimeInterval {
-        ComparablePair<LifeTimeIndex, LifeTimeIndex> range;
-        int vRegID;
-        public LifeTimeInterval(int vRegID, ComparablePair<LifeTimeIndex, LifeTimeIndex> range) {
-            this.vRegID = vRegID;
-            this.range = range;
-        }
-
-        @Override
-        public String toString() {
-            return vRegID + ":" + range.toString();
-        }
-    }
     private final Map<LifeTimeInterval, LifeTimeInterval> value = new HashMap<>();
     private final Map<Integer, List<LifeTimeInterval>> intervalMap = new HashMap<>();
     private final DSU<Integer> dsu = new DSU<>();
