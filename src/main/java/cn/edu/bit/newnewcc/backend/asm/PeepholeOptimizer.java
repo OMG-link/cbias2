@@ -106,6 +106,8 @@ public class PeepholeOptimizer {
             } else {
                 return Set.of(2);
             }
+        } else if (instr instanceof AsmBlockEnd) {
+            return Set.of();
         } else {
             return Set.of(2, 3);
         }
@@ -126,6 +128,8 @@ public class PeepholeOptimizer {
             }
         } else if (instr instanceof AsmCall) {
             return CALLER_SAVED_REGISTERS;
+        } else if (instr instanceof AsmBlockEnd) {
+            return Set.of();
         } else {
             return Set.of((Register) instr.getOperand(1));
         }

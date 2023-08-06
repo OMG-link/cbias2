@@ -18,7 +18,7 @@ public class RegisterAllocator {
     private final Map<Integer, Register> vregMap = new HashMap<>();
     int total;
     public RegisterAllocator() {
-        total = 0;
+        total = 8;
     }
     public IntRegister allocateInt() {
         var reg = intRegisterAllocator.allocate(++total);
