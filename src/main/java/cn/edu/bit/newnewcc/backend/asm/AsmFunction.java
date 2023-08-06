@@ -141,11 +141,13 @@ public class AsmFunction {
                     }
                 }
             }
+
             lifeTimeController.getAllVRegLifeTime(instrList);
-            asmOptimizerBeforeRegisterAllocate(lifeTimeController);
 
             new OptimizerManager().runOn(instrList);
+            lifeTimeController.rebuildLifeTimeInterval(instrList);
 
+            asmOptimizerBeforeRegisterAllocate(lifeTimeController);
             reAllocateRegister();
             asmOptimizerAfterRegisterAllocate();
         }
