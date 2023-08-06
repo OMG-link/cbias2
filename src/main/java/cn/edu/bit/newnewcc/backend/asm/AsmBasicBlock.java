@@ -51,6 +51,7 @@ public class AsmBasicBlock {
         for (Instruction instruction : irBlock.getInstructions()) {
             translate(instruction);
         }
+        function.appendInstruction(new AsmBlockEnd());
     }
 
     /**
