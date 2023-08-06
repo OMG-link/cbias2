@@ -5,6 +5,11 @@ package cn.edu.bit.newnewcc.backend.asm.instruction;
  */
 public class AsmBlockEnd extends AsmInstruction {
     public AsmBlockEnd() {
-        super("", null, null, null);
+        super(null, null, null);
+    }
+
+    @Override
+    public String emit() {
+        return "";
     }
 }
