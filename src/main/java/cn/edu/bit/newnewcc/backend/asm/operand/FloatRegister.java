@@ -31,9 +31,9 @@ public class FloatRegister extends Register {
 
     public String emit() {
         if (getIndex() >= 0) {
-            return "f" + getIndex();
+            return "f" + getAbsoluteIndex();
         } else {
-            return "VRegFloat" + (-getIndex());
+            return "vf" + (-getAbsoluteIndex());
         }
     }
 }

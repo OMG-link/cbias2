@@ -89,7 +89,7 @@ public class AsmInstructions {
         Set<Integer> result = new HashSet<>();
         for (int i : getWriteVRegId(instr)) {
             RegisterReplaceable op = (RegisterReplaceable) instr.getOperand(i);
-            result.add(op.getRegister().getIndex());
+            result.add(op.getRegister().getAbsoluteIndex());
         }
         return Collections.unmodifiableSet(result);
     }
@@ -107,7 +107,7 @@ public class AsmInstructions {
         Set<Integer> result = new HashSet<>();
         for (int i : getReadVRegId(instr)) {
             RegisterReplaceable op = (RegisterReplaceable) instr.getOperand(i);
-            result.add(op.getRegister().getIndex());
+            result.add(op.getRegister().getAbsoluteIndex());
         }
         return Collections.unmodifiableSet(result);
     }

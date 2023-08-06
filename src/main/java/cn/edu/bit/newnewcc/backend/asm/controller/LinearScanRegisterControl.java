@@ -29,11 +29,11 @@ public class LinearScanRegisterControl extends RegisterControl{
     }
 
     private void allocateVReg(Register vReg) {
-        var index = vReg.getIndex();
+        var index = vReg.getAbsoluteIndex();
         for (var reg : registerPool.keySet()) {
             if (reg.getType() == vReg.getType() && registerPool.get(reg) == 0) {
-                registerPool.put(reg, vReg.getIndex());
-                vRegLocation.put(vReg.getIndex(), reg);
+                registerPool.put(reg, vReg.getAbsoluteIndex());
+                vRegLocation.put(vReg.getAbsoluteIndex(), reg);
                 updateRegisterPreserve(reg);
                 return;
             }
@@ -69,8 +69,8 @@ public class LinearScanRegisterControl extends RegisterControl{
             recycleList.add(new Pair<>(index, function.getLifeTimeController().getLifeTimeRange(index).b.getInstID()));
         }
         vRegList.sort((a, b) -> {
-            var lifeTimeA = function.getLifeTimeController().getLifeTimeRange(a.getIndex());
-            var lifeTimeB = function.getLifeTimeController().getLifeTimeRange(b.getIndex());
+            var lifeTimeA = function.getLifeTimeController().getLifeTimeRange(a.getAbsoluteIndex());
+            var lifeTimeB = function.getLifeTimeController().getLifeTimeRange(b.getAbsoluteIndex());
             return lifeTimeA.compareTo(lifeTimeB);
         });
         recycleList.sort(Comparator.comparingInt(a -> a.b));
@@ -78,7 +78,7 @@ public class LinearScanRegisterControl extends RegisterControl{
         //第一次扫描，分配寄存器本身
         int recycleHead = 0;
         for (var vReg : vRegList) {
-            var lifeTime = function.getLifeTimeController().getLifeTimeRange(vReg.getIndex());
+            var lifeTime = function.getLifeTimeController().getLifeTimeRange(vReg.getAbsoluteIndex());
             while (recycleHead < recycleList.size() && recycleList.get(recycleHead).b <= lifeTime.a.getInstID()) {
                 recycle(recycleList.get(recycleHead).a);
                 recycleHead += 1;
@@ -89,15 +89,15 @@ public class LinearScanRegisterControl extends RegisterControl{
         //第二次扫描，分配被spill的寄存器的栈空间
         recycleHead = 0;
         for (var vReg : vRegList) {
-            if (vRegLocation.containsKey(vReg.getIndex())) {
+            if (vRegLocation.containsKey(vReg.getAbsoluteIndex())) {
                 continue;
             }
-            var lifeTime = function.getLifeTimeController().getLifeTimeRange(vReg.getIndex());
+            var lifeTime = function.getLifeTimeController().getLifeTimeRange(vReg.getAbsoluteIndex());
             while (recycleHead < recycleList.size() && recycleList.get(recycleHead).b <= lifeTime.a.getInstID()) {
                 recycle(recycleList.get(recycleHead).a);
                 recycleHead += 1;
             }
-            vRegLocation.put(vReg.getIndex(), stackPool.pop());
+            vRegLocation.put(vReg.getAbsoluteIndex(), stackPool.pop());
         }
         stackPool.clear();
     }
@@ -108,7 +108,7 @@ public class LinearScanRegisterControl extends RegisterControl{
             if (inst.getOperand(j) instanceof RegisterReplaceable registerReplaceable) {
                 Register vReg = registerReplaceable.getRegister();
                 if (vReg.isVirtual()) {
-                    if (vRegLocation.get(vReg.getIndex()) instanceof Register register) {
+                    if (vRegLocation.get(vReg.getAbsoluteIndex()) instanceof Register register) {
                         used.put(vReg, register);
                     }
                 }
@@ -177,7 +177,7 @@ public class LinearScanRegisterControl extends RegisterControl{
                 RegisterReplaceable registerReplaceable = (RegisterReplaceable) inst.getOperand(j);
                 var vReg = registerReplaceable.getRegister();
                 Register physicRegister = getExRegister(used, vReg, registerSaveMap, newInstList);
-                if (vRegLocation.get(vReg.getIndex()) instanceof StackVar stackVar) {
+                if (vRegLocation.get(vReg.getAbsoluteIndex()) instanceof StackVar stackVar) {
                     if (writeId.contains(j)) {
                         writeReg = physicRegister;
                         writeStack = stackVar;

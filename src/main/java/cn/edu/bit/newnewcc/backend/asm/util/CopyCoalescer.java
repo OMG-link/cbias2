@@ -135,7 +135,7 @@ public class CopyCoalescer {
         for (var inst : instructions) {
             for (int i : AsmInstructions.getVRegId(inst)) {
                 Register reg = ((RegisterReplaceable) inst.getOperand(i)).getRegister();
-                reg.setIndex(-trueValue.get(reg.getIndex()));
+                reg.setIndex(-trueValue.get(reg.getAbsoluteIndex()));
             }
         }
     }

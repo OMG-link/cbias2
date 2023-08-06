@@ -33,9 +33,11 @@ public abstract class Register extends AsmOperand implements RegisterReplaceable
     /**
      * 获取寄存器下标的**绝对值**
      */
-    public int getIndex() {
+    public int getAbsoluteIndex() {
         return Math.abs(index);
     }
+
+    public int getIndex() { return index; }
 
     /**
      * 仅在虚拟寄存器复制合并时使用！！！

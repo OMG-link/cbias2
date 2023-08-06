@@ -40,10 +40,10 @@ public class IntRegister extends Register {
     }
 
     public String emit() {
-        if (getIndex() >= 0) {
-            return "x" + getIndex();
+        if (isVirtual()) {
+            return "vx" + getAbsoluteIndex();
         } else {
-            return "VRegInt" + (-getIndex());
+            return "x" + (getAbsoluteIndex());
         }
     }
 }
