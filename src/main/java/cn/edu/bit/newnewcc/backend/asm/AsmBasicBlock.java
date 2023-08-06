@@ -3,6 +3,7 @@ package cn.edu.bit.newnewcc.backend.asm;
 import cn.edu.bit.newnewcc.backend.asm.instruction.*;
 import cn.edu.bit.newnewcc.backend.asm.operand.*;
 import cn.edu.bit.newnewcc.backend.asm.util.ConstantMultiplyPlanner;
+import cn.edu.bit.newnewcc.backend.asm.util.Immediates;
 import cn.edu.bit.newnewcc.backend.asm.util.Utility;
 import cn.edu.bit.newnewcc.ir.Type;
 import cn.edu.bit.newnewcc.ir.Value;

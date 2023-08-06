@@ -4,7 +4,7 @@ import cn.edu.bit.newnewcc.backend.asm.instruction.*;
 import cn.edu.bit.newnewcc.backend.asm.operand.Immediate;
 import cn.edu.bit.newnewcc.backend.asm.operand.IntRegister;
 import cn.edu.bit.newnewcc.backend.asm.operand.StackVar;
-import cn.edu.bit.newnewcc.backend.asm.operand.Immediates;
+import cn.edu.bit.newnewcc.backend.asm.util.Immediates;
 import cn.edu.bit.newnewcc.ir.value.Instruction;
 
 import java.util.*;

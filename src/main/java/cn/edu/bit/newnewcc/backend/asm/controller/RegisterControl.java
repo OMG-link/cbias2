@@ -7,7 +7,8 @@ import cn.edu.bit.newnewcc.backend.asm.instruction.AsmInstruction;
 import cn.edu.bit.newnewcc.backend.asm.instruction.AsmLoad;
 import cn.edu.bit.newnewcc.backend.asm.instruction.AsmStore;
 import cn.edu.bit.newnewcc.backend.asm.operand.*;
-import cn.edu.bit.newnewcc.backend.asm.operand.Immediates;
+import cn.edu.bit.newnewcc.backend.asm.util.Immediates;
+import cn.edu.bit.newnewcc.backend.asm.util.Registers;
 
 import java.util.*;
 

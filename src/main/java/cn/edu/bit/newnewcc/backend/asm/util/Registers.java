@@ -1,4 +1,8 @@
-package cn.edu.bit.newnewcc.backend.asm.operand;
+package cn.edu.bit.newnewcc.backend.asm.util;
+
+import cn.edu.bit.newnewcc.backend.asm.operand.FloatRegister;
+import cn.edu.bit.newnewcc.backend.asm.operand.IntRegister;
+import cn.edu.bit.newnewcc.backend.asm.operand.Register;
 
 import java.util.Collections;
 import java.util.HashSet;

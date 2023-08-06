@@ -1,8 +1,11 @@
-package cn.edu.bit.newnewcc.backend.asm.instruction;
+package cn.edu.bit.newnewcc.backend.asm.util;
 
+import cn.edu.bit.newnewcc.backend.asm.instruction.AsmInstruction;
+import cn.edu.bit.newnewcc.backend.asm.instruction.AsmJump;
+import cn.edu.bit.newnewcc.backend.asm.instruction.AsmLoad;
+import cn.edu.bit.newnewcc.backend.asm.instruction.AsmStore;
 import cn.edu.bit.newnewcc.backend.asm.operand.Register;
 import cn.edu.bit.newnewcc.backend.asm.operand.RegisterReplaceable;
-import cn.edu.bit.newnewcc.backend.asm.util.Pair;
 
 import java.util.Collections;
 import java.util.HashSet;

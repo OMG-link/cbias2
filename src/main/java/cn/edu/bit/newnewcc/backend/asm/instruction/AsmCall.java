@@ -2,7 +2,7 @@ package cn.edu.bit.newnewcc.backend.asm.instruction;
 
 import cn.edu.bit.newnewcc.backend.asm.operand.Label;
 import cn.edu.bit.newnewcc.backend.asm.operand.Register;
-import cn.edu.bit.newnewcc.backend.asm.operand.Registers;
+import cn.edu.bit.newnewcc.backend.asm.util.Registers;
 
 import java.util.Set;
 

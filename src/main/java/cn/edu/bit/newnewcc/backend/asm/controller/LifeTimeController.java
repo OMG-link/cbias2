@@ -4,6 +4,7 @@ import cn.edu.bit.newnewcc.backend.asm.instruction.*;
 import cn.edu.bit.newnewcc.backend.asm.instruction.AsmInstruction;
 import cn.edu.bit.newnewcc.backend.asm.instruction.AsmJump;
 import cn.edu.bit.newnewcc.backend.asm.operand.Label;
+import cn.edu.bit.newnewcc.backend.asm.util.AsmInstructions;
 import cn.edu.bit.newnewcc.backend.asm.util.ComparablePair;
 
 import java.util.*;

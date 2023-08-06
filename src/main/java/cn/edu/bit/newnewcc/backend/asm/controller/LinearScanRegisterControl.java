@@ -4,8 +4,9 @@ import cn.edu.bit.newnewcc.backend.asm.AsmFunction;
 import cn.edu.bit.newnewcc.backend.asm.allocator.StackAllocator;
 import cn.edu.bit.newnewcc.backend.asm.instruction.AsmCall;
 import cn.edu.bit.newnewcc.backend.asm.instruction.AsmInstruction;
-import cn.edu.bit.newnewcc.backend.asm.instruction.AsmInstructions;
+import cn.edu.bit.newnewcc.backend.asm.util.AsmInstructions;
 import cn.edu.bit.newnewcc.backend.asm.operand.*;
+import cn.edu.bit.newnewcc.backend.asm.util.Registers;
 import org.antlr.v4.runtime.misc.Pair;
 
 import java.util.*;

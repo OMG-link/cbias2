@@ -8,6 +8,7 @@ import cn.edu.bit.newnewcc.backend.asm.controller.LinearScanRegisterControl;
 import cn.edu.bit.newnewcc.backend.asm.controller.RegisterControl;
 import cn.edu.bit.newnewcc.backend.asm.instruction.*;
 import cn.edu.bit.newnewcc.backend.asm.operand.*;
+import cn.edu.bit.newnewcc.backend.asm.util.AsmInstructions;
 import cn.edu.bit.newnewcc.backend.asm.util.BackendOptimizer;
 import cn.edu.bit.newnewcc.backend.asm.util.Pair;
 import cn.edu.bit.newnewcc.ir.Value;

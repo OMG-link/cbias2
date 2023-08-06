@@ -3,7 +3,6 @@ package cn.edu.bit.newnewcc.backend.asm.util;
 import cn.edu.bit.newnewcc.backend.asm.controller.LifeTimeController;
 import cn.edu.bit.newnewcc.backend.asm.controller.LifeTimeInterval;
 import cn.edu.bit.newnewcc.backend.asm.instruction.AsmInstruction;
-import cn.edu.bit.newnewcc.backend.asm.instruction.AsmInstructions;
 import cn.edu.bit.newnewcc.backend.asm.operand.Register;
 import cn.edu.bit.newnewcc.backend.asm.operand.RegisterReplaceable;
 

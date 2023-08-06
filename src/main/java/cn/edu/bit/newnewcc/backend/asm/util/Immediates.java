@@ -1,4 +1,4 @@
-package cn.edu.bit.newnewcc.backend.asm.operand;
+package cn.edu.bit.newnewcc.backend.asm.util;
 
 public class Immediates {
     public static boolean bitLengthNotInLimit(long value) {
