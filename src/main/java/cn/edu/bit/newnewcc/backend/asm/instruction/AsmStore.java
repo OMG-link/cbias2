@@ -45,7 +45,7 @@ public class AsmStore extends AsmInstruction {
     @Override
     public String emit() {
         String res = getInstructionName();
-        if (isMove()) {
+        if (AsmInstructions.isMove(this)) {
             res += " " + getOperand(2).emit() + ", " + getOperand(1).emit();
         } else {
             res += " " + getOperand(1).emit() + ", " + getOperand(2).emit();

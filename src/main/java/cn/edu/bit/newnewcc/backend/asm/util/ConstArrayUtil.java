@@ -5,7 +5,7 @@ import cn.edu.bit.newnewcc.ir.value.constant.ConstArray;
 
 import java.util.function.BiConsumer;
 
-public class ConstArrayTools {
+public class ConstArrayUtil {
     /**
      * 处理ConstArray相关的操作
      * @param arrayValue ConstArray值

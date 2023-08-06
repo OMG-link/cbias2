@@ -56,44 +56,4 @@ public abstract class Register extends AsmOperand implements RegisterReplaceable
     public Register replaceRegister(Register register) {
         return register;
     }
-
-    public static Collection<Register> getUsableRegisters() {
-        Set<Register> res = new HashSet<>();
-        for (int i = 0; i <= 31; i++) {
-            if ((5 <= i && i <= 7) || (18 <= i)) {
-                res.add(IntRegister.getPhysical(i));
-            }
-            if (i <= 9 || 18 <= i) {
-                res.add(FloatRegister.getPhysical(i));
-            }
-        }
-        return res;
-    }
-
-    private enum PTYPE {
-        PRESERVED, UNPRESERVED
-    }
-
-    public static final Map<Register, PTYPE> registerPreservedType = new HashMap<>();
-    private static void initPreservedType() {
-        if (registerPreservedType.isEmpty()) {
-            for (int i = 0; i <= 31; i++) {
-                if ((i == 2) || (8 <= i && i <= 9) || (18 <= i && i <= 27)) {
-                    registerPreservedType.put(IntRegister.getPhysical(i), PTYPE.PRESERVED);
-                } else {
-                    registerPreservedType.put(IntRegister.getPhysical(i), PTYPE.UNPRESERVED);
-                }
-                if ((8 <= i && i <= 9) || (18 <= i && i <= 27)) {
-                    registerPreservedType.put(FloatRegister.getPhysical(i), PTYPE.PRESERVED);
-                } else {
-                    registerPreservedType.put(FloatRegister.getPhysical(i), PTYPE.UNPRESERVED);
-                }
-            }
-        }
-    }
-
-    public boolean isPreserved() {
-        initPreservedType();
-        return registerPreservedType.get(this) == PTYPE.PRESERVED;
-    }
 }

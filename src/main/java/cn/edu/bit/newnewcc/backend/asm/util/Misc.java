@@ -1,40 +1,33 @@
 package cn.edu.bit.newnewcc.backend.asm.util;
 
-import cn.edu.bit.newnewcc.backend.asm.controller.LifeTimeController;
 import cn.edu.bit.newnewcc.backend.asm.instruction.AsmInstruction;
-import cn.edu.bit.newnewcc.backend.asm.instruction.AsmLoad;
-import cn.edu.bit.newnewcc.backend.asm.instruction.AsmStore;
-import cn.edu.bit.newnewcc.backend.asm.operand.Register;
+import cn.edu.bit.newnewcc.backend.asm.instruction.AsmInstructions;
 
 import java.util.List;
-import java.util.Objects;
-
-public class Others {
+public class Misc {
     public static String deleteCharString(String sourceString, String charTable) {
-        StringBuilder res = new StringBuilder();
+        StringBuilder result = new StringBuilder();
         for (int i = 0; i < sourceString.length(); i++) {
             char ch = sourceString.charAt(i);
             if (!charTable.contains(String.valueOf(ch))) {
-                res.append(sourceString.charAt(i));
+                result.append(sourceString.charAt(i));
             }
         }
-        return res.toString();
+        return result.toString();
     }
     public static void check(List<AsmInstruction> instructionList) {
         for (var inst : instructionList) {
-            for (var x : inst.getReadVRegSet()) {
-                for (var y : inst.getWriteVRegSet()) {
+            for (var x : AsmInstructions.getReadVRegSet(inst)) {
+                for (var y : AsmInstructions.getWriteVRegSet(inst)) {
                     if (x.equals(y)) {
-                        throw new RuntimeException("assertion failed");
+                        throw new AssertionError();
                     }
                 }
             }
         }
     }
 
-    public static boolean isPowerOf2(int x) {
-        return x > 0 && ((x & (x - 1)) == 0);
-    }
+    public static boolean isPowerOf2(int x) { return x > 0 && ((x & (x - 1)) == 0);}
 
     public static int log2(int x) {
         if (x <= 0) return -1;

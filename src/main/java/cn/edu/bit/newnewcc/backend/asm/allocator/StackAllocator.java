@@ -4,7 +4,7 @@ import cn.edu.bit.newnewcc.backend.asm.instruction.*;
 import cn.edu.bit.newnewcc.backend.asm.operand.Immediate;
 import cn.edu.bit.newnewcc.backend.asm.operand.IntRegister;
 import cn.edu.bit.newnewcc.backend.asm.operand.StackVar;
-import cn.edu.bit.newnewcc.backend.asm.util.ImmediateTools;
+import cn.edu.bit.newnewcc.backend.asm.operand.Immediates;
 import cn.edu.bit.newnewcc.ir.value.Instruction;
 
 import java.util.*;
@@ -104,7 +104,7 @@ public class StackAllocator {
             res.add(new AsmStore(ra, new StackVar(-8, 8, false)));
         }
         res.add(new AsmStore(s0, new StackVar(-16, 8, false)));
-        if (ImmediateTools.bitlengthNotInLimit(maxSize)) {
+        if (Immediates.bitLengthNotInLimit(maxSize)) {
             res.add(new AsmLoad(t0, new Immediate(maxSize)));
             res.add(new AsmSub(sp, sp, t0, 64));
             res.add(new AsmAdd(s0, sp, t0, 64));
@@ -121,7 +121,7 @@ public class StackAllocator {
         IntRegister ra = IntRegister.ra;
         IntRegister s0 = IntRegister.s0;
         IntRegister t0 = IntRegister.getPhysical(5);
-        if (ImmediateTools.bitlengthNotInLimit(maxSize)) {
+        if (Immediates.bitLengthNotInLimit(maxSize)) {
             res.add(new AsmLoad(t0, new Immediate(maxSize)));
             res.add(new AsmAdd(sp, sp, t0, 64));
         } else {

@@ -149,8 +149,8 @@ public class LifeTimeController {
         ComparablePair<LifeTimeIndex, LifeTimeIndex> last = null;
         for (var r : iv) {
             if (last != null) {
-                if (r.a.getSourceInst().isMoveVToV()) {
-                    var ids = r.a.getSourceInst().getMoveVReg();
+                if (AsmInstructions.isMoveVToV(r.a.getSourceInst())) {
+                    var ids = AsmInstructions.getMoveVReg(r.a.getSourceInst());
                     if (trueValue.get(ids.a).equals(trueValue.get(ids.b))) {
                         last.b = r.b;
                         continue;
@@ -196,12 +196,12 @@ public class LifeTimeController {
                     }
                 }
             }
-            for (var reg : inst.getReadVRegSet()) {
+            for (var reg : AsmInstructions.getReadVRegSet(inst)) {
                 if (!now.def.contains(reg)) {
                     now.in.add(reg);
                 }
             }
-            now.def.addAll(inst.getWriteVRegSet());
+            now.def.addAll(AsmInstructions.getWriteVRegSet(inst));
             blocks.get(blocks.size() - 1).r = i;
         }
     }
@@ -233,12 +233,12 @@ public class LifeTimeController {
             }
             for (int i = b.l; i <= b.r; i++) {
                 var inst = instructionList.get(i);
-                for (var x : inst.getReadVRegSet()) {
+                for (var x : AsmInstructions.getReadVRegSet(inst)) {
                     LifeTimeIndex index = LifeTimeIndex.getInstIn(this, instructionList.get(i));
                     useLoc.put(x, index);
                     insertLifeTimePoint(x, LifeTimePoint.getUse(index));
                 }
-                for (var x : inst.getWriteVRegSet()) {
+                for (var x : AsmInstructions.getWriteVRegSet(inst)) {
                     if (defLoc.containsKey(x) && useLoc.containsKey(x)) {
                         insertInterval(x, defLoc.get(x), useLoc.get(x));
                         useLoc.remove(x);

@@ -3,6 +3,7 @@ package cn.edu.bit.newnewcc.backend.asm.util;
 import cn.edu.bit.newnewcc.backend.asm.controller.LifeTimeController;
 import cn.edu.bit.newnewcc.backend.asm.controller.LifeTimeIndex;
 import cn.edu.bit.newnewcc.backend.asm.instruction.AsmInstruction;
+import cn.edu.bit.newnewcc.backend.asm.instruction.AsmInstructions;
 import cn.edu.bit.newnewcc.backend.asm.operand.Register;
 import cn.edu.bit.newnewcc.backend.asm.operand.RegisterReplaceable;
 
@@ -61,8 +62,8 @@ public class CopyCoalescer {
             value.put(interval, interval);
             int defID = interval.range.a.getInstID();
             var inst = instructions.get(defID);
-            if (inst.isMoveVToV()) {
-                var id = inst.getMoveVReg();
+            if (AsmInstructions.isMoveVToV(inst)) {
+                var id = AsmInstructions.getMoveVReg(inst);
                 if (id.a.equals(interval.vRegID)) {
                     var sourceID = id.b;
                     value.put(interval, getValue(lastActive.get(sourceID)));
@@ -146,7 +147,7 @@ public class CopyCoalescer {
             lifeTimeController.reconstructInterval(v, trueValue);
         }
         for (var inst : instructions) {
-            for (int i : inst.getVRegId()) {
+            for (int i : AsmInstructions.getVRegId(inst)) {
                 Register reg = ((RegisterReplaceable) inst.getOperand(i)).getRegister();
                 reg.setIndex(-trueValue.get(reg.getIndex()));
             }
@@ -156,8 +157,8 @@ public class CopyCoalescer {
     List<AsmInstruction> filtInstructions() {
         List<AsmInstruction> newInstructionList = new ArrayList<>();
         for (var inst : instructions) {
-            if (inst.isMoveVToV()) {
-                var r = inst.getMoveVReg();
+            if (AsmInstructions.isMoveVToV(inst)) {
+                var r = AsmInstructions.getMoveVReg(inst);
                 if (r.a.equals(r.b)) {
                     continue;
                 }

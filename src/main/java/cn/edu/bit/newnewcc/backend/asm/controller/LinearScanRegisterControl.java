@@ -4,6 +4,7 @@ import cn.edu.bit.newnewcc.backend.asm.AsmFunction;
 import cn.edu.bit.newnewcc.backend.asm.allocator.StackAllocator;
 import cn.edu.bit.newnewcc.backend.asm.instruction.AsmCall;
 import cn.edu.bit.newnewcc.backend.asm.instruction.AsmInstruction;
+import cn.edu.bit.newnewcc.backend.asm.instruction.AsmInstructions;
 import cn.edu.bit.newnewcc.backend.asm.operand.*;
 import org.antlr.v4.runtime.misc.Pair;
 
@@ -21,7 +22,7 @@ public class LinearScanRegisterControl extends RegisterControl{
     public LinearScanRegisterControl(AsmFunction function, StackAllocator allocator) {
         super(function, allocator);
         //加入目前可使用的寄存器
-        for (var reg : Register.getUsableRegisters()) {
+        for (var reg : Registers.getUsableRegisters()) {
             registerPool.put(reg, 0);
         }
     }
@@ -171,8 +172,8 @@ public class LinearScanRegisterControl extends RegisterControl{
             var used = getUsedRegisters(inst);
             Set<Register> loaded = new HashSet<>();
 
-            var writeId = inst.getWriteVRegId();
-            var vRegId = inst.getVRegId();
+            var writeId = AsmInstructions.getWriteVRegId(inst);
+            var vRegId = AsmInstructions.getVRegId(inst);
             for (int j : vRegId) {
                 RegisterReplaceable registerReplaceable = (RegisterReplaceable) inst.getOperand(j);
                 var vReg = registerReplaceable.getRegister();
@@ -192,7 +193,7 @@ public class LinearScanRegisterControl extends RegisterControl{
             if (inst instanceof AsmCall) {
                 Map<Register, StackVar> callSaved = new HashMap<>();
                 for (var reg : registerPool.keySet()) {
-                    if (registerPool.get(reg) != 0 && !reg.isPreserved()) {
+                    if (registerPool.get(reg) != 0 && !Registers.isPreservedAcrossCalls(reg)) {
                         var tmp = stackPool.pop();
                         callSaved.put(reg, tmp);
                         saveToStackVar(newInstList, reg, tmp);

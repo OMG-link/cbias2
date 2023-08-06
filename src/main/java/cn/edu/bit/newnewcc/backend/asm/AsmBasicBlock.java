@@ -2,9 +2,9 @@ package cn.edu.bit.newnewcc.backend.asm;
 
 import cn.edu.bit.newnewcc.backend.asm.instruction.*;
 import cn.edu.bit.newnewcc.backend.asm.operand.*;
-import cn.edu.bit.newnewcc.backend.asm.util.ConstArrayTools;
-import cn.edu.bit.newnewcc.backend.asm.util.ImmediateTools;
-import cn.edu.bit.newnewcc.backend.asm.util.Others;
+import cn.edu.bit.newnewcc.backend.asm.util.ConstArrayUtil;
+import cn.edu.bit.newnewcc.backend.asm.operand.Immediates;
+import cn.edu.bit.newnewcc.backend.asm.util.Misc;
 import cn.edu.bit.newnewcc.ir.Type;
 import cn.edu.bit.newnewcc.ir.Value;
 import cn.edu.bit.newnewcc.ir.type.FloatType;
@@ -84,7 +84,7 @@ public class AsmBasicBlock {
     }
 
     AsmOperand getConstInt(int intValue, Consumer<AsmInstruction> appendInstruction) {
-        if (ImmediateTools.bitlengthNotInLimit(intValue)) {
+        if (Immediates.bitLengthNotInLimit(intValue)) {
             IntRegister tmp = function.getRegisterAllocator().allocateInt();
             appendInstruction.accept(new AsmLoad(tmp, new Immediate(intValue)));
             return tmp;
@@ -101,7 +101,7 @@ public class AsmBasicBlock {
         } else if (constant instanceof ConstBool constBool) {
             return new Immediate(constBool.getValue() ? 1 : 0);
         } else if (constant instanceof ConstLong constLong) {
-            if (ImmediateTools.isIntValue(constLong.getValue())) {
+            if (Immediates.isIntValue(constLong.getValue())) {
                 return getConstInt(Math.toIntExact(constLong.getValue()), appendInstruction);
             }
             return function.transConstLong(constLong.getValue(), appendInstruction);
@@ -124,7 +124,7 @@ public class AsmBasicBlock {
         } else {
             int offset = Math.toIntExact(address.getOffset());
             var tmp = function.getRegisterAllocator().allocateInt();
-            if (ImmediateTools.bitlengthNotInLimit(offset)) {
+            if (Immediates.bitLengthNotInLimit(offset)) {
                 var reg = function.getRegisterAllocator().allocateInt();
                 function.appendInstruction(new AsmLoad(reg, new Immediate(offset)));
                 function.appendInstruction(new AsmAdd(tmp, reg, address.getRegister(), 64));
@@ -193,7 +193,7 @@ public class AsmBasicBlock {
     AddressDirective getOperandToAddressDirective(AsmOperand operand) {
         if (operand instanceof Address address) {
             var offset = address.getOffset();
-            if (ImmediateTools.bitlengthNotInLimit(offset)) {
+            if (Immediates.bitLengthNotInLimit(offset)) {
                 var tmp = getAddressToIntRegister(address);
                 return new AddressDirective(0, tmp);
             } else {
@@ -339,8 +339,8 @@ public class AsmBasicBlock {
             } else {
                 regAns = (IntRegister) function.getRegisterAllocator().allocate(integerSignedDivideInst);
             }
-            if (Others.isPowerOf2(divisor)) {
-                int x = Others.log2(divisor);
+            if (Misc.isPowerOf2(divisor)) {
+                int x = Misc.log2(divisor);
                 if (x == 0) {
                     var tmp = getValueToRegister(integerSignedDivideInst.getOperand1());
                     var result = function.getRegisterAllocator().allocateInt(integerSignedDivideInst);
@@ -359,7 +359,7 @@ public class AsmBasicBlock {
                     function.appendInstruction(new AsmShiftRightArithmetic(regAns, reg2, immX, 32));
                 }
             } else {
-                int l = Others.log2(divisor);
+                int l = Misc.log2(divisor);
                 int sh = l;
                 var temp = new BigInteger("1");
                 long low = temp.shiftLeft(32 + l).divide(BigInteger.valueOf(divisor)).longValue();
@@ -509,7 +509,7 @@ public class AsmBasicBlock {
                 }
             };
             final Address addressStore = getAddress.apply(1);
-            ConstArrayTools.workOnArray(constArray, 0, (Long offset, Constant item) -> {
+            ConstArrayUtil.workOnArray(constArray, 0, (Long offset, Constant item) -> {
                 if (item instanceof ConstInt constInt) {
                     Address dest = getOperandToAddressContent(addressStore.addOffset(offset));
                     Immediate source = new Immediate(constInt.getValue());

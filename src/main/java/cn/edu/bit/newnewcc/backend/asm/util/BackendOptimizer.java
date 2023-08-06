@@ -59,7 +59,7 @@ public class BackendOptimizer {
                     var iMov = oldInstructionList.get(2);
                     if (iLi instanceof AsmLoad && iLi.getOperand(2) instanceof Immediate offset) {
                         int offsetVal = offset.getValue();
-                        if (!ImmediateTools.bitlengthNotInLimit(offsetVal)) {
+                        if (!Immediates.bitLengthNotInLimit(offsetVal)) {
                             if (iAdd instanceof AsmAdd && iAdd.getOperand(3) instanceof IntRegister baseRegister && baseRegister.equals(IntRegister.s0)) {
                                 if (iMov instanceof AsmLoad iLoad && iLoad.getOperand(2) instanceof StackVar stackVar) {
                                     if (stackVar.getRegister() == iLi.getOperand(1) && stackVar.getAddress().getOffset() == 0) {
@@ -122,13 +122,13 @@ public class BackendOptimizer {
                 if (inst instanceof AsmLabel) {
                     lastWriteReg.clear();
                 }
-                for (var reg : inst.getWriteRegSet()) {
+                for (var reg : AsmInstructions.getWriteRegSet(inst)) {
                     if (lastWriteReg.contains(reg.toString())) {
                         continue;
                     }
                     lastWriteReg.add(reg.toString());
                 }
-                for (var reg : inst.getReadRegSet()) {
+                for (var reg : AsmInstructions.getReadRegSet(inst)) {
                     lastWriteReg.remove(reg.toString());
                 }
             }

@@ -1,6 +1,6 @@
 package cn.edu.bit.newnewcc.backend.asm.operand;
 
-import cn.edu.bit.newnewcc.backend.asm.util.Others;
+import cn.edu.bit.newnewcc.backend.asm.util.Misc;
 
 /**
  * 全局标记实际上存储的是地址，通常代表全局变量或浮点变量
@@ -56,7 +56,7 @@ public class Label extends AsmOperand {
     }
 
     public String getPureName() {
-        return Others.deleteCharString(emit(), ":.\n\t ");
+        return Misc.deleteCharString(emit(), ":.\n\t ");
     }
 
     private String getOffset() {

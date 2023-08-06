@@ -9,7 +9,7 @@ import cn.edu.bit.newnewcc.backend.asm.controller.RegisterControl;
 import cn.edu.bit.newnewcc.backend.asm.instruction.*;
 import cn.edu.bit.newnewcc.backend.asm.operand.*;
 import cn.edu.bit.newnewcc.backend.asm.util.BackendOptimizer;
-import cn.edu.bit.newnewcc.backend.asm.util.Others;
+import cn.edu.bit.newnewcc.backend.asm.util.Misc;
 import cn.edu.bit.newnewcc.backend.asm.util.Pair;
 import cn.edu.bit.newnewcc.ir.Value;
 import cn.edu.bit.newnewcc.ir.type.FloatType;
@@ -135,7 +135,7 @@ public class AsmFunction {
                 block.emitToFunction();
             }
             if (ASSERT_MODE) {
-                Others.check(this.instructionList);
+                Misc.check(this.instructionList);
             }
             if (!DEBUG_MODE) {
                 lifeTimeController.getAllVRegLifeTime(instructionList);

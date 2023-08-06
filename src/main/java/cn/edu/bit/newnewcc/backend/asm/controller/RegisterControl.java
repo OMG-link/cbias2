@@ -7,7 +7,7 @@ import cn.edu.bit.newnewcc.backend.asm.instruction.AsmInstruction;
 import cn.edu.bit.newnewcc.backend.asm.instruction.AsmLoad;
 import cn.edu.bit.newnewcc.backend.asm.instruction.AsmStore;
 import cn.edu.bit.newnewcc.backend.asm.operand.*;
-import cn.edu.bit.newnewcc.backend.asm.util.ImmediateTools;
+import cn.edu.bit.newnewcc.backend.asm.operand.Immediates;
 
 import java.util.*;
 
@@ -22,7 +22,7 @@ public abstract class RegisterControl {
         List<AsmInstruction> res = new ArrayList<>();
         for (var register : preservedRegisterSaved.keySet()) {
             var x = preservedRegisterSaved.get(register);
-            if (!ImmediateTools.bitlengthNotInLimit(x.getAddress().getOffset())) {
+            if (!Immediates.bitLengthNotInLimit(x.getAddress().getOffset())) {
                 preservedRegisterSaved.put(s1, s1saved);
                 break;
             }
@@ -42,7 +42,7 @@ public abstract class RegisterControl {
     }
     
     void updateRegisterPreserve(Register register) {
-        if (register.isPreserved() && !preservedRegisterSaved.containsKey(register)) {
+        if (Registers.isPreservedAcrossCalls(register) && !preservedRegisterSaved.containsKey(register)) {
             preservedRegisterSaved.put(register, stackPool.pop());
         }
     }
@@ -54,7 +54,7 @@ public abstract class RegisterControl {
     }
 
     void loadFromStackVar(List<AsmInstruction> instList, Register register, StackVar stk) {
-        if (ImmediateTools.bitlengthNotInLimit(stk.getAddress().getOffset())) {
+        if (Immediates.bitLengthNotInLimit(stk.getAddress().getOffset())) {
             preservedRegisterSaved.put(s1, s1saved);
             instList.add(new AsmLoad(s1, new Immediate(Math.toIntExact(stk.getAddress().getOffset()))));
             instList.add(new AsmAdd(s1, s1, stk.getAddress().getRegister(), 64));
@@ -65,7 +65,7 @@ public abstract class RegisterControl {
     }
 
     void saveToStackVar(List<AsmInstruction> instList, Register register, StackVar stk) {
-        if (ImmediateTools.bitlengthNotInLimit(stk.getAddress().getOffset())) {
+        if (Immediates.bitLengthNotInLimit(stk.getAddress().getOffset())) {
             preservedRegisterSaved.put(s1, s1saved);
             instList.add(new AsmLoad(s1, new Immediate(Math.toIntExact(stk.getAddress().getOffset()))));
             instList.add(new AsmAdd(s1, s1, stk.getAddress().getRegister(), 64));
