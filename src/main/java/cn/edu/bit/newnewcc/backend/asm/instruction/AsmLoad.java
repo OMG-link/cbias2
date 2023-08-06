@@ -19,8 +19,9 @@ public class AsmLoad extends AsmInstruction {
         LI("li"),
         LA("la"),
         MV("mv"),
-        FLWS("flw"),
-        FMV("fmv.s");
+        FLD("fld"),
+        FLW("flw"),
+        FMVS("fmv.s");
 
         private final String name;
 
@@ -65,12 +66,14 @@ public class AsmLoad extends AsmInstruction {
         } else {
             if (source instanceof Register register) {
                 if (register.isFloat()) {
-                    opcode = Opcode.FMV;
+                    opcode = Opcode.FMVS;
                 } else {
                     throw new IllegalArgumentException();
                 }
-            } else if (source instanceof Address || source instanceof StackVar) {
-                opcode = Opcode.FLWS;
+            } else if (source instanceof StackVar stackVar) {
+                if (stackVar.getSize() == 8) opcode = Opcode.FLD;
+                else if (stackVar.getSize() == 4) opcode = Opcode.FLW;
+                else throw new IllegalArgumentException();
             } else {
                 throw new IllegalArgumentException();
             }
@@ -83,8 +86,13 @@ public class AsmLoad extends AsmInstruction {
         if (bitLength != 32 && bitLength != 64)
             throw new IllegalArgumentException();
 
-        if (bitLength == 64) opcode = Opcode.LD;
-        else opcode = Opcode.LW;
+        if (dest.isInt()) {
+            if (bitLength == 64) opcode = Opcode.LD;
+            else opcode = Opcode.LW;
+        } else {
+            if (bitLength == 64) opcode = Opcode.FLD;
+            else opcode = Opcode.FLW;
+        }
     }
 
     public Opcode getOpcode() {

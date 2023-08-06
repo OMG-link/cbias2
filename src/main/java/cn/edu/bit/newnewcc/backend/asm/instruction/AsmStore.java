@@ -1,6 +1,7 @@
 package cn.edu.bit.newnewcc.backend.asm.instruction;
 
 import cn.edu.bit.newnewcc.backend.asm.operand.*;
+import cn.edu.bit.newnewcc.ir.exception.IllegalArgumentException;
 
 public class AsmStore extends AsmInstruction {
     public enum Opcode {
@@ -39,13 +40,15 @@ public class AsmStore extends AsmInstruction {
     public AsmStore(Register source, Address dest, int bitLength) {
         super(source, dest, null);
 
+        if (bitLength != 64 && bitLength != 32)
+            throw new IllegalArgumentException();
+
         if (source.isInt()) {
             if (bitLength == 64) opcode = Opcode.SD;
-            else if (bitLength == 32) opcode = Opcode.SW;
-            else throw new IllegalArgumentException();
+            else opcode = Opcode.SW;
         } else {
-            if (bitLength == 32) opcode = Opcode.FSW;
-            else throw new IllegalArgumentException();
+            if (bitLength == 64) opcode = Opcode.FSD;
+            else opcode = Opcode.FSW;
         }
     }
 

@@ -566,12 +566,12 @@ public class AsmBasicBlock {
                     Immediate source = new Immediate(constInt.getValue());
                     IntRegister tmp = function.getRegisterAllocator().allocateInt();
                     function.appendInstruction(new AsmLoad(tmp, source));
-                    function.appendInstruction(new AsmStore(tmp, dest, 64));
+                    function.appendInstruction(new AsmStore(tmp, dest, 32));
                 }
             }, (Long offset, Long length) -> {
                 for (long i = 0; i < length; i += 4) {
                     Address dest = getOperandToAddressContent(addressStore.addOffset(offset));
-                    function.appendInstruction(new AsmStore(IntRegister.zero, dest, 64));
+                    function.appendInstruction(new AsmStore(IntRegister.zero, dest, 32));
                     offset += 4;
                 }
             });
@@ -657,7 +657,7 @@ public class AsmBasicBlock {
         if (type instanceof IntegerType integerType) {
             function.appendInstruction(new AsmLoad(register, address, integerType.getBitWidth()));
         } else {
-            function.appendInstruction(new AsmLoad(register, address));
+            function.appendInstruction(new AsmLoad(register, address, 32));
         }
     }
 

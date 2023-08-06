@@ -90,7 +90,7 @@ public class AsmFunction {
         IntRegister rAddress = registerAllocator.allocateInt();
         FloatRegister tmp = registerAllocator.allocateFloat();
         appendInstruction.accept(new AsmLoad(rAddress, constantFloat.getConstantLabel()));
-        appendInstruction.accept(new AsmLoad(tmp, new AddressContent(0, rAddress)));
+        appendInstruction.accept(new AsmLoad(tmp, new AddressContent(0, rAddress), 32));
         return tmp;
     }
     IntRegister transConstLong(long value, Consumer<AsmInstruction> appendInstruction) {
