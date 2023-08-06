@@ -35,9 +35,6 @@ public class IrPassManager {
                 // 调整指令顺序，以得到更好的寄存器分配结果
                 InstructionSchedulePass.runOnModule(module);
 
-                // 最后执行一些指令展开，不在之前做是为了避免干扰其他Pass识别可以优化的位置
-                ConstIntRemainderReducePass.runOnModule(module);
-
             }
         }
         IrSemanticCheckPass.verify(module);
