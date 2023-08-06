@@ -125,4 +125,15 @@ public class AsmInstructions {
         var readSet = AsmInstructions.getReadVRegSet(instr);
         return new Pair<>((Integer) writeSet.toArray()[0], (Integer) readSet.toArray()[0]);
     }
+
+    public static int getRegIndexInInst(AsmInstruction instr, Register reg) {
+        for (int i = 1; i <= 3; i++) {
+            if (instr.getOperand(i) instanceof RegisterReplaceable registerReplaceable) {
+                if (registerReplaceable.getRegister().equals(reg)) {
+                    return i;
+                }
+            }
+        }
+        throw new RuntimeException("find register in wrong instruction");
+    }
 }
