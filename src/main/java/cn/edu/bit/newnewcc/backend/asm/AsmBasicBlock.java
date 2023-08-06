@@ -493,7 +493,11 @@ public class AsmBasicBlock {
     }
 
     private void translateCompareInst(CompareInst compareInst) {
+        if (compareInst.getUsages().size() == 0) return;
         if (compareInst instanceof IntegerCompareInst integerCompareInst) {
+            // 如果某个条件只被一个条件跳转语句使用，则不翻译他，该指令会被直接合并到条件跳转指令中
+            if (compareInst.getUsages().size() == 1 &&
+                    compareInst.getUsages().get(0).getInstruction() instanceof BranchInst) return;
             translateIntegerCompareInst(integerCompareInst);
         } else if (compareInst instanceof FloatCompareInst floatCompareInst) {
             translateFloatCompareInst(floatCompareInst);
@@ -552,11 +556,24 @@ public class AsmBasicBlock {
     }
 
     private void translateBranchInst(BranchInst branchInst) {
-        var condition = getOperandToIntRegister(getValue(branchInst.getCondition()));
         sufTranslatePhiInstructions();
         var trueLabel = getJumpLabel(branchInst.getTrueExit());
         var falseLabel = getJumpLabel(branchInst.getFalseExit());
-        function.appendInstruction(AsmJump.createNEZ(trueLabel, condition));
+        if (branchInst.getCondition() instanceof IntegerCompareInst integerCompareInst) {
+            var operand1 = (IntRegister) getValueToRegister(integerCompareInst.getOperand1());
+            var operand2 = (IntRegister) getValueToRegister(integerCompareInst.getOperand2());
+            function.appendInstruction(AsmJump.createBinary(switch (integerCompareInst.getCondition()) {
+                case EQ -> AsmJump.Condition.EQ;
+                case NE -> AsmJump.Condition.NE;
+                case SLT -> AsmJump.Condition.LT;
+                case SLE -> AsmJump.Condition.LE;
+                case SGT -> AsmJump.Condition.GT;
+                case SGE -> AsmJump.Condition.GE;
+            }, trueLabel, operand1, operand2));
+        } else {
+            var condition = getOperandToIntRegister(getValue(branchInst.getCondition()));
+            function.appendInstruction(AsmJump.createNEZ(trueLabel, condition));
+        }
         function.appendInstruction(AsmJump.createUnconditional(falseLabel));
     }
 
