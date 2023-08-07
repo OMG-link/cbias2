@@ -48,7 +48,7 @@ public class RegisterAllocator {
         }
     }
     public Register allocate(Register sourceReg) {
-        if (sourceReg.isInt()) {
+        if (sourceReg instanceof IntRegister) {
             return allocateInt();
         } else {
             return allocateFloat();

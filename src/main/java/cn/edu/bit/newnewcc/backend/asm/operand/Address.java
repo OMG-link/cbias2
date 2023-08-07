@@ -22,12 +22,12 @@ public abstract class Address extends AsmOperand implements RegisterReplaceable 
         return new AddressDirective(offset, baseAddress);
     }
 
-    public String emit() {
-        return String.format("%d(%s)", offset, baseAddress.emit());
-    }
-
     public long getOffset() {
         return offset;
+    }
+
+    public IntRegister getBaseAddress() {
+        return baseAddress;
     }
 
     @Override
@@ -42,6 +42,10 @@ public abstract class Address extends AsmOperand implements RegisterReplaceable 
         } else {
             throw new RuntimeException("put float register into address");
         }
+    }
+
+    public String emit() {
+        return String.format("%d(%s)", offset, baseAddress.emit());
     }
 
     @Override

@@ -59,7 +59,7 @@ public class AsmShiftRightArithmetic extends AsmInstruction {
 
     @Override
     public String emit() {
-        return String.format("\t%s %s, %s, %s\n", getOpcode().getName(), getOperand(1), getOperand(2), getOperand(3));
+        return String.format("\t%s %s, %s, %s\n", getOpcode().getName(), getOperand(1).emit(), getOperand(2).emit(), getOperand(3).emit());
     }
 
     @Override

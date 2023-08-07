@@ -28,7 +28,7 @@ public class AsmStore extends AsmInstruction {
     public AsmStore(Register source, StackVar dest) {
         super(source, dest, null);
 
-        if (source.isInt()) {
+        if (source instanceof IntRegister) {
             if (dest.getSize() == 8) opcode = Opcode.SD;
             else if (dest.getSize() == 4) opcode = Opcode.SW;
             else throw new IllegalArgumentException();
@@ -45,7 +45,7 @@ public class AsmStore extends AsmInstruction {
         if (bitLength != 64 && bitLength != 32)
             throw new IllegalArgumentException();
 
-        if (source.isInt()) {
+        if (source instanceof IntRegister) {
             if (bitLength == 64) opcode = Opcode.SD;
             else opcode = Opcode.SW;
         } else {

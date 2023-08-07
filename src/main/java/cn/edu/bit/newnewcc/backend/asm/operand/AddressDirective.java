@@ -22,4 +22,9 @@ public class AddressDirective extends Address {
     public Address setOffset(long newOffset) {
         return new AddressDirective(newOffset, baseAddress);
     }
+
+    @Override
+    public String toString() {
+        return String.format("AddressDirective(%s, %s)\n", getOffset(), getBaseAddress());
+    }
 }

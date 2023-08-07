@@ -1,5 +1,7 @@
 package cn.edu.bit.newnewcc.backend.asm.operand;
 
+import java.util.Objects;
+
 /**
  * 全局标记实际上存储的是地址，通常代表全局变量或浮点变量
  * 读取地址的时候使用%hi(label), %lo(label)两个伪指令，分别读取高16位和低16位
@@ -86,5 +88,25 @@ public class Label extends AsmOperand {
 
     public enum SEGMENT {
         HIGH, LOW
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Label label = (Label) o;
+
+        if (!labelName.equals(label.labelName)) return false;
+        if (segment != label.segment) return false;
+        return Objects.equals(baseAddress, label.baseAddress);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = labelName.hashCode();
+        result = 31 * result + (segment != null ? segment.hashCode() : 0);
+        result = 31 * result + (baseAddress != null ? baseAddress.hashCode() : 0);
+        return result;
     }
 }

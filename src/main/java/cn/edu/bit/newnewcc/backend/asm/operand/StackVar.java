@@ -52,11 +52,6 @@ public class StackVar extends AsmOperand implements RegisterReplaceable {
     }
 
     @Override
-    public String emit() {
-        return address.emit();
-    }
-
-    @Override
     public StackVar replaceRegister(Register register) {
         return new StackVar(address.replaceRegister(register), size, isS0);
     }
@@ -64,6 +59,16 @@ public class StackVar extends AsmOperand implements RegisterReplaceable {
     @Override
     public Register getRegister() {
         return getAddress().getRegister();
+    }
+
+    @Override
+    public String toString() {
+        return String.format("StackVar(%s, %s, %s)\n", getAddress(), getSize(), isS0Based());
+    }
+
+    @Override
+    public String emit() {
+        return address.emit();
     }
 
     @Override

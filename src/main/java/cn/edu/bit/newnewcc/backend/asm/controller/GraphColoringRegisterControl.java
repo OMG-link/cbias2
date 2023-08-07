@@ -3,6 +3,7 @@ package cn.edu.bit.newnewcc.backend.asm.controller;
 import cn.edu.bit.newnewcc.backend.asm.AsmFunction;
 import cn.edu.bit.newnewcc.backend.asm.allocator.StackAllocator;
 import cn.edu.bit.newnewcc.backend.asm.instruction.AsmInstruction;
+import cn.edu.bit.newnewcc.backend.asm.operand.IntRegister;
 import cn.edu.bit.newnewcc.backend.asm.operand.Register;
 import cn.edu.bit.newnewcc.backend.asm.util.Registers;
 
@@ -58,14 +59,14 @@ public class GraphColoringRegisterControl extends RegisterControl {
         List<Register> intPRegList = new ArrayList<>(), floatPRegList = new ArrayList<>();
         for (var x : function.getLifeTimeController().getKeySet()) {
             var reg = function.getRegisterAllocator().get(x);
-            if (reg.isInt()) {
+            if (reg instanceof IntRegister) {
                 intRegList.add(reg);
             } else {
                 floatRegList.add(reg);
             }
         }
         for (var reg : Registers.getUsableRegisters()) {
-            if (reg.isInt()) {
+            if (reg instanceof IntRegister) {
                 intPRegList.add(reg);
             } else {
                 floatPRegList.add(reg);

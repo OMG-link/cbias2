@@ -28,4 +28,9 @@ public class AddressContent extends Address {
     public Address setOffset(long newOffset) {
         return new AddressContent(newOffset, baseAddress);
     }
+
+    @Override
+    public String toString() {
+        return String.format("AddressContent(%s, %s)\n", getOffset(), getBaseAddress());
+    }
 }

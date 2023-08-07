@@ -1,50 +1,27 @@
 package cn.edu.bit.newnewcc.backend.asm.operand;
 
 public abstract class Register extends AsmOperand implements RegisterReplaceable {
-    //寄存器在调用过程中保留与否，保留的寄存器需要在函数头尾额外保存
-    private int index;
-    private final Type type;
-
     public enum Type {
         INT, FLOAT
     }
 
-    public boolean isInt() {
-        return type == Type.INT;
-    }
+    public abstract int getIndex();
 
-    public boolean isFloat() {
-        return type == Type.FLOAT;
-    }
-
-    public Type getType() {
-        return type;
-    }
-
-    Register(int index, Type type) {
-        this.index = index;
-        this.type = type;
-    }
-
-    public boolean isVirtual() {
-        return getIndex() < 0;
-    }
+    /**
+     * 仅在虚拟寄存器复制合并时使用！！！
+     * @param index 下标
+     */
+    public abstract void setIndex(int index);
 
     /**
      * 获取寄存器下标的**绝对值**
      */
     public int getAbsoluteIndex() {
-        return Math.abs(index);
+        return Math.abs(getIndex());
     }
 
-    public int getIndex() { return index; }
-
-    /**
-     * 仅在虚拟寄存器复制合并时使用！！！
-     * @param idx 下标
-     */
-    public void setIndex(int idx) {
-        this.index = idx;
+    public boolean isVirtual() {
+        return getIndex() < 0;
     }
 
     @Override

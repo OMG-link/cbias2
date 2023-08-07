@@ -32,7 +32,7 @@ public class AsmLoad extends AsmInstruction {
     public AsmLoad(Register dest, AsmOperand source) {
         super(dest, source, null);
 
-        if (dest.isInt()) {
+        if (dest instanceof IntRegister) {
             if (source instanceof StackVar stackVar) {
                 if (stackVar.getSize() == 8) opcode = Opcode.LD;
                 else if (stackVar.getSize() == 4) opcode = Opcode.LW;
@@ -48,7 +48,7 @@ public class AsmLoad extends AsmInstruction {
                     opcode = Opcode.LA;
                 }
             } else if (source instanceof Register register) {
-                if (register.isInt()) {
+                if (register instanceof IntRegister) {
                     opcode = Opcode.MV;
                 } else {
                     throw new IllegalArgumentException();
@@ -62,7 +62,7 @@ public class AsmLoad extends AsmInstruction {
                 else if (stackVar.getSize() == 4) opcode = Opcode.FLW;
                 else throw new IllegalArgumentException();
             } else if (source instanceof Register register) {
-                if (register.isFloat()) {
+                if (register instanceof FloatRegister) {
                     opcode = Opcode.FMVS;
                 } else {
                     throw new IllegalArgumentException();
@@ -79,7 +79,7 @@ public class AsmLoad extends AsmInstruction {
         if (bitLength != 32 && bitLength != 64)
             throw new IllegalArgumentException();
 
-        if (dest.isInt()) {
+        if (dest instanceof IntRegister) {
             if (bitLength == 64) opcode = Opcode.LD;
             else opcode = Opcode.LW;
         } else {

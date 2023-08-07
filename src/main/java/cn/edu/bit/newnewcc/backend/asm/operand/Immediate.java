@@ -19,4 +19,24 @@ public class Immediate extends AsmOperand {
     public String emit() {
         return String.valueOf(value);
     }
+
+    @Override
+    public String toString() {
+        return String.format("Immediate(%d)", getValue());
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Immediate immediate = (Immediate) o;
+
+        return value == immediate.value;
+    }
+
+    @Override
+    public int hashCode() {
+        return value;
+    }
 }

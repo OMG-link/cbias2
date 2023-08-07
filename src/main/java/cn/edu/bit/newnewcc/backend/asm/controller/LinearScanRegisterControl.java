@@ -31,7 +31,7 @@ public class LinearScanRegisterControl extends RegisterControl{
     private void allocateVReg(Register vReg) {
         var index = vReg.getAbsoluteIndex();
         for (var reg : registerPool.keySet()) {
-            if (reg.getType() == vReg.getType() && registerPool.get(reg) == 0) {
+            if (reg.getClass() == vReg.getClass() && registerPool.get(reg) == 0) {
                 registerPool.put(reg, vReg.getAbsoluteIndex());
                 vRegLocation.put(vReg.getAbsoluteIndex(), reg);
                 updateRegisterPreserve(reg);
@@ -41,7 +41,7 @@ public class LinearScanRegisterControl extends RegisterControl{
         Register spillReg = null;
         int maxR = function.getLifeTimeController().getLifeTimeRange(index).b.getInstID();
         for (var reg : registerPool.keySet()) {
-            if (reg.getType() == vReg.getType()) {
+            if (reg.getClass() == vReg.getClass()) {
                 int original = registerPool.get(reg);
                 int regR = function.getLifeTimeController().getLifeTimeRange(original).b.getInstID();
                 if (regR > maxR) {
@@ -122,13 +122,13 @@ public class LinearScanRegisterControl extends RegisterControl{
             return used.get(vReg);
         }
         for (var reg : registerPool.keySet()) {
-            if (reg.getType() == vReg.getType() && !used.containsValue(reg) && registerPool.get(reg) == 0) {
+            if (reg.getClass() == vReg.getClass() && !used.containsValue(reg) && registerPool.get(reg) == 0) {
                 used.put(vReg, reg);
                 return reg;
             }
         }
         for (var reg : registerPool.keySet()) {
-            if (reg.getType() == vReg.getType() && !used.containsValue(reg)) {
+            if (reg.getClass() == vReg.getClass() && !used.containsValue(reg)) {
                 used.put(vReg, reg);
                 var tmp = stackPool.pop();
                 registerSaveMap.put(reg, tmp);
