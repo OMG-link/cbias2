@@ -32,6 +32,8 @@ public class AsmFunction {
     private final AsmCode globalCode;
     private final List<AsmOperand> formalParameters = new ArrayList<>();
     private final Map<Value, AsmOperand> formalParameterMap = new HashMap<>();
+    private final Map<Value, Register> parameterValueMap = new HashMap<>();
+    private final List<AsmInstruction> parameterInstructions = new ArrayList<>();
     private final List<AsmBasicBlock> basicBlocks = new ArrayList<>();
     private final Map<BasicBlock, AsmBasicBlock> basicBlockMap = new HashMap<>();
     private final Map<AsmLabel, BasicBlock> asmLabelToBasicBlockMap = new HashMap<>();
@@ -98,10 +100,23 @@ public class AsmFunction {
         return tmp;
     }
 
+    void buildParameterInstructions() {
+        if (baseFunction instanceof Function function) {
+            for (var value : function.getFormalParameters()) {
+                var reg = getRegisterAllocator().allocate(value.getType());
+                parameterValueMap.put(value, reg);
+                var op = getParameterByFormal(value, parameterInstructions);
+                if (op instanceof Register paraReg) {
+                    parameterInstructions.add(new AsmMove(reg, paraReg));
+                } else {
+                    parameterInstructions.add(new AsmLoad(reg, op));
+                }
+            }
+        }
+    }
 
     public void emitCode() {
         //生成具体函数的汇编代码
-        //emitParameterHead();
         if (baseFunction instanceof Function function) {
             var functionParameterList = function.getFormalParameters();
             for (var i = 0; i < functionParameterList.size(); i++) {
@@ -128,12 +143,14 @@ public class AsmFunction {
                 }
             }
 
+            buildParameterInstructions();
             for (var block : basicBlocks) {
                 block.preTranslatePhiInstructions();
             }
             for (var block : basicBlocks) {
                 block.emitToFunction();
             }
+            instrList.addAll(1, parameterInstructions);
             for (var inst : instrList) {
                 for (var x : AsmInstructions.getReadVRegSet(inst)) {
                     for (var y : AsmInstructions.getWriteVRegSet(inst)) {
@@ -240,6 +257,18 @@ public class AsmFunction {
         return result;
     }
 
+    public Register getParameterValue(Value formalParameter) {
+        return parameterValueMap.get(formalParameter);
+    }
+
+    public AsmOperand getParameterByFormal(Value formalParameter, List<AsmInstruction> instructionList) {
+        var result = formalParameterMap.get(formalParameter);
+        if (result instanceof StackVar stackVar) {
+            return transformStackVar(stackVar.flip(), instructionList);
+        }
+        return result;
+    }
+
     public int getParameterSize() {
         return formalParameters.size();
     }
@@ -250,6 +279,7 @@ public class AsmFunction {
 
 
     //调用另一个函数的汇编代码
+    // update: 参数求值方式调整为在函数开始块中将参数load出来，因此函数参数寄存器不再需要保存，
     public Collection<AsmInstruction> call(AsmFunction calledFunction, List<AsmOperand> parameters, Register returnRegister) {
         stackAllocator.callFunction();
         List<AsmInstruction> instrList = new ArrayList<>();
@@ -257,18 +287,8 @@ public class AsmFunction {
         if (parameters.size() != calledFunction.formalParameters.size()) {
             throw new RuntimeException("Function parameter mismatch");
         }
-        List<Pair<StackVar, Register>> pushList = new ArrayList<>();
-        Map<String, StackVar> paraSaved = new HashMap<>();
 
         //若形参中使用了参数保存寄存器，则需先push寄存器保存原有内容，避免受到下一层影响
-        for (AsmOperand formalParameter : formalParameters) {
-            if (formalParameter instanceof Register reg) {
-                StackVar vreg = stackAllocator.push(8);
-                instrList.add(new AsmStore(reg, transformStackVar(vreg, instrList)));
-                paraSaved.put(reg.emit(), vreg);
-                pushList.add(new Pair<>(vreg, reg));
-            }
-        }
 
         for (int i = 0; i < parameters.size(); i++) {
             var formalParam = calledFunction.formalParameters.get(i);
@@ -287,22 +307,10 @@ public class AsmFunction {
             //将参数存储到形参对应位置
             var para = parameters.get(i);
             if (para instanceof Register reg) {
-                //若当前参数已经被覆盖，则从栈中读取
-                if (paraSaved.containsKey(reg.emit()) && reg.emit().compareTo(formalParam.emit()) < 0) {
-                    var rs = transformStackVar(paraSaved.get(reg.emit()), instrList);
-                    if (formalParam instanceof Register formalReg) {
-                        instrList.add(new AsmLoad(formalReg, rs));
-                    } else {
-                        var tmp = registerAllocator.allocate(reg);
-                        instrList.add(new AsmLoad(tmp, rs));
-                        instrList.add(new AsmStore(tmp, (StackVar) formalParam));
-                    }
-                } else {
-                    if (formalParam instanceof Register)
-                        instrList.add(new AsmMove((Register) formalParam, reg));
-                    else
-                        instrList.add(new AsmStore(reg, (StackVar) formalParam));
-                }
+                if (formalParam instanceof Register)
+                    instrList.add(new AsmMove((Register) formalParam, reg));
+                else
+                    instrList.add(new AsmStore(reg, (StackVar) formalParam));
             } else {
                 if (formalParam instanceof Register formalReg) {
                     instrList.add(new AsmLoad(formalReg, para));
@@ -316,11 +324,6 @@ public class AsmFunction {
         instrList.add(new AsmCall(new Label(calledFunction.getFunctionName(), true)));
         if (returnRegister != null) {
             instrList.add(new AsmMove(returnRegister, calledFunction.getReturnRegister()));
-        }
-        //执行完成后恢复寄存器现场
-        for (var p : pushList) {
-            instrList.add(new AsmLoad(p.b, transformStackVar(p.a, instrList)));
-            stackAllocator.pop(8);
         }
         return instrList;
     }

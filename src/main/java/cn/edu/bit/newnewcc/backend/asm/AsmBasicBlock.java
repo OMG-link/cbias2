@@ -65,7 +65,7 @@ public class AsmBasicBlock {
             function.appendInstruction(new AsmLoad(reg, asmGlobalVariable.emitNoSegmentLabel()));
             return new MemoryAddress(0, reg);
         } else if (value instanceof Function.FormalParameter formalParameter) {
-            return function.getParameterByFormal(formalParameter);
+            return function.getParameterValue(formalParameter);
         } else if (value instanceof Instruction instruction) {
             if (function.getRegisterAllocator().contain(instruction)) {
                 return function.getRegisterAllocator().get(instruction);
