@@ -140,7 +140,7 @@ public class LifeTimeController {
             if (instr instanceof AsmLabel || instr instanceof AsmBlockEnd) {
                 return false;
             }
-            return AsmInstructions.getRegIndexInInst(point.getIndex().getSourceInst(), x) == -1;
+            return !AsmInstructions.instContainsReg(instr, x);
         });
         if (lifeTimePoints.get(x).isEmpty()) {
             return false;
@@ -224,6 +224,10 @@ public class LifeTimeController {
         }
     }
     private void buildLifeTimePoints(List<AsmInstruction> instructionList) {
+        LifeTimeIndex functionStartIndex = LifeTimeIndex.getInstOut(this, instructionList.get(0));
+        for (var reg : function.getParamRegs()) {
+            insertLifeTimePoint(reg, LifeTimePoint.getDef(functionStartIndex));
+        }
         for (var b : blocks) {
             for (var x : b.in) {
                 LifeTimeIndex index = LifeTimeIndex.getInstOut(this, instructionList.get(b.l));
