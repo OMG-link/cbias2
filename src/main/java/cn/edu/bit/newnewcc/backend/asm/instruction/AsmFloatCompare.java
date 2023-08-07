@@ -47,7 +47,7 @@ public class AsmFloatCompare extends AsmInstruction{
 
     @Override
     public String toString() {
-        return String.format("AsmFloatCompare(%s, %s, %s, %s)", getOpcode().getName(), getOperand(1), getOperand(2), getOperand(3));
+        return String.format("AsmFloatCompare(%s, %s, %s, %s)", getOpcode(), getOperand(1), getOperand(2), getOperand(3));
     }
 
     @Override

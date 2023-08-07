@@ -40,7 +40,7 @@ public class AsmConvertFloatInt extends AsmInstruction {
 
     @Override
     public String toString() {
-        return String.format("AsmConvertFloatInt(%s, %s, %s)", getOpcode().getName(), getOperand(1), getOperand(2));
+        return String.format("AsmConvertFloatInt(%s, %s, %s)", getOpcode(), getOperand(1), getOperand(2));
     }
 
     @Override

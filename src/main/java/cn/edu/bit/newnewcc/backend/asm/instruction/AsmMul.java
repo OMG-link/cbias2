@@ -50,7 +50,7 @@ public class AsmMul extends AsmInstruction {
 
     @Override
     public String toString() {
-        return String.format("AsmMul(%s, %s, %s, %s)", getOpcode().getName(), getOperand(1), getOperand(2), getOperand(3));
+        return String.format("AsmMul(%s, %s, %s, %s)", getOpcode(), getOperand(1), getOperand(2), getOperand(3));
     }
 
     @Override

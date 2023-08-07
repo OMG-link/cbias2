@@ -72,11 +72,11 @@ public class AsmJump extends AsmInstruction {
     public String toString() {
         return switch (getOpcode()) {
             case J ->
-                String.format("AsmJump(%s, %s)", getOpcode().getName(), getOperand(1));
+                String.format("AsmJump(%s, %s)", getOpcode(), getOperand(1));
             case BLTZ, BGTZ, BLEZ, BGEZ, BEQZ, BNEZ ->
-                String.format("AsmJump(%s, %s, %s)", getOpcode().getName(), getOperand(1), getOperand(2));
+                String.format("AsmJump(%s, %s, %s)", getOpcode(), getOperand(1), getOperand(2));
             case BLT, BGT, BLE, BGE, BEQ, BNE ->
-                String.format("AsmJump(%s, %s, %s, %s)", getOpcode().getName(), getOperand(1), getOperand(2), getOperand(3));
+                String.format("AsmJump(%s, %s, %s, %s)", getOpcode(), getOperand(1), getOperand(2), getOperand(3));
         };
     }
 

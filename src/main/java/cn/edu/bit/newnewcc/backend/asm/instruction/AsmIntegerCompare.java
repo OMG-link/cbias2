@@ -50,8 +50,8 @@ public class AsmIntegerCompare extends AsmInstruction {
     @Override
     public String toString() {
         return switch (getOpcode()) {
-            case SEQZ, SNEZ -> String.format("AsmIntegerCompare(%s, %s, %s)", getOpcode().getName(), getOperand(1), getOperand(2));
-            case SLT, SLTI -> String.format("AsmIntegerCompare(%s, %s, %s, %s)", getOpcode().getName(), getOperand(1), getOperand(2), getOperand(3));
+            case SEQZ, SNEZ -> String.format("AsmIntegerCompare(%s, %s, %s)", getOpcode(), getOperand(1), getOperand(2));
+            case SLT, SLTI -> String.format("AsmIntegerCompare(%s, %s, %s, %s)", getOpcode(), getOperand(1), getOperand(2), getOperand(3));
         };
     }
 
