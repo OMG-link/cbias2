@@ -16,28 +16,15 @@ public abstract class AsmInstruction {
         this.operand3 = operand3;
     }
 
-    protected void setOperand1(AsmOperand operand1) {
-        this.operand1 = operand1;
-    }
-
-    protected void setOperand2(AsmOperand operand2) {
-        this.operand2 = operand2;
-    }
-
-    protected void setOperand3(AsmOperand operand3) {
-        this.operand3 = operand3;
-    }
-
-    public void replaceOperand(int index, AsmOperand operand) {
-        if (!(1 <= index && index <= 3)) {
-            throw new IndexOutOfBoundsException();
-        }
+    public void setOperand(int index, AsmOperand operand) {
         if (index == 1) {
             this.operand1 = operand;
         } else if (index == 2) {
             this.operand2 = operand;
-        } else {
+        } else if (index == 3) {
             this.operand3 = operand;
+        } else {
+            throw new IndexOutOfBoundsException();
         }
     }
 

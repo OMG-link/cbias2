@@ -186,7 +186,7 @@ public class LinearScanRegisterControl extends RegisterControl{
                         loadFromStackVar(newInstList, physicRegister, stackVar);
                     }
                 }
-                inst.replaceOperand(j, registerReplaceable.replaceRegister(physicRegister));
+                inst.setOperand(j, registerReplaceable.replaceRegister(physicRegister));
             }
 
             if (inst instanceof AsmCall) {

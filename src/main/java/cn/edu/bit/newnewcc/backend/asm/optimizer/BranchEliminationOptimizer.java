@@ -28,7 +28,7 @@ public class BranchEliminationOptimizer implements Optimizer {
             if (instr instanceof AsmJump) {
                 for (int i = 1; i <= 3; ++i) {
                     if (instr.getOperand(i) instanceof Label label && labelMap.containsKey(label)) {
-                        instr.replaceOperand(i, labelMap.get(label));
+                        instr.setOperand(i, labelMap.get(label));
                         madeChange = true;
                     }
                 }

@@ -31,7 +31,7 @@ public class LI0ToX0Optimizer implements Optimizer {
             } else {
                 for (int i = 1; i <= 3; ++i) {
                     if (instr.getOperand(i) instanceof Register reg && instr.getUse().contains(reg) && zeroRegs.contains(reg)) {
-                        instr.replaceOperand(i, IntRegister.ZERO);
+                        instr.setOperand(i, IntRegister.ZERO);
                         madeChange = true;
                     }
                 }
