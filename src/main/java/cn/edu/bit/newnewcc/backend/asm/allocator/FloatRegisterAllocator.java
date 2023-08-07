@@ -7,7 +7,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class FloatRegisterAllocator {
-    Map<Instruction, FloatRegister> registerMap;
+    private final Map<Instruction, FloatRegister> registerMap;
 
     public FloatRegisterAllocator() {
         registerMap = new HashMap<>();
