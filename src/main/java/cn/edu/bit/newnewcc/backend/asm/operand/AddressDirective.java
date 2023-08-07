@@ -25,6 +25,6 @@ public class AddressDirective extends Address {
 
     @Override
     public String toString() {
-        return String.format("AddressDirective(%s, %s)\n", getOffset(), getBaseAddress());
+        return String.format("AddressDirective(%s, %s)", getOffset(), getBaseAddress());
     }
 }

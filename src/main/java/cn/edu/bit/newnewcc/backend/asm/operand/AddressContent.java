@@ -31,6 +31,6 @@ public class AddressContent extends Address {
 
     @Override
     public String toString() {
-        return String.format("AddressContent(%s, %s)\n", getOffset(), getBaseAddress());
+        return String.format("AddressContent(%s, %s)", getOffset(), getBaseAddress());
     }
 }
