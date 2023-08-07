@@ -381,6 +381,85 @@ public class PatternReplacementPass {
             }
         });
 
+        // o_inst1 = mul v1, v2
+        // o_inst2 = div o_inst1, v2 -> v1
+        codePatterns.add(new CodePattern() {
+            Symbol o_inst1, o_inst2, v1, v2;
+
+            {
+                patternList.add(new InstructionPattern() {
+                    @Override
+                    protected void match_(Instruction instruction, SymbolMap symbolMap) throws MatchFailedException {
+                        if (instruction instanceof IntegerMultiplyInst integerMultiplyInst) {
+                            var type = integerMultiplyInst.getType();
+                            o_inst1 = new Symbol(type);
+                            o_inst2 = new Symbol(type);
+                            v1 = new Symbol(type);
+                            v2 = new Symbol(type);
+                            symbolMap.setValue(o_inst1, integerMultiplyInst);
+                            symbolMap.setValue(v1, integerMultiplyInst.getOperand1());
+                            symbolMap.setValue(v2, integerMultiplyInst.getOperand2());
+                        } else {
+                            throw new MatchFailedException();
+                        }
+                    }
+                });
+                patternList.add(new InstructionPattern() {
+                    @Override
+                    protected void match_(Instruction instruction, SymbolMap symbolMap) throws MatchFailedException {
+                        if (instruction instanceof IntegerSignedDivideInst integerSignedDivideInst) {
+                            symbolMap.setValue(replaceSymbol, v1);
+                            symbolMap.setValue(o_inst2, integerSignedDivideInst);
+                            symbolMap.setValue(o_inst1, integerSignedDivideInst.getOperand1());
+                            symbolMap.setValue(v2, integerSignedDivideInst.getOperand2());
+                        } else {
+                            throw new MatchFailedException();
+                        }
+                    }
+                });
+            }
+        });
+
+        // o_inst1 = mul v2, v1
+        // o_inst2 = div o_inst1, v2 -> v1
+        codePatterns.add(new CodePattern() {
+            Symbol o_inst1, o_inst2, v1, v2;
+
+            {
+                patternList.add(new InstructionPattern() {
+                    @Override
+                    protected void match_(Instruction instruction, SymbolMap symbolMap) throws MatchFailedException {
+                        if (instruction instanceof IntegerMultiplyInst integerMultiplyInst) {
+                            var type = integerMultiplyInst.getType();
+                            o_inst1 = new Symbol(type);
+                            o_inst2 = new Symbol(type);
+                            v1 = new Symbol(type);
+                            v2 = new Symbol(type);
+                            symbolMap.setValue(o_inst1, integerMultiplyInst);
+                            symbolMap.setValue(v2, integerMultiplyInst.getOperand1());
+                            symbolMap.setValue(v1, integerMultiplyInst.getOperand2());
+                        } else {
+                            throw new MatchFailedException();
+                        }
+                    }
+                });
+                patternList.add(new InstructionPattern() {
+                    @Override
+                    protected void match_(Instruction instruction, SymbolMap symbolMap) throws MatchFailedException {
+                        if (instruction instanceof IntegerSignedDivideInst integerSignedDivideInst) {
+                            symbolMap.setValue(replaceSymbol, v1);
+                            symbolMap.setValue(o_inst2, integerSignedDivideInst);
+                            symbolMap.setValue(o_inst1, integerSignedDivideInst.getOperand1());
+                            symbolMap.setValue(v2, integerSignedDivideInst.getOperand2());
+                        } else {
+                            throw new MatchFailedException();
+                        }
+                    }
+                });
+            }
+        });
+
+
         initialized = true;
     }
 
