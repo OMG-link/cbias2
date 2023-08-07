@@ -10,6 +10,7 @@ import java.util.Set;
 public class AsmCall extends AsmInstruction {
     private final List<Register> paramRegList;
     private final Register returnRegister;
+
     public AsmCall(Label label, List<Register> paramRegList, Register returnRegister) {
         super(label, null, null);
         this.paramRegList = paramRegList;
@@ -27,7 +28,7 @@ public class AsmCall extends AsmInstruction {
     @Override
     public String toString() {
         if (getReturnRegister() != null) {
-            return String.format("AsmCall(%s, (%s)->%s)", getOperand(1), getParamRegList(), getReturnRegister());
+            return String.format("AsmCall(%s, %s->%s)", getOperand(1), getParamRegList(), getReturnRegister());
         } else {
             return String.format("AsmCall(%s, %s)", getOperand(1), getParamRegList());
         }
