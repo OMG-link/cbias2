@@ -1,6 +1,5 @@
 package cn.edu.bit.newnewcc.backend.asm.util;
 
-import cn.edu.bit.newnewcc.backend.asm.controller.LifeTimeIndex;
 import cn.edu.bit.newnewcc.ir.value.Constant;
 import cn.edu.bit.newnewcc.ir.value.constant.ConstArray;
 
@@ -52,7 +51,7 @@ public class Utility {
         return count;
     }
 
-    public <T extends Comparable<T>> int upper_bound(List<T> sortedList, T val) {
+    public <T extends Comparable<T>> int upperBound(List<T> sortedList, T val) {
         int l = 0, r = sortedList.size() - 1, ans = sortedList.size();
         while (l <= r) {
             int mid = (l + r) / 2;
@@ -66,7 +65,7 @@ public class Utility {
         return ans;
     }
 
-    public <T extends Comparable<T>> int lower_bound(List<T> sortedList, T val) {
+    public <T extends Comparable<T>> int lowerBound(List<T> sortedList, T val) {
         int l = 0, r = sortedList.size() - 1, ans = sortedList.size();
         while (l <= r) {
             int mid = (l + r) / 2;
