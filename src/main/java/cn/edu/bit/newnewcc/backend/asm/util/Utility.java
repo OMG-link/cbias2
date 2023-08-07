@@ -42,7 +42,7 @@ public class Utility {
     public static boolean isPowerOf2(int x) { return x > 0 && ((x & (x - 1)) == 0);}
 
     public static int log2(int x) {
-        if (x <= 0) return -1;
+        if (x <= 0) throw new ArithmeticException();
         int count = 0;
         while (x > 1) {
             count++;
