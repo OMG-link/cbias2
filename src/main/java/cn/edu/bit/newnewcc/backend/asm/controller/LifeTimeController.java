@@ -4,7 +4,6 @@ import cn.edu.bit.newnewcc.backend.asm.AsmFunction;
 import cn.edu.bit.newnewcc.backend.asm.instruction.*;
 import cn.edu.bit.newnewcc.backend.asm.instruction.AsmInstruction;
 import cn.edu.bit.newnewcc.backend.asm.instruction.AsmJump;
-import cn.edu.bit.newnewcc.backend.asm.operand.IntRegister;
 import cn.edu.bit.newnewcc.backend.asm.operand.Label;
 import cn.edu.bit.newnewcc.backend.asm.operand.Register;
 import cn.edu.bit.newnewcc.backend.asm.util.AsmInstructions;
@@ -130,7 +129,7 @@ public class LifeTimeController {
 
     public boolean constructInterval(Register x) {
         if (!lifeTimePoints.containsKey(x)) {
-            throw new RuntimeException("construct null interval");
+            throw new IllegalArgumentException();
         }
         lifeTimePoints.get(x).removeIf((point) -> {
             if (!instIDMap.containsKey(point.getIndex().getSourceInst())) {
@@ -187,9 +186,7 @@ public class LifeTimeController {
                 blocks.add(now);
                 blockMap.put(now.blockName, now);
             }
-            if (now == null) {
-                throw new RuntimeException("function with no basic blocks");
-            }
+            Objects.requireNonNull(now);
             if (inst instanceof AsmJump) {
                 for (int j = 1; j <= 3; j++) {
                     if (inst.getOperand(j) instanceof Label label) {

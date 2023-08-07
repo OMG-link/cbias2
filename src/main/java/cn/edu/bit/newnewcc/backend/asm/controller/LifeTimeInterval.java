@@ -4,12 +4,12 @@ import cn.edu.bit.newnewcc.backend.asm.operand.Register;
 import cn.edu.bit.newnewcc.backend.asm.util.ComparablePair;
 
 public class LifeTimeInterval implements Comparable<LifeTimeInterval> {
-    public ComparablePair<LifeTimeIndex, LifeTimeIndex> range;
-    public Register reg;
+    public final ComparablePair<LifeTimeIndex, LifeTimeIndex> range;
+    public final Register reg;
 
     public int getVRegID() {
         if (!reg.isVirtual()) {
-            throw new RuntimeException("get virtual register id on physical register");
+            throw new UnsupportedOperationException();
         }
         return reg.getAbsoluteIndex();
     }
@@ -21,7 +21,7 @@ public class LifeTimeInterval implements Comparable<LifeTimeInterval> {
 
     @Override
     public String toString() {
-        return reg.emit() + ":" + range.toString();
+        return reg.getName() + ":" + range;
     }
 
     @Override

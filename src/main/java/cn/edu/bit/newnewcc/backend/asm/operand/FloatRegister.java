@@ -15,6 +15,11 @@ public class FloatRegister extends Register {
     }
 
     @Override
+    public String getName() {
+        return isVirtual() ? "vf" + getIndex() : "f" + getIndex();
+    }
+
+    @Override
     public int getIndex() {
         return index;
     }
@@ -27,7 +32,7 @@ public class FloatRegister extends Register {
 
     @Override
     public String emit() {
-        return isVirtual() ? "vf" + getIndex() : "f" + getIndex();
+        return getName();
     }
 
     @Override

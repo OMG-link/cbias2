@@ -19,6 +19,11 @@ public class IntRegister extends Register {
     }
 
     @Override
+    public String getName() {
+        return isVirtual() ? "vx" + getIndex() : "x" + getIndex();
+    }
+
+    @Override
     public int getIndex() {
         return index;
     }
@@ -31,7 +36,7 @@ public class IntRegister extends Register {
 
     @Override
     public String emit() {
-        return isVirtual() ? "vx" + getIndex() : "x" + getIndex();
+        return getName();
     }
 
     @Override

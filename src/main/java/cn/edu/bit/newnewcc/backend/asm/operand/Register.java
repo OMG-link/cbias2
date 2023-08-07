@@ -1,9 +1,7 @@
 package cn.edu.bit.newnewcc.backend.asm.operand;
 
 public abstract class Register extends AsmOperand implements RegisterReplaceable {
-    public enum Type {
-        INT, FLOAT
-    }
+    public abstract String getName();
 
     public abstract int getIndex();
 

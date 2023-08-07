@@ -3,23 +3,27 @@ package cn.edu.bit.newnewcc.backend.asm.controller;
 import cn.edu.bit.newnewcc.backend.asm.instruction.AsmInstruction;
 
 public class LifeTimeIndex implements Comparable<LifeTimeIndex> {
-    private enum TYPE {
-        in, out
+    public enum Type {
+        IN, OUT
     }
 
     private final LifeTimeController lifeTimeController;
     private final AsmInstruction sourceInst;
-    private final TYPE type;
+    private final Type type;
+
+    public Type getType() {
+        return type;
+    }
 
     public boolean isIn() {
-        return type == TYPE.in;
+        return type == Type.IN;
     }
 
     public boolean isOut() {
-        return type == TYPE.out;
+        return type == Type.OUT;
     }
 
-    private LifeTimeIndex(LifeTimeController lifeTimeController, AsmInstruction sourceInst, TYPE type) {
+    private LifeTimeIndex(LifeTimeController lifeTimeController, AsmInstruction sourceInst, Type type) {
         this.lifeTimeController = lifeTimeController;
         this.sourceInst = sourceInst;
         this.type = type;
@@ -34,11 +38,11 @@ public class LifeTimeIndex implements Comparable<LifeTimeIndex> {
     }
 
     static LifeTimeIndex getInstIn(LifeTimeController lifeTimeController, AsmInstruction sourceInst) {
-        return new LifeTimeIndex(lifeTimeController, sourceInst, TYPE.in);
+        return new LifeTimeIndex(lifeTimeController, sourceInst, Type.IN);
     }
 
     static LifeTimeIndex getInstOut(LifeTimeController lifeTimeController, AsmInstruction sourceInst) {
-        return new LifeTimeIndex(lifeTimeController, sourceInst, TYPE.out);
+        return new LifeTimeIndex(lifeTimeController, sourceInst, Type.OUT);
     }
 
     @Override
@@ -47,13 +51,13 @@ public class LifeTimeIndex implements Comparable<LifeTimeIndex> {
             return getInstID() - o.getInstID();
         }
         if (type != o.type) {
-            return type == TYPE.in ? -1 : 1;
+            return type == Type.IN ? -1 : 1;
         }
         return 0;
     }
 
     @Override
     public String toString() {
-        return getInstID() + ((type == TYPE.in) ? ".in" : ".out");
+        return getInstID() + "." + getType();
     }
 }
