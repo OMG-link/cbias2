@@ -1,8 +1,10 @@
 package cn.edu.bit.newnewcc.backend.asm.util;
 
+import cn.edu.bit.newnewcc.backend.asm.controller.LifeTimeIndex;
 import cn.edu.bit.newnewcc.ir.value.Constant;
 import cn.edu.bit.newnewcc.ir.value.constant.ConstArray;
 
+import java.util.List;
 import java.util.function.BiConsumer;
 
 public class Utility {
@@ -48,5 +50,33 @@ public class Utility {
             x >>= 1;
         }
         return count;
+    }
+
+    public <T extends Comparable<T>> int upper_bound(List<T> sortedList, T val) {
+        int l = 0, r = sortedList.size() - 1, ans = sortedList.size();
+        while (l <= r) {
+            int mid = (l + r) / 2;
+            if (sortedList.get(mid).compareTo(val) < 0) {
+                ans = mid;
+                r = mid - 1;
+            } else {
+                l = mid + 1;
+            }
+        }
+        return ans;
+    }
+
+    public <T extends Comparable<T>> int lower_bound(List<T> sortedList, T val) {
+        int l = 0, r = sortedList.size() - 1, ans = sortedList.size();
+        while (l <= r) {
+            int mid = (l + r) / 2;
+            if (sortedList.get(mid).compareTo(val) <= 0) {
+                ans = mid;
+                r = mid - 1;
+            } else {
+                l = mid + 1;
+            }
+        }
+        return ans;
     }
 }
