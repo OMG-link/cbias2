@@ -1,5 +1,6 @@
 package cn.edu.bit.newnewcc.backend.asm.optimizer;
 
+import cn.edu.bit.newnewcc.backend.asm.instruction.AsmBlockEnd;
 import cn.edu.bit.newnewcc.backend.asm.instruction.AsmInstruction;
 import cn.edu.bit.newnewcc.backend.asm.instruction.AsmLabel;
 import cn.edu.bit.newnewcc.backend.asm.instruction.AsmLoad;
@@ -25,6 +26,8 @@ public class LI0ToX0 implements Optimizer {
                 zeroRegs.clear();
                 continue;
             }
+
+            if (instr instanceof AsmBlockEnd) continue;
 
             if (isLI0(instr)) {
                 zeroRegs.add((Register) instr.getOperand(1));
