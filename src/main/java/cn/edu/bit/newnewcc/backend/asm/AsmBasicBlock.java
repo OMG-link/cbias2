@@ -586,16 +586,7 @@ public class AsmBasicBlock {
         var address = getValue(storeInst.getAddressOperand());
         var valueOperand = storeInst.getValueOperand();
         if (valueOperand instanceof ConstArray constArray) {
-            java.util.function.Function<Integer, Address> getAddress = (Integer tmpInt) -> {
-                if (address instanceof Address addressTmp) {
-                    return addressTmp;
-                } else if (address instanceof StackVar stackVar) {
-                    return transformStackVarToAddressDirective(stackVar);
-                } else {
-                    throw new RuntimeException("store ConstArray to non pointer");
-                }
-            };
-            final Address addressStore = getAddress.apply(1);
+            final Address addressStore = getAddress(address);
             Utility.workOnArray(constArray, 0, (Long offset, Constant item) -> {
                 if (item instanceof ConstInt constInt) {
                     Address dest = getOperandToAddressContent(addressStore.addOffset(offset));
@@ -652,6 +643,19 @@ public class AsmBasicBlock {
         }
     }
 
+    private Address getAddress(AsmOperand address) {
+        java.util.function.Function<Integer, Address> getAddress = (Integer tmpInt) -> {
+            if (address instanceof Address addressTmp) {
+                return addressTmp;
+            } else if (address instanceof StackVar stackVar) {
+                return transformStackVarToAddressDirective(stackVar);
+            } else {
+                throw new java.lang.IllegalArgumentException();
+            }
+        };
+        return getAddress.apply(1);
+    }
+
     private void translateCallInst(CallInst callInst) {
         BaseFunction baseFunction = callInst.getCallee();
         AsmFunction asmFunction = function.getGlobalCode().getFunction(baseFunction);
@@ -689,8 +693,7 @@ public class AsmBasicBlock {
     private void translateLoadInst(LoadInst loadInst) {
         Address address = (Address) getValue(loadInst.getAddressOperand());
         Register register = function.getRegisterAllocator().allocate(loadInst);
-        Type type = loadInst.getType();
-        if (type instanceof IntegerType integerType) {
+        if (loadInst.getType() instanceof IntegerType integerType) {
             function.appendInstruction(new AsmLoad(register, address, integerType.getBitWidth()));
         } else {
             function.appendInstruction(new AsmLoad(register, address, 32));
