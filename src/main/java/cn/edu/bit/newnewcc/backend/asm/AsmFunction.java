@@ -317,7 +317,7 @@ public class AsmFunction {
                 }
             }
         }
-        instrList.add(new AsmCall(new Label(calledFunction.getFunctionName(), true), getCalledParamRegs(calledFunction)));
+        instrList.add(new AsmCall(new Label(calledFunction.getFunctionName(), true), getCalledParamRegs(calledFunction), calledFunction.getReturnRegister()));
         if (returnRegister != null) {
             instrList.add(new AsmMove(returnRegister, calledFunction.getReturnRegister()));
         }
