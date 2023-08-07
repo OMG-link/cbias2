@@ -64,7 +64,7 @@ public class LinearScanRegisterControl extends RegisterControl{
     public void virtualRegAllocateToPhysics() {
         List<Register> vRegList = new ArrayList<>();
         List<Pair<Integer, Integer>> recycleList = new ArrayList<>();
-        for (var index : function.getLifeTimeController().getKeySet()) {
+        for (var index : function.getLifeTimeController().getVRegKeySet()) {
             vRegList.add(function.getRegisterAllocator().get(index));
             recycleList.add(new Pair<>(index, function.getLifeTimeController().getLifeTimeRange(index).b.getInstID()));
         }
@@ -146,7 +146,7 @@ public class LinearScanRegisterControl extends RegisterControl{
         for (int i = 0; i <= instructionList.size() + 1; i++) {
             callSavedRegisters.add(new ArrayList<>());
         }
-        for (var index : function.getLifeTimeController().getKeySet()) {
+        for (var index : function.getLifeTimeController().getVRegKeySet()) {
             if (vRegLocation.get(index) instanceof Register) {
                 var lifeTime = function.getLifeTimeController().getLifeTimeRange(index);
                 callSavedRegisters.get(lifeTime.a.getInstID()).add(new Pair<>(index, 1));

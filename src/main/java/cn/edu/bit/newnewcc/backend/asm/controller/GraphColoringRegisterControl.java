@@ -5,7 +5,6 @@ import cn.edu.bit.newnewcc.backend.asm.allocator.StackAllocator;
 import cn.edu.bit.newnewcc.backend.asm.instruction.AsmInstruction;
 import cn.edu.bit.newnewcc.backend.asm.instruction.AsmLabel;
 import cn.edu.bit.newnewcc.backend.asm.operand.IntRegister;
-import cn.edu.bit.newnewcc.backend.asm.operand.IntRegister;
 import cn.edu.bit.newnewcc.backend.asm.operand.Register;
 import cn.edu.bit.newnewcc.backend.asm.util.Registers;
 import cn.edu.bit.newnewcc.ir.value.BasicBlock;
@@ -20,8 +19,10 @@ public class GraphColoringRegisterControl extends RegisterControl {
 
     private List<Register> registers, physicRegisters;
     private final List<LifeTimeInterval> intervals = new ArrayList<>();
-    private final Map<Integer, Set<Integer>> edges = new HashMap<>();
+    private final Map<Register, Set<Register>> edges = new HashMap<>();
     private final Map<Register, Register> physicRegisterMap = new HashMap<>();
+    private final Map<Register, Integer> spillCost = new HashMap<>();
+    private final static int inf = 0x3f3f3f3f;
 
     void getRegisterCost(List<AsmInstruction> instructionList) {
         var irFunction = function.getBaseFunction();
@@ -36,6 +37,26 @@ public class GraphColoringRegisterControl extends RegisterControl {
                 indexBlockMap.put(index, function.getBasicBlockByLabel(label));
             }
         }
+        int nowBlockId = 0;
+        for (var reg : registers) {
+            spillCost.put(reg, 0);
+            for (var point : function.getLifeTimeController().getPoints(reg)) {
+                while (nowBlockId + 1 < blockIndexList.size() && blockIndexList.get(nowBlockId + 1).compareTo(point.getIndex()) < 0) {
+                    nowBlockId += 1;
+                }
+                var index = blockIndexList.get(nowBlockId);
+                var block = indexBlockMap.get(index);
+                var loop = basicBlockLoopMap.get(block);
+                int val = 1;
+                if (loop != null) {
+                    int loopDepth = loop.getLoopDepth();
+                    for (int i = 0; i <= loopDepth; i++) {
+                        val = Math.toIntExact(Long.min(inf, val * 10L));
+                    }
+                }
+                spillCost.put(reg, Math.min(inf, spillCost.get(reg) + val));
+            }
+        }
     }
 
     Register getVReg(int x) {
@@ -46,17 +67,18 @@ public class GraphColoringRegisterControl extends RegisterControl {
         edges.clear();
         intervals.clear();
         for (var reg : registers) {
-            intervals.addAll(function.getLifeTimeController().getInterval(reg.getIndex()));
-            edges.put(reg.getIndex(), new HashSet<>());
+            intervals.addAll(function.getLifeTimeController().getInterval(reg));
+            edges.put(reg, new HashSet<>());
         }
         Collections.sort(intervals);
         Set<LifeTimeInterval> activeSet = new HashSet<>();
         for (var now : intervals) {
             activeSet.removeIf((r) -> r.range.b.compareTo(now.range.a) < 0);
             for (var last : activeSet) {
-                int u = now.vRegID, v = last.vRegID;
-                edges.get(u).add(v);
-                edges.get(v).add(u);
+                var ru = now.reg;
+                var rv = last.reg;
+                edges.get(ru).add(rv);
+                edges.get(rv).add(ru);
             }
             activeSet.add(now);
         }
@@ -64,21 +86,21 @@ public class GraphColoringRegisterControl extends RegisterControl {
 
     boolean color() {
         physicRegisterMap.clear();
-        Map<Integer, Integer> degree = new HashMap<>();
+        Map<Register, Integer> degree = new HashMap<>();
         for (var x : edges.keySet()) {
             degree.put(x, edges.get(x).size());
         }
-        Queue<Integer> queue = new ArrayDeque<>();
-        Set<Integer> inQueue = new HashSet<>();
+        Queue<Register> queue = new ArrayDeque<>();
+        Set<Register> inQueue = new HashSet<>();
         for (var x : edges.keySet()) {
             if (degree.get(x) < physicRegisters.size()) {
                 queue.add(x);
                 inQueue.add(x);
             }
         }
-        Stack<Integer> stack = new Stack<>();
+        Stack<Register> stack = new Stack<>();
         while (!queue.isEmpty()) {
-            int v = queue.remove();
+            var v = queue.remove();
             stack.push(v);
             for (var u : edges.get(v)) {
                 degree.put(u, degree.get(u) - 1);
@@ -94,16 +116,16 @@ public class GraphColoringRegisterControl extends RegisterControl {
             return false;
         }
         while (!stack.empty()) {
-            int v = stack.pop();
+            var v = stack.pop();
             Set<Register> occupied = new HashSet<>();
             for (var u : edges.get(v)) {
-                if (physicRegisterMap.containsKey(getVReg(u))) {
-                    occupied.add(physicRegisterMap.get(getVReg(u)));
+                if (physicRegisterMap.containsKey(u)) {
+                    occupied.add(physicRegisterMap.get(u));
                 }
             }
             for (var pReg : physicRegisters) {
                 if (!occupied.contains(pReg)) {
-                    physicRegisterMap.put(getVReg(v), pReg);
+                    physicRegisterMap.put(v, pReg);
                     break;
                 }
             }
@@ -125,7 +147,7 @@ public class GraphColoringRegisterControl extends RegisterControl {
     public List<AsmInstruction> work(List<AsmInstruction> instructionList) {
         List<Register> intRegList = new ArrayList<>(), floatRegList = new ArrayList<>();
         List<Register> intPRegList = new ArrayList<>(), floatPRegList = new ArrayList<>();
-        for (var x : function.getLifeTimeController().getKeySet()) {
+        for (var x : function.getLifeTimeController().getVRegKeySet()) {
             var reg = getVReg(x);
             if (reg instanceof IntRegister) {
                 intRegList.add(reg);
