@@ -21,6 +21,7 @@ public class FloatRegister extends Register {
 
     @Override
     public void setIndex(int index) {
+        if (!isVirtual()) throw new UnsupportedOperationException();
         this.index = index;
     }
 
