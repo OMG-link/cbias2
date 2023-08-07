@@ -227,6 +227,13 @@ public class AsmFunction {
         return asmLabelToBasicBlockMap.get(label);
     }
 
+    public Function getBaseFunction() {
+        if (baseFunction instanceof Function function) {
+            return function;
+        }
+        throw new RuntimeException("get wrong function type");
+    }
+
     public AsmOperand getParameterByFormal(Value formalParameter) {
         var result = formalParameterMap.get(formalParameter);
         if (result instanceof StackVar stackVar) {
