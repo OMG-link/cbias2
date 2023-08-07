@@ -1,25 +1,28 @@
 package cn.edu.bit.newnewcc.backend.asm.operand;
 
-public abstract class Address extends AsmOperand implements RegisterReplaceable {
-    protected final long offset;
-    protected final IntRegister baseAddress;
-    protected Address(long offset, IntRegister baseAddress) {
+public class Address extends AsmOperand implements RegisterReplaceable {
+    private final long offset;
+    private final IntRegister baseAddress;
+
+    public Address(long offset, IntRegister baseAddress) {
         this.offset = offset;
         this.baseAddress = baseAddress;
     }
 
-    public abstract Address replaceBaseRegister(IntRegister newBaseRegister);
-
-    public abstract Address addOffset(long offsetDiff);
-
-    public abstract Address setOffset(long newOffset);
-
-    public AddressContent getAddressContent() {
-        return new AddressContent(offset, baseAddress);
+    public Address withBaseRegister(IntRegister newBaseRegister) {
+        return new Address(getOffset(), newBaseRegister);
     }
 
-    public AddressDirective getAddressDirective() {
-        return new AddressDirective(offset, baseAddress);
+    public Address addOffset(long diff) {
+        return new Address(getOffset() + diff, getBaseAddress());
+    }
+
+    public Address setOffset(long newOffset) {
+        return new Address(newOffset, getBaseAddress());
+    }
+
+    public Address getAddress() {
+        return new Address(getOffset(), getBaseAddress());
     }
 
     public long getOffset() {
@@ -32,20 +35,24 @@ public abstract class Address extends AsmOperand implements RegisterReplaceable 
 
     @Override
     public IntRegister getRegister() {
-        return baseAddress;
+        return getBaseAddress();
     }
 
     @Override
     public Address replaceRegister(Register register) {
-        if (register instanceof IntRegister intRegister) {
-            return replaceBaseRegister(intRegister);
-        } else {
-            throw new RuntimeException("put float register into address");
-        }
+        if (!(register instanceof IntRegister))
+            throw new IllegalArgumentException();
+
+        return withBaseRegister((IntRegister) register);
     }
 
     public String emit() {
-        return String.format("%d(%s)", offset, baseAddress.emit());
+        return String.format("%d(%s)", getOffset(), getBaseAddress().emit());
+    }
+
+    @Override
+    public String toString() {
+        return String.format("Address(%s, %s)", getOffset(), getBaseAddress());
     }
 
     @Override

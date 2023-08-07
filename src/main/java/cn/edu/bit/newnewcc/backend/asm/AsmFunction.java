@@ -86,7 +86,7 @@ public class AsmFunction {
         IntRegister rAddress = registerAllocator.allocateInt();
         FloatRegister tmp = registerAllocator.allocateFloat();
         appendInstruction.accept(new AsmLoad(rAddress, constantFloat.getConstantLabel()));
-        appendInstruction.accept(new AsmLoad(tmp, new AddressContent(0, rAddress), 32));
+        appendInstruction.accept(new AsmLoad(tmp, new Address(0, rAddress), 32));
         return tmp;
     }
     public IntRegister transConstLong(long value, Consumer<AsmInstruction> appendInstruction) {
@@ -94,7 +94,7 @@ public class AsmFunction {
         IntRegister rAddress = registerAllocator.allocateInt();
         IntRegister tmp = registerAllocator.allocateInt();
         appendInstruction.accept(new AsmLoad(rAddress, constantLong.getConstantLabel()));
-        appendInstruction.accept(new AsmLoad(tmp, new AddressContent(0, rAddress), 64));
+        appendInstruction.accept(new AsmLoad(tmp, new Address(0, rAddress), 64));
         return tmp;
     }
 
@@ -332,7 +332,7 @@ public class AsmFunction {
         newInstructionList.add(new AsmLoad(tmp, offset));
         IntRegister t2 = registerAllocator.allocateInt();
         newInstructionList.add(new AsmAdd(t2, tmp, stackAddress.getRegister(), 64));
-        Address now = new AddressContent(0, t2);
+        Address now = new Address(0, t2);
         return ExStackVarContent.transform(stackVar, now);
     }
 
