@@ -79,6 +79,9 @@ public class AsmInstructions {
             RegisterReplaceable op = (RegisterReplaceable) instr.getOperand(i);
             result.add(op.getRegister());
         }
+        if (instr instanceof AsmCall call) {
+            result.add(call.getReturnRegister());
+        }
         return Collections.unmodifiableSet(result);
     }
 
@@ -96,6 +99,9 @@ public class AsmInstructions {
         for (int i : getReadRegId(instr)) {
             RegisterReplaceable op = (RegisterReplaceable) instr.getOperand(i);
             result.add(op.getRegister());
+        }
+        if (instr instanceof AsmCall call) {
+            result.addAll(call.getParamRegList());
         }
         return Collections.unmodifiableSet(result);
     }

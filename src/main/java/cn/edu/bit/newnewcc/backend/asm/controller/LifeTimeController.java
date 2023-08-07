@@ -4,10 +4,12 @@ import cn.edu.bit.newnewcc.backend.asm.AsmFunction;
 import cn.edu.bit.newnewcc.backend.asm.instruction.*;
 import cn.edu.bit.newnewcc.backend.asm.instruction.AsmInstruction;
 import cn.edu.bit.newnewcc.backend.asm.instruction.AsmJump;
+import cn.edu.bit.newnewcc.backend.asm.operand.IntRegister;
 import cn.edu.bit.newnewcc.backend.asm.operand.Label;
 import cn.edu.bit.newnewcc.backend.asm.operand.Register;
 import cn.edu.bit.newnewcc.backend.asm.util.AsmInstructions;
 import cn.edu.bit.newnewcc.backend.asm.util.ComparablePair;
+import cn.edu.bit.newnewcc.backend.asm.util.Registers;
 
 import java.util.*;
 
@@ -243,6 +245,9 @@ public class LifeTimeController {
                 insertLifeTimePoint(x, LifeTimePoint.getUse(index));
             }
         }
+        for (var constantReg : Registers.getConstantRegisters()) {
+            lifeTimePoints.remove(constantReg);
+        }
     }
     private void buildLifeTimeMessage(List<AsmInstruction> instructionList) {
         buildLifeTimePoints(instructionList);
@@ -259,7 +264,7 @@ public class LifeTimeController {
         }
     }
 
-    public void getAllVRegLifeTime(List<AsmInstruction> instructionList) {
+    public void getAllRegLifeTime(List<AsmInstruction> instructionList) {
         init();
         buildInstID(instructionList);
         buildBlocks(instructionList);

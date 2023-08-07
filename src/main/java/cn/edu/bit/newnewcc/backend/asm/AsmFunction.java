@@ -11,7 +11,6 @@ import cn.edu.bit.newnewcc.backend.asm.operand.*;
 import cn.edu.bit.newnewcc.backend.asm.optimizer.OptimizerManager;
 import cn.edu.bit.newnewcc.backend.asm.util.AsmInstructions;
 import cn.edu.bit.newnewcc.backend.asm.util.BackendOptimizer;
-import cn.edu.bit.newnewcc.backend.asm.util.Pair;
 import cn.edu.bit.newnewcc.ir.Value;
 import cn.edu.bit.newnewcc.ir.type.FloatType;
 import cn.edu.bit.newnewcc.ir.type.IntegerType;
@@ -163,7 +162,7 @@ public class AsmFunction {
 
             new OptimizerManager().runOn(instrList);
 
-            lifeTimeController.getAllVRegLifeTime(instrList);
+            lifeTimeController.getAllRegLifeTime(instrList);
             asmOptimizerBeforeRegisterAllocate(lifeTimeController);
             reAllocateRegister();
             asmOptimizerAfterRegisterAllocate();
