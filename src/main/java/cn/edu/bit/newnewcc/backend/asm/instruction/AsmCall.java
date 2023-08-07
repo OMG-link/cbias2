@@ -27,7 +27,7 @@ public class AsmCall extends AsmInstruction {
     }
 
     @Override
-    public Set<Integer> getUse() {
+    public Set<Register> getUse() {
         return Set.of();
     }
 

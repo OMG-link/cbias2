@@ -144,11 +144,9 @@ public class AsmFunction {
                 }
             }
 
-            lifeTimeController.getAllVRegLifeTime(instrList);
-
             new OptimizerManager().runOn(instrList);
-            lifeTimeController.rebuildLifeTimeInterval(instrList);
 
+            lifeTimeController.getAllVRegLifeTime(instrList);
             asmOptimizerBeforeRegisterAllocate(lifeTimeController);
             reAllocateRegister();
             asmOptimizerAfterRegisterAllocate();

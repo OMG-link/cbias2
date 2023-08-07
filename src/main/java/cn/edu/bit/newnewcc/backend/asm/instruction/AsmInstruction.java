@@ -62,7 +62,7 @@ public abstract class AsmInstruction {
 
     public abstract Set<Register> getDef();
 
-    public abstract Set<Integer> getUse();
+    public abstract Set<Register> getUse();
 
     public abstract boolean willReturn();
 

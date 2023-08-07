@@ -3,6 +3,7 @@ package cn.edu.bit.newnewcc.backend.asm.instruction;
 import cn.edu.bit.newnewcc.backend.asm.operand.IntRegister;
 import cn.edu.bit.newnewcc.backend.asm.operand.Register;
 
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -56,8 +57,8 @@ public class AsmSignedIntegerDivide extends AsmInstruction {
     }
 
     @Override
-    public Set<Integer> getUse() {
-        return Set.of(2, 3);
+    public Set<Register> getUse() {
+        return Set.copyOf(List.of((Register) getOperand(2), (Register) getOperand(3)));
     }
 
     @Override

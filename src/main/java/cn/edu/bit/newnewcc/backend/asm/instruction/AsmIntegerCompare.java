@@ -5,6 +5,7 @@ import cn.edu.bit.newnewcc.backend.asm.operand.Immediate;
 import cn.edu.bit.newnewcc.backend.asm.operand.IntRegister;
 import cn.edu.bit.newnewcc.backend.asm.operand.Register;
 
+import java.util.List;
 import java.util.Set;
 
 public class AsmIntegerCompare extends AsmInstruction {
@@ -46,14 +47,6 @@ public class AsmIntegerCompare extends AsmInstruction {
         return condition;
     }
 
-    public static AsmIntegerCompare createEQZ(IntRegister dest, IntRegister source) {
-        return new AsmIntegerCompare(Opcode.SEQZ, Condition.EQZ, dest, source, null);
-    }
-
-    public static AsmIntegerCompare createNEZ(IntRegister dest, IntRegister source) {
-        return new AsmIntegerCompare(Opcode.SNEZ, Condition.NEZ, dest, source, null);
-    }
-
     @Override
     public String toString() {
         return switch (getOpcode()) {
@@ -76,8 +69,11 @@ public class AsmIntegerCompare extends AsmInstruction {
     }
 
     @Override
-    public Set<Integer> getUse() {
-        return Set.of(2, 3);
+    public Set<Register> getUse() {
+        return switch (getOpcode()) {
+            case SEQZ, SNEZ, SLTI -> Set.of((Register) getOperand(2));
+            case SLT -> Set.copyOf(List.of((Register) getOperand(2), (Register) getOperand(3)));
+        };
     }
 
     @Override
@@ -88,6 +84,14 @@ public class AsmIntegerCompare extends AsmInstruction {
     @Override
     public boolean mayWriteToMemory() {
         return false;
+    }
+
+    public static AsmIntegerCompare createEQZ(IntRegister dest, IntRegister source) {
+        return new AsmIntegerCompare(Opcode.SEQZ, Condition.EQZ, dest, source, null);
+    }
+
+    public static AsmIntegerCompare createNEZ(IntRegister dest, IntRegister source) {
+        return new AsmIntegerCompare(Opcode.SNEZ, Condition.NEZ, dest, source, null);
     }
 
     public static AsmIntegerCompare createLT(IntRegister dest, IntRegister source1, IntRegister source2) {

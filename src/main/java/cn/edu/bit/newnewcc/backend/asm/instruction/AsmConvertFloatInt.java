@@ -57,8 +57,8 @@ public class AsmConvertFloatInt extends AsmInstruction {
     }
 
     @Override
-    public Set<Integer> getUse() {
-        return Set.of(2);
+    public Set<Register> getUse() {
+        return Set.of((Register) getOperand(2));
     }
 
     @Override

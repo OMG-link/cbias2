@@ -3,6 +3,7 @@ package cn.edu.bit.newnewcc.backend.asm.instruction;
 import cn.edu.bit.newnewcc.backend.asm.operand.*;
 import cn.edu.bit.newnewcc.ir.exception.IllegalArgumentException;
 
+import java.util.List;
 import java.util.Set;
 
 public class AsmStore extends AsmInstruction {
@@ -74,8 +75,11 @@ public class AsmStore extends AsmInstruction {
     }
 
     @Override
-    public Set<Integer> getUse() {
-        return Set.of(1);
+    public Set<Register> getUse() {
+        if (getOperand(2) instanceof Address)
+            return Set.copyOf(List.of((Register) getOperand(1), ((Address) getOperand(2)).getBaseAddress()));
+        else
+            return Set.copyOf(List.of((Register) getOperand(1), ((StackVar) getOperand(2)).getAddress().getBaseAddress()));
     }
 
     @Override

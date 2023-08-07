@@ -2,6 +2,7 @@ package cn.edu.bit.newnewcc.backend.asm.instruction;
 
 import cn.edu.bit.newnewcc.backend.asm.operand.*;
 
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -69,10 +70,10 @@ public class AsmAdd extends AsmInstruction {
     }
 
     @Override
-    public Set<Integer> getUse() {
+    public Set<Register> getUse() {
         return switch (getOpcode()) {
-            case ADD, ADDW, FADDS -> Set.of(2, 3);
-            case ADDI, ADDIW -> Set.of(2);
+            case ADD, ADDW, FADDS -> Set.copyOf(List.of((Register) getOperand(2), (Register) getOperand(3)));
+            case ADDI, ADDIW -> Set.of((Register) getOperand(2));
         };
     }
 

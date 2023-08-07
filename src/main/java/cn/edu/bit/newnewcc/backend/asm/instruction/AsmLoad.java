@@ -108,10 +108,17 @@ public class AsmLoad extends AsmInstruction {
     }
 
     @Override
-    public Set<Integer> getUse() {
+    public Set<Register> getUse() {
         return switch (getOpcode()) {
-            case MV, FMVS -> Set.of(2);
-            case LD, LW, LUI, LI, LA, FLD, FLW -> Set.of();
+            case MV, FMVS -> Set.of((Register) getOperand(2));
+            case LD, LW, LUI, LI, LA, FLD, FLW -> {
+                if (getOperand(2) instanceof Address address)
+                    yield Set.of(address.getBaseAddress());
+                else if (getOperand(2) instanceof StackVar stackVar)
+                    yield Set.of(stackVar.getAddress().getBaseAddress());
+                else
+                    yield Set.of();
+            }
         };
     }
 

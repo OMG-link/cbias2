@@ -36,7 +36,7 @@ public class AsmLabel extends AsmInstruction {
     }
 
     @Override
-    public Set<Integer> getUse() {
+    public Set<Register> getUse() {
         throw new UnsupportedOperationException();
     }
 

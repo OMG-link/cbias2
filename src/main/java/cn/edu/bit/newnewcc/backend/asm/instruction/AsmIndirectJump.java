@@ -26,8 +26,8 @@ public class AsmIndirectJump extends AsmInstruction {
     }
 
     @Override
-    public Set<Integer> getUse() {
-        return Set.of(1);
+    public Set<Register> getUse() {
+        return Set.of((Register) getOperand(1));
     }
 
     @Override

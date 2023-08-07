@@ -5,6 +5,7 @@ import cn.edu.bit.newnewcc.backend.asm.operand.Label;
 import cn.edu.bit.newnewcc.backend.asm.operand.IntRegister;
 import cn.edu.bit.newnewcc.backend.asm.operand.Register;
 
+import java.util.List;
 import java.util.Set;
 
 public class AsmJump extends AsmInstruction {
@@ -97,11 +98,11 @@ public class AsmJump extends AsmInstruction {
     }
 
     @Override
-    public Set<Integer> getUse() {
+    public Set<Register> getUse() {
         return switch (getCondition()) {
             case UNCONDITIONAL -> Set.of();
-            case LTZ, GTZ, LEZ, GEZ, EQZ, NEZ -> Set.of(1);
-            case LT, GT, LE, GE, EQ, NE -> Set.of(1, 2);
+            case LTZ, GTZ, LEZ, GEZ, EQZ, NEZ -> Set.of((Register) getOperand(1));
+            case LT, GT, LE, GE, EQ, NE -> Set.copyOf(List.of((Register) getOperand(1), (Register) getOperand(2)));
         };
     }
 

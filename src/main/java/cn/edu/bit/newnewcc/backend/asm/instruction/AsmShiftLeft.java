@@ -5,6 +5,7 @@ import cn.edu.bit.newnewcc.backend.asm.operand.Immediate;
 import cn.edu.bit.newnewcc.backend.asm.operand.IntRegister;
 import cn.edu.bit.newnewcc.backend.asm.operand.Register;
 
+import java.util.List;
 import java.util.Set;
 
 public class AsmShiftLeft extends AsmInstruction {
@@ -64,10 +65,10 @@ public class AsmShiftLeft extends AsmInstruction {
     }
 
     @Override
-    public Set<Integer> getUse() {
+    public Set<Register> getUse() {
         return switch (getOpcode()) {
-            case SLL, SLLW -> Set.of(2, 3);
-            case SLLI, SLLIW -> Set.of(2);
+            case SLL, SLLW -> Set.copyOf(List.of((Register) getOperand(2), (Register) getOperand(3)));
+            case SLLI, SLLIW -> Set.of((Register) getOperand(2));
         };
     }
 
