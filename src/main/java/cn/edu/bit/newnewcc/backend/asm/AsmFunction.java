@@ -316,16 +316,16 @@ public class AsmFunction {
                 }
             }
         }
-        instrList.add(new AsmCall(new Label(calledFunction.getFunctionName(), true), getCalledParamRegs(calledFunction), calledFunction.getReturnRegister()));
+        instrList.add(new AsmCall(new Label(calledFunction.getFunctionName(), true), calledFunction.getParamRegs(), calledFunction.getReturnRegister()));
         if (returnRegister != null) {
             instrList.add(new AsmMove(returnRegister, calledFunction.getReturnRegister()));
         }
         return instrList;
     }
 
-    public List<Register> getCalledParamRegs(AsmFunction calledFunction) {
+    public List<Register> getParamRegs() {
         List<Register> paramRegList = new ArrayList<>();
-        for (var para : calledFunction.getFormalParameterList()) {
+        for (var para : getFormalParameterList()) {
             if (para instanceof Register paramReg) {
                 paramRegList.add(paramReg);
             }
