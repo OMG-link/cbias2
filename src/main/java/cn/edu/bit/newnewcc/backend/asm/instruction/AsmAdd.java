@@ -38,7 +38,7 @@ public class AsmAdd extends AsmInstruction {
         if (source2 instanceof Register) {
             if (bitLength == 64) opcode = Opcode.ADD;
             else opcode = Opcode.ADDW;
-        } else if (source2 instanceof Immediate || source2 instanceof Label || source2 instanceof Address) {
+        } else if (source2 instanceof Immediate || source2 instanceof Label || source2 instanceof MemoryAddress) {
             if (bitLength == 64) opcode = Opcode.ADDI;
             else opcode = Opcode.ADDIW;
         } else {

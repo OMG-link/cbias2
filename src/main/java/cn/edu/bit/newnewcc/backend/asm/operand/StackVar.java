@@ -5,7 +5,7 @@ package cn.edu.bit.newnewcc.backend.asm.operand;
  */
 public class StackVar extends AsmOperand implements RegisterReplaceable {
 
-    protected Address address;
+    protected MemoryAddress address;
     protected int size;
     protected boolean isS0;
 
@@ -18,14 +18,14 @@ public class StackVar extends AsmOperand implements RegisterReplaceable {
     public StackVar(long offset, int size, boolean isS0) {
         this.isS0 = isS0;
         if (isS0) {
-            this.address = new Address(offset, IntRegister.S0);
+            this.address = new MemoryAddress(offset, IntRegister.S0);
         } else {
-            this.address = new Address(offset, IntRegister.SP);
+            this.address = new MemoryAddress(offset, IntRegister.SP);
         }
         this.size = size;
     }
 
-    protected StackVar(Address address, int size, boolean isS0Based) {
+    protected StackVar(MemoryAddress address, int size, boolean isS0Based) {
         this.address = address;
         this.size = size;
         this.isS0 = isS0Based;
@@ -43,7 +43,7 @@ public class StackVar extends AsmOperand implements RegisterReplaceable {
      * 注意，当拆解StackVar时，务必转换为ExStackVarOffset的形式，禁止暴露栈帧的裸地址，避免偏移计算出错
      * @return 返回栈变量对应地址
      */
-    public Address getAddress() {
+    public MemoryAddress getAddress() {
         return this.address;
     }
 

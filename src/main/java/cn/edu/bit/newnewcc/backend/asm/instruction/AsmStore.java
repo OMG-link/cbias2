@@ -40,7 +40,7 @@ public class AsmStore extends AsmInstruction {
         }
     }
 
-    public AsmStore(Register source, Address dest, int bitLength) {
+    public AsmStore(Register source, MemoryAddress dest, int bitLength) {
         super(source, dest, null);
 
         if (bitLength != 64 && bitLength != 32)
@@ -76,8 +76,8 @@ public class AsmStore extends AsmInstruction {
 
     @Override
     public Set<Register> getUse() {
-        if (getOperand(2) instanceof Address)
-            return Set.copyOf(List.of((Register) getOperand(1), ((Address) getOperand(2)).getBaseAddress()));
+        if (getOperand(2) instanceof MemoryAddress)
+            return Set.copyOf(List.of((Register) getOperand(1), ((MemoryAddress) getOperand(2)).getBaseAddress()));
         else
             return Set.copyOf(List.of((Register) getOperand(1), ((StackVar) getOperand(2)).getAddress().getBaseAddress()));
     }

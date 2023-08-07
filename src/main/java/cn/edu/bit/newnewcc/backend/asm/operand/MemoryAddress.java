@@ -1,28 +1,28 @@
 package cn.edu.bit.newnewcc.backend.asm.operand;
 
-public class Address extends AsmOperand implements RegisterReplaceable {
+public class MemoryAddress extends AsmOperand implements RegisterReplaceable {
     private final long offset;
     private final IntRegister baseAddress;
 
-    public Address(long offset, IntRegister baseAddress) {
+    public MemoryAddress(long offset, IntRegister baseAddress) {
         this.offset = offset;
         this.baseAddress = baseAddress;
     }
 
-    public Address withBaseRegister(IntRegister newBaseRegister) {
-        return new Address(getOffset(), newBaseRegister);
+    public MemoryAddress withBaseRegister(IntRegister newBaseRegister) {
+        return new MemoryAddress(getOffset(), newBaseRegister);
     }
 
-    public Address addOffset(long diff) {
-        return new Address(getOffset() + diff, getBaseAddress());
+    public MemoryAddress addOffset(long diff) {
+        return new MemoryAddress(getOffset() + diff, getBaseAddress());
     }
 
-    public Address setOffset(long newOffset) {
-        return new Address(newOffset, getBaseAddress());
+    public MemoryAddress setOffset(long newOffset) {
+        return new MemoryAddress(newOffset, getBaseAddress());
     }
 
-    public Address getAddress() {
-        return new Address(getOffset(), getBaseAddress());
+    public MemoryAddress getAddress() {
+        return new MemoryAddress(getOffset(), getBaseAddress());
     }
 
     public long getOffset() {
@@ -39,7 +39,7 @@ public class Address extends AsmOperand implements RegisterReplaceable {
     }
 
     @Override
-    public Address replaceRegister(Register register) {
+    public MemoryAddress replaceRegister(Register register) {
         if (!(register instanceof IntRegister))
             throw new IllegalArgumentException();
 
@@ -52,7 +52,7 @@ public class Address extends AsmOperand implements RegisterReplaceable {
 
     @Override
     public String toString() {
-        return String.format("Address(%s, %s)", getOffset(), getBaseAddress());
+        return String.format("MemoryAddress(%s, %s)", getOffset(), getBaseAddress());
     }
 
     @Override
@@ -61,7 +61,7 @@ public class Address extends AsmOperand implements RegisterReplaceable {
         if (o == null || getClass() != o.getClass()) return false;
         if (!super.equals(o)) return false;
 
-        Address address = (Address) o;
+        MemoryAddress address = (MemoryAddress) o;
 
         if (offset != address.offset) return false;
         return baseAddress.equals(address.baseAddress);

@@ -63,7 +63,7 @@ public class AsmBasicBlock {
             AsmGlobalVariable asmGlobalVariable = function.getGlobalCode().getGlobalVariable(globalVariable);
             IntRegister reg = function.getRegisterAllocator().allocateInt();
             function.appendInstruction(new AsmLoad(reg, asmGlobalVariable.emitNoSegmentLabel()));
-            return new Address(0, reg);
+            return new MemoryAddress(0, reg);
         } else if (value instanceof Function.FormalParameter formalParameter) {
             return function.getParameterByFormal(formalParameter);
         } else if (value instanceof Instruction instruction) {
@@ -110,14 +110,14 @@ public class AsmBasicBlock {
 
     private AsmOperand getValueByType(Value value, Type type) {
         var result = getValue(value);
-        if (type instanceof PointerType && result instanceof Address address) {
+        if (type instanceof PointerType && result instanceof MemoryAddress address) {
             return getAddressToIntRegister(address.getAddress());
         } else {
             return result;
         }
     }
 
-    private IntRegister getAddressToIntRegister(Address address) {
+    private IntRegister getAddressToIntRegister(MemoryAddress address) {
         if (address.getOffset() == 0) {
             return address.getRegister();
         } else {
@@ -137,7 +137,7 @@ public class AsmBasicBlock {
     private IntRegister getOperandToIntRegister(AsmOperand operand) {
         if (operand instanceof IntRegister intRegister) {
             return intRegister;
-        } else if (operand instanceof Address addressDirective) {
+        } else if (operand instanceof MemoryAddress addressDirective) {
             return getAddressToIntRegister(addressDirective);
         }
         IntRegister result = function.getRegisterAllocator().allocateInt();
@@ -184,21 +184,21 @@ public class AsmBasicBlock {
         return instBlockLabel;
     }
 
-    private Address transformStackVarToAddress(StackVar stackVar) {
+    private MemoryAddress transformStackVarToAddress(StackVar stackVar) {
         IntRegister tmp = function.getRegisterAllocator().allocateInt();
-        Address now = stackVar.getAddress();
+        MemoryAddress now = stackVar.getAddress();
         IntRegister t2 = function.getRegisterAllocator().allocateInt();
         function.appendInstruction(new AsmLoad(t2, ExStackVarOffset.transform(now.getOffset())));
         function.appendInstruction(new AsmAdd(tmp, t2, now.getRegister(), 64));
         return now.withBaseRegister(tmp).setOffset(0).getAddress();
     }
 
-    private Address getOperandToAddress(AsmOperand operand) {
-        if (operand instanceof Address address) {
+    private MemoryAddress getOperandToAddress(AsmOperand operand) {
+        if (operand instanceof MemoryAddress address) {
             var offset = address.getOffset();
             if (Immediates.bitLengthNotInLimit(offset)) {
                 var tmp = getAddressToIntRegister(address);
-                return new Address(0, tmp);
+                return new MemoryAddress(0, tmp);
             } else {
                 return address.getAddress();
             }
@@ -208,7 +208,7 @@ public class AsmBasicBlock {
             }
             return transformStackVarToAddress(stackVar);
         } else if (operand instanceof IntRegister intRegister) {
-            return new Address(0, intRegister);
+            return new MemoryAddress(0, intRegister);
         } else {
             throw new NoSuchElementException();
         }
@@ -579,10 +579,10 @@ public class AsmBasicBlock {
         var address = getValue(storeInst.getAddressOperand());
         var valueOperand = storeInst.getValueOperand();
         if (valueOperand instanceof ConstArray constArray) {
-            final Address addressStore = getAddress(address);
+            final MemoryAddress addressStore = getAddress(address);
             Utility.workOnArray(constArray, 0, (Long offset, Constant item) -> {
                 if (item instanceof ConstInt constInt) {
-                    Address dest = getOperandToAddress(addressStore.addOffset(offset));
+                    MemoryAddress dest = getOperandToAddress(addressStore.addOffset(offset));
                     Immediate source = new Immediate(constInt.getValue());
                     IntRegister tmp = function.getRegisterAllocator().allocateInt();
                     function.appendInstruction(new AsmLoad(tmp, source));
@@ -590,7 +590,7 @@ public class AsmBasicBlock {
                 }
             }, (Long offset, Long length) -> {
                 for (long i = 0; i < length; i += 4) {
-                    Address dest = getOperandToAddress(addressStore.addOffset(offset));
+                    MemoryAddress dest = getOperandToAddress(addressStore.addOffset(offset));
                     function.appendInstruction(new AsmStore(IntRegister.ZERO, dest, 32));
                     offset += 4;
                 }
@@ -604,8 +604,8 @@ public class AsmBasicBlock {
             if (source instanceof Register register) {
                 if (address instanceof Register)
                     function.appendInstruction(new AsmLoad((Register) address, register));
-                else if (address instanceof Address)
-                    function.appendInstruction(new AsmStore(register, (Address) address, bitLength));
+                else if (address instanceof MemoryAddress)
+                    function.appendInstruction(new AsmStore(register, (MemoryAddress) address, bitLength));
                 else
                     function.appendInstruction(new AsmStore(register, (StackVar) address));
             } else {
@@ -615,20 +615,20 @@ public class AsmBasicBlock {
                 } else {
                     register = function.getRegisterAllocator().allocateInt();
                 }
-                if (source instanceof Address) {
-                    function.appendInstruction(new AsmLoad(register, (Address) source, bitLength));
+                if (source instanceof MemoryAddress) {
+                    function.appendInstruction(new AsmLoad(register, (MemoryAddress) source, bitLength));
                     if (address instanceof Register)
                         function.appendInstruction(new AsmLoad((Register) address, register));
-                    else if (address instanceof Address)
-                        function.appendInstruction(new AsmStore(register, (Address) address, bitLength));
+                    else if (address instanceof MemoryAddress)
+                        function.appendInstruction(new AsmStore(register, (MemoryAddress) address, bitLength));
                     else
                         function.appendInstruction(new AsmStore(register, (StackVar) address));
                 } else {
                     function.appendInstruction(new AsmLoad(register, source));
                     if (address instanceof Register)
                         function.appendInstruction(new AsmLoad((Register) address, register));
-                    else if (address instanceof Address)
-                        function.appendInstruction(new AsmStore(register, (Address) address, bitLength));
+                    else if (address instanceof MemoryAddress)
+                        function.appendInstruction(new AsmStore(register, (MemoryAddress) address, bitLength));
                     else
                         function.appendInstruction(new AsmStore(register, (StackVar) address));
                 }
@@ -636,9 +636,9 @@ public class AsmBasicBlock {
         }
     }
 
-    private Address getAddress(AsmOperand address) {
-        java.util.function.Function<Integer, Address> getAddress = (Integer tmpInt) -> {
-            if (address instanceof Address addressTmp) {
+    private MemoryAddress getAddress(AsmOperand address) {
+        java.util.function.Function<Integer, MemoryAddress> getAddress = (Integer tmpInt) -> {
+            if (address instanceof MemoryAddress addressTmp) {
                 return addressTmp;
             } else if (address instanceof StackVar stackVar) {
                 return transformStackVarToAddress(stackVar);
@@ -684,7 +684,7 @@ public class AsmBasicBlock {
     }
 
     private void translateLoadInst(LoadInst loadInst) {
-        Address address = (Address) getValue(loadInst.getAddressOperand());
+        MemoryAddress address = (MemoryAddress) getValue(loadInst.getAddressOperand());
         Register register = function.getRegisterAllocator().allocate(loadInst);
         if (loadInst.getType() instanceof IntegerType integerType) {
             function.appendInstruction(new AsmLoad(register, address, integerType.getBitWidth()));
@@ -713,7 +713,7 @@ public class AsmBasicBlock {
     }
 
     private void translateGetElementPtrInst(GetElementPtrInst getElementPtrInst) {
-        Address baseAddress = getOperandToAddress(getValue(getElementPtrInst.getRootOperand()));
+        MemoryAddress baseAddress = getOperandToAddress(getValue(getElementPtrInst.getRootOperand()));
         long offset = baseAddress.getOffset();
         IntRegister baseRegister = baseAddress.getRegister();
         var rootType = getElementPtrInst.getRootOperand().getType();
@@ -743,7 +743,7 @@ public class AsmBasicBlock {
         IntRegister t4 = function.getRegisterAllocator().allocateInt();
         function.appendInstruction(new AsmAdd(t4, offsetR, baseRegister, 64));
         offsetR = t4;
-        function.getAddressAllocator().allocate(getElementPtrInst, new Address(0, offsetR));
+        function.getAddressAllocator().allocate(getElementPtrInst, new MemoryAddress(0, offsetR));
     }
 
     private void translateFloatNegateInst(FloatNegateInst floatNegateInst) {

@@ -73,7 +73,7 @@ public class AsmLoad extends AsmInstruction {
         }
     }
 
-    public AsmLoad(Register dest, Address source, int bitLength) {
+    public AsmLoad(Register dest, MemoryAddress source, int bitLength) {
         super(dest, source, null);
 
         if (bitLength != 32 && bitLength != 64)
@@ -112,7 +112,7 @@ public class AsmLoad extends AsmInstruction {
         return switch (getOpcode()) {
             case MV, FMVS -> Set.of((Register) getOperand(2));
             case LD, LW, LUI, LI, LA, FLD, FLW -> {
-                if (getOperand(2) instanceof Address address)
+                if (getOperand(2) instanceof MemoryAddress address)
                     yield Set.of(address.getBaseAddress());
                 else if (getOperand(2) instanceof StackVar stackVar)
                     yield Set.of(stackVar.getAddress().getBaseAddress());
