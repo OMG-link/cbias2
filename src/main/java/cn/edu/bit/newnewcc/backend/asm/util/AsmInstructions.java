@@ -79,7 +79,7 @@ public class AsmInstructions {
             RegisterReplaceable op = (RegisterReplaceable) instr.getOperand(i);
             result.add(op.getRegister());
         }
-        if (instr instanceof AsmCall call) {
+        if (instr instanceof AsmCall call && call.getReturnRegister() != null) {
             result.add(call.getReturnRegister());
         }
         return Collections.unmodifiableSet(result);
@@ -137,5 +137,9 @@ public class AsmInstructions {
             }
         }
         return -1;
+    }
+
+    public static boolean instContainsReg(AsmInstruction instr, Register reg) {
+        return getReadRegSet(instr).contains(reg) || getWriteRegSet(instr).contains(reg);
     }
 }
