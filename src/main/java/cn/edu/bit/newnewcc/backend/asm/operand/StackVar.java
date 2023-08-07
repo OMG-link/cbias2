@@ -63,7 +63,7 @@ public class StackVar extends AsmOperand implements RegisterReplaceable {
 
     @Override
     public String toString() {
-        return String.format("StackVar(%s, %s, %s)\n", getAddress(), getSize(), isS0Based());
+        return String.format("StackVar(%s, %s, %s)", getAddress(), getSize(), isS0Based());
     }
 
     @Override
