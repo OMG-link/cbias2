@@ -53,12 +53,22 @@ public class Registers {
         CALLER_SAVED_REGISTERS = Collections.unmodifiableSet(callerSavedRegisters);
     }
 
+    private static final Set<Register> CONSTANT_REGISTERS;
+
+    static {
+        CONSTANT_REGISTERS = Set.of(IntRegister.S0, IntRegister.SP, IntRegister.RA, IntRegister.ZERO);
+    }
+
     public static Set<Register> getUsableRegisters() {
         return USABLE_REGISTERS;
     }
 
     public static Set<Register> getCallerSavedRegisters() {
         return CALLER_SAVED_REGISTERS;
+    }
+
+    public static Set<Register> getConstantRegisters() {
+        return CONSTANT_REGISTERS;
     }
 
     public static boolean isPreservedAcrossCalls(Register register) {
