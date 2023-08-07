@@ -19,13 +19,13 @@ public class AsmInstructions {
             }
             return Set.of();
         }
-        if (instr instanceof AsmJump) {
+        if (instr instanceof AsmJump || instr instanceof AsmIndirectJump) {
             return new HashSet<>();
         }
         if (instr.getOperand(1) instanceof RegisterReplaceable) {
             return Set.of(1);
         }
-        return new HashSet<>();
+        return Set.of();
     }
 
     public static Set<Integer> getWriteVRegId(AsmInstruction instr) {
@@ -45,7 +45,7 @@ public class AsmInstructions {
         for (int i = 1; i <= 3; i++) {
             if (instr.getOperand(i) instanceof RegisterReplaceable) {
                 boolean flag = (instr instanceof AsmStore) ? (i == 1 || (i == 2 && !(instr.getOperand(i) instanceof Register))) :
-                    (instr instanceof AsmJump || (i > 1));
+                    (instr instanceof AsmJump || instr instanceof AsmIndirectJump || (i > 1));
                 if (flag) {
                     result.add(i);
                 }
