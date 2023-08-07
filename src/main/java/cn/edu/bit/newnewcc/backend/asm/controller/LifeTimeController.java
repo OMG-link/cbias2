@@ -249,7 +249,7 @@ public class LifeTimeController {
                 insertLifeTimePoint(x, LifeTimePoint.getUse(index));
             }
         }
-        for (var constantReg : Registers.getConstantRegisters()) {
+        for (var constantReg : Registers.CONSTANT_REGISTERS) {
             lifeTimePoints.remove(constantReg);
         }
     }

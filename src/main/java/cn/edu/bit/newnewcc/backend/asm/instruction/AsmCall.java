@@ -40,7 +40,7 @@ public class AsmCall extends AsmInstruction {
 
     @Override
     public Set<Register> getDef() {
-        return Registers.getCallerSavedRegisters();
+        return Registers.CALLER_SAVED_REGISTERS;
     }
 
     @Override

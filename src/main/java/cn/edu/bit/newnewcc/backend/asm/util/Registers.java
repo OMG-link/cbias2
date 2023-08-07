@@ -12,7 +12,7 @@ public class Registers {
     private Registers() {
     }
 
-    private static final Set<Register> USABLE_REGISTERS;
+    public static final Set<Register> USABLE_REGISTERS;
 
     static {
         Set<Register> usableRegisters = new HashSet<>();
@@ -27,7 +27,7 @@ public class Registers {
         USABLE_REGISTERS = Collections.unmodifiableSet(usableRegisters);
     }
 
-    private static final Set<Register> CALLER_SAVED_REGISTERS;
+    public static final Set<Register> CALLER_SAVED_REGISTERS;
 
     static {
         Set<Register> callerSavedRegisters = new HashSet<>();
@@ -53,23 +53,7 @@ public class Registers {
         CALLER_SAVED_REGISTERS = Collections.unmodifiableSet(callerSavedRegisters);
     }
 
-    private static final Set<Register> CONSTANT_REGISTERS;
-
-    static {
-        CONSTANT_REGISTERS = Set.of(IntRegister.S0, IntRegister.SP, IntRegister.RA, IntRegister.ZERO);
-    }
-
-    public static Set<Register> getUsableRegisters() {
-        return USABLE_REGISTERS;
-    }
-
-    public static Set<Register> getCallerSavedRegisters() {
-        return CALLER_SAVED_REGISTERS;
-    }
-
-    public static Set<Register> getConstantRegisters() {
-        return CONSTANT_REGISTERS;
-    }
+    public static final Set<Register> CONSTANT_REGISTERS = Set.of(IntRegister.S0, IntRegister.SP, IntRegister.RA, IntRegister.ZERO);
 
     public static boolean isPreservedAcrossCalls(Register register) {
         return !CALLER_SAVED_REGISTERS.contains(register);

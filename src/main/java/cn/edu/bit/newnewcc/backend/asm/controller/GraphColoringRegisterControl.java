@@ -155,7 +155,7 @@ public class GraphColoringRegisterControl extends RegisterControl {
                 floatRegList.add(reg);
             }
         }
-        for (var reg : Registers.getUsableRegisters()) {
+        for (var reg : Registers.USABLE_REGISTERS) {
             if (reg instanceof IntRegister) {
                 intPRegList.add(reg);
             } else {

@@ -23,7 +23,7 @@ public class LinearScanRegisterControl extends RegisterControl{
     public LinearScanRegisterControl(AsmFunction function, StackAllocator allocator) {
         super(function, allocator);
         //加入目前可使用的寄存器
-        for (var reg : Registers.getUsableRegisters()) {
+        for (var reg : Registers.USABLE_REGISTERS) {
             registerPool.put(reg, 0);
         }
     }
