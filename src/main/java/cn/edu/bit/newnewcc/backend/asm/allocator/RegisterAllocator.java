@@ -8,6 +8,7 @@ import cn.edu.bit.newnewcc.ir.value.Instruction;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.NoSuchElementException;
 
 /**
  * 寄存器分配器，内部包含整数分配和浮点数寄存器分配功能，分配出的寄存器均为虚拟寄存器（下标为负数）
@@ -64,7 +65,7 @@ public class RegisterAllocator {
         } else if (floatRegisterAllocator.contain(instruction)) {
             return floatRegisterAllocator.get(instruction);
         } else {
-            throw new RuntimeException("instruction to register not found");
+            throw new NoSuchElementException();
         }
     }
     public Register get(Integer index) {
