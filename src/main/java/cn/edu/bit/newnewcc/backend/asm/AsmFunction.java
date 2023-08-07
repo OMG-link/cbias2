@@ -249,14 +249,6 @@ public class AsmFunction {
         throw new RuntimeException("get wrong function type");
     }
 
-    public AsmOperand getParameterByFormal(Value formalParameter) {
-        var result = formalParameterMap.get(formalParameter);
-        if (result instanceof StackVar stackVar) {
-            return transformStackVar(stackVar.flip());
-        }
-        return result;
-    }
-
     public Register getParameterValue(Value formalParameter) {
         return parameterValueMap.get(formalParameter);
     }
@@ -267,6 +259,10 @@ public class AsmFunction {
             return transformStackVar(stackVar.flip(), instructionList);
         }
         return result;
+    }
+
+    public List<AsmOperand> getFormalParameterList() {
+        return formalParameters;
     }
 
     public int getParameterSize() {
@@ -321,11 +317,21 @@ public class AsmFunction {
                 }
             }
         }
-        instrList.add(new AsmCall(new Label(calledFunction.getFunctionName(), true)));
+        instrList.add(new AsmCall(new Label(calledFunction.getFunctionName(), true), getCalledParamRegs(calledFunction)));
         if (returnRegister != null) {
             instrList.add(new AsmMove(returnRegister, calledFunction.getReturnRegister()));
         }
         return instrList;
+    }
+
+    public List<Register> getCalledParamRegs(AsmFunction calledFunction) {
+        List<Register> paramRegList = new ArrayList<>();
+        for (var para : calledFunction.getFormalParameterList()) {
+            if (para instanceof Register paramReg) {
+                paramRegList.add(paramReg);
+            }
+        }
+        return paramRegList;
     }
 
     public ExStackVarContent transformStackVar(StackVar stackVar, List<AsmInstruction> newInstructionList) {
