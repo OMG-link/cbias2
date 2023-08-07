@@ -40,7 +40,7 @@ public class BackendOptimizer {
                             Register source = (Register) iSv.getOperand(1);
                             Register destination = (Register) iLd.getOperand(1);
                             if (!source.equals(destination)) {
-                                oldInstructionList.addFirst(new AsmLoad(destination, source));
+                                oldInstructionList.addFirst(new AsmMove(destination, source));
                             }
                             backward.accept(1);
                             continue;

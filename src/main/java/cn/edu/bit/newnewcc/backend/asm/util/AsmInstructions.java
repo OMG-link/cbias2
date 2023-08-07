@@ -1,9 +1,6 @@
 package cn.edu.bit.newnewcc.backend.asm.util;
 
-import cn.edu.bit.newnewcc.backend.asm.instruction.AsmInstruction;
-import cn.edu.bit.newnewcc.backend.asm.instruction.AsmJump;
-import cn.edu.bit.newnewcc.backend.asm.instruction.AsmLoad;
-import cn.edu.bit.newnewcc.backend.asm.instruction.AsmStore;
+import cn.edu.bit.newnewcc.backend.asm.instruction.*;
 import cn.edu.bit.newnewcc.backend.asm.operand.Register;
 import cn.edu.bit.newnewcc.backend.asm.operand.RegisterReplaceable;
 
@@ -112,12 +109,8 @@ public class AsmInstructions {
         return Collections.unmodifiableSet(result);
     }
 
-    public static boolean isMove(AsmInstruction instr) {
-        return instr instanceof AsmLoad && ((AsmLoad) instr).getOpcode() == AsmLoad.Opcode.MV;
-    }
-
     public static boolean isMoveVToV(AsmInstruction instr) {
-        return isMove(instr) && ((Register) instr.getOperand(1)).isVirtual() && ((Register) instr.getOperand(2)).isVirtual();
+        return instr instanceof AsmMove && ((Register) instr.getOperand(1)).isVirtual() && ((Register) instr.getOperand(2)).isVirtual();
     }
 
     public static Pair<Integer, Integer> getMoveVReg(AsmInstruction instr) {

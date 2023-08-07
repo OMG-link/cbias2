@@ -11,10 +11,8 @@ public class AsmLoad extends AsmInstruction {
         LUI("lui"),
         LI("li"),
         LA("la"),
-        MV("mv"),
         FLD("fld"),
-        FLW("flw"),
-        FMVS("fmv.s");
+        FLW("flw");
 
         private final String name;
 
@@ -47,12 +45,6 @@ public class AsmLoad extends AsmInstruction {
                 } else {
                     opcode = Opcode.LA;
                 }
-            } else if (source instanceof Register register) {
-                if (register instanceof IntRegister) {
-                    opcode = Opcode.MV;
-                } else {
-                    throw new IllegalArgumentException();
-                }
             } else {
                 throw new IllegalArgumentException();
             }
@@ -61,12 +53,6 @@ public class AsmLoad extends AsmInstruction {
                 if (stackVar.getSize() == 8) opcode = Opcode.FLD;
                 else if (stackVar.getSize() == 4) opcode = Opcode.FLW;
                 else throw new IllegalArgumentException();
-            } else if (source instanceof Register register) {
-                if (register instanceof FloatRegister) {
-                    opcode = Opcode.FMVS;
-                } else {
-                    throw new IllegalArgumentException();
-                }
             } else {
                 throw new IllegalArgumentException();
             }
@@ -110,7 +96,6 @@ public class AsmLoad extends AsmInstruction {
     @Override
     public Set<Register> getUse() {
         return switch (getOpcode()) {
-            case MV, FMVS -> Set.of((Register) getOperand(2));
             case LD, LW, LUI, LI, LA, FLD, FLW -> {
                 if (getOperand(2) instanceof MemoryAddress address)
                     yield Set.of(address.getBaseAddress());

@@ -160,7 +160,7 @@ public class AsmBasicBlock {
         Register result;
         if (op instanceof Register reg) {
             result = function.getRegisterAllocator().allocate(reg);
-            function.appendInstruction(new AsmLoad(result, reg));
+            function.appendInstruction(new AsmMove(result, reg));
         } else {
             if (value.getType() instanceof FloatType) {
                 var tmp = function.getRegisterAllocator().allocateFloat();
@@ -232,7 +232,11 @@ public class AsmBasicBlock {
                 }
                 Value source = inst.getValue(block);
                 if (source instanceof Constant constant) {
-                    phiOperation.get(block).add(new AsmLoad(tmp, getConstantVar(constant, (ins) -> phiOperation.get(block).add(ins))));
+                    AsmOperand constantVar = getConstantVar(constant, (ins) -> phiOperation.get(block).add(ins));
+                    if (constantVar instanceof Register)
+                        phiOperation.get(block).add(new AsmMove(tmp, (Register) constantVar));
+                    else
+                        phiOperation.get(block).add(new AsmLoad(tmp, constantVar));
                 } else {
                     if (!phiValueMap.get(block).containsKey(source)) {
                         phiValueMap.get(block).put(source, new ArrayList<>());
@@ -251,7 +255,7 @@ public class AsmBasicBlock {
                 for (Value value : next.phiValueMap.get(irBlock).keySet()) {
                     Register reg = getValueToRegister(value);
                     for (var ar : next.phiValueMap.get(irBlock).get(value)) {
-                        function.appendInstruction(new AsmLoad(ar, reg));
+                        function.appendInstruction(new AsmMove(ar, reg));
                     }
                 }
             }
@@ -261,7 +265,7 @@ public class AsmBasicBlock {
     private void translatePhiInst(PhiInst phiInst) {
         var tmp = (Register) getValue(phiInst);
         var reg = function.getRegisterAllocator().allocate(phiInst);
-        function.appendInstruction(new AsmLoad(reg, tmp));
+        function.appendInstruction(new AsmMove(reg, tmp));
     }
 
     private void translateBinaryInstruction(BinaryInstruction binaryInstruction) {
@@ -332,7 +336,7 @@ public class AsmBasicBlock {
             translate(inst3);
             var inst3Reg = function.getRegisterAllocator().get(inst3);
             var finalReg = function.getRegisterAllocator().allocate(integerSignedRemainderInst);
-            function.appendInstruction(new AsmLoad(finalReg, inst3Reg));
+            function.appendInstruction(new AsmMove(finalReg, inst3Reg));
         } else {
             int bitLength = integerSignedRemainderInst.getType().getBitWidth();
             var divx = getOperandToIntRegister(getValue(integerSignedRemainderInst.getOperand1()));
@@ -383,7 +387,10 @@ public class AsmBasicBlock {
             } else {
                 var planReg = translateConstantMultiplyPlan(variable, plan);
                 var finalReg = function.getRegisterAllocator().allocateInt(integerMultiplyInst);
-                function.appendInstruction(new AsmLoad(finalReg, planReg));
+                if (planReg instanceof Register)
+                    function.appendInstruction(new AsmMove(finalReg, (Register) planReg));
+                else
+                    function.appendInstruction(new AsmLoad(finalReg, planReg));
             }
         } else {
             int bitLength = integerMultiplyInst.getType().getBitWidth();
@@ -673,14 +680,17 @@ public class AsmBasicBlock {
     private void translateZeroExtensionInst(ZeroExtensionInst zeroExtensionInst) {
         var source = getValue(zeroExtensionInst.getSourceOperand());
         var result = function.getRegisterAllocator().allocateInt(zeroExtensionInst);
-        function.appendInstruction(new AsmLoad(result, source));
+        if (source instanceof Register)
+            function.appendInstruction(new AsmMove(result, (Register) source));
+        else
+            function.appendInstruction(new AsmLoad(result, source));
     }
 
     //寄存器中的值已经是符号扩展过后的64位数，因此无需专门sext
     private void translateSignedExtensionInst(SignedExtensionInst signedExtensionInst) {
         Register tmp = getValueToRegister(signedExtensionInst.getSourceOperand());
         Register reg = function.getRegisterAllocator().allocate(signedExtensionInst);
-        function.appendInstruction(new AsmLoad(reg, tmp));
+        function.appendInstruction(new AsmMove(reg, tmp));
     }
 
     private void translateLoadInst(LoadInst loadInst) {
@@ -697,10 +707,13 @@ public class AsmBasicBlock {
         var returnValue = returnInst.getReturnValue();
         if (returnValue.getType() instanceof IntegerType) {
             var ret = getValue(returnInst.getReturnValue());
-            function.appendInstruction(new AsmLoad(function.getReturnRegister(), ret));
+            if (ret instanceof Register)
+                function.appendInstruction(new AsmMove(function.getReturnRegister(), (Register) ret));
+            else
+                function.appendInstruction(new AsmLoad(function.getReturnRegister(), ret));
         } else if (returnValue.getType() instanceof FloatType) {
             var ret = getOperandToFloatRegister(getValue(returnInst.getReturnValue()));
-            function.appendInstruction(new AsmLoad(function.getReturnRegister(), ret));
+            function.appendInstruction(new AsmMove(function.getReturnRegister(), ret));
         }
         function.appendInstruction(AsmJump.createUnconditional(function.getRetBlockLabel()));
     }
@@ -733,7 +746,7 @@ public class AsmBasicBlock {
                 IntRegister tmp = function.getRegisterAllocator().allocateInt();
                 IntRegister t2 = function.getRegisterAllocator().allocateInt();
                 IntRegister t3 = function.getRegisterAllocator().allocateInt();
-                function.appendInstruction(new AsmLoad(tmp, getOperandToIntRegister(index)));
+                function.appendInstruction(new AsmMove(tmp, getOperandToIntRegister(index)));
                 IntRegister muly = getOperandToIntRegister(new Immediate(Math.toIntExact(baseSize)));
                 function.appendInstruction(new AsmMul(t2, tmp, muly, 64));
                 function.appendInstruction(new AsmAdd(t3, offsetR, t2, 64));

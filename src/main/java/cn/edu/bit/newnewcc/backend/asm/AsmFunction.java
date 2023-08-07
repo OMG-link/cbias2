@@ -299,7 +299,7 @@ public class AsmFunction {
                     }
                 } else {
                     if (formalParam instanceof Register)
-                        instrList.add(new AsmLoad((Register) formalParam, reg));
+                        instrList.add(new AsmMove((Register) formalParam, reg));
                     else
                         instrList.add(new AsmStore(reg, (StackVar) formalParam));
                 }
@@ -315,7 +315,7 @@ public class AsmFunction {
         }
         instrList.add(new AsmCall(new Label(calledFunction.getFunctionName(), true)));
         if (returnRegister != null) {
-            instrList.add(new AsmLoad(returnRegister, calledFunction.getReturnRegister()));
+            instrList.add(new AsmMove(returnRegister, calledFunction.getReturnRegister()));
         }
         //执行完成后恢复寄存器现场
         for (var p : pushList) {
