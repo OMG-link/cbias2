@@ -8,7 +8,8 @@ import java.util.List;
 import java.util.Set;
 
 public class AsmCall extends AsmInstruction {
-    List<Register> paramRegList;
+    private final List<Register> paramRegList;
+
     public AsmCall(Label label, List<Register> paramRegList) {
         super(label, null, null);
         this.paramRegList = paramRegList;
@@ -20,7 +21,7 @@ public class AsmCall extends AsmInstruction {
 
     @Override
     public String toString() {
-        return String.format("AsmCall(%s)", getOperand(1));
+        return String.format("AsmCall(%s, %s)", getOperand(1), getParamRegList());
     }
 
     @Override
