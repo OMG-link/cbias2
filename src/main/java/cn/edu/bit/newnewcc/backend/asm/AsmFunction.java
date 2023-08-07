@@ -34,6 +34,7 @@ public class AsmFunction {
     private final Map<Value, AsmOperand> formalParameterMap = new HashMap<>();
     private final List<AsmBasicBlock> basicBlocks = new ArrayList<>();
     private final Map<BasicBlock, AsmBasicBlock> basicBlockMap = new HashMap<>();
+    private final Map<AsmLabel, BasicBlock> asmLabelToBasicBlockMap = new HashMap<>();
     private List<AsmInstruction> instrList = new ArrayList<>();
     private final Label retBlockLabel;
     private final BaseFunction baseFunction;
@@ -118,6 +119,7 @@ public class AsmFunction {
                 AsmBasicBlock asmBasicBlock = new AsmBasicBlock(this, nowBlock);
                 basicBlocks.add(asmBasicBlock);
                 basicBlockMap.put(nowBlock, asmBasicBlock);
+                asmLabelToBasicBlockMap.put(asmBasicBlock.getInstBlockLabel(), nowBlock);
                 for (var nextBlock : nowBlock.getExitBlocks()) {
                     if (!visited.contains(nextBlock)) {
                         visited.add(nextBlock);
@@ -219,6 +221,17 @@ public class AsmFunction {
 
     public LifeTimeController getLifeTimeController() {
         return lifeTimeController;
+    }
+
+    public BasicBlock getBasicBlockByLabel(AsmLabel label) {
+        return asmLabelToBasicBlockMap.get(label);
+    }
+
+    public Function getBaseFunction() {
+        if (baseFunction instanceof Function function) {
+            return function;
+        }
+        throw new RuntimeException("get wrong function type");
     }
 
     public AsmOperand getParameterByFormal(Value formalParameter) {

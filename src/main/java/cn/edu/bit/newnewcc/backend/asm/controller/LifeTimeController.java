@@ -53,20 +53,6 @@ public class LifeTimeController {
         return lifeTimeRange.get(index);
     }
 
-    private int upperBound(List<LifeTimePoint> p, LifeTimeIndex index) {
-        int l = 0, r = p.size() - 1, ans = p.size();
-        while (l <= r) {
-            int mid = (l + r) / 2;
-            if (p.get(mid).getIndex().compareTo(index) > 0) {
-                ans = mid;
-                r = mid - 1;
-            } else {
-                l = mid + 1;
-            }
-        }
-        return ans;
-    }
-
     private static class Block {
         String blockName;
         int l, r;

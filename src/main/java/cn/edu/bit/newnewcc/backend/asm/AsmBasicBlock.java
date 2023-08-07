@@ -183,6 +183,10 @@ public class AsmBasicBlock {
         return block.blockLabel;
     }
 
+    public AsmLabel getInstBlockLabel() {
+        return instBlockLabel;
+    }
+
     private AddressDirective transformStackVarToAddressDirective(StackVar stackVar) {
         IntRegister tmp = function.getRegisterAllocator().allocateInt();
         Address now = stackVar.getAddress();
