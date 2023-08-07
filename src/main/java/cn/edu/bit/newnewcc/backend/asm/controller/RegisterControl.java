@@ -7,7 +7,7 @@ import cn.edu.bit.newnewcc.backend.asm.instruction.AsmInstruction;
 import cn.edu.bit.newnewcc.backend.asm.instruction.AsmLoad;
 import cn.edu.bit.newnewcc.backend.asm.instruction.AsmStore;
 import cn.edu.bit.newnewcc.backend.asm.operand.*;
-import cn.edu.bit.newnewcc.backend.asm.util.Immediates;
+import cn.edu.bit.newnewcc.backend.asm.util.ImmediateValues;
 import cn.edu.bit.newnewcc.backend.asm.util.Registers;
 
 import java.util.*;
@@ -23,7 +23,7 @@ public abstract class RegisterControl {
         List<AsmInstruction> instrList = new ArrayList<>();
         for (var register : preservedRegisterSaved.keySet()) {
             var x = preservedRegisterSaved.get(register);
-            if (!Immediates.bitLengthNotInLimit(x.getAddress().getOffset())) {
+            if (!ImmediateValues.bitLengthNotInLimit(x.getAddress().getOffset())) {
                 preservedRegisterSaved.put(s1, s1saved);
                 break;
             }
@@ -55,7 +55,7 @@ public abstract class RegisterControl {
     }
 
     public void loadFromStackVar(List<AsmInstruction> instList, Register register, StackVar stackVar) {
-        if (Immediates.bitLengthNotInLimit(stackVar.getAddress().getOffset())) {
+        if (ImmediateValues.bitLengthNotInLimit(stackVar.getAddress().getOffset())) {
             preservedRegisterSaved.put(s1, s1saved);
             instList.add(new AsmLoad(s1, new Immediate(Math.toIntExact(stackVar.getAddress().getOffset()))));
             instList.add(new AsmAdd(s1, s1, stackVar.getAddress().getRegister(), 64));
@@ -66,7 +66,7 @@ public abstract class RegisterControl {
     }
 
     public void saveToStackVar(List<AsmInstruction> instList, Register register, StackVar stackVar) {
-        if (Immediates.bitLengthNotInLimit(stackVar.getAddress().getOffset())) {
+        if (ImmediateValues.bitLengthNotInLimit(stackVar.getAddress().getOffset())) {
             preservedRegisterSaved.put(s1, s1saved);
             instList.add(new AsmLoad(s1, new Immediate(Math.toIntExact(stackVar.getAddress().getOffset()))));
             instList.add(new AsmAdd(s1, s1, stackVar.getAddress().getRegister(), 64));

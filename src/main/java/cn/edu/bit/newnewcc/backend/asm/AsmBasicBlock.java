@@ -3,7 +3,7 @@ package cn.edu.bit.newnewcc.backend.asm;
 import cn.edu.bit.newnewcc.backend.asm.instruction.*;
 import cn.edu.bit.newnewcc.backend.asm.operand.*;
 import cn.edu.bit.newnewcc.backend.asm.util.ConstantMultiplyPlanner;
-import cn.edu.bit.newnewcc.backend.asm.util.Immediates;
+import cn.edu.bit.newnewcc.backend.asm.util.ImmediateValues;
 import cn.edu.bit.newnewcc.backend.asm.util.Utility;
 import cn.edu.bit.newnewcc.ir.Type;
 import cn.edu.bit.newnewcc.ir.Value;
@@ -83,7 +83,7 @@ public class AsmBasicBlock {
     }
 
     private AsmOperand getConstInt(int intValue, Consumer<AsmInstruction> appendInstruction) {
-        if (Immediates.bitLengthNotInLimit(intValue)) {
+        if (ImmediateValues.bitLengthNotInLimit(intValue)) {
             IntRegister tmp = function.getRegisterAllocator().allocateInt();
             appendInstruction.accept(new AsmLoad(tmp, new Immediate(intValue)));
             return tmp;
@@ -100,7 +100,7 @@ public class AsmBasicBlock {
         } else if (constant instanceof ConstBool constBool) {
             return new Immediate(constBool.getValue() ? 1 : 0);
         } else if (constant instanceof ConstLong constLong) {
-            if (Immediates.isIntValue(constLong.getValue())) {
+            if (ImmediateValues.isIntValue(constLong.getValue())) {
                 return getConstInt(Math.toIntExact(constLong.getValue()), appendInstruction);
             }
             return function.transConstLong(constLong.getValue(), appendInstruction);
@@ -123,7 +123,7 @@ public class AsmBasicBlock {
         } else {
             int offset = Math.toIntExact(address.getOffset());
             var tmp = function.getRegisterAllocator().allocateInt();
-            if (Immediates.bitLengthNotInLimit(offset)) {
+            if (ImmediateValues.bitLengthNotInLimit(offset)) {
                 var reg = function.getRegisterAllocator().allocateInt();
                 function.appendInstruction(new AsmLoad(reg, new Immediate(offset)));
                 function.appendInstruction(new AsmAdd(tmp, reg, address.getRegister(), 64));
@@ -196,7 +196,7 @@ public class AsmBasicBlock {
     private MemoryAddress getOperandToAddress(AsmOperand operand) {
         if (operand instanceof MemoryAddress address) {
             var offset = address.getOffset();
-            if (Immediates.bitLengthNotInLimit(offset)) {
+            if (ImmediateValues.bitLengthNotInLimit(offset)) {
                 var tmp = getAddressToIntRegister(address);
                 return new MemoryAddress(0, tmp);
             } else {

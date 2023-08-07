@@ -1,6 +1,6 @@
 package cn.edu.bit.newnewcc.backend.asm.util;
 
-public class Immediates {
+public class ImmediateValues {
     public static boolean bitLengthNotInLimit(long value) {
         return value < -2048 || value >= 2048;
     }

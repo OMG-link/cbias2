@@ -59,7 +59,7 @@ public class BackendOptimizer {
                     var iMov = oldInstructionList.get(2);
                     if (iLi instanceof AsmLoad && iLi.getOperand(2) instanceof Immediate offset) {
                         int offsetVal = offset.getValue();
-                        if (!Immediates.bitLengthNotInLimit(offsetVal)) {
+                        if (!ImmediateValues.bitLengthNotInLimit(offsetVal)) {
                             if (iAdd instanceof AsmAdd && iAdd.getOperand(3) instanceof IntRegister baseRegister && baseRegister.equals(IntRegister.S0)) {
                                 if (iMov instanceof AsmLoad iLoad && iLoad.getOperand(2) instanceof StackVar stackVar) {
                                     if (stackVar.getRegister() == iLi.getOperand(1) && stackVar.getAddress().getOffset() == 0) {
