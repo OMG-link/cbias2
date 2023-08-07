@@ -74,4 +74,14 @@ public class AsmShiftRightLogical extends AsmInstruction {
             case SRLI, SRLIW -> Set.of(2);
         };
     }
+
+    @Override
+    public boolean willReturn() {
+        return true;
+    }
+
+    @Override
+    public boolean mayWriteToMemory() {
+        return false;
+    }
 }

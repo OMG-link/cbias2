@@ -105,6 +105,16 @@ public class AsmJump extends AsmInstruction {
         };
     }
 
+    @Override
+    public boolean willReturn() {
+        return false;
+    }
+
+    @Override
+    public boolean mayWriteToMemory() {
+        throw new UnsupportedOperationException();
+    }
+
     public static AsmJump createUnconditional(Label targetLabel) {
         return new AsmJump(Opcode.J, Condition.UNCONDITIONAL, targetLabel, null, null);
     }

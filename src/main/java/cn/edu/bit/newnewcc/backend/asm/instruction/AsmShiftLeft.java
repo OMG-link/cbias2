@@ -70,4 +70,14 @@ public class AsmShiftLeft extends AsmInstruction {
             case SLLI, SLLIW -> Set.of(2);
         };
     }
+
+    @Override
+    public boolean willReturn() {
+        return true;
+    }
+
+    @Override
+    public boolean mayWriteToMemory() {
+        return false;
+    }
 }

@@ -114,4 +114,14 @@ public class AsmLoad extends AsmInstruction {
             case LD, LW, LUI, LI, LA, FLD, FLW -> Set.of();
         };
     }
+
+    @Override
+    public boolean willReturn() {
+        return true;
+    }
+
+    @Override
+    public boolean mayWriteToMemory() {
+        return false;
+    }
 }

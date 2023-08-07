@@ -61,4 +61,14 @@ public class AsmSub extends AsmInstruction {
     public Set<Integer> getUse() {
         return Set.of(2, 3);
     }
+
+    @Override
+    public boolean willReturn() {
+        return true;
+    }
+
+    @Override
+    public boolean mayWriteToMemory() {
+        return false;
+    }
 }

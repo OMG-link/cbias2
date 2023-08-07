@@ -30,4 +30,14 @@ public class AsmCall extends AsmInstruction {
     public Set<Integer> getUse() {
         return Set.of();
     }
+
+    @Override
+    public boolean willReturn() {
+        return false;
+    }
+
+    @Override
+    public boolean mayWriteToMemory() {
+        throw new UnsupportedOperationException();
+    }
 }

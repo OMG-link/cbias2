@@ -63,4 +63,8 @@ public abstract class AsmInstruction {
     public abstract Set<Register> getDef();
 
     public abstract Set<Integer> getUse();
+
+    public abstract boolean willReturn();
+
+    public abstract boolean mayWriteToMemory();
 }

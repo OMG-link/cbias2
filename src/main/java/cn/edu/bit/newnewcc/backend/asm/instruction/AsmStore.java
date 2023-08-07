@@ -77,4 +77,14 @@ public class AsmStore extends AsmInstruction {
     public Set<Integer> getUse() {
         return Set.of(1);
     }
+
+    @Override
+    public boolean willReturn() {
+        return true;
+    }
+
+    @Override
+    public boolean mayWriteToMemory() {
+        return true;
+    }
 }

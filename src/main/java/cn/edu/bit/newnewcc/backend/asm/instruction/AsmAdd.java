@@ -75,4 +75,14 @@ public class AsmAdd extends AsmInstruction {
             case ADDI, ADDIW -> Set.of(2);
         };
     }
+
+    @Override
+    public boolean willReturn() {
+        return true;
+    }
+
+    @Override
+    public boolean mayWriteToMemory() {
+        return false;
+    }
 }

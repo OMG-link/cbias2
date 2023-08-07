@@ -80,6 +80,16 @@ public class AsmIntegerCompare extends AsmInstruction {
         return Set.of(2, 3);
     }
 
+    @Override
+    public boolean willReturn() {
+        return true;
+    }
+
+    @Override
+    public boolean mayWriteToMemory() {
+        return false;
+    }
+
     public static AsmIntegerCompare createLT(IntRegister dest, IntRegister source1, IntRegister source2) {
         return new AsmIntegerCompare(Opcode.SLT, Condition.LT, dest, source1, source2);
     }

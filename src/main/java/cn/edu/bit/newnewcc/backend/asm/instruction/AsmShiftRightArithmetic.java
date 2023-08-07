@@ -74,4 +74,14 @@ public class AsmShiftRightArithmetic extends AsmInstruction {
             case SRAI, SRAIW -> Set.of(2);
         };
     }
+
+    @Override
+    public boolean willReturn() {
+        return true;
+    }
+
+    @Override
+    public boolean mayWriteToMemory() {
+        return false;
+    }
 }

@@ -24,11 +24,21 @@ public class AsmBlockEnd extends AsmInstruction {
 
     @Override
     public Set<Register> getDef() {
-        return Set.of();
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public Set<Integer> getUse() {
-        return Set.of();
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public boolean willReturn() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public boolean mayWriteToMemory() {
+        throw new UnsupportedOperationException();
     }
 }

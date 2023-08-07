@@ -64,6 +64,16 @@ public class AsmFloatCompare extends AsmInstruction{
         return Set.of(2, 3);
     }
 
+    @Override
+    public boolean willReturn() {
+        return true;
+    }
+
+    @Override
+    public boolean mayWriteToMemory() {
+        return false;
+    }
+
     public static AsmFloatCompare createEQ(IntRegister dest, FloatRegister source1, FloatRegister source2) {
         return new AsmFloatCompare(Opcode.FEQS, Condition.EQ, dest, source1, source2);
     }

@@ -29,4 +29,14 @@ public class AsmIndirectJump extends AsmInstruction {
     public Set<Integer> getUse() {
         return Set.of(1);
     }
+
+    @Override
+    public boolean willReturn() {
+        return false;
+    }
+
+    @Override
+    public boolean mayWriteToMemory() {
+        throw new UnsupportedOperationException();
+    }
 }
