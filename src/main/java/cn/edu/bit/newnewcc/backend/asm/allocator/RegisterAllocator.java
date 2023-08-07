@@ -3,6 +3,7 @@ package cn.edu.bit.newnewcc.backend.asm.allocator;
 import cn.edu.bit.newnewcc.backend.asm.operand.FloatRegister;
 import cn.edu.bit.newnewcc.backend.asm.operand.IntRegister;
 import cn.edu.bit.newnewcc.backend.asm.operand.Register;
+import cn.edu.bit.newnewcc.ir.Type;
 import cn.edu.bit.newnewcc.ir.type.FloatType;
 import cn.edu.bit.newnewcc.ir.value.Instruction;
 
@@ -51,6 +52,13 @@ public class RegisterAllocator {
             return allocateInt();
         } else {
             return allocateFloat();
+        }
+    }
+    public Register allocate(Type type) {
+        if (type instanceof FloatType) {
+            return allocateFloat();
+        } else {
+            return allocateInt();
         }
     }
     public boolean contain(Instruction instruction) {
