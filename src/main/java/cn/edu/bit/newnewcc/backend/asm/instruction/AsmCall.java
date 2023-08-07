@@ -26,7 +26,11 @@ public class AsmCall extends AsmInstruction {
 
     @Override
     public String toString() {
-        return String.format("AsmCall(%s, (%s)->%s)", getOperand(1), getParamRegList(), getReturnRegister());
+        if (getReturnRegister() != null) {
+            return String.format("AsmCall(%s, (%s)->%s)", getOperand(1), getParamRegList(), getReturnRegister());
+        } else {
+            return String.format("AsmCall(%s, %s)", getOperand(1), getParamRegList());
+        }
     }
 
     @Override
