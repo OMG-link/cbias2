@@ -8,7 +8,7 @@ import cn.edu.bit.newnewcc.backend.asm.operand.Register;
 
 import java.util.List;
 
-public class AddX0ToMv implements Optimizer {
+public class AddX0ToMvOptimizer implements Optimizer {
     @Override
     public boolean runOn(List<AsmInstruction> instrList) {
         boolean madeChange = false;

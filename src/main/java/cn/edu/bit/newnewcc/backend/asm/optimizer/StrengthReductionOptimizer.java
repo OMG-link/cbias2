@@ -10,7 +10,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class StrengthReduction implements Optimizer {
+public class StrengthReductionOptimizer implements Optimizer {
     @Override
     public boolean runOn(List<AsmInstruction> instrList) {
         boolean madeChange = false;
