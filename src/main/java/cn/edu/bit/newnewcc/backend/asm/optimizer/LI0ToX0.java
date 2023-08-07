@@ -14,7 +14,7 @@ import java.util.Set;
 
 public class LI0ToX0 implements Optimizer {
     private boolean isLI0(AsmInstruction instr) {
-        return instr instanceof AsmLoad && ((AsmLoad) instr).getOpcode() == AsmLoad.Opcode.LI && ((Immediate) instr.getOperand(2)).getValue() == 0;
+        return instr instanceof AsmLoad loadInstr && loadInstr.getOpcode() == AsmLoad.Opcode.LI && ((Immediate) instr.getOperand(2)).getValue() == 0;
     }
 
     public boolean runOn(List<AsmInstruction> instrList) {
@@ -22,14 +22,11 @@ public class LI0ToX0 implements Optimizer {
         Set<Register> zeroRegs = new HashSet<>();
 
         for (AsmInstruction instr : instrList) {
-            if (instr instanceof AsmLabel) {
-                zeroRegs.clear();
-                continue;
-            }
-
             if (instr instanceof AsmBlockEnd) continue;
 
-            if (isLI0(instr)) {
+            if (instr instanceof AsmLabel) {
+                zeroRegs.clear();
+            } else if (isLI0(instr)) {
                 zeroRegs.add((Register) instr.getOperand(1));
             } else {
                 for (int i = 1; i <= 3; ++i) {
