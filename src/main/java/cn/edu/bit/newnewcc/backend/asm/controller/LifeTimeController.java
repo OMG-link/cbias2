@@ -5,6 +5,7 @@ import cn.edu.bit.newnewcc.backend.asm.instruction.*;
 import cn.edu.bit.newnewcc.backend.asm.instruction.AsmInstruction;
 import cn.edu.bit.newnewcc.backend.asm.instruction.AsmJump;
 import cn.edu.bit.newnewcc.backend.asm.operand.Label;
+import cn.edu.bit.newnewcc.backend.asm.operand.Register;
 import cn.edu.bit.newnewcc.backend.asm.util.AsmInstructions;
 import cn.edu.bit.newnewcc.backend.asm.util.ComparablePair;
 
@@ -16,10 +17,14 @@ import java.util.*;
 public class LifeTimeController {
     //虚拟寄存器生命周期的设置过程
     private final AsmFunction function;
-    private final Map<Integer, ComparablePair<LifeTimeIndex, LifeTimeIndex>> lifeTimeRange = new HashMap<>();
-    private final Map<Integer, List<LifeTimeInterval>> lifeTimeIntervals = new HashMap<>();
-    private final Map<Integer, List<LifeTimePoint>> lifeTimePoints = new HashMap<>();
+    private final Map<Register, ComparablePair<LifeTimeIndex, LifeTimeIndex>> lifeTimeRange = new HashMap<>();
+    private final Map<Register, List<LifeTimeInterval>> lifeTimeIntervals = new HashMap<>();
+    private final Map<Register, List<LifeTimePoint>> lifeTimePoints = new HashMap<>();
     private final Map<AsmInstruction, Integer> instIDMap = new HashMap<>();
+
+    public Register getVReg(int index) {
+        return function.getRegisterAllocator().get(index);
+    }
 
     public LifeTimeController(AsmFunction function) {
         this.function = function;
@@ -45,28 +50,42 @@ public class LifeTimeController {
         return instIDMap.get(inst);
     }
 
-    public Set<Integer> getKeySet() {
+    public Set<Integer> getVRegKeySet() {
+        Set<Integer> res = new HashSet<>();
+        for (var x : lifeTimePoints.keySet()) {
+            if (x.isVirtual()) {
+                res.add(x.getAbsoluteIndex());
+            }
+        }
+        return res;
+    }
+
+    public Set<Register> getRegKeySet() {
         return lifeTimePoints.keySet();
     }
 
     public ComparablePair<LifeTimeIndex, LifeTimeIndex> getLifeTimeRange(Integer index) {
-        return lifeTimeRange.get(index);
+        return lifeTimeRange.get(getVReg(index));
+    }
+
+    public ComparablePair<LifeTimeIndex, LifeTimeIndex> getLifeTimeRange(Register reg) {
+        return lifeTimeRange.get(reg);
     }
 
     private static class Block {
         String blockName;
         int l, r;
-        Set<Integer> in = new HashSet<>();
-        Set<Integer> out = new HashSet<>();
-        Set<Integer> def = new HashSet<>();
+        Set<Register> in = new HashSet<>();
+        Set<Register> out = new HashSet<>();
+        Set<Register> def = new HashSet<>();
         Set<String> nextBlockName = new HashSet<>();
         Block(AsmLabel label) {
             blockName = label.getLabel().getLabelName();
         }
     }
 
-    private Set<Integer> difference(Set<Integer> a, Set<Integer> b) {
-        Set<Integer> result = new HashSet<>();
+    private Set<Register> difference(Set<Register> a, Set<Register> b) {
+        Set<Register> result = new HashSet<>();
         for (var x : a) {
             if (!b.contains(x)) {
                 result.add(x);
@@ -75,11 +94,11 @@ public class LifeTimeController {
         return result;
     }
 
-    private void insertLifeTimePoint(int index, LifeTimePoint p) {
-        if (!lifeTimePoints.containsKey(index)) {
-            lifeTimePoints.put(index, new ArrayList<>());
+    private void insertLifeTimePoint(Register reg, LifeTimePoint p) {
+        if (!lifeTimePoints.containsKey(reg)) {
+            lifeTimePoints.put(reg, new ArrayList<>());
         }
-        lifeTimePoints.get(index).add(p);
+        lifeTimePoints.get(reg).add(p);
     }
 
     /**
@@ -88,7 +107,7 @@ public class LifeTimeController {
      * @param x 第一个虚拟寄存器的下标
      * @param y 第二个虚拟寄存器的下标
      */
-    public void mergePoints(int x, int y) {
+    public void mergePoints(Register x, Register y) {
         if (x == y || !lifeTimePoints.containsKey(y)) {
             return;
         }
@@ -103,7 +122,11 @@ public class LifeTimeController {
         lifeTimePoints.remove(y);
     }
 
-    public boolean constructInterval(int x) {
+    public void mergePoints(int x, int y) {
+        mergePoints(getVReg(x), getVReg(y));
+    }
+
+    public boolean constructInterval(Register x) {
         if (!lifeTimePoints.containsKey(x)) {
             throw new RuntimeException("construct null interval");
         }
@@ -111,12 +134,11 @@ public class LifeTimeController {
             if (!instIDMap.containsKey(point.getIndex().getSourceInst())) {
                 return true;
             }
-            var reg = function.getRegisterAllocator().get(x);
             var instr = point.getIndex().getSourceInst();
             if (instr instanceof AsmLabel || instr instanceof AsmBlockEnd) {
                 return false;
             }
-            return AsmInstructions.getRegIndexInInst(point.getIndex().getSourceInst(), reg) == -1;
+            return AsmInstructions.getRegIndexInInst(point.getIndex().getSourceInst(), x) == -1;
         });
         if (lifeTimePoints.get(x).isEmpty()) {
             return false;
@@ -136,7 +158,19 @@ public class LifeTimeController {
     }
 
     public List<LifeTimeInterval> getInterval(int x) {
-        return lifeTimeIntervals.get(x);
+        return lifeTimeIntervals.get(getVReg(x));
+    }
+
+    public List<LifeTimeInterval> getInterval(Register reg) {
+        return lifeTimeIntervals.get(reg);
+    }
+
+    public List<LifeTimePoint> getPoints(int x) {
+        return lifeTimePoints.get(getVReg(x));
+    }
+
+    public List<LifeTimePoint> getPoints(Register reg) {
+        return lifeTimePoints.get(reg);
     }
 
     private final List<Block> blocks = new ArrayList<>();
@@ -161,12 +195,12 @@ public class LifeTimeController {
                     }
                 }
             }
-            for (var reg : AsmInstructions.getReadVRegSet(inst)) {
+            for (var reg : AsmInstructions.getReadRegSet(inst)) {
                 if (!now.def.contains(reg)) {
                     now.in.add(reg);
                 }
             }
-            now.def.addAll(AsmInstructions.getWriteVRegSet(inst));
+            now.def.addAll(AsmInstructions.getWriteRegSet(inst));
             blocks.get(blocks.size() - 1).r = i;
         }
     }
@@ -195,11 +229,11 @@ public class LifeTimeController {
             }
             for (int i = b.l; i <= b.r; i++) {
                 var inst = instructionList.get(i);
-                for (var x : AsmInstructions.getReadVRegSet(inst)) {
+                for (var x : AsmInstructions.getReadRegSet(inst)) {
                     LifeTimeIndex index = LifeTimeIndex.getInstIn(this, instructionList.get(i));
                     insertLifeTimePoint(x, LifeTimePoint.getUse(index));
                 }
-                for (var x : AsmInstructions.getWriteVRegSet(inst)) {
+                for (var x : AsmInstructions.getWriteRegSet(inst)) {
                     LifeTimeIndex index = LifeTimeIndex.getInstOut(this, instructionList.get(i));
                     insertLifeTimePoint(x, LifeTimePoint.getDef(index));
                 }
@@ -212,8 +246,8 @@ public class LifeTimeController {
     }
     private void buildLifeTimeMessage(List<AsmInstruction> instructionList) {
         buildLifeTimePoints(instructionList);
-        List<Integer> removeList = new ArrayList<>();
-        for (var x : getKeySet()) {
+        List<Register> removeList = new ArrayList<>();
+        for (var x : getRegKeySet()) {
             if (!constructInterval(x)) {
                 removeList.add(x);
             }
@@ -241,8 +275,8 @@ public class LifeTimeController {
     public void rebuildLifeTimeInterval(List<AsmInstruction> instructionList) {
         buildInstID(instructionList);
 
-        List<Integer> removeList = new ArrayList<>();
-        for (var x : getKeySet()) {
+        List<Register> removeList = new ArrayList<>();
+        for (var x : getRegKeySet()) {
             if (!constructInterval(x)) {
                 removeList.add(x);
             }

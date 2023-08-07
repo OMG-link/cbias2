@@ -30,7 +30,7 @@ public class CopyCoalescer {
     }
 
     private void getIntervals() {
-        for (int x : lifeTimeController.getKeySet()) {
+        for (int x : lifeTimeController.getVRegKeySet()) {
             intervals.addAll(lifeTimeController.getInterval(x));
         }
         Collections.sort(intervals);
@@ -44,13 +44,13 @@ public class CopyCoalescer {
             var inst = instructions.get(defID);
             if (AsmInstructions.isMoveVToV(inst)) {
                 var id = AsmInstructions.getMoveVReg(inst);
-                if (id.a.equals(interval.vRegID)) {
+                if (id.a.equals(interval.getVRegID())) {
                     var sourceID = id.b;
                     value.put(interval, getValue(lastActive.get(sourceID)));
-                    dsu.merge(interval.vRegID, sourceID);
+                    dsu.merge(interval.getVRegID(), sourceID);
                 }
             }
-            lastActive.put(interval.vRegID, interval);
+            lastActive.put(interval.getVRegID(), interval);
         }
     }
 
@@ -69,19 +69,19 @@ public class CopyCoalescer {
 
     private void getEdges() {
         Set<LifeTimeInterval> activeSet = new HashSet<>();
-        for (var x : lifeTimeController.getKeySet()) {
+        for (var x : lifeTimeController.getVRegKeySet()) {
             edges.put(x, new HashSet<>());
         }
         for (var now : intervals) {
             activeSet.removeIf(last -> last.range.b.compareTo(now.range.a) < 0);
             for (var last : activeSet) {
-                if (!getValue(last).equals(getValue(now)) && dsu.getfa(last.vRegID).equals(dsu.getfa(now.vRegID))) {
-                    addEdge(last.vRegID, now.vRegID);
+                if (!getValue(last).equals(getValue(now)) && dsu.getfa(last.getVRegID()).equals(dsu.getfa(now.getVRegID()))) {
+                    addEdge(last.getVRegID(), now.getVRegID());
                 }
             }
             activeSet.add(now);
         }
-        for (var i : lifeTimeController.getKeySet()) {
+        for (var i : lifeTimeController.getVRegKeySet()) {
             int x = dsu.getfa(i);
             if (!clique.containsKey(x)) {
                 clique.put(x, new HashSet<>());
@@ -93,7 +93,7 @@ public class CopyCoalescer {
     private final List<Integer> constructList = new ArrayList<>();
     private void coalesce() {
         Map<Integer, Integer> trueValue = new HashMap<>();
-        for (var x : lifeTimeController.getKeySet()) {
+        for (var x : lifeTimeController.getVRegKeySet()) {
             trueValue.put(x, x);
         }
         for (var x : clique.keySet()) {
@@ -148,7 +148,7 @@ public class CopyCoalescer {
         }
         lifeTimeController.buildInstID(newInstructionList);
         for (var x : constructList) {
-            lifeTimeController.constructInterval(x);
+            lifeTimeController.constructInterval(lifeTimeController.getVReg(x));
         }
         return newInstructionList;
     }

@@ -1,19 +1,27 @@
 package cn.edu.bit.newnewcc.backend.asm.controller;
 
+import cn.edu.bit.newnewcc.backend.asm.operand.Register;
 import cn.edu.bit.newnewcc.backend.asm.util.ComparablePair;
 
 public class LifeTimeInterval implements Comparable<LifeTimeInterval> {
     public ComparablePair<LifeTimeIndex, LifeTimeIndex> range;
-    public int vRegID;
+    public Register reg;
 
-    public LifeTimeInterval(int vRegID, ComparablePair<LifeTimeIndex, LifeTimeIndex> range) {
-        this.vRegID = vRegID;
+    public int getVRegID() {
+        if (!reg.isVirtual()) {
+            throw new RuntimeException("get virtual register id on physical register");
+        }
+        return reg.getAbsoluteIndex();
+    }
+
+    public LifeTimeInterval(Register reg, ComparablePair<LifeTimeIndex, LifeTimeIndex> range) {
+        this.reg = reg;
         this.range = range;
     }
 
     @Override
     public String toString() {
-        return vRegID + ":" + range.toString();
+        return reg.emit() + ":" + range.toString();
     }
 
     @Override
@@ -21,6 +29,6 @@ public class LifeTimeInterval implements Comparable<LifeTimeInterval> {
         if (range.compareTo(o.range) != 0) {
             return range.compareTo(o.range);
         }
-        return vRegID - o.vRegID;
+        return reg.getIndex() - o.reg.getIndex();
     }
 }
