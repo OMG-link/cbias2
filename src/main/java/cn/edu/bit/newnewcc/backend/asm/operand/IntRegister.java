@@ -53,25 +53,26 @@ public class IntRegister extends Register {
         return index;
     }
 
-    private static final Map<Integer, IntRegister> physicalRegisters = new HashMap<>();
-    public static final IntRegister ZERO = getPhysical(0);
-    public static final IntRegister RA = getPhysical(1);
-    public static final IntRegister SP = getPhysical(2);
-    public static final IntRegister S0 = getPhysical(8);
-    public static final IntRegister S1 = getPhysical(9);
+    private static final Map<Integer, IntRegister> cache = new HashMap<>();
 
-    public static IntRegister getVirtual(int index) {
-        return new IntRegister(-index);
+    public static IntRegister getVirtual(int absoluteIndex) {
+        return new IntRegister(-absoluteIndex);
     }
 
     public static IntRegister getPhysical(int index) {
-        if (!physicalRegisters.containsKey(index)) {
-            physicalRegisters.put(index, new IntRegister(index));
+        if (!cache.containsKey(index)) {
+            cache.put(index, new IntRegister(index));
         }
-        return physicalRegisters.get(index);
+        return cache.get(index);
     }
 
     public static IntRegister getParameter(int index) {
         return getPhysical(index + 10);
     }
+
+    public static final IntRegister ZERO = getPhysical(0);
+    public static final IntRegister RA = getPhysical(1);
+    public static final IntRegister SP = getPhysical(2);
+    public static final IntRegister S0 = getPhysical(8);
+    public static final IntRegister S1 = getPhysical(9);
 }

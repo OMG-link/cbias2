@@ -49,17 +49,17 @@ public class FloatRegister extends Register {
         return index;
     }
 
-    private static final Map<Integer, FloatRegister> physicalRegisters = new HashMap<>();
+    private static final Map<Integer, FloatRegister> cache = new HashMap<>();
 
-    public static FloatRegister getVirtual(int index) {
-        return new FloatRegister(-index);
+    public static FloatRegister getVirtual(int absoluteIndex) {
+        return new FloatRegister(-absoluteIndex);
     }
 
     public static FloatRegister getPhysical(int index) {
-        if (!physicalRegisters.containsKey(index)) {
-            physicalRegisters.put(index, new FloatRegister(index));
+        if (!cache.containsKey(index)) {
+            cache.put(index, new FloatRegister(index));
         }
-        return physicalRegisters.get(index);
+        return cache.get(index);
     }
 
     public static FloatRegister getParameter(int index) {
