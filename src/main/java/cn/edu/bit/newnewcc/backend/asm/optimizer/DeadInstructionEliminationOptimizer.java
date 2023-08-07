@@ -10,7 +10,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
-public class DeadCodeEliminationOptimizer implements Optimizer {
+public class DeadInstructionEliminationOptimizer implements Optimizer {
     @Override
     public boolean runOn(List<AsmInstruction> instrList) {
         boolean madeChange = false;
