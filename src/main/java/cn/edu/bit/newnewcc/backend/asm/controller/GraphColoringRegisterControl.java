@@ -3,10 +3,13 @@ package cn.edu.bit.newnewcc.backend.asm.controller;
 import cn.edu.bit.newnewcc.backend.asm.AsmFunction;
 import cn.edu.bit.newnewcc.backend.asm.allocator.StackAllocator;
 import cn.edu.bit.newnewcc.backend.asm.instruction.AsmInstruction;
+import cn.edu.bit.newnewcc.backend.asm.instruction.AsmLabel;
 import cn.edu.bit.newnewcc.backend.asm.operand.IntRegister;
 import cn.edu.bit.newnewcc.backend.asm.operand.IntRegister;
 import cn.edu.bit.newnewcc.backend.asm.operand.Register;
 import cn.edu.bit.newnewcc.backend.asm.util.Registers;
+import cn.edu.bit.newnewcc.ir.value.BasicBlock;
+import cn.edu.bit.newnewcc.pass.ir.structure.LoopForest;
 
 import java.util.*;
 
@@ -19,6 +22,21 @@ public class GraphColoringRegisterControl extends RegisterControl {
     private final List<LifeTimeInterval> intervals = new ArrayList<>();
     private final Map<Integer, Set<Integer>> edges = new HashMap<>();
     private final Map<Register, Register> physicRegisterMap = new HashMap<>();
+
+    void getRegisterCost(List<AsmInstruction> instructionList) {
+        var irFunction = function.getBaseFunction();
+        var loopForest = LoopForest.buildOver(irFunction);
+        var basicBlockLoopMap = loopForest.getBasicBlockLoopMap();
+        Map<LifeTimeIndex, BasicBlock> indexBlockMap = new HashMap<>();
+        List<LifeTimeIndex> blockIndexList = new ArrayList<>();
+        for (var instr : instructionList) {
+            if (instr instanceof AsmLabel label) {
+                LifeTimeIndex index = LifeTimeIndex.getInstIn(function.getLifeTimeController(), instr);
+                blockIndexList.add(index);
+                indexBlockMap.put(index, function.getBasicBlockByLabel(label));
+            }
+        }
+    }
 
     Register getVReg(int x) {
         return function.getRegisterAllocator().get(x);
