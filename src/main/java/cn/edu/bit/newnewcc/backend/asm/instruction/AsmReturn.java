@@ -1,23 +1,22 @@
 package cn.edu.bit.newnewcc.backend.asm.instruction;
 
-import cn.edu.bit.newnewcc.backend.asm.operand.IntRegister;
 import cn.edu.bit.newnewcc.backend.asm.operand.Register;
 
 import java.util.Set;
 
-public class AsmIndirectJump extends AsmInstruction {
-    public AsmIndirectJump(IntRegister addressRegister) {
-        super(addressRegister, null, null);
+public class AsmReturn extends AsmInstruction {
+    public AsmReturn() {
+        super(null, null, null);
     }
 
     @Override
     public String toString() {
-        return String.format("AsmIndirectJump(%s)", getOperand(1));
+        return "AsmReturn()";
     }
 
     @Override
     public String emit() {
-        return String.format("\tjr %s\n", getOperand(1).emit());
+        return "\tret\n";
     }
 
     @Override
@@ -27,7 +26,7 @@ public class AsmIndirectJump extends AsmInstruction {
 
     @Override
     public Set<Register> getUse() {
-        return Set.of((Register) getOperand(1));
+        return Set.of();
     }
 
     @Override

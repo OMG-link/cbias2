@@ -130,7 +130,7 @@ public class StackAllocator {
             instrList.add(new AsmLoad(ra, new StackVar(-8, 8, false)));
         }
         instrList.add(new AsmLoad(s0, new StackVar(-16, 8, false)));
-        instrList.add(new AsmIndirectJump(ra));
+        instrList.add(new AsmReturn());
         return Collections.unmodifiableList(instrList);
     }
 }

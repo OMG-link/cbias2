@@ -19,7 +19,7 @@ public class AsmInstructions {
             }
             return Set.of();
         }
-        if (instr instanceof AsmJump || instr instanceof AsmIndirectJump) {
+        if (instr instanceof AsmJump || instr instanceof AsmReturn) {
             return new HashSet<>();
         }
         if (instr.getOperand(1) instanceof RegisterReplaceable) {
@@ -45,7 +45,7 @@ public class AsmInstructions {
         for (int i = 1; i <= 3; i++) {
             if (instr.getOperand(i) instanceof RegisterReplaceable) {
                 boolean flag = (instr instanceof AsmStore) ? (i == 1 || (i == 2 && !(instr.getOperand(i) instanceof Register))) :
-                    (instr instanceof AsmJump || instr instanceof AsmIndirectJump || (i > 1));
+                    (instr instanceof AsmJump || instr instanceof AsmReturn || (i > 1));
                 if (flag) {
                     result.add(i);
                 }
