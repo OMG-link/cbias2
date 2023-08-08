@@ -56,11 +56,10 @@ public class GraphColoringRegisterControl extends RegisterControl {
                 }
                 spillCost.put(reg, Math.min(inf, spillCost.get(reg) + val));
             }
+            if (!reg.isVirtual()) {
+                spillCost.put(reg, inf * 2);
+            }
         }
-    }
-
-    Register getVReg(int x) {
-        return function.getRegisterAllocator().get(x);
     }
 
     void buildGraph() {
@@ -147,8 +146,7 @@ public class GraphColoringRegisterControl extends RegisterControl {
     public List<AsmInstruction> work(List<AsmInstruction> instructionList) {
         List<Register> intRegList = new ArrayList<>(), floatRegList = new ArrayList<>();
         List<Register> intPRegList = new ArrayList<>(), floatPRegList = new ArrayList<>();
-        for (var x : function.getLifeTimeController().getVRegKeySet()) {
-            var reg = getVReg(x);
+        for (var reg : function.getLifeTimeController().getRegKeySet()) {
             if (reg instanceof IntRegister) {
                 intRegList.add(reg);
             } else {
