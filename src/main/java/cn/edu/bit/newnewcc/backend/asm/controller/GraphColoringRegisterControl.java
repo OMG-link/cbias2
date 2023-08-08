@@ -8,6 +8,7 @@ import cn.edu.bit.newnewcc.backend.asm.instruction.AsmMove;
 import cn.edu.bit.newnewcc.backend.asm.operand.FloatRegister;
 import cn.edu.bit.newnewcc.backend.asm.operand.IntRegister;
 import cn.edu.bit.newnewcc.backend.asm.operand.Register;
+import cn.edu.bit.newnewcc.backend.asm.operand.RegisterReplaceable;
 import cn.edu.bit.newnewcc.backend.asm.util.AsmInstructions;
 import cn.edu.bit.newnewcc.backend.asm.util.Registers;
 import cn.edu.bit.newnewcc.ir.value.BasicBlock;
@@ -18,29 +19,31 @@ import java.util.*;
 public class GraphColoringRegisterControl extends RegisterControl {
     public GraphColoringRegisterControl(AsmFunction function, StackAllocator allocator) {
         super(function, allocator);
+        lifeTimeController = function.getLifeTimeController();
     }
 
     private List<Register> registers, physicRegisters;
+    private final LifeTimeController lifeTimeController;
     private final List<LifeTimeInterval> intervals = new ArrayList<>();
     private final Map<Register, Set<Register>> edges = new HashMap<>();
     private final Map<Register, Set<Register>> coalesceEdges = new HashMap<>();
     private final Map<Register, Register> physicRegisterMap = new HashMap<>();
     private final Map<Register, Integer> spillCost = new HashMap<>();
+    private List<AsmInstruction> instList;
     private final static int inf = 0x3f3f3f3f;
 
     /**
      * 获取寄存器被spill到内存中的代价，物理寄存器的代价总是inf*2，保证不能被spill
-     * @param instructionList 作为代价计算依据的指令列表
      */
-    void getRegisterCost(List<AsmInstruction> instructionList) {
+    void getRegisterCost() {
         var irFunction = function.getBaseFunction();
         var loopForest = LoopForest.buildOver(irFunction);
         var basicBlockLoopMap = loopForest.getBasicBlockLoopMap();
         Map<LifeTimeIndex, BasicBlock> indexBlockMap = new HashMap<>();
         List<LifeTimeIndex> blockIndexList = new ArrayList<>();
-        for (var instr : instructionList) {
+        for (var instr : instList) {
             if (instr instanceof AsmLabel label) {
-                LifeTimeIndex index = LifeTimeIndex.getInstIn(function.getLifeTimeController(), instr);
+                LifeTimeIndex index = LifeTimeIndex.getInstIn(lifeTimeController, instr);
                 blockIndexList.add(index);
                 indexBlockMap.put(index, function.getBasicBlockByLabel(label));
             }
@@ -48,7 +51,7 @@ public class GraphColoringRegisterControl extends RegisterControl {
         int nowBlockId = 0;
         for (var reg : registers) {
             spillCost.put(reg, 0);
-            for (var point : function.getLifeTimeController().getPoints(reg)) {
+            for (var point : lifeTimeController.getPoints(reg)) {
                 while (nowBlockId + 1 < blockIndexList.size() && blockIndexList.get(nowBlockId + 1).compareTo(point.getIndex()) < 0) {
                     nowBlockId += 1;
                 }
@@ -101,7 +104,7 @@ public class GraphColoringRegisterControl extends RegisterControl {
         edges.clear();
         intervals.clear();
         for (var reg : registers) {
-            intervals.addAll(function.getLifeTimeController().getInterval(reg));
+            intervals.addAll(lifeTimeController.getInterval(reg));
             edges.put(reg, new HashSet<>());
             coalesceEdges.put(reg, new HashSet<>());
         }
@@ -121,6 +124,9 @@ public class GraphColoringRegisterControl extends RegisterControl {
             }
             activeSet.add(now);
         }
+        for (var x : registers) {
+            edges.get(x).addAll(coalesceEdges.get(x));
+        }
     }
 
     /**
@@ -130,14 +136,13 @@ public class GraphColoringRegisterControl extends RegisterControl {
     boolean color() {
         physicRegisterMap.clear();
         Map<Register, Integer> degree = new HashMap<>();
-        for (var x : edges.keySet()) {
-            edges.get(x).addAll(coalesceEdges.get(x));
+        for (var x : registers) {
             degree.put(x, edges.get(x).size());
         }
         Queue<Register> queue = new ArrayDeque<>();
         Set<Register> inQueue = new HashSet<>();
         int virtualRegCnt = 0;
-        for (var x : edges.keySet()) {
+        for (var x : registers) {
             if (x.isVirtual()) {
                 virtualRegCnt += 1;
                 if (degree.get(x) < physicRegisters.size()) {
@@ -184,21 +189,88 @@ public class GraphColoringRegisterControl extends RegisterControl {
     }
 
     /**
+     * 检查是否能将寄存器v合并入寄存器u
+     * @param u 并入的寄存器
+     * @param v 被合并的寄存器
+     * @return 是否能够合并
+     */
+    boolean checkCoalesce(Register u, Register v) {
+        if (!v.isVirtual()) {
+            return false;
+        }
+        if (edges.get(u).size() < edges.get(v).size()) {
+            var tmp = u;
+            u = v;
+            v = tmp;
+        }
+        int degree = edges.get(u).size();
+        for (var x : edges.get(v)) {
+            if (degree >= registers.size()) {
+                break;
+            }
+            degree += edges.get(u).contains(x) ? 0 : 1;
+        }
+        return degree < registers.size();
+    }
+
+    /**
+     * 执行将寄存器v合并入寄存器u的过程，分为替换指令，合并生存点和合并干涉图三步
+     * @param u 并入的寄存器
+     * @param v 被合并的寄存器
+     */
+    void practiseCoalesce(Register u, Register v) {
+        for (var point : lifeTimeController.getPoints(v)) {
+            var inst = point.getIndex().getSourceInst();
+            int id = AsmInstructions.getInstRegID(inst, v);
+            if (id != -1) {
+                inst.setOperand(id, ((RegisterReplaceable)inst.getOperand(id)).replaceRegister(u));
+            }
+        }
+        lifeTimeController.mergePoints(u, v);
+        lifeTimeController.constructInterval(u);
+        edges.get(u).addAll(edges.get(v));
+        edges.get(u).removeIf((r) -> r.equals(u));
+        coalesceEdges.get(u).addAll(coalesceEdges.get(v));
+        coalesceEdges.get(u).removeIf((r) -> r.equals(u));
+    }
+
+    /**
+     * 寄存器合并过程，若成功合并寄存器，则重新进行着色检查
+     * @return 是否成功合并寄存器
+     */
+    boolean coalesce() {
+        for (var v : registers) {
+            if (edges.get(v).size() < registers.size()) {
+                for (var u : coalesceEdges.get(v)) {
+                    if (edges.get(u).size() < registers.size()) {
+                        if (checkCoalesce(u, v)) {
+                            practiseCoalesce(u, v);
+                            return true;
+                        }
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+    /**
      * 为registers列表中的每个虚拟寄存器分配物理寄存器，同时修改
-     * @param instructionList 分配前的指令列表
+     * @param instrList 分配前的指令列表
      * @return 分配后的指令列表
      */
-    public List<AsmInstruction> allocatePhysicalRegisters(List<AsmInstruction> instructionList) {
-        getRegisterCost(instructionList);
+    public List<AsmInstruction> allocatePhysicalRegisters(List<AsmInstruction> instrList) {
+        instList = instrList;
+        getRegisterCost();
         buildGraph();
-        return instructionList;
+        return instList;
     }
 
     @Override
     public List<AsmInstruction> work(List<AsmInstruction> instructionList) {
         List<Register> intRegList = new ArrayList<>(), floatRegList = new ArrayList<>();
         List<Register> intPRegList = new ArrayList<>(), floatPRegList = new ArrayList<>();
-        for (var reg : function.getLifeTimeController().getRegKeySet()) {
+        for (var reg : lifeTimeController.getRegKeySet()) {
             if (reg instanceof IntRegister) {
                 intRegList.add(reg);
             } else {

@@ -95,11 +95,17 @@ public class LifeTimeController {
         return result;
     }
 
-    private void insertLifeTimePoint(Register reg, LifeTimePoint p) {
+    public void insertLifeTimePoint(Register reg, LifeTimePoint p) {
         if (!lifeTimePoints.containsKey(reg)) {
             lifeTimePoints.put(reg, new ArrayList<>());
         }
         lifeTimePoints.get(reg).add(p);
+    }
+
+    public void removeReg(Register reg) {
+        lifeTimePoints.remove(reg);
+        lifeTimeRange.remove(reg);
+        lifeTimeIntervals.remove(reg);
     }
 
     /**
@@ -118,9 +124,7 @@ public class LifeTimeController {
         } else {
             lifeTimePoints.put(x, lifeTimePoints.get(y));
         }
-        lifeTimeIntervals.remove(y);
-        lifeTimeRange.remove(y);
-        lifeTimePoints.remove(y);
+        removeReg(y);
     }
 
     public void mergePoints(int x, int y) {
@@ -247,7 +251,7 @@ public class LifeTimeController {
             }
         }
         for (var constantReg : Registers.CONSTANT_REGISTERS) {
-            lifeTimePoints.remove(constantReg);
+            removeReg(constantReg);
         }
     }
     private void buildLifeTimeMessage(List<AsmInstruction> instructionList) {
@@ -259,9 +263,7 @@ public class LifeTimeController {
             }
         }
         for (var x : removeList) {
-            lifeTimePoints.remove(x);
-            lifeTimeRange.remove(x);
-            lifeTimeIntervals.remove(x);
+            removeReg(x);
         }
     }
 
@@ -288,9 +290,7 @@ public class LifeTimeController {
             }
         }
         for (var x : removeList) {
-            lifeTimePoints.remove(x);
-            lifeTimeRange.remove(x);
-            lifeTimeIntervals.remove(x);
+            removeReg(x);
         }
     }
 }
