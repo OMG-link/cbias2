@@ -15,6 +15,8 @@ import java.util.*;
  * 线性扫描寄存器分配器
  */
 public class LinearScanRegisterControl extends RegisterControl{
+    protected final IntRegister s1 = IntRegister.S1;
+    protected final StackVar s1saved;
     //每个虚拟寄存器的值当前存储的位置
     private final Map<Integer, AsmOperand> vRegLocation = new HashMap<>();
     //每个寄存器当前存储着哪个虚拟寄存器的内容
@@ -22,6 +24,7 @@ public class LinearScanRegisterControl extends RegisterControl{
 
     public LinearScanRegisterControl(AsmFunction function, StackAllocator allocator) {
         super(function, allocator);
+        s1saved = stackPool.pop();
         //加入目前可使用的寄存器
         for (var reg : Registers.USABLE_REGISTERS) {
             registerPool.put(reg, 0);
@@ -34,7 +37,7 @@ public class LinearScanRegisterControl extends RegisterControl{
             if (reg.getClass() == vReg.getClass() && registerPool.get(reg) == 0) {
                 registerPool.put(reg, vReg.getAbsoluteIndex());
                 vRegLocation.put(vReg.getAbsoluteIndex(), reg);
-                updateRegisterPreserve(reg);
+                updateRegisterPreserve(reg, stackPool.pop());
                 return;
             }
         }
@@ -132,7 +135,9 @@ public class LinearScanRegisterControl extends RegisterControl{
                 used.put(vReg, reg);
                 var tmp = stackPool.pop();
                 registerSaveMap.put(reg, tmp);
-                saveToStackVar(newInstList, reg, tmp);
+                if (saveToStackVar(newInstList, reg, tmp, s1)) {
+                    updateRegisterPreserve(s1, s1saved);
+                }
                 return reg;
             }
         }
@@ -183,7 +188,9 @@ public class LinearScanRegisterControl extends RegisterControl{
                         writeStack = stackVar;
                     } else if (!loaded.contains(physicRegister)) {
                         loaded.add(physicRegister);
-                        loadFromStackVar(newInstList, physicRegister, stackVar);
+                        if (loadFromStackVar(newInstList, physicRegister, stackVar, s1)) {
+                            updateRegisterPreserve(s1, s1saved);
+                        }
                     }
                 }
                 inst.setOperand(j, registerReplaceable.replaceRegister(physicRegister));
@@ -195,24 +202,32 @@ public class LinearScanRegisterControl extends RegisterControl{
                     if (registerPool.get(reg) != 0 && !Registers.isPreservedAcrossCalls(reg)) {
                         var tmp = stackPool.pop();
                         callSaved.put(reg, tmp);
-                        saveToStackVar(newInstList, reg, tmp);
+                        if (saveToStackVar(newInstList, reg, tmp, s1)) {
+                            updateRegisterPreserve(s1, s1saved);
+                        }
                     }
                 }
                 newInstList.add(inst);
                 for (var reg : callSaved.keySet()) {
                     var tmp = callSaved.get(reg);
-                    loadFromStackVar(newInstList, reg, tmp);
+                    if (loadFromStackVar(newInstList, reg, tmp, s1)) {
+                        updateRegisterPreserve(s1, s1saved);
+                    }
                     stackPool.push(tmp);
                 }
             } else {
                 newInstList.add(inst);
             }
             if (writeStack != null) {
-                saveToStackVar(newInstList, writeReg, writeStack);
+                if (saveToStackVar(newInstList, writeReg, writeStack, s1)) {
+                    updateRegisterPreserve(s1, s1saved);
+                }
             }
             for (var reg : registerSaveMap.keySet()) {
                 var tmp = registerSaveMap.get(reg);
-                loadFromStackVar(newInstList, reg, tmp);
+                if (loadFromStackVar(newInstList, reg, tmp, s1)) {
+                    updateRegisterPreserve(s1, s1saved);
+                }
                 stackPool.push(tmp);
             }
         }
