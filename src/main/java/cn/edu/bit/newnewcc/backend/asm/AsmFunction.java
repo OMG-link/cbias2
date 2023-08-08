@@ -352,14 +352,14 @@ public class AsmFunction {
     //未分配寄存器的分配方法
 
     private void reAllocateRegister() {
-        //RegisterControl registerController = new LinearScanRegisterControl(this, stackAllocator);
-        //var newInstructionList = registerController.work(instrList);
+        RegisterControl registerController = new LinearScanRegisterControl(this, stackAllocator);
+        var newInstructionList = registerController.work(instrList);
 
         //RegisterControl registerController = new GraphColoringRegisterControl(this, stackAllocator);
         //var newInstructionList = registerController.work(instrList);
 
-        RegisterControl registerController = new LinearScanRegisterControlR1(this, stackAllocator);
-        var newInstructionList = registerController.work(instrList);
+        //RegisterControl registerController = new LinearScanRegisterControlR1(this, stackAllocator);
+        //var newInstructionList = registerController.work(instrList);
 
         for (var inst : newInstructionList) {
             for (int j = 1; j <= 3; j++) {
