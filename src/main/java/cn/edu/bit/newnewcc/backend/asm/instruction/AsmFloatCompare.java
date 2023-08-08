@@ -71,7 +71,7 @@ public class AsmFloatCompare extends AsmInstruction{
     }
 
     @Override
-    public boolean mayWriteToMemory() {
+    public boolean mayHaveSideEffects() {
         return false;
     }
 

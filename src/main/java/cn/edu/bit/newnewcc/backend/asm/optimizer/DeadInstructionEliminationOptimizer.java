@@ -27,7 +27,7 @@ public class DeadInstructionEliminationOptimizer implements Optimizer {
 
             if (instr instanceof AsmLabel || instr instanceof AsmBlockEnd) continue;
 
-            if (instr.willReturn() && !instr.mayWriteToMemory()) {
+            if (instr.willReturn() && !instr.mayHaveSideEffects()) {
                 boolean dead = true;
                 for (Register reg : instr.getDef()) {
                     if (!reg.isVirtual() || usedVRegs.contains(reg)) {

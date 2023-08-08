@@ -35,7 +35,7 @@ public class AsmReturn extends AsmInstruction {
     }
 
     @Override
-    public boolean mayWriteToMemory() {
+    public boolean mayHaveSideEffects() {
         throw new UnsupportedOperationException();
     }
 }

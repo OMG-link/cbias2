@@ -67,7 +67,7 @@ public class AsmConvertFloatInt extends AsmInstruction {
     }
 
     @Override
-    public boolean mayWriteToMemory() {
+    public boolean mayHaveSideEffects() {
         return false;
     }
 }

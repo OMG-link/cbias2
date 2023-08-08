@@ -63,5 +63,5 @@ public abstract class AsmInstruction {
 
     public abstract boolean willReturn();
 
-    public abstract boolean mayWriteToMemory();
+    public abstract boolean mayHaveSideEffects();
 }

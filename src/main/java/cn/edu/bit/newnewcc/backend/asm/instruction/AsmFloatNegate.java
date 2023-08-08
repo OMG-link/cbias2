@@ -36,7 +36,7 @@ public class AsmFloatNegate extends AsmInstruction {
     }
 
     @Override
-    public boolean mayWriteToMemory() {
+    public boolean mayHaveSideEffects() {
         return false;
     }
 }

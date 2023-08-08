@@ -37,7 +37,7 @@ public class AsmFloatDivide extends AsmInstruction {
     }
 
     @Override
-    public boolean mayWriteToMemory() {
+    public boolean mayHaveSideEffects() {
         return false;
     }
 }

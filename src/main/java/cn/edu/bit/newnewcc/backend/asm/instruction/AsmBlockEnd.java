@@ -38,7 +38,7 @@ public class AsmBlockEnd extends AsmInstruction {
     }
 
     @Override
-    public boolean mayWriteToMemory() {
+    public boolean mayHaveSideEffects() {
         throw new UnsupportedOperationException();
     }
 }
