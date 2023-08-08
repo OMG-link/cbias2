@@ -160,12 +160,15 @@ public class AsmFunction {
                 }
             }
 
-            new OptimizerManager().runOn(instrList);
+            OptimizerManager optimizerManager = new OptimizerManager();
+            optimizerManager.runBeforeRegisterAllocation(instrList);
 
             lifeTimeController.getAllRegLifeTime(instrList);
             asmOptimizerBeforeRegisterAllocate(lifeTimeController);
             reAllocateRegister();
             asmOptimizerAfterRegisterAllocate();
+
+            optimizerManager.runAfterRegisterAllocation(instrList);
         }
     }
 

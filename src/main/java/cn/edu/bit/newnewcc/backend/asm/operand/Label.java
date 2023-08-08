@@ -55,6 +55,14 @@ public class Label extends AsmOperand {
         return labelName;
     }
 
+    public SEGMENT getSegment() {
+        return segment;
+    }
+
+    public IntRegister getBaseAddress() {
+        return baseAddress;
+    }
+
     private String getOffset() {
         if (segment == SEGMENT.HIGH) {
             return String.format("%%hi(%s)", labelName);
@@ -74,7 +82,7 @@ public class Label extends AsmOperand {
 
     @Override
     public String toString() {
-        return String.format("Label(%s)", getLabelName());
+        return String.format("Label(%s, %s, %s)", getLabelName(), getSegment(), getBaseAddress());
     }
 
     @Override

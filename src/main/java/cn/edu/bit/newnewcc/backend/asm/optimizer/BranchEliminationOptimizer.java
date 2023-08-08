@@ -27,7 +27,6 @@ public class BranchEliminationOptimizer implements Optimizer {
                     if (instr.getOperand(i) instanceof Label label) {
                         Label newLabel = label;
                         Set<Label> visited = new HashSet<>();
-                        visited.add(newLabel);
 
                         while (labelMap.containsKey(newLabel) && !visited.contains(labelMap.get(newLabel))) {
                             newLabel = labelMap.get(newLabel);
@@ -35,12 +34,11 @@ public class BranchEliminationOptimizer implements Optimizer {
                         }
 
                         if (!newLabel.equals(label)) {
-                            instr.setOperand(i, labelMap.get(label));
+                            instr.setOperand(i, newLabel);
                         }
                     }
                 }
             }
         }
-
     }
 }
