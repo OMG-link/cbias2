@@ -1,6 +1,7 @@
 package cn.edu.bit.newnewcc.backend.asm.instruction;
 
 import cn.edu.bit.newnewcc.backend.asm.operand.*;
+import cn.edu.bit.newnewcc.ir.exception.IllegalArgumentException;
 import cn.edu.bit.newnewcc.ir.exception.IndexOutOfBoundsException;
 
 import java.util.Objects;
@@ -23,14 +24,17 @@ public abstract class AsmInstruction {
         switch (index) {
             case 1 -> {
                 if (operand1 == null) throw new IndexOutOfBoundsException();
+                if (operand.getClass() != operand1.getClass()) throw new IllegalArgumentException();
                 operand1 = operand;
             }
             case 2 -> {
                 if (operand2 == null) throw new IndexOutOfBoundsException();
+                if (operand.getClass() != operand2.getClass()) throw new IllegalArgumentException();
                 operand2 = operand;
             }
             case 3 -> {
                 if (operand3 == null) throw new IndexOutOfBoundsException();
+                if (operand.getClass() != operand3.getClass()) throw new IllegalArgumentException();
                 operand3 = operand;
             }
             default -> throw new IndexOutOfBoundsException();
