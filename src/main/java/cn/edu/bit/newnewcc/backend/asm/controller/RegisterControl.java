@@ -20,7 +20,8 @@ public abstract class RegisterControl {
     public List<AsmInstruction> emitPrologue() {
         List<AsmInstruction> instrList = new ArrayList<>();
         for (var register : preservedRegisterSaved.keySet()) {
-            saveToStackVar(instrList, register, preservedRegisterSaved.get(register), IntRegister.getPhysical(5));
+            var tmpl = saveToStackVar(register, preservedRegisterSaved.get(register), IntRegister.getPhysical(5));
+            instrList.addAll(tmpl);
         }
         return Collections.unmodifiableList(instrList);
     }
@@ -28,7 +29,8 @@ public abstract class RegisterControl {
     public List<AsmInstruction> emitEpilogue() {
         List<AsmInstruction> instrList = new ArrayList<>();
         for (var register : preservedRegisterSaved.keySet()) {
-            loadFromStackVar(instrList, register, preservedRegisterSaved.get(register), IntRegister.getPhysical(5));
+            var tmpl = loadFromStackVar(register, preservedRegisterSaved.get(register), IntRegister.getPhysical(5));
+            instrList.addAll(tmpl);
         }
         return Collections.unmodifiableList(instrList);
     }
@@ -51,30 +53,28 @@ public abstract class RegisterControl {
         stackPool = new StackPool(allocator);
     }
 
-    public boolean loadFromStackVar(List<AsmInstruction> instList, Register register, StackVar stackVar, IntRegister tmpReg) {
-        boolean tmpRegUsed = false;
+    public List<AsmInstruction> loadFromStackVar(Register register, StackVar stackVar, IntRegister tmpReg) {
+        List<AsmInstruction> instList = new ArrayList<>();
         if (ImmediateValues.bitLengthNotInLimit(stackVar.getAddress().getOffset())) {
             instList.add(new AsmLoad(tmpReg, new Immediate(Math.toIntExact(stackVar.getAddress().getOffset()))));
             instList.add(new AsmAdd(tmpReg, tmpReg, stackVar.getAddress().getRegister(), 64));
             stackVar = new StackVar(0, stackVar.getSize(), true);
             stackVar = stackVar.replaceRegister(tmpReg);
-            tmpRegUsed = true;
         }
         instList.add(new AsmLoad(register, stackVar));
-        return tmpRegUsed;
+        return instList;
     }
 
-    public boolean saveToStackVar(List<AsmInstruction> instList, Register register, StackVar stackVar, IntRegister tmpReg) {
-        boolean tmpRegUsed = false;
+    public List<AsmInstruction> saveToStackVar(Register register, StackVar stackVar, IntRegister tmpReg) {
+        List<AsmInstruction> instList = new ArrayList<>();
         if (ImmediateValues.bitLengthNotInLimit(stackVar.getAddress().getOffset())) {
             instList.add(new AsmLoad(tmpReg, new Immediate(Math.toIntExact(stackVar.getAddress().getOffset()))));
             instList.add(new AsmAdd(tmpReg, tmpReg, stackVar.getAddress().getRegister(), 64));
             stackVar = new StackVar(0, stackVar.getSize(), true);
             stackVar = stackVar.replaceRegister(tmpReg);
-            tmpRegUsed = true;
         }
         instList.add(new AsmStore(register, stackVar));
-        return tmpRegUsed;
+        return instList;
     }
 
     public abstract List<AsmInstruction> work(List<AsmInstruction> instructionList);

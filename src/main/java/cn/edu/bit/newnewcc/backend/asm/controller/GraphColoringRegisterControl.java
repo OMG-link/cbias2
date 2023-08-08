@@ -5,10 +5,7 @@ import cn.edu.bit.newnewcc.backend.asm.allocator.StackAllocator;
 import cn.edu.bit.newnewcc.backend.asm.instruction.AsmInstruction;
 import cn.edu.bit.newnewcc.backend.asm.instruction.AsmLabel;
 import cn.edu.bit.newnewcc.backend.asm.instruction.AsmMove;
-import cn.edu.bit.newnewcc.backend.asm.operand.FloatRegister;
-import cn.edu.bit.newnewcc.backend.asm.operand.IntRegister;
-import cn.edu.bit.newnewcc.backend.asm.operand.Register;
-import cn.edu.bit.newnewcc.backend.asm.operand.RegisterReplaceable;
+import cn.edu.bit.newnewcc.backend.asm.operand.*;
 import cn.edu.bit.newnewcc.backend.asm.util.AsmInstructions;
 import cn.edu.bit.newnewcc.backend.asm.util.Registers;
 import cn.edu.bit.newnewcc.ir.value.BasicBlock;
@@ -129,7 +126,7 @@ public class GraphColoringRegisterControl extends RegisterControl {
         }
     }
 
-    private Map<Register, Integer> uncoloredRegs;
+    private Map<Register, Integer> uncoloredRegDeg;
     /**
      * 为干涉图中的所有虚拟寄存器进行染色操作，若成功则结果保存与physicRegisterMap中，否则将未着色的寄存器的度数保存下来
      * @return 若成功染色返回true，否则返回false
@@ -169,10 +166,10 @@ public class GraphColoringRegisterControl extends RegisterControl {
             }
         }
         if (stack.size() < virtualRegCnt) {
-            uncoloredRegs = new HashMap<>();
+            uncoloredRegDeg = new HashMap<>();
             for (var reg : registers) {
                 if (reg.isVirtual() && !visited.contains(reg)) {
-                    uncoloredRegs.put(reg, degree.get(reg));
+                    uncoloredRegDeg.put(reg, degree.get(reg));
                 }
             }
             return false;
@@ -261,7 +258,31 @@ public class GraphColoringRegisterControl extends RegisterControl {
         return false;
     }
 
+    /**
+     * 根据未分配度数和spill代价衡量spill对象的选择
+     * @param reg 待spill寄存器
+     * @return 代价估计值
+     */
+    private double costFunction(Register reg) {
+        double deg = uncoloredRegDeg.get(reg);
+        return spillCost.get(reg) / deg;
+    }
+
+    private void practiseSpill(Register reg) {
+        StackVar regSaved = stackPool.pop();
+    }
+
     private void spill() {
+        double minCost = -1;
+        Register goal = null;
+        for (var reg : uncoloredRegDeg.keySet()) {
+            double nowCost = costFunction(reg);
+            if (minCost < 0 || nowCost < minCost) {
+                minCost = nowCost;
+                goal = reg;
+            }
+        }
+        practiseSpill(goal);
     }
 
     /**

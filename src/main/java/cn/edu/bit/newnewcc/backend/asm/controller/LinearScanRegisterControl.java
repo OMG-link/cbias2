@@ -135,7 +135,9 @@ public class LinearScanRegisterControl extends RegisterControl{
                 used.put(vReg, reg);
                 var tmp = stackPool.pop();
                 registerSaveMap.put(reg, tmp);
-                if (saveToStackVar(newInstList, reg, tmp, s1)) {
+                var tmpl = saveToStackVar(reg, tmp, s1);
+                newInstList.addAll(tmpl);
+                if (tmpl.size() > 1) {
                     updateRegisterPreserve(s1, s1saved);
                 }
                 return reg;
@@ -188,7 +190,9 @@ public class LinearScanRegisterControl extends RegisterControl{
                         writeStack = stackVar;
                     } else if (!loaded.contains(physicRegister)) {
                         loaded.add(physicRegister);
-                        if (loadFromStackVar(newInstList, physicRegister, stackVar, s1)) {
+                        var tmpl = loadFromStackVar(physicRegister, stackVar, s1);
+                        newInstList.addAll(tmpl);
+                        if (tmpl.size() > 1) {
                             updateRegisterPreserve(s1, s1saved);
                         }
                     }
@@ -202,7 +206,9 @@ public class LinearScanRegisterControl extends RegisterControl{
                     if (registerPool.get(reg) != 0 && !Registers.isPreservedAcrossCalls(reg)) {
                         var tmp = stackPool.pop();
                         callSaved.put(reg, tmp);
-                        if (saveToStackVar(newInstList, reg, tmp, s1)) {
+                        var tmpl = saveToStackVar(reg, tmp, s1);
+                        newInstList.addAll(tmpl);
+                        if (tmpl.size() > 1) {
                             updateRegisterPreserve(s1, s1saved);
                         }
                     }
@@ -210,7 +216,9 @@ public class LinearScanRegisterControl extends RegisterControl{
                 newInstList.add(inst);
                 for (var reg : callSaved.keySet()) {
                     var tmp = callSaved.get(reg);
-                    if (loadFromStackVar(newInstList, reg, tmp, s1)) {
+                    var tmpl = loadFromStackVar(reg, tmp, s1);
+                    newInstList.addAll(tmpl);
+                    if (tmpl.size() > 1) {
                         updateRegisterPreserve(s1, s1saved);
                     }
                     stackPool.push(tmp);
@@ -219,13 +227,17 @@ public class LinearScanRegisterControl extends RegisterControl{
                 newInstList.add(inst);
             }
             if (writeStack != null) {
-                if (saveToStackVar(newInstList, writeReg, writeStack, s1)) {
+                var tmpl = saveToStackVar(writeReg, writeStack, s1);
+                newInstList.addAll(tmpl);
+                if (tmpl.size() > 1) {
                     updateRegisterPreserve(s1, s1saved);
                 }
             }
             for (var reg : registerSaveMap.keySet()) {
                 var tmp = registerSaveMap.get(reg);
-                if (loadFromStackVar(newInstList, reg, tmp, s1)) {
+                var tmpl = loadFromStackVar(reg, tmp, s1);
+                newInstList.addAll(tmpl);
+                if (tmpl.size() > 1) {
                     updateRegisterPreserve(s1, s1saved);
                 }
                 stackPool.push(tmp);
