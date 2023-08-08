@@ -33,6 +33,13 @@ public abstract class RegisterControl {
         return Collections.unmodifiableList(instrList);
     }
 
+
+    public void updateRegisterPreserve(Register register) {
+        if (Registers.isPreservedAcrossCalls(register) && !preservedRegisterSaved.containsKey(register)) {
+            preservedRegisterSaved.put(register, stackPool.pop());
+        }
+    }
+
     public void updateRegisterPreserve(Register register, StackVar saved) {
         if (Registers.isPreservedAcrossCalls(register) && !preservedRegisterSaved.containsKey(register)) {
             preservedRegisterSaved.put(register, saved);

@@ -37,7 +37,7 @@ public class LinearScanRegisterControl extends RegisterControl{
             if (reg.getClass() == vReg.getClass() && registerPool.get(reg) == 0) {
                 registerPool.put(reg, vReg.getAbsoluteIndex());
                 vRegLocation.put(vReg.getAbsoluteIndex(), reg);
-                updateRegisterPreserve(reg, stackPool.pop());
+                updateRegisterPreserve(reg);
                 return;
             }
         }
