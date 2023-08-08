@@ -53,6 +53,16 @@ public abstract class Instruction extends Value {
         this.valueName = valueName;
     }
 
+    private String comment = null;
+
+    public void setComment(String comment) {
+        this.comment = comment;
+    }
+
+    public String getComment() {
+        return comment;
+    }
+
     public abstract void emitIr(StringBuilder builder);
 
 

@@ -49,6 +49,9 @@ public class BasicBlock extends Value {
         for (Instruction instruction : this.getInstructions()) {
             builder.append("    ");
             instruction.emitIr(builder);
+            if (instruction.getComment() != null) {
+                builder.append(" ;").append(instruction.getComment());
+            }
             builder.append('\n');
         }
     }
