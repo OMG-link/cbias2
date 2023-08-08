@@ -2,6 +2,7 @@ package cn.edu.bit.newnewcc.backend.asm.controller;
 
 import cn.edu.bit.newnewcc.backend.asm.AsmFunction;
 import cn.edu.bit.newnewcc.backend.asm.allocator.StackAllocator;
+import cn.edu.bit.newnewcc.backend.asm.instruction.AsmCall;
 import cn.edu.bit.newnewcc.backend.asm.instruction.AsmInstruction;
 import cn.edu.bit.newnewcc.backend.asm.instruction.AsmLabel;
 import cn.edu.bit.newnewcc.backend.asm.instruction.AsmMove;
@@ -9,7 +10,6 @@ import cn.edu.bit.newnewcc.backend.asm.operand.*;
 import cn.edu.bit.newnewcc.backend.asm.util.AsmInstructions;
 import cn.edu.bit.newnewcc.backend.asm.util.Pair;
 import cn.edu.bit.newnewcc.backend.asm.util.Registers;
-import cn.edu.bit.newnewcc.backend.asm.util.Utility;
 import cn.edu.bit.newnewcc.ir.value.BasicBlock;
 import cn.edu.bit.newnewcc.pass.ir.structure.LoopForest;
 
@@ -35,6 +35,7 @@ public class GraphColoringRegisterControl extends RegisterControl {
     private final Map<Register, Integer> spillCost = new HashMap<>();
     private List<AsmInstruction> instList;
     private final static int inf = 0x3f3f3f3f;
+    private final IntRegister addressReg = IntRegister.getPhysical(5);
 
     /**
      * 获取寄存器被spill到内存中的代价，物理寄存器的代价总是inf*2，保证不能被spill
@@ -117,7 +118,7 @@ public class GraphColoringRegisterControl extends RegisterControl {
     /**
      * 为虚拟寄存器和代码中含有的可变物理寄存器建立干涉图
      */
-    private void buildGraph() {
+    private void buildGraph(boolean freezeAll) {
         intervals.clear();
         interferenceEdges.clear();
         coalescentEdges.clear();
@@ -134,7 +135,7 @@ public class GraphColoringRegisterControl extends RegisterControl {
                 var ru = now.reg;
                 var rv = last.reg;
                 var defInst = now.range.a.getSourceInst();
-                if (defInst instanceof AsmMove asmMove && AsmInstructions.getMoveReg(asmMove).b.equals(rv)) {
+                if (defInst instanceof AsmMove asmMove && AsmInstructions.getMoveReg(asmMove).b.equals(rv) && !freezeAll) {
                     addCoalesceEdge(ru, rv);
                 } else {
                     addInterferenceEdge(ru, rv);
@@ -185,8 +186,7 @@ public class GraphColoringRegisterControl extends RegisterControl {
         if (uncoloredReg.size() + coalescentReg.size() > 0) {
             return false;
         }
-        buildGraph();
-        physicRegisterMap.clear();
+        buildGraph(true);
         for (var reg : registers) {
             if (!reg.isVirtual()) {
                 physicRegisterMap.put(reg, reg);
@@ -317,28 +317,173 @@ public class GraphColoringRegisterControl extends RegisterControl {
      * @return 代价估计值
      */
     private double costFunction(Register reg) {
-        return 0;
+        double degree = interferenceEdges.get(reg).size();
+        return spillCost.get(reg) / degree;
     }
 
+    /*
+      计算地址加载过程中使用的临时寄存器的生存点
+      @param addressLoadInst 地址加载指令列表
+     */
+    /*
+    void workOnAddressLoading(List<AsmInstruction> addressLoadInst) {
+        LifeTimeIndex liOut = LifeTimeIndex.getInstOut(lifeTimeController, addressLoadInst.get(0));
+        LifeTimeIndex addIn = LifeTimeIndex.getInstIn(lifeTimeController, addressLoadInst.get(1));
+        LifeTimeIndex addOut = LifeTimeIndex.getInstOut(lifeTimeController, addressLoadInst.get(1));
+        LifeTimeIndex stkIn = LifeTimeIndex.getInstIn(lifeTimeController, addressLoadInst.get(2));
+        lifeTimeController.insertLifeTimePoint(addressReg, LifeTimePoint.getDef(liOut));
+        lifeTimeController.insertLifeTimePoint(addressReg, LifeTimePoint.getUse(addIn));
+        lifeTimeController.insertLifeTimePoint(addressReg, LifeTimePoint.getDef(addOut));
+        lifeTimeController.insertLifeTimePoint(addressReg, LifeTimePoint.getUse(stkIn));
+    }*/
+
+    /**
+     * 计算寄存器加载或存储到栈空间时的生存点
+     * @param reg 寄存器
+     * @param last 产生寄存器值的指令
+     * @param next 使用寄存器值的指令
+     * @return 过程中使用的临时寄存器
+     */
+    Register workOnRegisterValue(Register reg, AsmInstruction last, AsmInstruction next) {
+        Register tmpReg = function.getRegisterAllocator().allocate(reg);
+        LifeTimeIndex lastIndex = LifeTimeIndex.getInstOut(lifeTimeController, last);
+        lifeTimeController.insertLifeTimePoint(tmpReg, LifeTimePoint.getDef(lastIndex));
+        LifeTimeIndex nextIndex = LifeTimeIndex.getInstIn(lifeTimeController, next);
+        lifeTimeController.insertLifeTimePoint(tmpReg, LifeTimePoint.getUse(nextIndex));
+        return tmpReg;
+    }
+
+    /**
+     * 执行spill操作的过程，包含重建指令列表和添加生存点两个部分
+     * @param reg 被spill的寄存器
+     */
     private void practiseSpill(Register reg) {
+        if (!reg.isVirtual()) {
+            throw new RuntimeException("spilled physic register");
+        }
         StackVar regSaved = stackPool.pop();
+        List<AsmInstruction> spilledInstrList = new ArrayList<>();
+        //IntRegister addressReg = function.getRegisterAllocator().allocateInt();
+        for (var inst : instList) {
+            if (AsmInstructions.getReadRegSet(inst).contains(reg)) {
+                var tmpl = loadFromStackVar(reg, regSaved, addressReg);
+                //if (tmpl.size() > 1) {
+                    //workOnAddressLoading(tmpl);
+                    //addressReg = function.getRegisterAllocator().allocateInt();
+                //}
+                var rLoad = workOnRegisterValue(reg, tmpl.get(tmpl.size() - 1), inst);
+                for (int i : AsmInstructions.getReadVRegId(inst)) {
+                    if (inst.getOperand(i) instanceof RegisterReplaceable rp && rp.getRegister().equals(reg)) {
+                        inst.setOperand(i, rp.replaceRegister(rLoad));
+                    }
+                }
+                spilledInstrList.addAll(tmpl);
+            }
+            spilledInstrList.add(inst);
+            if (AsmInstructions.getWriteRegSet(inst).contains(reg)) {
+                var tmpl = saveToStackVar(reg, regSaved, addressReg);
+                //if (tmpl.size() > 1) {
+                //    workOnAddressLoading(tmpl);
+                //    addressReg = function.getRegisterAllocator().allocateInt();
+                //}
+                var rStore = workOnRegisterValue(reg, inst, tmpl.get(tmpl.size() - 1));
+                for (int i : AsmInstructions.getWriteVRegId(inst)) {
+                    if (inst.getOperand(i) instanceof RegisterReplaceable rp && rp.getRegister().equals(reg)) {
+                        inst.setOperand(i, rp.replaceRegister(rStore));
+                    }
+                }
+                spilledInstrList.addAll(tmpl);
+            }
+        }
+        instList = spilledInstrList;
+        lifeTimeController.removeReg(reg);
+        lifeTimeController.rebuildLifeTimeInterval(instList);
     }
 
+    /**
+     * 执行spill操作，从未着色寄存器中找出代价最小的寄存器进行spill
+     */
     private void spill() {
-        double minCost = -1;
         Register goal = null;
+        for (var reg : uncoloredReg) {
+            if (goal == null || costFunction(reg) < costFunction(goal)) {
+                goal = reg;
+            }
+        }
+        if (goal == null) {
+            throw new RuntimeException("no uncolored register to spill");
+        }
         practiseSpill(goal);
     }
 
     /**
-     * 为registers列表中的每个虚拟寄存器分配物理寄存器，同时修改
-     * @param instrList 分配前的指令列表
+     * 为registers列表中的每个虚拟寄存器分配物理寄存器，当发生一次溢出后即停止进行合并过程
+     * @param instructionList 分配前的指令列表
      * @return 分配后的指令列表
      */
-    public List<AsmInstruction> allocatePhysicalRegisters(List<AsmInstruction> instrList) {
-        instList = instrList;
+    public List<AsmInstruction> allocatePhysicalRegisters(List<AsmInstruction> instructionList) {
+        instList = instructionList;
+        stack.clear();
         getRegisterCost();
-        buildGraph();
+        buildGraph(false);
+        while (!color()) {
+            if (!coalesce()) {
+                if (!freeze()) {
+                    spill();
+                    buildGraph(true);
+                }
+            }
+        }
+        return instList;
+    }
+
+    List<AsmInstruction> replacePhysicRegisters(List<AsmInstruction> instructionList) {
+        List<AsmInstruction> instList = new ArrayList<>();
+        intervals.clear();
+        for (var reg : registers) {
+            intervals.addAll(lifeTimeController.getInterval(reg));
+        }
+        Collections.sort(intervals);
+        int intervalId = 0;
+        Set<LifeTimeInterval> activeSet = new HashSet<>();
+        for (var inst : instructionList) {
+            LifeTimeIndex inIndex = LifeTimeIndex.getInstIn(lifeTimeController, inst);
+            activeSet.removeIf((interval) -> interval.range.b.compareTo(inIndex) < 0);
+
+            for (int i = 1; i <= 3; i++) {
+                if (inst.getOperand(i) instanceof RegisterReplaceable rp && rp.getRegister().isVirtual()) {
+                    Register physicRegister = physicRegisterMap.get(rp.getRegister());
+                    inst.setOperand(i, rp.replaceRegister(physicRegister));
+                }
+            }
+
+            if (inst instanceof AsmCall) {
+                Map<Register, StackVar> saved = new HashMap<>();
+                for (var interval : activeSet) {
+                    var physicReg = physicRegisterMap.get(interval.reg);
+                    if (!Registers.isPreservedAcrossCalls(physicReg)) {
+                        StackVar stk = stackPool.pop();
+                        saved.put(physicReg, stk);
+                        var tmpl = saveToStackVar(physicReg, stk, addressReg);
+                        instList.addAll(tmpl);
+                    }
+                }
+                instList.add(inst);
+                for (var reg : saved.keySet()) {
+                    var tmpl = loadFromStackVar(reg, saved.get(reg), addressReg);
+                    instList.addAll(tmpl);
+                }
+            } else {
+                instList.add(inst);
+            }
+
+
+            LifeTimeIndex outIndex = LifeTimeIndex.getInstIn(lifeTimeController, inst);
+            while (intervalId < intervals.size() && intervals.get(intervalId).range.a.compareTo(outIndex) <= 0) {
+                activeSet.add(intervals.get(intervalId));
+                intervalId += 1;
+            }
+        }
         return instList;
     }
 
@@ -346,6 +491,7 @@ public class GraphColoringRegisterControl extends RegisterControl {
     public List<AsmInstruction> work(List<AsmInstruction> instructionList) {
         List<Register> intRegList = new ArrayList<>(), floatRegList = new ArrayList<>();
         List<Register> intPRegList = new ArrayList<>(), floatPRegList = new ArrayList<>();
+        physicRegisterMap.clear();
         for (var reg : lifeTimeController.getRegKeySet()) {
             if (reg instanceof IntRegister) {
                 intRegList.add(reg);
@@ -364,12 +510,17 @@ public class GraphColoringRegisterControl extends RegisterControl {
                 floatPRegList.add(reg);
             }
         }
+
+        //update : 保留了寄存器x5(t0)作为地址加载寄存器
+        physicRegisters.remove(addressReg);
+
         registers = intRegList;
         physicRegisters = intPRegList;
         instructionList = allocatePhysicalRegisters(instructionList);
         registers = floatRegList;
         physicRegisters = floatPRegList;
         instructionList = allocatePhysicalRegisters(instructionList);
+        instructionList = replacePhysicRegisters(instructionList);
         return instructionList;
     }
 }
