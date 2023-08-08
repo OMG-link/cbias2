@@ -440,8 +440,11 @@ public class GraphColoringRegisterControl extends RegisterControl {
     List<AsmInstruction> replacePhysicRegisters(List<AsmInstruction> instructionList) {
         List<AsmInstruction> instList = new ArrayList<>();
         intervals.clear();
-        for (var reg : registers) {
+        for (var reg : physicRegisterMap.keySet()) {
             intervals.addAll(lifeTimeController.getInterval(reg));
+        }
+        for (var reg : physicRegisterMap.values()) {
+            updateRegisterPreserve(reg);
         }
         Collections.sort(intervals);
         int intervalId = 0;
