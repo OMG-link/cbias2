@@ -35,7 +35,7 @@ public class GraphColoringRegisterControl extends RegisterControl {
     /**
      * 获取寄存器被spill到内存中的代价，物理寄存器的代价总是inf*2，保证不能被spill
      */
-    void getRegisterCost() {
+    private void getRegisterCost() {
         var irFunction = function.getBaseFunction();
         var loopForest = LoopForest.buildOver(irFunction);
         var basicBlockLoopMap = loopForest.getBasicBlockLoopMap();
@@ -78,7 +78,7 @@ public class GraphColoringRegisterControl extends RegisterControl {
      * @param u 边节点
      * @param v 边节点
      */
-    void addEdge(Register u, Register v) {
+    private void addEdge(Register u, Register v) {
         coalesceEdges.get(u).remove(v);
         coalesceEdges.get(v).remove(u);
         edges.get(u).add(v);
@@ -90,7 +90,7 @@ public class GraphColoringRegisterControl extends RegisterControl {
      * @param u 边节点
      * @param v 边节点
      */
-    void addCoalesceEdge(Register u, Register v) {
+    private void addCoalesceEdge(Register u, Register v) {
         if (!edges.get(u).contains(v)) {
             coalesceEdges.get(u).add(v);
             coalesceEdges.get(v).add(u);
@@ -100,7 +100,7 @@ public class GraphColoringRegisterControl extends RegisterControl {
     /**
      * 为虚拟寄存器和代码中含有的可变物理寄存器建立干涉图
      */
-    void buildGraph() {
+    private void buildGraph() {
         edges.clear();
         intervals.clear();
         for (var reg : registers) {
@@ -129,25 +129,26 @@ public class GraphColoringRegisterControl extends RegisterControl {
         }
     }
 
+    private Set<Register> uncoloredRegs;
     /**
      * 为干涉图中的所有虚拟寄存器进行染色操作，若成功则结果保存与physicRegisterMap中
      * @return 若成功染色返回true，否则返回false
      */
-    boolean color() {
+    private boolean color() {
         physicRegisterMap.clear();
         Map<Register, Integer> degree = new HashMap<>();
         for (var x : registers) {
             degree.put(x, edges.get(x).size());
         }
         Queue<Register> queue = new ArrayDeque<>();
-        Set<Register> inQueue = new HashSet<>();
+        Set<Register> visited = new HashSet<>();
         int virtualRegCnt = 0;
         for (var x : registers) {
             if (x.isVirtual()) {
                 virtualRegCnt += 1;
                 if (degree.get(x) < physicRegisters.size()) {
                     queue.add(x);
-                    inQueue.add(x);
+                    visited.add(x);
                 }
             } else {
                 physicRegisterMap.put(x, x);
@@ -160,14 +161,20 @@ public class GraphColoringRegisterControl extends RegisterControl {
             for (var u : edges.get(v)) {
                 degree.put(u, degree.get(u) - 1);
                 if (degree.get(u) < physicRegisters.size()) {
-                    if (u.isVirtual() && !inQueue.contains(u)) {
+                    if (u.isVirtual() && !visited.contains(u)) {
                         queue.add(u);
-                        inQueue.add(u);
+                        visited.add(u);
                     }
                 }
             }
         }
         if (stack.size() < virtualRegCnt) {
+            uncoloredRegs = new HashSet<>();
+            for (var reg : registers) {
+                if (reg.isVirtual() && !visited.contains(reg)) {
+                    uncoloredRegs.add(reg);
+                }
+            }
             return false;
         }
         while (!stack.empty()) {
@@ -194,7 +201,7 @@ public class GraphColoringRegisterControl extends RegisterControl {
      * @param v 被合并的寄存器
      * @return 是否能够合并
      */
-    boolean checkCoalesce(Register u, Register v) {
+    private boolean checkCoalesce(Register u, Register v) {
         if (!v.isVirtual()) {
             return false;
         }
@@ -218,7 +225,7 @@ public class GraphColoringRegisterControl extends RegisterControl {
      * @param u 并入的寄存器
      * @param v 被合并的寄存器
      */
-    void practiseCoalesce(Register u, Register v) {
+    private void practiseCoalesce(Register u, Register v) {
         for (var point : lifeTimeController.getPoints(v)) {
             var inst = point.getIndex().getSourceInst();
             int id = AsmInstructions.getInstRegID(inst, v);
@@ -238,7 +245,7 @@ public class GraphColoringRegisterControl extends RegisterControl {
      * 寄存器合并过程，若成功合并寄存器，则重新进行着色检查
      * @return 是否成功合并寄存器
      */
-    boolean coalesce() {
+    private boolean coalesce() {
         for (var v : registers) {
             if (edges.get(v).size() < registers.size()) {
                 for (var u : coalesceEdges.get(v)) {
@@ -252,6 +259,9 @@ public class GraphColoringRegisterControl extends RegisterControl {
             }
         }
         return false;
+    }
+
+    private void spill() {
     }
 
     /**
