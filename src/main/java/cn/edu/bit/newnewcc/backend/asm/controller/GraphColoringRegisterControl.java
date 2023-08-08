@@ -7,7 +7,9 @@ import cn.edu.bit.newnewcc.backend.asm.instruction.AsmLabel;
 import cn.edu.bit.newnewcc.backend.asm.instruction.AsmMove;
 import cn.edu.bit.newnewcc.backend.asm.operand.*;
 import cn.edu.bit.newnewcc.backend.asm.util.AsmInstructions;
+import cn.edu.bit.newnewcc.backend.asm.util.Pair;
 import cn.edu.bit.newnewcc.backend.asm.util.Registers;
+import cn.edu.bit.newnewcc.backend.asm.util.Utility;
 import cn.edu.bit.newnewcc.ir.value.BasicBlock;
 import cn.edu.bit.newnewcc.pass.ir.structure.LoopForest;
 
@@ -22,8 +24,13 @@ public class GraphColoringRegisterControl extends RegisterControl {
     private List<Register> registers, physicRegisters;
     private final LifeTimeController lifeTimeController;
     private final List<LifeTimeInterval> intervals = new ArrayList<>();
-    private final Map<Register, Set<Register>> edges = new HashMap<>();
-    private final Map<Register, Set<Register>> coalesceEdges = new HashMap<>();
+
+    private final Map<Register, Set<Register>> interferenceEdges = new HashMap<>();
+    private final Map<Register, Set<Register>> coalescentEdges = new HashMap<>();
+    private final Set<Register> uncoloredReg = new HashSet<>();
+    private final Set<Register> coalescentReg = new HashSet<>();
+
+    private final Stack<Register> stack = new Stack<>();
     private final Map<Register, Register> physicRegisterMap = new HashMap<>();
     private final Map<Register, Integer> spillCost = new HashMap<>();
     private List<AsmInstruction> instList;
@@ -75,11 +82,13 @@ public class GraphColoringRegisterControl extends RegisterControl {
      * @param u 边节点
      * @param v 边节点
      */
-    private void addEdge(Register u, Register v) {
-        coalesceEdges.get(u).remove(v);
-        coalesceEdges.get(v).remove(u);
-        edges.get(u).add(v);
-        edges.get(v).add(u);
+    private void addInterferenceEdge(Register u, Register v) {
+        if (!u.equals(v)) {
+            coalescentEdges.get(u).remove(v);
+            coalescentEdges.get(v).remove(u);
+            interferenceEdges.get(u).add(v);
+            interferenceEdges.get(v).add(u);
+        }
     }
 
     /**
@@ -88,9 +97,20 @@ public class GraphColoringRegisterControl extends RegisterControl {
      * @param v 边节点
      */
     private void addCoalesceEdge(Register u, Register v) {
-        if (!edges.get(u).contains(v)) {
-            coalesceEdges.get(u).add(v);
-            coalesceEdges.get(v).add(u);
+        if (!u.equals(v) && !interferenceEdges.get(u).contains(v)) {
+            coalescentEdges.get(u).add(v);
+            coalescentEdges.get(v).add(u);
+        }
+    }
+
+    private void removeEdge(Register u, Register v) {
+        if (interferenceEdges.get(u).contains(v)) {
+            interferenceEdges.get(u).remove(v);
+            interferenceEdges.get(v).remove(u);
+        }
+        if (coalescentEdges.get(u).contains(v)) {
+            coalescentEdges.get(u).remove(v);
+            coalescentEdges.get(v).remove(u);
         }
     }
 
@@ -98,12 +118,13 @@ public class GraphColoringRegisterControl extends RegisterControl {
      * 为虚拟寄存器和代码中含有的可变物理寄存器建立干涉图
      */
     private void buildGraph() {
-        edges.clear();
         intervals.clear();
+        interferenceEdges.clear();
+        coalescentEdges.clear();
         for (var reg : registers) {
             intervals.addAll(lifeTimeController.getInterval(reg));
-            edges.put(reg, new HashSet<>());
-            coalesceEdges.put(reg, new HashSet<>());
+            interferenceEdges.put(reg, new HashSet<>());
+            coalescentEdges.put(reg, new HashSet<>());
         }
         Collections.sort(intervals);
         Set<LifeTimeInterval> activeSet = new HashSet<>();
@@ -116,68 +137,65 @@ public class GraphColoringRegisterControl extends RegisterControl {
                 if (defInst instanceof AsmMove asmMove && AsmInstructions.getMoveReg(asmMove).b.equals(rv)) {
                     addCoalesceEdge(ru, rv);
                 } else {
-                    addEdge(ru, rv);
+                    addInterferenceEdge(ru, rv);
                 }
             }
             activeSet.add(now);
         }
-        for (var x : registers) {
-            edges.get(x).addAll(coalesceEdges.get(x));
+        uncoloredReg.clear();
+        coalescentReg.clear();
+        for (var reg : registers) {
+            if (reg.isVirtual()) {
+                if (coalescentEdges.get(reg).size() == 0) {
+                    uncoloredReg.add(reg);
+                } else {
+                    coalescentReg.add(reg);
+                }
+            }
         }
     }
 
-    private Map<Register, Integer> uncoloredRegDeg;
     /**
-     * 为干涉图中的所有虚拟寄存器进行染色操作，若成功则结果保存与physicRegisterMap中，否则将未着色的寄存器的度数保存下来
+     * 未当前剩下的未着色的寄存器进行着色，若成功则重建图并构建出每个寄存器对应的物理寄存器
      * @return 若成功染色返回true，否则返回false
      */
     private boolean color() {
-        physicRegisterMap.clear();
-        Map<Register, Integer> degree = new HashMap<>();
-        for (var x : registers) {
-            degree.put(x, edges.get(x).size());
-        }
         Queue<Register> queue = new ArrayDeque<>();
         Set<Register> visited = new HashSet<>();
-        int virtualRegCnt = 0;
-        for (var x : registers) {
-            if (x.isVirtual()) {
-                virtualRegCnt += 1;
-                if (degree.get(x) < physicRegisters.size()) {
-                    queue.add(x);
-                    visited.add(x);
-                }
-            } else {
-                physicRegisterMap.put(x, x);
+        for (var x : uncoloredReg) {
+            if (interferenceEdges.get(x).size() < physicRegisters.size()) {
+                queue.add(x);
+                visited.add(x);
             }
         }
-        Stack<Register> stack = new Stack<>();
         while (!queue.isEmpty()) {
             var v = queue.remove();
             stack.push(v);
-            for (var u : edges.get(v)) {
-                degree.put(u, degree.get(u) - 1);
-                if (degree.get(u) < physicRegisters.size()) {
-                    if (u.isVirtual() && !visited.contains(u)) {
+            uncoloredReg.remove(v);
+            for (var u : Set.copyOf(interferenceEdges.get(v))) {
+                removeEdge(u, v);
+                if (interferenceEdges.get(u).size() < physicRegisters.size()) {
+                    if (uncoloredReg.contains(u) && !visited.contains(u)) {
                         queue.add(u);
                         visited.add(u);
                     }
                 }
             }
         }
-        if (stack.size() < virtualRegCnt) {
-            uncoloredRegDeg = new HashMap<>();
-            for (var reg : registers) {
-                if (reg.isVirtual() && !visited.contains(reg)) {
-                    uncoloredRegDeg.put(reg, degree.get(reg));
-                }
-            }
+        if (uncoloredReg.size() + coalescentReg.size() > 0) {
             return false;
+        }
+        buildGraph();
+        physicRegisterMap.clear();
+        for (var reg : registers) {
+            if (!reg.isVirtual()) {
+                physicRegisterMap.put(reg, reg);
+            }
         }
         while (!stack.empty()) {
             var v = stack.pop();
             Set<Register> occupied = new HashSet<>();
-            for (var u : edges.get(v)) {
+            for (var u : interferenceEdges.get(v)) {
                 if (physicRegisterMap.containsKey(u)) {
                     occupied.add(physicRegisterMap.get(u));
                 }
@@ -199,26 +217,41 @@ public class GraphColoringRegisterControl extends RegisterControl {
      * @return 是否能够合并
      */
     private boolean checkCoalesce(Register u, Register v) {
-        if (!v.isVirtual()) {
+        if (!v.isVirtual() || !coalescentEdges.containsKey(u) || !coalescentEdges.get(u).contains(v)) {
             return false;
         }
-        if (edges.get(u).size() < edges.get(v).size()) {
+        if (interferenceEdges.get(u).size() < interferenceEdges.get(v).size()) {
             var tmp = u;
             u = v;
             v = tmp;
         }
-        int degree = edges.get(u).size();
-        for (var x : edges.get(v)) {
+        int degree = interferenceEdges.get(u).size();
+        for (var x : interferenceEdges.get(v)) {
             if (degree >= registers.size()) {
                 break;
             }
-            degree += edges.get(u).contains(x) ? 0 : 1;
+            if (x.equals(u)) {
+                continue;
+            }
+            degree += interferenceEdges.get(u).contains(x) ? 0 : 1;
         }
         return degree < registers.size();
     }
 
+    void mergeEdges(Register u, Register v) {
+        removeEdge(u, v);
+        for (var x : interferenceEdges.get(v)) {
+            addInterferenceEdge(u, x);
+        }
+        for (var x : coalescentEdges.get(v)) {
+            addCoalesceEdge(u, x);
+        }
+        interferenceEdges.remove(v);
+        coalescentEdges.remove(v);
+    }
+
     /**
-     * 执行将寄存器v合并入寄存器u的过程，分为替换指令，合并生存点和合并干涉图三步
+     * 执行将寄存器v合并入寄存器u的过程，分为替换指令，合并生存点和合并干涉图三步，最后删除所有和节点v相关的信息
      * @param u 并入的寄存器
      * @param v 被合并的寄存器
      */
@@ -232,10 +265,14 @@ public class GraphColoringRegisterControl extends RegisterControl {
         }
         lifeTimeController.mergePoints(u, v);
         lifeTimeController.constructInterval(u);
-        edges.get(u).addAll(edges.get(v));
-        edges.get(u).removeIf((r) -> r.equals(u));
-        coalesceEdges.get(u).addAll(coalesceEdges.get(v));
-        coalesceEdges.get(u).removeIf((r) -> r.equals(u));
+        mergeEdges(u, v);
+        if (coalescentEdges.get(u).size() == 0 && u.isVirtual()) {
+            coalescentReg.remove(u);
+            uncoloredReg.add(u);
+        }
+        coalescentReg.remove(v);
+        registers.remove(v);
+        spillCost.remove(v);
     }
 
     /**
@@ -243,17 +280,33 @@ public class GraphColoringRegisterControl extends RegisterControl {
      * @return 是否成功合并寄存器
      */
     private boolean coalesce() {
-        for (var v : registers) {
-            if (edges.get(v).size() < registers.size()) {
-                for (var u : coalesceEdges.get(v)) {
-                    if (edges.get(u).size() < registers.size()) {
-                        if (checkCoalesce(u, v)) {
-                            practiseCoalesce(u, v);
-                            return true;
-                        }
-                    }
-                }
+        List<Pair<Register, Register>> coalescePair = new ArrayList<>();
+        for (var u : coalescentReg) {
+            for (var v : coalescentEdges.get(u)) {
+                coalescePair.add(new Pair<>(u, v));
             }
+        }
+        boolean coalesced = false;
+        for (var p : coalescePair) {
+            if (checkCoalesce(p.a, p.b)) {
+                practiseCoalesce(p.a, p.b);
+                coalesced = true;
+            }
+        }
+        return coalesced;
+    }
+
+    boolean freeze() {
+        Register freezeReg = null;
+        for (var v : coalescentReg) {
+            if (freezeReg == null || interferenceEdges.get(v).size() < interferenceEdges.get(freezeReg).size()) {
+                freezeReg = v;
+            }
+        }
+        if (freezeReg != null) {
+            coalescentEdges.get(freezeReg).clear();
+            coalescentReg.remove(freezeReg);
+            return true;
         }
         return false;
     }
@@ -264,8 +317,7 @@ public class GraphColoringRegisterControl extends RegisterControl {
      * @return 代价估计值
      */
     private double costFunction(Register reg) {
-        double deg = uncoloredRegDeg.get(reg);
-        return spillCost.get(reg) / deg;
+        return 0;
     }
 
     private void practiseSpill(Register reg) {
@@ -275,13 +327,6 @@ public class GraphColoringRegisterControl extends RegisterControl {
     private void spill() {
         double minCost = -1;
         Register goal = null;
-        for (var reg : uncoloredRegDeg.keySet()) {
-            double nowCost = costFunction(reg);
-            if (minCost < 0 || nowCost < minCost) {
-                minCost = nowCost;
-                goal = reg;
-            }
-        }
         practiseSpill(goal);
     }
 
