@@ -17,8 +17,7 @@ public class LI0ToX0Optimizer implements Optimizer {
         return instr instanceof AsmLoad loadInstr && loadInstr.getOpcode() == AsmLoad.Opcode.LI && ((Immediate) instr.getOperand(2)).getValue() == 0;
     }
 
-    public boolean runOn(List<AsmInstruction> instrList) {
-        boolean madeChange = false;
+    public void runOn(List<AsmInstruction> instrList) {
         Set<Register> zeroRegs = new HashSet<>();
 
         for (AsmInstruction instr : instrList) {
@@ -32,7 +31,6 @@ public class LI0ToX0Optimizer implements Optimizer {
                 for (int i = 1; i <= 3; ++i) {
                     if (instr.getOperand(i) instanceof Register reg && instr.getUse().contains(reg) && zeroRegs.contains(reg)) {
                         instr.setOperand(i, IntRegister.ZERO);
-                        madeChange = true;
                     }
                 }
                 for (Register reg : instr.getDef()) {
@@ -41,6 +39,5 @@ public class LI0ToX0Optimizer implements Optimizer {
             }
         }
 
-        return madeChange;
     }
 }

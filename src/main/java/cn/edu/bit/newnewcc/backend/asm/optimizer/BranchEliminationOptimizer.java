@@ -9,8 +9,7 @@ import java.util.*;
 
 public class BranchEliminationOptimizer implements Optimizer {
     @Override
-    public boolean runOn(List<AsmInstruction> instrList) {
-        boolean madeChange = false;
+    public void runOn(List<AsmInstruction> instrList) {
         Map<Label, Label> labelMap = new HashMap<>();
 
         for (int i = 0; i < instrList.size() - 1; ++i) {
@@ -37,13 +36,11 @@ public class BranchEliminationOptimizer implements Optimizer {
 
                         if (!newLabel.equals(label)) {
                             instr.setOperand(i, labelMap.get(label));
-                            madeChange = true;
                         }
                     }
                 }
             }
         }
 
-        return madeChange;
     }
 }

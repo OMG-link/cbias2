@@ -12,9 +12,7 @@ import java.util.Set;
 
 public class DeadInstructionEliminationOptimizer implements Optimizer {
     @Override
-    public boolean runOn(List<AsmInstruction> instrList) {
-        boolean madeChange = false;
-
+    public void runOn(List<AsmInstruction> instrList) {
         Set<Register> usedVRegs = new HashSet<>();
         for (AsmInstruction instr : instrList) {
             if (instr instanceof AsmLabel || instr instanceof AsmBlockEnd) continue;
@@ -40,11 +38,9 @@ public class DeadInstructionEliminationOptimizer implements Optimizer {
 
                 if (dead) {
                     iterator.remove();
-                    madeChange = true;
                 }
             }
         }
 
-        return madeChange;
     }
 }

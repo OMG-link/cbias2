@@ -9,10 +9,9 @@ import java.util.*;
 
 public class DeadBlockEliminationOptimizer implements Optimizer {
     @Override
-    public boolean runOn(List<AsmInstruction> instrList) {
-        if (instrList.isEmpty()) return false;
+    public void runOn(List<AsmInstruction> instrList) {
+        if (instrList.isEmpty()) return;
 
-        boolean madeChange = false;
         Set<Label> reachableLabels = new HashSet<>();
         reachableLabels.add(((AsmLabel) instrList.get(0)).getLabel());
 
@@ -40,6 +39,5 @@ public class DeadBlockEliminationOptimizer implements Optimizer {
         instrList.clear();
         instrList.addAll(newInstrList);
 
-        return madeChange;
     }
 }
