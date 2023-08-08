@@ -46,16 +46,16 @@ public class AsmCall extends AsmInstruction {
 
     @Override
     public Set<Register> getUse() {
-        return Set.of();
+        return Set.copyOf(getParamRegList());
     }
 
     @Override
     public boolean willReturn() {
-        return false;
+        return true;
     }
 
     @Override
     public boolean mayWriteToMemory() {
-        throw new UnsupportedOperationException();
+        return true;
     }
 }
