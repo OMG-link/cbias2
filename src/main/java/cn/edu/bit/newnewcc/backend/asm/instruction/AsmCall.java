@@ -8,8 +8,8 @@ import java.util.List;
 import java.util.Set;
 
 public class AsmCall extends AsmInstruction {
-    private final List<Register> paramRegList;
-    private final Register returnRegister;
+    private List<Register> paramRegList;
+    private Register returnRegister;
 
     public AsmCall(Label label, List<Register> paramRegList, Register returnRegister) {
         super(label, null, null);
@@ -23,6 +23,14 @@ public class AsmCall extends AsmInstruction {
 
     public Register getReturnRegister() {
         return returnRegister;
+    }
+
+    public void setParamRegList(List<Register> paramRegList) {
+        this.paramRegList = paramRegList;
+    }
+
+    public void setReturnRegister(Register returnRegister) {
+        this.returnRegister = returnRegister;
     }
 
     @Override
