@@ -3,6 +3,7 @@ package cn.edu.bit.newnewcc.backend.asm.instruction;
 import cn.edu.bit.newnewcc.backend.asm.operand.*;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -30,7 +31,7 @@ public class AsmAdd extends AsmInstruction {
     private final Opcode opcode;
 
     public AsmAdd(IntRegister dest, IntRegister source1, AsmOperand source2, int bitLength) {
-        super(dest, source1, source2);
+        super(Objects.requireNonNull(dest), Objects.requireNonNull(source1), Objects.requireNonNull(source2));
 
         if (bitLength != 64 && bitLength != 32)
             throw new IllegalArgumentException();
@@ -46,7 +47,7 @@ public class AsmAdd extends AsmInstruction {
         }
     }
     public AsmAdd(FloatRegister dest, FloatRegister source1, FloatRegister source2) {
-        super(dest, source1, source2);
+        super(Objects.requireNonNull(dest), Objects.requireNonNull(source1), Objects.requireNonNull(source2));
         opcode = Opcode.FADDS;
     }
 

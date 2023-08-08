@@ -4,6 +4,7 @@ import cn.edu.bit.newnewcc.backend.asm.operand.FloatRegister;
 import cn.edu.bit.newnewcc.backend.asm.operand.IntRegister;
 import cn.edu.bit.newnewcc.backend.asm.operand.Register;
 
+import java.util.Objects;
 import java.util.Set;
 
 public class AsmMove extends AsmInstruction {
@@ -29,7 +30,7 @@ public class AsmMove extends AsmInstruction {
     }
 
     public AsmMove(Register dest, Register source) {
-        super(dest, source, null);
+        super(Objects.requireNonNull(dest), Objects.requireNonNull(source), null);
 
         if (dest instanceof IntRegister && source instanceof IntRegister)
             opcode = Opcode.MV;

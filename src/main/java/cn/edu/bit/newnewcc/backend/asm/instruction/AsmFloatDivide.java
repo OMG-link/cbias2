@@ -4,11 +4,12 @@ import cn.edu.bit.newnewcc.backend.asm.operand.FloatRegister;
 import cn.edu.bit.newnewcc.backend.asm.operand.Register;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 public class AsmFloatDivide extends AsmInstruction {
     public AsmFloatDivide(FloatRegister dest, FloatRegister source1, FloatRegister source2) {
-        super(dest, source1, source2);
+        super(Objects.requireNonNull(dest), Objects.requireNonNull(source1), Objects.requireNonNull(source2));
     }
 
     @Override

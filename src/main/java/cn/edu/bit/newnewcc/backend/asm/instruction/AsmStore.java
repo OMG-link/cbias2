@@ -4,6 +4,7 @@ import cn.edu.bit.newnewcc.backend.asm.operand.*;
 import cn.edu.bit.newnewcc.ir.exception.IllegalArgumentException;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 public class AsmStore extends AsmInstruction {
@@ -27,7 +28,7 @@ public class AsmStore extends AsmInstruction {
     private final Opcode opcode;
 
     public AsmStore(Register source, StackVar dest) {
-        super(source, dest, null);
+        super(Objects.requireNonNull(source), Objects.requireNonNull(dest), null);
 
         if (source instanceof IntRegister) {
             if (dest.getSize() == 8) opcode = Opcode.SD;
@@ -41,7 +42,7 @@ public class AsmStore extends AsmInstruction {
     }
 
     public AsmStore(Register source, MemoryAddress dest, int bitLength) {
-        super(source, dest, null);
+        super(Objects.requireNonNull(source), Objects.requireNonNull(dest), null);
 
         if (bitLength != 64 && bitLength != 32)
             throw new IllegalArgumentException();

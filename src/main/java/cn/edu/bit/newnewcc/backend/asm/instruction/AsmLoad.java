@@ -2,6 +2,7 @@ package cn.edu.bit.newnewcc.backend.asm.instruction;
 
 import cn.edu.bit.newnewcc.backend.asm.operand.*;
 
+import java.util.Objects;
 import java.util.Set;
 
 public class AsmLoad extends AsmInstruction {
@@ -28,7 +29,7 @@ public class AsmLoad extends AsmInstruction {
     private final Opcode opcode;
 
     public AsmLoad(Register dest, AsmOperand source) {
-        super(dest, source, null);
+        super(Objects.requireNonNull(dest), Objects.requireNonNull(source), null);
 
         if (dest instanceof IntRegister) {
             if (source instanceof StackVar stackVar) {
@@ -60,7 +61,7 @@ public class AsmLoad extends AsmInstruction {
     }
 
     public AsmLoad(Register dest, MemoryAddress source, int bitLength) {
-        super(dest, source, null);
+        super(Objects.requireNonNull(dest), Objects.requireNonNull(source), null);
 
         if (bitLength != 32 && bitLength != 64)
             throw new IllegalArgumentException();

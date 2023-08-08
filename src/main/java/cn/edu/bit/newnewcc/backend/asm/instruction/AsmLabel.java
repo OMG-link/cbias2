@@ -3,21 +3,26 @@ package cn.edu.bit.newnewcc.backend.asm.instruction;
 import cn.edu.bit.newnewcc.backend.asm.operand.Label;
 import cn.edu.bit.newnewcc.backend.asm.operand.Register;
 
+import java.util.Objects;
 import java.util.Set;
 
 /**
  * 标签也被视为一类指令
  */
 public class AsmLabel extends AsmInstruction {
-    private final Label label;
+    private Label label;
 
     public AsmLabel(Label label) {
         super(null, null, null);
-        this.label = label;
+        this.label = Objects.requireNonNull(label);
     }
 
     public Label getLabel() {
         return label;
+    }
+
+    public void setLabel(Label label) {
+        this.label = Objects.requireNonNull(label);
     }
 
     @Override

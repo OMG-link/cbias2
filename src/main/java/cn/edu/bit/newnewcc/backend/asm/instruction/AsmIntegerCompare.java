@@ -6,6 +6,7 @@ import cn.edu.bit.newnewcc.backend.asm.operand.IntRegister;
 import cn.edu.bit.newnewcc.backend.asm.operand.Register;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 public class AsmIntegerCompare extends AsmInstruction {
@@ -87,18 +88,42 @@ public class AsmIntegerCompare extends AsmInstruction {
     }
 
     public static AsmIntegerCompare createEQZ(IntRegister dest, IntRegister source) {
-        return new AsmIntegerCompare(Opcode.SEQZ, Condition.EQZ, dest, source, null);
+        return new AsmIntegerCompare(
+            Opcode.SEQZ,
+            Condition.EQZ,
+            Objects.requireNonNull(dest),
+            Objects.requireNonNull(source),
+            null
+        );
     }
 
     public static AsmIntegerCompare createNEZ(IntRegister dest, IntRegister source) {
-        return new AsmIntegerCompare(Opcode.SNEZ, Condition.NEZ, dest, source, null);
+        return new AsmIntegerCompare(
+            Opcode.SNEZ,
+            Condition.NEZ,
+            Objects.requireNonNull(dest),
+            Objects.requireNonNull(source),
+            null
+        );
     }
 
     public static AsmIntegerCompare createLT(IntRegister dest, IntRegister source1, IntRegister source2) {
-        return new AsmIntegerCompare(Opcode.SLT, Condition.LT, dest, source1, source2);
+        return new AsmIntegerCompare(
+            Opcode.SLT,
+            Condition.LT,
+            Objects.requireNonNull(dest),
+            Objects.requireNonNull(source1),
+            Objects.requireNonNull(source2)
+        );
     }
 
     public static AsmIntegerCompare createLT(IntRegister dest, IntRegister source1, Immediate source2) {
-        return new AsmIntegerCompare(Opcode.SLTI, Condition.LT, dest, source1, source2);
+        return new AsmIntegerCompare(
+            Opcode.SLTI,
+            Condition.LT,
+            Objects.requireNonNull(dest),
+            Objects.requireNonNull(source1),
+            Objects.requireNonNull(source2)
+        );
     }
 }

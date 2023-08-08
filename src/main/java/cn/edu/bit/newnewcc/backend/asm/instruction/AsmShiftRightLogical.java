@@ -6,6 +6,7 @@ import cn.edu.bit.newnewcc.backend.asm.operand.IntRegister;
 import cn.edu.bit.newnewcc.backend.asm.operand.Register;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -32,7 +33,7 @@ public class AsmShiftRightLogical extends AsmInstruction {
     private final Opcode opcode;
 
     public AsmShiftRightLogical(IntRegister dest, IntRegister source1, AsmOperand source2, int bitLength) {
-        super(dest, source1, source2);
+        super(Objects.requireNonNull(dest), Objects.requireNonNull(source1), Objects.requireNonNull(source2));
 
         if (bitLength != 64 && bitLength != 32)
             throw new IllegalArgumentException();

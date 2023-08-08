@@ -6,6 +6,7 @@ import cn.edu.bit.newnewcc.backend.asm.operand.IntRegister;
 import cn.edu.bit.newnewcc.backend.asm.operand.Register;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 public class AsmJump extends AsmInstruction {
@@ -54,8 +55,8 @@ public class AsmJump extends AsmInstruction {
     private final Opcode opcode;
     private final Condition condition;
 
-    private AsmJump(Opcode opcode, Condition condition, AsmOperand op1, AsmOperand op2, AsmOperand op3) {
-        super(op1, op2, op3);
+    private AsmJump(Opcode opcode, Condition condition, AsmOperand operand1, AsmOperand operand2, AsmOperand operand3) {
+        super(operand1, operand2, operand3);
         this.opcode = opcode;
         this.condition = condition;
     }
@@ -117,55 +118,133 @@ public class AsmJump extends AsmInstruction {
     }
 
     public static AsmJump createUnconditional(Label targetLabel) {
-        return new AsmJump(Opcode.J, Condition.UNCONDITIONAL, targetLabel, null, null);
+        return new AsmJump(
+            Opcode.J,
+            Objects.requireNonNull(Condition.UNCONDITIONAL),
+            targetLabel,
+            null,
+            null
+        );
     }
 
     public static AsmJump createLTZ(Label targetLabel, IntRegister source) {
-        return new AsmJump(Opcode.BLTZ, Condition.LTZ, source, targetLabel, null);
+        return new AsmJump(
+            Opcode.BLTZ,
+            Condition.LTZ,
+            Objects.requireNonNull(source),
+            Objects.requireNonNull(targetLabel),
+            null
+        );
     }
 
     public static AsmJump createGTZ(Label targetLabel, IntRegister source) {
-        return new AsmJump(Opcode.BGTZ, Condition.GTZ, source, targetLabel, null);
+        return new AsmJump(
+            Opcode.BGTZ,
+            Condition.GTZ,
+            Objects.requireNonNull(source),
+            Objects.requireNonNull(targetLabel),
+            null
+        );
     }
 
     public static AsmJump createLEZ(Label targetLabel, IntRegister source) {
-        return new AsmJump(Opcode.BLEZ, Condition.LEZ, source, targetLabel, null);
+        return new AsmJump(
+            Opcode.BLEZ,
+            Condition.LEZ,
+            Objects.requireNonNull(source),
+            Objects.requireNonNull(targetLabel),
+            null
+        );
     }
 
     public static AsmJump createGEZ(Label targetLabel, IntRegister source) {
-        return new AsmJump(Opcode.BGEZ, Condition.GEZ, source, targetLabel, null);
+        return new AsmJump(
+            Opcode.BGEZ,
+            Condition.GEZ,
+            Objects.requireNonNull(source),
+            Objects.requireNonNull(targetLabel),
+            null
+        );
     }
 
     public static AsmJump createEQZ(Label targetLabel, IntRegister source) {
-        return new AsmJump(Opcode.BEQZ, Condition.EQZ, source, targetLabel, null);
+        return new AsmJump(
+            Opcode.BEQZ,
+            Condition.EQZ,
+            Objects.requireNonNull(source),
+            Objects.requireNonNull(targetLabel),
+            null
+        );
     }
 
     public static AsmJump createNEZ(Label targetLabel, IntRegister source) {
-        return new AsmJump(Opcode.BNEZ, Condition.NEZ, source, targetLabel, null);
+        return new AsmJump(
+            Opcode.BNEZ,
+            Condition.NEZ,
+            Objects.requireNonNull(source),
+            Objects.requireNonNull(targetLabel),
+            null
+        );
     }
 
     public static AsmJump createLT(Label targetLabel, IntRegister source1, IntRegister source2) {
-        return new AsmJump(Opcode.BLT, Condition.LT, source1, source2, targetLabel);
+        return new AsmJump(
+            Opcode.BLT,
+            Condition.LT,
+            Objects.requireNonNull(source1),
+            Objects.requireNonNull(source2),
+            Objects.requireNonNull(targetLabel)
+        );
     }
 
     public static AsmJump createGT(Label targetLabel, IntRegister source1, IntRegister source2) {
-        return new AsmJump(Opcode.BGT, Condition.GT, source1, source2, targetLabel);
+        return new AsmJump(
+            Opcode.BGT,
+            Condition.GT,
+            Objects.requireNonNull(source1),
+            Objects.requireNonNull(source2),
+            Objects.requireNonNull(targetLabel)
+        );
     }
 
     public static AsmJump createLE(Label targetLabel, IntRegister source1, IntRegister source2) {
-        return new AsmJump(Opcode.BLE, Condition.LE, source1, source2, targetLabel);
+        return new AsmJump(
+            Opcode.BLE,
+            Condition.LE,
+            Objects.requireNonNull(source1),
+            Objects.requireNonNull(source2),
+            Objects.requireNonNull(targetLabel)
+        );
     }
 
     public static AsmJump createGE(Label targetLabel, IntRegister source1, IntRegister source2) {
-        return new AsmJump(Opcode.BGE, Condition.GE, source1, source2, targetLabel);
+        return new AsmJump(
+            Opcode.BGE,
+            Condition.GE,
+            Objects.requireNonNull(source1),
+            Objects.requireNonNull(source2),
+            Objects.requireNonNull(targetLabel)
+        );
     }
 
     public static AsmJump createEQ(Label targetLabel, IntRegister source1, IntRegister source2) {
-        return new AsmJump(Opcode.BEQ, Condition.EQ, source1, source2, targetLabel);
+        return new AsmJump(
+            Opcode.BEQ,
+            Condition.EQ,
+            Objects.requireNonNull(source1),
+            Objects.requireNonNull(source2),
+            Objects.requireNonNull(targetLabel)
+        );
     }
 
     public static AsmJump createNE(Label targetLabel, IntRegister source1, IntRegister source2) {
-        return new AsmJump(Opcode.BNE, Condition.NE, source1, source2, targetLabel);
+        return new AsmJump(
+            Opcode.BNE,
+            Condition.NE,
+            Objects.requireNonNull(source1),
+            Objects.requireNonNull(source2),
+            Objects.requireNonNull(targetLabel)
+        );
     }
 
     public static AsmJump createUnary(Condition condition, Label targetLabel, IntRegister source) {

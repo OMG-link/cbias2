@@ -4,6 +4,7 @@ import cn.edu.bit.newnewcc.backend.asm.operand.FloatRegister;
 import cn.edu.bit.newnewcc.backend.asm.operand.IntRegister;
 import cn.edu.bit.newnewcc.backend.asm.operand.Register;
 
+import java.util.Objects;
 import java.util.Set;
 
 public class AsmConvertFloatInt extends AsmInstruction {
@@ -25,12 +26,12 @@ public class AsmConvertFloatInt extends AsmInstruction {
     private final Opcode opcode;
 
     public AsmConvertFloatInt(IntRegister dest, FloatRegister source) {
-        super(dest, source, null);
+        super(Objects.requireNonNull(dest), Objects.requireNonNull(source), null);
         opcode = Opcode.FCVTWS;
     }
 
     public AsmConvertFloatInt(FloatRegister dest, IntRegister source) {
-        super(dest, source, null);
+        super(Objects.requireNonNull(dest), Objects.requireNonNull(source), null);
         opcode = Opcode.FCVTSW;
     }
 

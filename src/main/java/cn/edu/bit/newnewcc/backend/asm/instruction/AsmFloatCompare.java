@@ -5,6 +5,7 @@ import cn.edu.bit.newnewcc.backend.asm.operand.IntRegister;
 import cn.edu.bit.newnewcc.backend.asm.operand.Register;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 public class AsmFloatCompare extends AsmInstruction{
@@ -76,14 +77,32 @@ public class AsmFloatCompare extends AsmInstruction{
     }
 
     public static AsmFloatCompare createEQ(IntRegister dest, FloatRegister source1, FloatRegister source2) {
-        return new AsmFloatCompare(Opcode.FEQS, Condition.EQ, dest, source1, source2);
+        return new AsmFloatCompare(
+            Opcode.FEQS,
+            Condition.EQ,
+            Objects.requireNonNull(dest),
+            Objects.requireNonNull(source1),
+            Objects.requireNonNull(source2)
+        );
     }
 
     public static AsmFloatCompare createLT(IntRegister dest, FloatRegister source1, FloatRegister source2) {
-        return new AsmFloatCompare(Opcode.FLTS, Condition.LT, dest, source1, source2);
+        return new AsmFloatCompare(
+            Opcode.FLTS,
+            Condition.LT,
+            Objects.requireNonNull(dest),
+            Objects.requireNonNull(source1),
+            Objects.requireNonNull(source2)
+        );
     }
 
     public static AsmFloatCompare createLE(IntRegister dest, FloatRegister source1, FloatRegister source2) {
-        return new AsmFloatCompare(Opcode.FLES, Condition.LE, dest, source1, source2);
+        return new AsmFloatCompare(
+            Opcode.FLES,
+            Condition.LE,
+            Objects.requireNonNull(dest),
+            Objects.requireNonNull(source1),
+            Objects.requireNonNull(source2)
+        );
     }
 }

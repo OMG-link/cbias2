@@ -3,11 +3,12 @@ package cn.edu.bit.newnewcc.backend.asm.instruction;
 import cn.edu.bit.newnewcc.backend.asm.operand.FloatRegister;
 import cn.edu.bit.newnewcc.backend.asm.operand.Register;
 
+import java.util.Objects;
 import java.util.Set;
 
 public class AsmFloatNegate extends AsmInstruction {
     public AsmFloatNegate(FloatRegister dest, FloatRegister source) {
-        super(dest, source, null);
+        super(Objects.requireNonNull(dest), (source), null);
     }
 
     @Override

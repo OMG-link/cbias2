@@ -5,6 +5,7 @@ import cn.edu.bit.newnewcc.backend.asm.operand.Register;
 import cn.edu.bit.newnewcc.backend.asm.util.Registers;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 public class AsmCall extends AsmInstruction {
@@ -12,8 +13,8 @@ public class AsmCall extends AsmInstruction {
     private Register returnRegister;
 
     public AsmCall(Label label, List<Register> paramRegList, Register returnRegister) {
-        super(label, null, null);
-        this.paramRegList = paramRegList;
+        super(Objects.requireNonNull(label), null, null);
+        this.paramRegList = Objects.requireNonNull(paramRegList);
         this.returnRegister = returnRegister;
     }
 
@@ -26,7 +27,7 @@ public class AsmCall extends AsmInstruction {
     }
 
     public void setParamRegList(List<Register> paramRegList) {
-        this.paramRegList = paramRegList;
+        this.paramRegList = Objects.requireNonNull(paramRegList);
     }
 
     public void setReturnRegister(Register returnRegister) {

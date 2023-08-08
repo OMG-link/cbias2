@@ -20,22 +20,21 @@ public abstract class AsmInstruction {
     }
 
     public void setOperand(int index, AsmOperand operand) {
-        Objects.requireNonNull(operand);
         switch (index) {
             case 1 -> {
                 if (operand1 == null) throw new IndexOutOfBoundsException();
                 if (operand.getClass() != operand1.getClass()) throw new IllegalArgumentException();
-                operand1 = operand;
+                operand1 = Objects.requireNonNull(operand);;
             }
             case 2 -> {
                 if (operand2 == null) throw new IndexOutOfBoundsException();
                 if (operand.getClass() != operand2.getClass()) throw new IllegalArgumentException();
-                operand2 = operand;
+                operand2 = Objects.requireNonNull(operand);;
             }
             case 3 -> {
                 if (operand3 == null) throw new IndexOutOfBoundsException();
                 if (operand.getClass() != operand3.getClass()) throw new IllegalArgumentException();
-                operand3 = operand;
+                operand3 = Objects.requireNonNull(operand);;
             }
             default -> throw new IndexOutOfBoundsException();
         }
