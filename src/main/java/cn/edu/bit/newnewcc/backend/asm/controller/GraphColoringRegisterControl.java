@@ -512,7 +512,7 @@ public class GraphColoringRegisterControl extends RegisterControl {
         }
 
         //update : 保留了寄存器x5(t0)作为地址加载寄存器
-        physicRegisters.remove(addressReg);
+        intPRegList.remove(addressReg);
 
         registers = intRegList;
         physicRegisters = intPRegList;
