@@ -13,5 +13,6 @@ public class OptimizerManager {
 
     public void runAfterRegisterAllocation(List<AsmInstruction> instrList) {
         new BranchEliminationOptimizer().runOn(instrList);
+        new DeadBlockEliminationOptimizer().runOn(instrList);
     }
 }
