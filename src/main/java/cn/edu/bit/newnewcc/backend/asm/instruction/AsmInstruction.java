@@ -1,7 +1,9 @@
 package cn.edu.bit.newnewcc.backend.asm.instruction;
 
 import cn.edu.bit.newnewcc.backend.asm.operand.*;
+import cn.edu.bit.newnewcc.ir.exception.IndexOutOfBoundsException;
 
+import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -17,14 +19,21 @@ public abstract class AsmInstruction {
     }
 
     public void setOperand(int index, AsmOperand operand) {
-        if (index == 1) {
-            this.operand1 = operand;
-        } else if (index == 2) {
-            this.operand2 = operand;
-        } else if (index == 3) {
-            this.operand3 = operand;
-        } else {
-            throw new IndexOutOfBoundsException();
+        Objects.requireNonNull(operand);
+        switch (index) {
+            case 1 -> {
+                if (operand1 == null) throw new IndexOutOfBoundsException();
+                operand1 = operand;
+            }
+            case 2 -> {
+                if (operand2 == null) throw new IndexOutOfBoundsException();
+                operand2 = operand;
+            }
+            case 3 -> {
+                if (operand3 == null) throw new IndexOutOfBoundsException();
+                operand3 = operand;
+            }
+            default -> throw new IndexOutOfBoundsException();
         }
     }
 
@@ -34,15 +43,12 @@ public abstract class AsmInstruction {
      * @return 参数值
      */
     public AsmOperand getOperand(int index) {
-        if (index == 1) {
-            return this.operand1;
-        } else if (index == 2) {
-            return this.operand2;
-        } else if (index == 3) {
-            return this.operand3;
-        } else {
-            throw new IndexOutOfBoundsException();
-        }
+        return switch (index) {
+            case 1 -> operand1;
+            case 2 -> operand2;
+            case 3 -> operand3;
+            default -> null;
+        };
     }
 
     public abstract String emit();
