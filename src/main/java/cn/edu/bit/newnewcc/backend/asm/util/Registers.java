@@ -53,7 +53,15 @@ public class Registers {
         CALLER_SAVED_REGISTERS = Collections.unmodifiableSet(callerSavedRegisters);
     }
 
-    public static final Set<Register> CONSTANT_REGISTERS = Set.of(IntRegister.S0, IntRegister.SP, IntRegister.RA, IntRegister.ZERO);
+    public static final Set<Register> CONSTANT_REGISTERS;
+    static {
+        Set<Register> constantRegisters = new HashSet<>();
+        constantRegisters.add(IntRegister.S0);
+        for (int i = 0; i < 5; i++) {
+            constantRegisters.add(IntRegister.getPhysical(i));
+        }
+        CONSTANT_REGISTERS = Collections.unmodifiableSet(constantRegisters);
+    }
 
     public static boolean isPreservedAcrossCalls(Register register) {
         return !CALLER_SAVED_REGISTERS.contains(register);
