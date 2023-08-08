@@ -15,8 +15,7 @@ import java.util.*;
  * 线性扫描寄存器分配器
  */
 public class LinearScanRegisterControl extends RegisterControl{
-    protected final IntRegister s1 = IntRegister.S1;
-    protected final StackVar s1saved;
+    protected final IntRegister addressReg = IntRegister.getPhysical(5);
     //每个虚拟寄存器的值当前存储的位置
     private final Map<Integer, AsmOperand> vRegLocation = new HashMap<>();
     //每个寄存器当前存储着哪个虚拟寄存器的内容
@@ -24,11 +23,11 @@ public class LinearScanRegisterControl extends RegisterControl{
 
     public LinearScanRegisterControl(AsmFunction function, StackAllocator allocator) {
         super(function, allocator);
-        s1saved = stackPool.pop();
         //加入目前可使用的寄存器
         for (var reg : Registers.USABLE_REGISTERS) {
             registerPool.put(reg, 0);
         }
+        registerPool.remove(addressReg);
     }
 
     private void allocateVReg(Register vReg) {
@@ -135,11 +134,8 @@ public class LinearScanRegisterControl extends RegisterControl{
                 used.put(vReg, reg);
                 var tmp = stackPool.pop();
                 registerSaveMap.put(reg, tmp);
-                var tmpl = saveToStackVar(reg, tmp, s1);
+                var tmpl = saveToStackVar(reg, tmp, addressReg);
                 newInstList.addAll(tmpl);
-                if (tmpl.size() > 1) {
-                    updateRegisterPreserve(s1, s1saved);
-                }
                 return reg;
             }
         }
@@ -190,11 +186,8 @@ public class LinearScanRegisterControl extends RegisterControl{
                         writeStack = stackVar;
                     } else if (!loaded.contains(physicRegister)) {
                         loaded.add(physicRegister);
-                        var tmpl = loadFromStackVar(physicRegister, stackVar, s1);
+                        var tmpl = loadFromStackVar(physicRegister, stackVar, addressReg);
                         newInstList.addAll(tmpl);
-                        if (tmpl.size() > 1) {
-                            updateRegisterPreserve(s1, s1saved);
-                        }
                     }
                 }
                 inst.setOperand(j, registerReplaceable.replaceRegister(physicRegister));
@@ -206,40 +199,28 @@ public class LinearScanRegisterControl extends RegisterControl{
                     if (registerPool.get(reg) != 0 && !Registers.isPreservedAcrossCalls(reg)) {
                         var tmp = stackPool.pop();
                         callSaved.put(reg, tmp);
-                        var tmpl = saveToStackVar(reg, tmp, s1);
+                        var tmpl = saveToStackVar(reg, tmp, addressReg);
                         newInstList.addAll(tmpl);
-                        if (tmpl.size() > 1) {
-                            updateRegisterPreserve(s1, s1saved);
-                        }
                     }
                 }
                 newInstList.add(inst);
                 for (var reg : callSaved.keySet()) {
                     var tmp = callSaved.get(reg);
-                    var tmpl = loadFromStackVar(reg, tmp, s1);
+                    var tmpl = loadFromStackVar(reg, tmp, addressReg);
                     newInstList.addAll(tmpl);
-                    if (tmpl.size() > 1) {
-                        updateRegisterPreserve(s1, s1saved);
-                    }
                     stackPool.push(tmp);
                 }
             } else {
                 newInstList.add(inst);
             }
             if (writeStack != null) {
-                var tmpl = saveToStackVar(writeReg, writeStack, s1);
+                var tmpl = saveToStackVar(writeReg, writeStack, addressReg);
                 newInstList.addAll(tmpl);
-                if (tmpl.size() > 1) {
-                    updateRegisterPreserve(s1, s1saved);
-                }
             }
             for (var reg : registerSaveMap.keySet()) {
                 var tmp = registerSaveMap.get(reg);
-                var tmpl = loadFromStackVar(reg, tmp, s1);
+                var tmpl = loadFromStackVar(reg, tmp, addressReg);
                 newInstList.addAll(tmpl);
-                if (tmpl.size() > 1) {
-                    updateRegisterPreserve(s1, s1saved);
-                }
                 stackPool.push(tmp);
             }
         }
