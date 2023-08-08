@@ -128,15 +128,10 @@ public class AsmInstructions {
         return new Pair<>((Integer) writeSet.toArray()[0], (Integer) readSet.toArray()[0]);
     }
 
-    public static int getRegIndexInInst(AsmInstruction instr, Register reg) {
-        for (int i = 1; i <= 3; i++) {
-            if (instr.getOperand(i) instanceof RegisterReplaceable registerReplaceable) {
-                if (registerReplaceable.getRegister().equals(reg)) {
-                    return i;
-                }
-            }
-        }
-        return -1;
+    public static Pair<Register, Register> getMoveReg(AsmMove instr) {
+        var writeSet = AsmInstructions.getWriteRegSet(instr);
+        var readSet = AsmInstructions.getReadRegSet(instr);
+        return new Pair<>((Register) writeSet.toArray()[0], (Register) readSet.toArray()[0]);
     }
 
     public static boolean instContainsReg(AsmInstruction instr, Register reg) {
