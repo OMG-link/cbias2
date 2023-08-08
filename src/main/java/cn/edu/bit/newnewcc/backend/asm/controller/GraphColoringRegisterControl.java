@@ -5,6 +5,7 @@ import cn.edu.bit.newnewcc.backend.asm.allocator.StackAllocator;
 import cn.edu.bit.newnewcc.backend.asm.instruction.AsmInstruction;
 import cn.edu.bit.newnewcc.backend.asm.instruction.AsmLabel;
 import cn.edu.bit.newnewcc.backend.asm.instruction.AsmMove;
+import cn.edu.bit.newnewcc.backend.asm.operand.FloatRegister;
 import cn.edu.bit.newnewcc.backend.asm.operand.IntRegister;
 import cn.edu.bit.newnewcc.backend.asm.operand.Register;
 import cn.edu.bit.newnewcc.backend.asm.util.AsmInstructions;
@@ -204,10 +205,14 @@ public class GraphColoringRegisterControl extends RegisterControl {
                 floatRegList.add(reg);
             }
         }
-        for (var reg : Registers.USABLE_REGISTERS) {
-            if (reg instanceof IntRegister) {
+        //图着色分配器可以将非静态寄存器全部分配
+        for (int i = 0; i <= 31; i++) {
+            Register reg = IntRegister.getPhysical(i);
+            if (!Registers.CONSTANT_REGISTERS.contains(reg)) {
                 intPRegList.add(reg);
-            } else {
+            }
+            reg = FloatRegister.getPhysical(i);
+            if (!Registers.CONSTANT_REGISTERS.contains(reg)) {
                 floatPRegList.add(reg);
             }
         }
