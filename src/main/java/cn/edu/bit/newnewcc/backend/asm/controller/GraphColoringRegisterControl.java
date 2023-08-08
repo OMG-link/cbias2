@@ -73,7 +73,7 @@ public class GraphColoringRegisterControl extends RegisterControl {
                 spillCost.put(reg, Math.min(inf, spillCost.get(reg) + val));
             }
             if (!reg.isVirtual()) {
-                spillCost.put(reg, inf * 2);
+                spillCost.remove(reg);
             }
         }
     }
@@ -240,11 +240,13 @@ public class GraphColoringRegisterControl extends RegisterControl {
 
     void mergeEdges(Register u, Register v) {
         removeEdge(u, v);
-        for (var x : interferenceEdges.get(v)) {
+        for (var x : Set.copyOf(interferenceEdges.get(v))) {
             addInterferenceEdge(u, x);
+            removeEdge(v, x);
         }
-        for (var x : coalescentEdges.get(v)) {
+        for (var x : Set.copyOf(coalescentEdges.get(v))) {
             addCoalesceEdge(u, x);
+            removeEdge(v, x);
         }
         interferenceEdges.remove(v);
         coalescentEdges.remove(v);
@@ -291,6 +293,9 @@ public class GraphColoringRegisterControl extends RegisterControl {
             if (checkCoalesce(p.a, p.b)) {
                 practiseCoalesce(p.a, p.b);
                 coalesced = true;
+            } else if (checkCoalesce(p.b, p.a)) {
+                practiseCoalesce(p.b, p.a);
+                coalesced = true;
             }
         }
         return coalesced;
@@ -306,6 +311,7 @@ public class GraphColoringRegisterControl extends RegisterControl {
         if (freezeReg != null) {
             coalescentEdges.get(freezeReg).clear();
             coalescentReg.remove(freezeReg);
+            uncoloredReg.add(freezeReg);
             return true;
         }
         return false;
@@ -317,6 +323,9 @@ public class GraphColoringRegisterControl extends RegisterControl {
      * @return 代价估计值
      */
     private double costFunction(Register reg) {
+        if (!spillCost.containsKey(reg)) {
+            return inf * 2;
+        }
         double degree = interferenceEdges.get(reg).size();
         return spillCost.get(reg) / degree;
     }
@@ -339,18 +348,15 @@ public class GraphColoringRegisterControl extends RegisterControl {
 
     /**
      * 计算寄存器加载或存储到栈空间时的生存点
-     * @param reg 寄存器
+     * @param tmpReg 需要构建生存点的寄存器
      * @param last 产生寄存器值的指令
      * @param next 使用寄存器值的指令
-     * @return 过程中使用的临时寄存器
      */
-    Register workOnRegisterValue(Register reg, AsmInstruction last, AsmInstruction next) {
-        Register tmpReg = function.getRegisterAllocator().allocate(reg);
+    void workOnRegisterValue(Register tmpReg, AsmInstruction last, AsmInstruction next) {
         LifeTimeIndex lastIndex = LifeTimeIndex.getInstOut(lifeTimeController, last);
         lifeTimeController.insertLifeTimePoint(tmpReg, LifeTimePoint.getDef(lastIndex));
         LifeTimeIndex nextIndex = LifeTimeIndex.getInstIn(lifeTimeController, next);
         lifeTimeController.insertLifeTimePoint(tmpReg, LifeTimePoint.getUse(nextIndex));
-        return tmpReg;
     }
 
     /**
@@ -361,38 +367,43 @@ public class GraphColoringRegisterControl extends RegisterControl {
         if (!reg.isVirtual()) {
             throw new RuntimeException("spilled physic register");
         }
+        registers.remove(reg);
         StackVar regSaved = stackPool.pop();
         List<AsmInstruction> spilledInstrList = new ArrayList<>();
         //IntRegister addressReg = function.getRegisterAllocator().allocateInt();
         for (var inst : instList) {
             if (AsmInstructions.getReadRegSet(inst).contains(reg)) {
-                var tmpl = loadFromStackVar(reg, regSaved, addressReg);
+                var rLoad = function.getRegisterAllocator().allocate(reg);
+                var tmpl = loadFromStackVar(rLoad, regSaved, addressReg);
                 //if (tmpl.size() > 1) {
                     //workOnAddressLoading(tmpl);
                     //addressReg = function.getRegisterAllocator().allocateInt();
                 //}
-                var rLoad = workOnRegisterValue(reg, tmpl.get(tmpl.size() - 1), inst);
+                workOnRegisterValue(rLoad, tmpl.get(tmpl.size() - 1), inst);
                 for (int i : AsmInstructions.getReadVRegId(inst)) {
                     if (inst.getOperand(i) instanceof RegisterReplaceable rp && rp.getRegister().equals(reg)) {
                         inst.setOperand(i, rp.replaceRegister(rLoad));
                     }
                 }
                 spilledInstrList.addAll(tmpl);
+                registers.add(rLoad);
             }
             spilledInstrList.add(inst);
             if (AsmInstructions.getWriteRegSet(inst).contains(reg)) {
-                var tmpl = saveToStackVar(reg, regSaved, addressReg);
+                var rStore = function.getRegisterAllocator().allocate(reg);
+                var tmpl = saveToStackVar(rStore, regSaved, addressReg);
                 //if (tmpl.size() > 1) {
                 //    workOnAddressLoading(tmpl);
                 //    addressReg = function.getRegisterAllocator().allocateInt();
                 //}
-                var rStore = workOnRegisterValue(reg, inst, tmpl.get(tmpl.size() - 1));
+                workOnRegisterValue(rStore, inst, tmpl.get(tmpl.size() - 1));
                 for (int i : AsmInstructions.getWriteVRegId(inst)) {
                     if (inst.getOperand(i) instanceof RegisterReplaceable rp && rp.getRegister().equals(reg)) {
                         inst.setOperand(i, rp.replaceRegister(rStore));
                     }
                 }
                 spilledInstrList.addAll(tmpl);
+                registers.add(rStore);
             }
         }
         instList = spilledInstrList;
@@ -413,6 +424,7 @@ public class GraphColoringRegisterControl extends RegisterControl {
         if (goal == null) {
             throw new RuntimeException("no uncolored register to spill");
         }
+        System.out.println("spilled register " + goal + ", cost = " + costFunction(goal));
         practiseSpill(goal);
     }
 
@@ -430,7 +442,7 @@ public class GraphColoringRegisterControl extends RegisterControl {
             if (!coalesce()) {
                 if (!freeze()) {
                     spill();
-                    buildGraph(true);
+                    buildGraph(false);
                 }
             }
         }

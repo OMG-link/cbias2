@@ -3,6 +3,7 @@ package cn.edu.bit.newnewcc.backend.asm;
 import cn.edu.bit.newnewcc.backend.asm.allocator.AddressAllocator;
 import cn.edu.bit.newnewcc.backend.asm.allocator.RegisterAllocator;
 import cn.edu.bit.newnewcc.backend.asm.allocator.StackAllocator;
+import cn.edu.bit.newnewcc.backend.asm.controller.GraphColoringRegisterControl;
 import cn.edu.bit.newnewcc.backend.asm.controller.LifeTimeController;
 import cn.edu.bit.newnewcc.backend.asm.controller.LinearScanRegisterControl;
 import cn.edu.bit.newnewcc.backend.asm.controller.RegisterControl;
@@ -356,6 +357,8 @@ public class AsmFunction {
     private void reAllocateRegister() {
         RegisterControl registerController = new LinearScanRegisterControl(this, stackAllocator);
         var newInstructionList = registerController.work(instrList);
+        //RegisterControl registerController = new GraphColoringRegisterControl(this, stackAllocator);
+        //var newInstructionList = registerController.work(instrList);
 
         for (var inst : newInstructionList) {
             for (int j = 1; j <= 3; j++) {

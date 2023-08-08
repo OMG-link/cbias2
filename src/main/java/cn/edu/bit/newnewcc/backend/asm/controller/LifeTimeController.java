@@ -22,6 +22,7 @@ public class LifeTimeController {
     private final Map<Register, List<LifeTimeInterval>> lifeTimeIntervals = new HashMap<>();
     private final Map<Register, List<LifeTimePoint>> lifeTimePoints = new HashMap<>();
     private final Map<AsmInstruction, Integer> instIDMap = new HashMap<>();
+    private List<AsmInstruction> idSourceInst;
 
     public Register getVReg(int index) {
         return function.getRegisterAllocator().get(index);
@@ -41,6 +42,7 @@ public class LifeTimeController {
     }
 
     public void buildInstID(List<AsmInstruction> instructionList) {
+        idSourceInst = instructionList;
         instIDMap.clear();
         for (int i = 0; i < instructionList.size(); i++) {
             instIDMap.put(instructionList.get(i), i);
@@ -155,6 +157,9 @@ public class LifeTimeController {
         for (var p : points) {
             if (p.isDef()) {
                 intervals.add(new LifeTimeInterval(x, new ComparablePair<>(p.getIndex(), null)));
+            }
+            if (intervals.size() == 0) {
+                throw new RuntimeException("F!");
             }
             intervals.get(intervals.size() - 1).range.b = p.getIndex();
         }
