@@ -1,10 +1,8 @@
 package cn.edu.bit.newnewcc.backend.asm.instruction;
 
-import cn.edu.bit.newnewcc.backend.asm.operand.AsmOperand;
 import cn.edu.bit.newnewcc.backend.asm.operand.Label;
 import cn.edu.bit.newnewcc.backend.asm.operand.Register;
 import cn.edu.bit.newnewcc.backend.asm.util.Registers;
-import cn.edu.bit.newnewcc.ir.exception.IndexOutOfBoundsException;
 
 import java.util.List;
 import java.util.Set;
@@ -25,12 +23,6 @@ public class AsmCall extends AsmInstruction {
 
     public Register getReturnRegister() {
         return returnRegister;
-    }
-
-    @Override
-    public void setOperand(int index, AsmOperand operand) {
-        if (index == 1) throw new UnsupportedOperationException();
-        throw new IndexOutOfBoundsException();
     }
 
     @Override
