@@ -129,9 +129,9 @@ public class GraphColoringRegisterControl extends RegisterControl {
         }
     }
 
-    private Set<Register> uncoloredRegs;
+    private Map<Register, Integer> uncoloredRegs;
     /**
-     * 为干涉图中的所有虚拟寄存器进行染色操作，若成功则结果保存与physicRegisterMap中
+     * 为干涉图中的所有虚拟寄存器进行染色操作，若成功则结果保存与physicRegisterMap中，否则将未着色的寄存器的度数保存下来
      * @return 若成功染色返回true，否则返回false
      */
     private boolean color() {
@@ -169,10 +169,10 @@ public class GraphColoringRegisterControl extends RegisterControl {
             }
         }
         if (stack.size() < virtualRegCnt) {
-            uncoloredRegs = new HashSet<>();
+            uncoloredRegs = new HashMap<>();
             for (var reg : registers) {
                 if (reg.isVirtual() && !visited.contains(reg)) {
-                    uncoloredRegs.add(reg);
+                    uncoloredRegs.put(reg, degree.get(reg));
                 }
             }
             return false;
