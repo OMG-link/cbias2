@@ -18,18 +18,29 @@ public class IrPassManager {
                 MemoryToRegisterPass.runOnModule(module);
                 runOptimizePasses(module);
 
+                // 加法合并无法确定是否产生了优化
+                AddToMulPass.runOnModule(module);
+                GlobalCodeMotionPass.runOnModule(module);
+                runOptimizePasses(module);
+
+                // AddToMul效果好，但是不能循环做，只能多写几次了
+                AddToMulPass.runOnModule(module);
+                GlobalCodeMotionPass.runOnModule(module);
+                runOptimizePasses(module);
+
                 // 循环展开并执行GCM
                 LoopUnrollPass.runOnModule(module);
+                AddToMulPass.runOnModule(module);
+                GlobalCodeMotionPass.runOnModule(module);
+                runOptimizePasses(module);
+
+                // AddToMul A.A
+                AddToMulPass.runOnModule(module);
                 GlobalCodeMotionPass.runOnModule(module);
                 runOptimizePasses(module);
 
                 // 内存访问优化运行单次即可
                 MemoryAccessOptimizePass.runOnModule(module);
-                runOptimizePasses(module);
-
-                // 加法合并无法确定是否产生了优化
-                AddToMulPass.runOnModule(module);
-                GlobalCodeMotionPass.runOnModule(module);
                 runOptimizePasses(module);
 
                 // 调整指令顺序，以得到更好的寄存器分配结果
@@ -47,6 +58,7 @@ public class IrPassManager {
             changed = InstructionCombinePass.runOnModule(module);
             changed |= PatternReplacementPass.runOnModule(module);
             changed |= TailRecursionEliminationPass.runOnModule(module);
+            changed |= IntegerSumModuleCombinePass.runOnModule(module);
             changed |= FunctionInline.runOnModule(module);
             changed |= GvToLvPass.runOnModule(module);
             changed |= ConstLoopUnrollPass.runOnModule(module);
