@@ -5,9 +5,7 @@ import cn.edu.bit.newnewcc.backend.asm.instruction.AsmJump;
 import cn.edu.bit.newnewcc.backend.asm.instruction.AsmLabel;
 import cn.edu.bit.newnewcc.backend.asm.operand.Label;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class BranchEliminationOptimizer implements Optimizer {
     @Override
@@ -27,9 +25,20 @@ public class BranchEliminationOptimizer implements Optimizer {
         for (AsmInstruction instr : instrList) {
             if (instr instanceof AsmJump) {
                 for (int i = 1; i <= 3; ++i) {
-                    if (instr.getOperand(i) instanceof Label label && labelMap.containsKey(label)) {
-                        instr.setOperand(i, labelMap.get(label));
-                        madeChange = true;
+                    if (instr.getOperand(i) instanceof Label label) {
+                        Label newLabel = label;
+                        Set<Label> visited = new HashSet<>();
+                        visited.add(newLabel);
+
+                        while (labelMap.containsKey(newLabel) && !visited.contains(labelMap.get(newLabel))) {
+                            newLabel = labelMap.get(newLabel);
+                            visited.add(newLabel);
+                        }
+
+                        if (!newLabel.equals(label)) {
+                            instr.setOperand(i, labelMap.get(label));
+                            madeChange = true;
+                        }
                     }
                 }
             }
