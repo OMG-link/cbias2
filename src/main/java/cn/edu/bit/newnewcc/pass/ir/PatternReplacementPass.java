@@ -4,9 +4,6 @@ import cn.edu.bit.newnewcc.ir.Module;
 import cn.edu.bit.newnewcc.ir.Operand;
 import cn.edu.bit.newnewcc.ir.Type;
 import cn.edu.bit.newnewcc.ir.Value;
-import cn.edu.bit.newnewcc.ir.exception.IllegalArgumentException;
-import cn.edu.bit.newnewcc.ir.type.FloatType;
-import cn.edu.bit.newnewcc.ir.type.IntegerType;
 import cn.edu.bit.newnewcc.ir.value.BasicBlock;
 import cn.edu.bit.newnewcc.ir.value.Function;
 import cn.edu.bit.newnewcc.ir.value.Instruction;
@@ -230,85 +227,85 @@ public class PatternReplacementPass {
     private static void initialize() {
         codePatterns = new ArrayList<>();
 
-        // o_inst1 = cmp v1 v2                  -> n_inst1
-        // o_inst2 = zext i1 o_inst1 to i32
-        // o_inst3 = icmp ne o_inst2 0          -> n_inst1
-        // n_inst1 = cmp v1 v2
-        codePatterns.add(new CodePattern() {
-            Symbol v1, v2, o_inst1, o_inst2, o_inst3, n_inst1;
-
-            {
-                patternList.add(new InstructionPattern() {
-                    @Override
-                    protected void match_(Instruction instruction, SymbolMap symbolMap) throws MatchFailedException {
-                        if (instruction instanceof CompareInst compareInst) {
-                            // 指定所有中间符号
-                            v1 = new Symbol(compareInst.getOperand1().getType());
-                            v2 = new Symbol(compareInst.getOperand2().getType());
-                            o_inst1 = new Symbol(IntegerType.getI1());
-                            o_inst2 = new Symbol(IntegerType.getI32());
-                            o_inst3 = new Symbol(IntegerType.getI1());
-                            n_inst1 = new Symbol(IntegerType.getI1());
-                            // 创建新语句
-                            CompareInst newCompareInst;
-                            if (compareInst instanceof IntegerCompareInst integerCompareInst) {
-                                newCompareInst = new IntegerCompareInst(
-                                        (IntegerType) integerCompareInst.getOperand1().getType(),
-                                        integerCompareInst.getCondition(),
-                                        v1,
-                                        v2
-                                );
-                            } else if (compareInst instanceof FloatCompareInst floatCompareInst) {
-                                newCompareInst = new FloatCompareInst(
-                                        (FloatType) floatCompareInst.getOperand1().getType(),
-                                        floatCompareInst.getCondition(),
-                                        v1,
-                                        v2
-                                );
-                            } else {
-                                throw new IllegalArgumentException("Unknown type of compare instruction.");
-                            }
-                            newInstructions.add(newCompareInst);
-                            // 设置替代值
-                            symbolMap.setValue(replaceSymbol, n_inst1);
-                            // 确定已知的值和等价关系
-                            symbolMap.setValue(v1, compareInst.getOperand1());
-                            symbolMap.setValue(v2, compareInst.getOperand2());
-                            symbolMap.setValue(o_inst1, instruction);
-                            symbolMap.setValue(n_inst1, newCompareInst);
-                        } else {
-                            throw new MatchFailedException();
-                        }
-                    }
-                });
-                patternList.add(new InstructionPattern() {
-                    @Override
-                    protected void match_(Instruction instruction, SymbolMap symbolMap) throws MatchFailedException {
-                        if (instruction instanceof ZeroExtensionInst zeroExtensionInst) {
-                            symbolMap.setValue(o_inst2, instruction);
-                            symbolMap.setValue(o_inst1, zeroExtensionInst.getSourceOperand());
-                        } else {
-                            throw new MatchFailedException();
-                        }
-                    }
-                });
-                patternList.add(new InstructionPattern() {
-                    @Override
-                    protected void match_(Instruction instruction, SymbolMap symbolMap) throws MatchFailedException {
-                        if (instruction instanceof IntegerCompareInst integerCompareInst &&
-                                integerCompareInst.getCondition() == IntegerCompareInst.Condition.NE &&
-                                integerCompareInst.getOperand2() instanceof ConstInt operand2 &&
-                                operand2.getValue() == 0) {
-                            symbolMap.setValue(replaceSymbol, n_inst1);
-                            symbolMap.setValue(o_inst3, instruction);
-                            symbolMap.setValue(o_inst2, integerCompareInst.getOperand1());
-                        } else {
-                            throw new MatchFailedException();
-                        }
-                    }
-                });
-            }
-        });
+//        // o_inst1 = cmp v1 v2                  -> n_inst1
+//        // o_inst2 = zext i1 o_inst1 to i32
+//        // o_inst3 = icmp ne o_inst2 0          -> n_inst1
+//        // n_inst1 = cmp v1 v2
+//        codePatterns.add(new CodePattern() {
+//            Symbol v1, v2, o_inst1, o_inst2, o_inst3, n_inst1;
+//
+//            {
+//                patternList.add(new InstructionPattern() {
+//                    @Override
+//                    protected void match_(Instruction instruction, SymbolMap symbolMap) throws MatchFailedException {
+//                        if (instruction instanceof CompareInst compareInst) {
+//                            // 指定所有中间符号
+//                            v1 = new Symbol(compareInst.getOperand1().getType());
+//                            v2 = new Symbol(compareInst.getOperand2().getType());
+//                            o_inst1 = new Symbol(IntegerType.getI1());
+//                            o_inst2 = new Symbol(IntegerType.getI32());
+//                            o_inst3 = new Symbol(IntegerType.getI1());
+//                            n_inst1 = new Symbol(IntegerType.getI1());
+//                            // 创建新语句
+//                            CompareInst newCompareInst;
+//                            if (compareInst instanceof IntegerCompareInst integerCompareInst) {
+//                                newCompareInst = new IntegerCompareInst(
+//                                        (IntegerType) integerCompareInst.getOperand1().getType(),
+//                                        integerCompareInst.getCondition(),
+//                                        v1,
+//                                        v2
+//                                );
+//                            } else if (compareInst instanceof FloatCompareInst floatCompareInst) {
+//                                newCompareInst = new FloatCompareInst(
+//                                        (FloatType) floatCompareInst.getOperand1().getType(),
+//                                        floatCompareInst.getCondition(),
+//                                        v1,
+//                                        v2
+//                                );
+//                            } else {
+//                                throw new IllegalArgumentException("Unknown type of compare instruction.");
+//                            }
+//                            newInstructions.add(newCompareInst);
+//                            // 设置替代值
+//                            symbolMap.setValue(replaceSymbol, n_inst1);
+//                            // 确定已知的值和等价关系
+//                            symbolMap.setValue(v1, compareInst.getOperand1());
+//                            symbolMap.setValue(v2, compareInst.getOperand2());
+//                            symbolMap.setValue(o_inst1, instruction);
+//                            symbolMap.setValue(n_inst1, newCompareInst);
+//                        } else {
+//                            throw new MatchFailedException();
+//                        }
+//                    }
+//                });
+//                patternList.add(new InstructionPattern() {
+//                    @Override
+//                    protected void match_(Instruction instruction, SymbolMap symbolMap) throws MatchFailedException {
+//                        if (instruction instanceof ZeroExtensionInst zeroExtensionInst) {
+//                            symbolMap.setValue(o_inst2, instruction);
+//                            symbolMap.setValue(o_inst1, zeroExtensionInst.getSourceOperand());
+//                        } else {
+//                            throw new MatchFailedException();
+//                        }
+//                    }
+//                });
+//                patternList.add(new InstructionPattern() {
+//                    @Override
+//                    protected void match_(Instruction instruction, SymbolMap symbolMap) throws MatchFailedException {
+//                        if (instruction instanceof IntegerCompareInst integerCompareInst &&
+//                                integerCompareInst.getCondition() == IntegerCompareInst.Condition.NE &&
+//                                integerCompareInst.getOperand2() instanceof ConstInt operand2 &&
+//                                operand2.getValue() == 0) {
+//                            symbolMap.setValue(replaceSymbol, n_inst1);
+//                            symbolMap.setValue(o_inst3, instruction);
+//                            symbolMap.setValue(o_inst2, integerCompareInst.getOperand1());
+//                        } else {
+//                            throw new MatchFailedException();
+//                        }
+//                    }
+//                });
+//            }
+//        });
 
         // o_inst1 = mul|div v1 -1     -> n_inst1
         // n_inst1 = sub 0 v1
@@ -381,83 +378,83 @@ public class PatternReplacementPass {
             }
         });
 
-        // o_inst1 = mul v1, v2
-        // o_inst2 = div o_inst1, v2 -> v1
-        codePatterns.add(new CodePattern() {
-            Symbol o_inst1, o_inst2, v1, v2;
-
-            {
-                patternList.add(new InstructionPattern() {
-                    @Override
-                    protected void match_(Instruction instruction, SymbolMap symbolMap) throws MatchFailedException {
-                        if (instruction instanceof IntegerMultiplyInst integerMultiplyInst) {
-                            var type = integerMultiplyInst.getType();
-                            o_inst1 = new Symbol(type);
-                            o_inst2 = new Symbol(type);
-                            v1 = new Symbol(type);
-                            v2 = new Symbol(type);
-                            symbolMap.setValue(o_inst1, integerMultiplyInst);
-                            symbolMap.setValue(v1, integerMultiplyInst.getOperand1());
-                            symbolMap.setValue(v2, integerMultiplyInst.getOperand2());
-                        } else {
-                            throw new MatchFailedException();
-                        }
-                    }
-                });
-                patternList.add(new InstructionPattern() {
-                    @Override
-                    protected void match_(Instruction instruction, SymbolMap symbolMap) throws MatchFailedException {
-                        if (instruction instanceof IntegerSignedDivideInst integerSignedDivideInst) {
-                            symbolMap.setValue(replaceSymbol, v1);
-                            symbolMap.setValue(o_inst2, integerSignedDivideInst);
-                            symbolMap.setValue(o_inst1, integerSignedDivideInst.getOperand1());
-                            symbolMap.setValue(v2, integerSignedDivideInst.getOperand2());
-                        } else {
-                            throw new MatchFailedException();
-                        }
-                    }
-                });
-            }
-        });
-
-        // o_inst1 = mul v2, v1
-        // o_inst2 = div o_inst1, v2 -> v1
-        codePatterns.add(new CodePattern() {
-            Symbol o_inst1, o_inst2, v1, v2;
-
-            {
-                patternList.add(new InstructionPattern() {
-                    @Override
-                    protected void match_(Instruction instruction, SymbolMap symbolMap) throws MatchFailedException {
-                        if (instruction instanceof IntegerMultiplyInst integerMultiplyInst) {
-                            var type = integerMultiplyInst.getType();
-                            o_inst1 = new Symbol(type);
-                            o_inst2 = new Symbol(type);
-                            v1 = new Symbol(type);
-                            v2 = new Symbol(type);
-                            symbolMap.setValue(o_inst1, integerMultiplyInst);
-                            symbolMap.setValue(v2, integerMultiplyInst.getOperand1());
-                            symbolMap.setValue(v1, integerMultiplyInst.getOperand2());
-                        } else {
-                            throw new MatchFailedException();
-                        }
-                    }
-                });
-                patternList.add(new InstructionPattern() {
-                    @Override
-                    protected void match_(Instruction instruction, SymbolMap symbolMap) throws MatchFailedException {
-                        if (instruction instanceof IntegerSignedDivideInst integerSignedDivideInst) {
-                            symbolMap.setValue(replaceSymbol, v1);
-                            symbolMap.setValue(o_inst2, integerSignedDivideInst);
-                            symbolMap.setValue(o_inst1, integerSignedDivideInst.getOperand1());
-                            symbolMap.setValue(v2, integerSignedDivideInst.getOperand2());
-                        } else {
-                            throw new MatchFailedException();
-                        }
-                    }
-                });
-            }
-        });
+//        // o_inst1 = mul v1, v2
+//        // o_inst2 = div o_inst1, v2 -> v1
+//        codePatterns.add(new CodePattern() {
+//            Symbol o_inst1, o_inst2, v1, v2;
+//
+//            {
+//                patternList.add(new InstructionPattern() {
+//                    @Override
+//                    protected void match_(Instruction instruction, SymbolMap symbolMap) throws MatchFailedException {
+//                        if (instruction instanceof IntegerMultiplyInst integerMultiplyInst) {
+//                            var type = integerMultiplyInst.getType();
+//                            o_inst1 = new Symbol(type);
+//                            o_inst2 = new Symbol(type);
+//                            v1 = new Symbol(type);
+//                            v2 = new Symbol(type);
+//                            symbolMap.setValue(o_inst1, integerMultiplyInst);
+//                            symbolMap.setValue(v1, integerMultiplyInst.getOperand1());
+//                            symbolMap.setValue(v2, integerMultiplyInst.getOperand2());
+//                        } else {
+//                            throw new MatchFailedException();
+//                        }
+//                    }
+//                });
+//                patternList.add(new InstructionPattern() {
+//                    @Override
+//                    protected void match_(Instruction instruction, SymbolMap symbolMap) throws MatchFailedException {
+//                        if (instruction instanceof IntegerSignedDivideInst integerSignedDivideInst) {
+//                            symbolMap.setValue(replaceSymbol, v1);
+//                            symbolMap.setValue(o_inst2, integerSignedDivideInst);
+//                            symbolMap.setValue(o_inst1, integerSignedDivideInst.getOperand1());
+//                            symbolMap.setValue(v2, integerSignedDivideInst.getOperand2());
+//                        } else {
+//                            throw new MatchFailedException();
+//                        }
+//                    }
+//                });
+//            }
+//        });
+//
+//        // o_inst1 = mul v2, v1
+//        // o_inst2 = div o_inst1, v2 -> v1
+//        codePatterns.add(new CodePattern() {
+//            Symbol o_inst1, o_inst2, v1, v2;
+//
+//            {
+//                patternList.add(new InstructionPattern() {
+//                    @Override
+//                    protected void match_(Instruction instruction, SymbolMap symbolMap) throws MatchFailedException {
+//                        if (instruction instanceof IntegerMultiplyInst integerMultiplyInst) {
+//                            var type = integerMultiplyInst.getType();
+//                            o_inst1 = new Symbol(type);
+//                            o_inst2 = new Symbol(type);
+//                            v1 = new Symbol(type);
+//                            v2 = new Symbol(type);
+//                            symbolMap.setValue(o_inst1, integerMultiplyInst);
+//                            symbolMap.setValue(v2, integerMultiplyInst.getOperand1());
+//                            symbolMap.setValue(v1, integerMultiplyInst.getOperand2());
+//                        } else {
+//                            throw new MatchFailedException();
+//                        }
+//                    }
+//                });
+//                patternList.add(new InstructionPattern() {
+//                    @Override
+//                    protected void match_(Instruction instruction, SymbolMap symbolMap) throws MatchFailedException {
+//                        if (instruction instanceof IntegerSignedDivideInst integerSignedDivideInst) {
+//                            symbolMap.setValue(replaceSymbol, v1);
+//                            symbolMap.setValue(o_inst2, integerSignedDivideInst);
+//                            symbolMap.setValue(o_inst1, integerSignedDivideInst.getOperand1());
+//                            symbolMap.setValue(v2, integerSignedDivideInst.getOperand2());
+//                        } else {
+//                            throw new MatchFailedException();
+//                        }
+//                    }
+//                });
+//            }
+//        });
 
 
         initialized = true;
