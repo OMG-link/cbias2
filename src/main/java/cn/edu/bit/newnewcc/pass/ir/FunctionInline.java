@@ -101,6 +101,9 @@ public class FunctionInline {
             inlineFunction(inlinedFunction);
             changed = true;
         }
+        if (changed) {
+            DeadCodeEliminationPass.runOnModule(module);
+        }
         return changed;
     }
 
