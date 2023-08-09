@@ -87,11 +87,11 @@ public class ConstantMultiplyPlanner {
 
     private static final int OPERATION_LIMIT = 5;
 
-    private static final Map<Integer, Operand> operandMap = new HashMap<>();
+    private static final Map<Long, Operand> operandMap = new HashMap<>();
 
     private static boolean isInitialized = false;
 
-    private static void addOperationIfPossible(ArrayList<Pair<Integer, Operand>> levelLdOperations, int idAdd, Operand odAdd) {
+    private static void addOperationIfPossible(ArrayList<Pair<Long, Operand>> levelLdOperations, long idAdd, Operand odAdd) {
         if (!operandMap.containsKey(idAdd)) {
             operandMap.put(idAdd, odAdd);
             levelLdOperations.add(new Pair<>(idAdd, odAdd));
@@ -99,8 +99,8 @@ public class ConstantMultiplyPlanner {
     }
 
     private static void initialize() {
-        ArrayList<ArrayList<Pair<Integer, Operand>>> operations = new ArrayList<>();
-        var level0Operations = new ArrayList<Pair<Integer, Operand>>();
+        ArrayList<ArrayList<Pair<Long, Operand>>> operations = new ArrayList<>();
+        var level0Operations = new ArrayList<Pair<Long, Operand>>();
         addOperationIfPossible(level0Operations, 0, new ConstantOperand(0));
         addOperationIfPossible(level0Operations, 1, VariableOperand.getInstance());
         operations.add(level0Operations);
@@ -109,7 +109,7 @@ public class ConstantMultiplyPlanner {
         // i1 -> integer 1
         // o1 -> operand 1
         for (int ld = 1; ld <= OPERATION_LIMIT; ld++) {
-            var levelLdOperations = new ArrayList<Pair<Integer, Operand>>();
+            var levelLdOperations = new ArrayList<Pair<Long, Operand>>();
             for (int l1 = 0; l1 < ld; l1++) {
                 for (int l2 = 0; l1 + l2 < ld; l2++) {
                     // ADD, SUB
@@ -139,21 +139,21 @@ public class ConstantMultiplyPlanner {
                             var odShl = new Operation(Operation.Type.SHL, o1, new ConstantOperand(i));
                             addOperationIfPossible(levelLdOperations, idShl, odShl);
                         }
-                        if ((idShl & (1 << 31)) != 0) break;
+                        if ((idShl & (1L << 63)) != 0) break;
                     }
                 }
             }
             operations.add(levelLdOperations);
         }
-        for (ArrayList<Pair<Integer, Operand>> operationList : operations) {
-            for (Pair<Integer, Operand> pair : operationList) {
+        for (ArrayList<Pair<Long, Operand>> operationList : operations) {
+            for (Pair<Long, Operand> pair : operationList) {
                 operandMap.put(pair.a, pair.b);
             }
         }
         isInitialized = true;
     }
 
-    public static Operand makePlan(int multipliedConstant) {
+    public static Operand makePlan(long multipliedConstant) {
         if (!isInitialized) initialize();
         return operandMap.getOrDefault(multipliedConstant, NotReducible.getInstance());
     }
