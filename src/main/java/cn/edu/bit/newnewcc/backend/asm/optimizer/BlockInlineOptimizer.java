@@ -1,10 +1,7 @@
 package cn.edu.bit.newnewcc.backend.asm.optimizer;
 
 import cn.edu.bit.newnewcc.backend.asm.AsmFunction;
-import cn.edu.bit.newnewcc.backend.asm.instruction.AsmBlockEnd;
-import cn.edu.bit.newnewcc.backend.asm.instruction.AsmInstruction;
-import cn.edu.bit.newnewcc.backend.asm.instruction.AsmJump;
-import cn.edu.bit.newnewcc.backend.asm.instruction.AsmLabel;
+import cn.edu.bit.newnewcc.backend.asm.instruction.*;
 import cn.edu.bit.newnewcc.backend.asm.operand.Label;
 
 import java.util.ArrayList;
@@ -77,7 +74,7 @@ public class BlockInlineOptimizer implements Optimizer {
                 }
                 label = newLabel;
                 fallThrough = true;
-            } else if (instr instanceof AsmJump jumpInstr && jumpInstr.getCondition() == AsmJump.Condition.UNCONDITIONAL) {
+            } else if ((instr instanceof AsmJump jumpInstr && jumpInstr.getCondition() == AsmJump.Condition.UNCONDITIONAL) || instr instanceof AsmReturn) {
                 fallThrough = false;
             }
         }
