@@ -346,19 +346,19 @@ public class AsmBasicBlock {
         }
     }
 
-    public AsmOperand translateConstantMultiplyPlan(IntRegister variable, ConstantMultiplyPlanner.Operand plan) {
+    public AsmOperand translateConstantMultiplyPlan(IntRegister variable, ConstantMultiplyPlanner.Operand plan, int bitWidth) {
         if (plan instanceof ConstantMultiplyPlanner.VariableOperand) {
             return variable;
         } else if (plan instanceof ConstantMultiplyPlanner.ConstantOperand constantOperand) {
             return getValue(ConstInt.getInstance(constantOperand.value));
         } else if (plan instanceof ConstantMultiplyPlanner.Operation operation) {
-            var reg1 = getOperandToIntRegister(translateConstantMultiplyPlan(variable, operation.operand1));
-            var operand2 = translateConstantMultiplyPlan(variable, operation.operand2);
+            var reg1 = getOperandToIntRegister(translateConstantMultiplyPlan(variable, operation.operand1, bitWidth));
+            var operand2 = translateConstantMultiplyPlan(variable, operation.operand2, bitWidth);
             var finalRegister = function.getRegisterAllocator().allocateInt();
             var asmInstruction = switch (operation.type) {
-                case ADD -> new AsmAdd(finalRegister, reg1, operand2, 32);
-                case SUB -> new AsmSub(finalRegister, reg1, (IntRegister) operand2, 32);
-                case SHL -> new AsmShiftLeft(finalRegister, reg1, operand2, 32);
+                case ADD -> new AsmAdd(finalRegister, reg1, operand2, bitWidth);
+                case SUB -> new AsmSub(finalRegister, reg1, (IntRegister) operand2, bitWidth);
+                case SHL -> new AsmShiftLeft(finalRegister, reg1, operand2, bitWidth);
             };
             function.appendInstruction(asmInstruction);
             return finalRegister;
@@ -368,37 +368,34 @@ public class AsmBasicBlock {
     }
 
     private void translateIntegerMultiplyInst(IntegerMultiplyInst integerMultiplyInst) {
-        if (integerMultiplyInst.getOperand1() instanceof ConstInt ||
-                integerMultiplyInst.getOperand2() instanceof ConstInt) {
+        if (integerMultiplyInst.getOperand1() instanceof ConstInteger ||
+                integerMultiplyInst.getOperand2() instanceof ConstInteger) {
             IntRegister variable;
-            int multipliedConstant;
-            if (integerMultiplyInst.getOperand1() instanceof ConstInt constInt) {
+            long multipliedConstant;
+            if (integerMultiplyInst.getOperand1() instanceof ConstInteger constInteger) {
                 variable = (IntRegister) getValueToRegister(integerMultiplyInst.getOperand2());
-                multipliedConstant = constInt.getValue();
+                multipliedConstant = ConstInteger.valueOf(constInteger);
             } else {
                 variable = (IntRegister) getValueToRegister(integerMultiplyInst.getOperand1());
-                multipliedConstant = ((ConstInt) integerMultiplyInst.getOperand2()).getValue();
+                multipliedConstant = ConstInteger.valueOf((ConstInteger) integerMultiplyInst.getOperand2());
             }
             var plan = ConstantMultiplyPlanner.makePlan(multipliedConstant);
-            if (plan instanceof ConstantMultiplyPlanner.NotReducible) {
-                var finalReg = function.getRegisterAllocator().allocateInt(integerMultiplyInst);
-                IntRegister immConstant = (IntRegister) getValueToRegister(ConstInt.getInstance(multipliedConstant));
-                function.appendInstruction(new AsmMul(finalReg, variable, immConstant, 32));
-            } else {
-                var planReg = translateConstantMultiplyPlan(variable, plan);
+            if (!(plan instanceof ConstantMultiplyPlanner.NotReducible)) {
+                var planReg = translateConstantMultiplyPlan(variable, plan, integerMultiplyInst.getType().getBitWidth());
                 var finalReg = function.getRegisterAllocator().allocateInt(integerMultiplyInst);
                 if (planReg instanceof Register)
                     function.appendInstruction(new AsmMove(finalReg, (Register) planReg));
                 else
                     function.appendInstruction(new AsmLoad(finalReg, planReg));
+                return;
             }
-        } else {
-            int bitLength = integerMultiplyInst.getType().getBitWidth();
-            var mulx = getOperandToIntRegister(getValue(integerMultiplyInst.getOperand1()));
-            var muly = getOperandToIntRegister(getValue(integerMultiplyInst.getOperand2()));
-            IntRegister register = function.getRegisterAllocator().allocateInt(integerMultiplyInst);
-            function.appendInstruction(new AsmMul(register, mulx, muly, bitLength));
         }
+        // 默认翻译方法
+        int bitLength = integerMultiplyInst.getType().getBitWidth();
+        var mulx = getOperandToIntRegister(getValue(integerMultiplyInst.getOperand1()));
+        var muly = getOperandToIntRegister(getValue(integerMultiplyInst.getOperand2()));
+        IntRegister register = function.getRegisterAllocator().allocateInt(integerMultiplyInst);
+        function.appendInstruction(new AsmMul(register, mulx, muly, bitLength));
     }
 
     private void translateIntegerSignedDivideInst(IntegerSignedDivideInst integerSignedDivideInst) {
@@ -488,13 +485,14 @@ public class AsmBasicBlock {
                 var imm0 = getValue(ConstInt.getInstance(0));
                 function.appendInstruction(new AsmSub(regActualAns, getOperandToIntRegister(imm0), regAns, 32));
             }
-        } else {
-            int bitLength = integerSignedDivideInst.getType().getBitWidth();
-            var divx = getOperandToIntRegister(getValue(integerSignedDivideInst.getOperand1()));
-            var divy = getOperandToIntRegister(getValue(integerSignedDivideInst.getOperand2()));
-            IntRegister register = function.getRegisterAllocator().allocateInt(integerSignedDivideInst);
-            function.appendInstruction(new AsmSignedIntegerDivide(register, divx, divy, bitLength));
+            return;
         }
+        // 默认翻译方法
+        int bitLength = integerSignedDivideInst.getType().getBitWidth();
+        var divx = getOperandToIntRegister(getValue(integerSignedDivideInst.getOperand1()));
+        var divy = getOperandToIntRegister(getValue(integerSignedDivideInst.getOperand2()));
+        IntRegister register = function.getRegisterAllocator().allocateInt(integerSignedDivideInst);
+        function.appendInstruction(new AsmSignedIntegerDivide(register, divx, divy, bitLength));
     }
 
     private void translateCompareInst(CompareInst compareInst) {
