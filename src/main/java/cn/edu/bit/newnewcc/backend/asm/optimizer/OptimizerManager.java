@@ -13,6 +13,7 @@ public class OptimizerManager {
     public void runAfterRegisterAllocation(AsmFunction function) {
         new MoveEliminationOptimizer().runOn(function);
         new BranchEliminationOptimizer().runOn(function);
+        new DeadBlockEliminationOptimizer().runOn(function);
         for (int i = 0; i < 6; ++i) {
             new BlockInlineOptimizer(20).runOn(function);
         }
