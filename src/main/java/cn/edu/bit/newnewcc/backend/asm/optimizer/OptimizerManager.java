@@ -1,6 +1,8 @@
 package cn.edu.bit.newnewcc.backend.asm.optimizer;
 
 import cn.edu.bit.newnewcc.backend.asm.instruction.AsmInstruction;
+import cn.edu.bit.newnewcc.backend.asm.instruction.AsmMove;
+
 import java.util.List;
 
 public class OptimizerManager {
@@ -12,6 +14,7 @@ public class OptimizerManager {
     }
 
     public void runAfterRegisterAllocation(List<AsmInstruction> instrList) {
+        new MoveEliminationOptimizer().runOn(instrList);
         new BranchEliminationOptimizer().runOn(instrList);
         new DeadBlockEliminationOptimizer().runOn(instrList);
     }
