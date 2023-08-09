@@ -14,9 +14,7 @@ public class OptimizerManager {
         new MoveEliminationOptimizer().runOn(function);
         new BranchEliminationOptimizer().runOn(function);
         new DeadBlockEliminationOptimizer().runOn(function);
-        for (int i = 0; i < 6; ++i) {
-            new BlockInlineOptimizer(20).runOn(function);
-        }
+        new BlockInlineOptimizer(20).runOn(function);
         new DeadBlockEliminationOptimizer().runOn(function);
         new RedundantLabelEliminationOptimizer().runOn(function);
     }

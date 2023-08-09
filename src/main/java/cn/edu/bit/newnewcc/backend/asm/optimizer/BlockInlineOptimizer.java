@@ -20,31 +20,37 @@ public class BlockInlineOptimizer implements Optimizer {
     public void runOn(AsmFunction function) {
         List<AsmInstruction> instrList = function.getInstrList();
 
-        Map<Label, List<AsmInstruction>> blocks = computeBlocks(instrList);
-        Map<Label, Label> fallThroughLabels = computeFallThroughLabels(instrList);
+        boolean madeChange;
+        do {
+            madeChange = false;
 
-        List<AsmInstruction> newInstrList = new ArrayList<>();
-        for (AsmInstruction instr : instrList) {
-            boolean inline = false;
-            if (instr instanceof AsmJump jumpInstr
-                && jumpInstr.getCondition() == AsmJump.Condition.UNCONDITIONAL) {
-                Label label = (Label) jumpInstr.getOperand(1);
-                List<AsmInstruction> block = blocks.get(label);
-                if (block.size() <= threshold) {
-                    newInstrList.addAll(block);
-                    if (fallThroughLabels.containsKey(label)) {
-                        newInstrList.add(AsmJump.createUnconditional(fallThroughLabels.get(label)));
+            Map<Label, List<AsmInstruction>> blocks = computeBlocks(instrList);
+            Map<Label, Label> fallThroughLabels = computeFallThroughLabels(instrList);
+
+            List<AsmInstruction> newInstrList = new ArrayList<>();
+            for (AsmInstruction instr : instrList) {
+                boolean inline = false;
+                if (instr instanceof AsmJump jumpInstr
+                    && jumpInstr.getCondition() == AsmJump.Condition.UNCONDITIONAL) {
+                    Label label = (Label) jumpInstr.getOperand(1);
+                    List<AsmInstruction> block = blocks.get(label);
+                    if (block.size() <= threshold) {
+                        newInstrList.addAll(block);
+                        if (fallThroughLabels.containsKey(label)) {
+                            newInstrList.add(AsmJump.createUnconditional(fallThroughLabels.get(label)));
+                        }
+                        inline = true;
+                        madeChange = true;
                     }
-                    inline = true;
+                }
+                if (!inline) {
+                    newInstrList.add(instr);
                 }
             }
-            if (!inline) {
-                newInstrList.add(instr);
-            }
-        }
 
-        instrList.clear();
-        instrList.addAll(newInstrList);
+            instrList.clear();
+            instrList.addAll(newInstrList);
+        } while (madeChange);
     }
 
     private static Map<Label, List<AsmInstruction>> computeBlocks(List<AsmInstruction> instrList) {
