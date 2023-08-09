@@ -66,6 +66,7 @@ public class LoopUnrollPass {
         int loopSize = collectLoopInfo(loop, loopBlocks);
         // 待展开的循环大小不超过 MAXIMUM_EXTRACTED_SIZE
         if (loopSize > MAXIMUM_EXTRACTED_SIZE) return false;
+        if (loop.getHeaderBasicBlock().tags.contains(BasicBlock.Tag.NO_LOOP_UNROLL)) return false;
         var function = loop.getHeaderBasicBlock().getFunction();
         // 复制一份原始循环，稍后将其连接到自身
         // 如此操作是为了避免修改原循环，导致一边复制一边修改
@@ -152,6 +153,7 @@ public class LoopUnrollPass {
         exitValueMapping.forEach((headBlockInstruction, phiInst) -> {
             phiInst.addEntry(remainderLoop.getClonedLoopHead(), remainderLoop.getClonedValue(headBlockInstruction));
         });
+        remainderLoop.getClonedLoopHead().tags.add(BasicBlock.Tag.NO_LOOP_UNROLL);
         // 删除原循环
         // 1. 清理出口信息
         for (BasicBlock loopBlock : loopBlocks) {
