@@ -16,6 +16,12 @@ import java.util.*;
  */
 public class BasicBlock extends Value {
 
+    public enum Tag {
+        NO_LOOP_UNROLL
+    }
+
+    public final Set<Tag> tags = new HashSet<>();
+
     public BasicBlock() {
         super(LabelType.getInstance());
     }
