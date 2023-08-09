@@ -20,7 +20,7 @@ public class IntRegister extends Register {
 
     @Override
     public String getName() {
-        return isVirtual() ? "vx" + getIndex() : "x" + getIndex();
+        return isVirtual() ? "vx" + getAbsoluteIndex() : "x" + getAbsoluteIndex();
     }
 
     @Override

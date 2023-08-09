@@ -16,7 +16,7 @@ public class FloatRegister extends Register {
 
     @Override
     public String getName() {
-        return isVirtual() ? "vf" + getIndex() : "f" + getIndex();
+        return isVirtual() ? "vf" + getAbsoluteIndex() : "f" + getAbsoluteIndex();
     }
 
     @Override
