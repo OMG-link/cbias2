@@ -156,6 +156,32 @@ public class GraphColoringRegisterControl extends RegisterControl {
         }
     }
 
+    /*private final boolean debug = true;
+    private List<Register> debug_registers;
+    void outputDebugInfo(String name) {
+        System.out.println(name);
+        System.out.println("stack size = " + stack.size());
+        System.out.println("registers size = " + debug_registers.size());
+        System.out.println("uncolored:");
+        for (var reg : uncoloredReg) {
+            if (!debug_registers.contains(reg)) {
+                System.out.println(reg);
+            }
+        }
+        System.out.println("coalesce:");
+        for (var reg : coalescentReg) {
+            if (!debug_registers.contains(reg)) {
+                System.out.println(reg);
+            }
+        }
+        System.out.println("stack:");
+        for (var reg : stack) {
+            if (!debug_registers.contains(reg)) {
+                System.out.println(reg);
+            }
+        }
+    }*/
+
     /**
      * 未当前剩下的未着色的寄存器进行着色，若成功则重建图并构建出每个寄存器对应的物理寄存器
      * @return 若成功染色返回true，否则返回false
@@ -163,6 +189,7 @@ public class GraphColoringRegisterControl extends RegisterControl {
     private boolean color() {
         Queue<Register> queue = new ArrayDeque<>();
         Set<Register> visited = new HashSet<>();
+
         for (var x : uncoloredReg) {
             if (interferenceEdges.get(x).size() < physicRegisters.size()) {
                 queue.add(x);
@@ -309,7 +336,9 @@ public class GraphColoringRegisterControl extends RegisterControl {
             }
         }
         if (freezeReg != null) {
-            coalescentEdges.get(freezeReg).clear();
+            for (var u : coalescentEdges.get(freezeReg)) {
+                coalescentEdges.get(u).remove(freezeReg);
+            }
             coalescentReg.remove(freezeReg);
             uncoloredReg.add(freezeReg);
             return true;
