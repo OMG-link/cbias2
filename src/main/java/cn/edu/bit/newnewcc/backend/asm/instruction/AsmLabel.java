@@ -46,7 +46,12 @@ public class AsmLabel extends AsmInstruction {
     }
 
     @Override
-    public boolean willReturn() {
+    public boolean mayNotReturn() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public boolean willNeverReturn() {
         throw new UnsupportedOperationException();
     }
 

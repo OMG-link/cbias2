@@ -63,8 +63,13 @@ public class AsmSignedIntegerRemainder extends AsmInstruction {
     }
 
     @Override
-    public boolean willReturn() {
-        return true;
+    public boolean mayNotReturn() {
+        return false;
+    }
+
+    @Override
+    public boolean willNeverReturn() {
+        return false;
     }
 
     @Override

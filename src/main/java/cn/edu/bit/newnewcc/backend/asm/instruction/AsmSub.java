@@ -63,10 +63,15 @@ public class AsmSub extends AsmInstruction {
     public Set<Register> getUse() {
         return Set.copyOf(List.of((Register) getOperand(2), (Register) getOperand(3)));
     }
+    
+    @Override
+    public boolean mayNotReturn() {
+        return false;
+    }
 
     @Override
-    public boolean willReturn() {
-        return true;
+    public boolean willNeverReturn() {
+        return false;
     }
 
     @Override

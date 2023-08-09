@@ -31,7 +31,7 @@ public class DeadInstructionEliminationOptimizer implements Optimizer {
             while (iterator.hasNext()) {
                 AsmInstruction instr = iterator.next();
                 if (instr instanceof AsmLabel || instr instanceof AsmBlockEnd) continue;
-                if (instr.willReturn() && !instr.mayHaveSideEffects()) {
+                if (!instr.mayNotReturn() && !instr.mayHaveSideEffects()) {
                     boolean dead = true;
                     for (Register reg : instr.getDef()) {
                         if (!reg.isVirtual() || useCount.getOrDefault(reg, 0) > 0) {

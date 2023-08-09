@@ -32,8 +32,13 @@ public class AsmReturn extends AsmInstruction {
     }
 
     @Override
-    public boolean willReturn() {
-        return false;
+    public boolean mayNotReturn() {
+        return true;
+    }
+
+    @Override
+    public boolean willNeverReturn() {
+        return true;
     }
 
     @Override

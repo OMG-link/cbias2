@@ -1,10 +1,7 @@
 package cn.edu.bit.newnewcc.backend.asm.optimizer;
 
 import cn.edu.bit.newnewcc.backend.asm.AsmFunction;
-import cn.edu.bit.newnewcc.backend.asm.instruction.AsmInstruction;
-import cn.edu.bit.newnewcc.backend.asm.instruction.AsmJump;
-import cn.edu.bit.newnewcc.backend.asm.instruction.AsmLabel;
-import cn.edu.bit.newnewcc.backend.asm.instruction.AsmReturn;
+import cn.edu.bit.newnewcc.backend.asm.instruction.*;
 import cn.edu.bit.newnewcc.backend.asm.operand.Label;
 
 import java.util.*;
@@ -28,6 +25,8 @@ public class DeadBlockEliminationOptimizer implements Optimizer {
             boolean fallThrough = true;
 
             for (AsmInstruction instr : instrList) {
+                if (instr instanceof AsmBlockEnd) continue;
+
                 if (instr instanceof AsmLabel labelInstr) {
                     Label newLabel = labelInstr.getLabel();
 
@@ -37,18 +36,17 @@ public class DeadBlockEliminationOptimizer implements Optimizer {
 
                     label = newLabel;
                     fallThrough = true;
-                } else if (instr instanceof AsmJump jumpInstr) {
-                    for (int i = 1; i <= 3; ++i) {
-                        if (jumpInstr.getOperand(i) instanceof Label newLabel) {
-                            graph.get(label).add(newLabel);
-                        }
-
-                        if (jumpInstr.getCondition() == AsmJump.Condition.UNCONDITIONAL) {
-                            fallThrough = false;
+                } else {
+                    if (instr instanceof AsmJump jumpInstr) {
+                        for (int i = 1; i <= 3; ++i) {
+                            if (jumpInstr.getOperand(i) instanceof Label newLabel) {
+                                graph.get(label).add(newLabel);
+                            }
                         }
                     }
-                } else if (instr instanceof AsmReturn) {
-                    fallThrough = false;
+                    if (instr.willNeverReturn()) {
+                        fallThrough = false;
+                    }
                 }
             }
         }

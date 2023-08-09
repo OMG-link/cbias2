@@ -74,7 +74,7 @@ public class BlockInlineOptimizer implements Optimizer {
                 }
                 label = newLabel;
                 fallThrough = true;
-            } else if ((instr instanceof AsmJump jumpInstr && jumpInstr.getCondition() == AsmJump.Condition.UNCONDITIONAL) || instr instanceof AsmReturn) {
+            } else if (!(instr instanceof AsmBlockEnd) && instr.willNeverReturn()) {
                 fallThrough = false;
             }
         }

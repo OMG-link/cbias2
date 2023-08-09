@@ -60,7 +60,9 @@ public abstract class AsmInstruction {
 
     public abstract Set<Register> getUse();
 
-    public abstract boolean willReturn();
+    public abstract boolean mayNotReturn();
+
+    public abstract boolean willNeverReturn();
 
     public abstract boolean mayHaveSideEffects();
 }
