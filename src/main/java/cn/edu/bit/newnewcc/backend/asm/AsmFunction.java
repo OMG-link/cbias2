@@ -170,6 +170,12 @@ public class AsmFunction {
             reAllocateRegister();
             asmOptimizerAfterRegisterAllocate();
 
+            List<AsmInstruction> newInstrList = new ArrayList<>();
+            newInstrList.addAll(stackAllocator.emitPrologue());
+            newInstrList.addAll(instrList);
+            newInstrList.addAll(stackAllocator.emitEpilogue());
+            instrList = newInstrList;
+
             optimizerManager.runAfterRegisterAllocation(this);
         }
     }
@@ -180,13 +186,7 @@ public class AsmFunction {
         builder.append(String.format(".globl %s\n", functionName));
         builder.append(String.format(".type %s, @function\n", functionName));
         builder.append(String.format("%s:\n", functionName));
-        for (var inst : stackAllocator.emitPrologue()) {
-            builder.append(inst.emit());
-        }
         for (var inst : instrList) {
-            builder.append(inst.emit());
-        }
-        for (var inst : stackAllocator.emitEpilogue()) {
             builder.append(inst.emit());
         }
         builder.append(String.format(".size %s, .-%s\n", functionName, functionName));
