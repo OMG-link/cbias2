@@ -159,6 +159,11 @@ public record SimpleLoopInfo(IntegerCompareInst condition, IntegerArithmeticInst
                 );
                 newCmpInstruction.insertBefore(integerCompareInst);
                 br.setCondition(newCmpInstruction);
+                // 在可能的情况下删除旧指令，以确保模块中没有死代码
+                if (integerCompareInst.getUsages().isEmpty()) {
+                    // 直接waste此指令即可，不会递归产生死代码
+                    integerCompareInst.waste();
+                }
                 integerCompareInst = newCmpInstruction;
             }
             var exitBlock = br.getFalseExit();
