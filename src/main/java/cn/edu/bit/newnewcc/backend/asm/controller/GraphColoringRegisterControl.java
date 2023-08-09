@@ -21,7 +21,7 @@ public class GraphColoringRegisterControl extends RegisterControl {
         lifeTimeController = function.getLifeTimeController();
     }
 
-    private List<Register> registers, physicRegisters;
+    private List<Register> physicRegisters;
     private final LifeTimeController lifeTimeController;
     private final List<LifeTimeInterval> intervals = new ArrayList<>();
 
@@ -40,7 +40,7 @@ public class GraphColoringRegisterControl extends RegisterControl {
     /**
      * 获取寄存器被spill到内存中的代价，物理寄存器的代价总是inf*2，保证不能被spill
      */
-    private void getRegisterCost() {
+    private void getRegisterCost(List<Register> registers) {
         var irFunction = function.getBaseFunction();
         var loopForest = LoopForest.buildOver(irFunction);
         var basicBlockLoopMap = loopForest.getBasicBlockLoopMap();
@@ -118,7 +118,7 @@ public class GraphColoringRegisterControl extends RegisterControl {
     /**
      * 为虚拟寄存器和代码中含有的可变物理寄存器建立干涉图
      */
-    private void buildGraph(boolean freezeAll) {
+    private void buildGraph(boolean freezeAll, List<Register> registers) {
         intervals.clear();
         interferenceEdges.clear();
         coalescentEdges.clear();
@@ -210,10 +210,12 @@ public class GraphColoringRegisterControl extends RegisterControl {
                 }
             }
         }
-        if (uncoloredReg.size() + coalescentReg.size() > 0) {
-            return false;
-        }
-        buildGraph(true);
+        return uncoloredReg.size() + coalescentReg.size() <= 0;
+    }
+
+
+    void colorToRegisterMap(List<Register> registers) {
+        buildGraph(true, registers);
         for (var reg : registers) {
             if (!reg.isVirtual()) {
                 physicRegisterMap.put(reg, reg);
@@ -234,7 +236,6 @@ public class GraphColoringRegisterControl extends RegisterControl {
                 }
             }
         }
-        return true;
     }
 
     /**
@@ -243,7 +244,7 @@ public class GraphColoringRegisterControl extends RegisterControl {
      * @param v 被合并的寄存器
      * @return 是否能够合并
      */
-    private boolean checkCoalesce(Register u, Register v) {
+    private boolean checkCoalesce(Register u, Register v, List<Register> registers) {
         if (!v.isVirtual() || !coalescentEdges.containsKey(u) || !coalescentEdges.get(u).contains(v)) {
             return false;
         }
@@ -284,7 +285,7 @@ public class GraphColoringRegisterControl extends RegisterControl {
      * @param u 并入的寄存器
      * @param v 被合并的寄存器
      */
-    private void practiseCoalesce(Register u, Register v) {
+    private void practiseCoalesce(Register u, Register v, List<Register> registers) {
         for (var point : lifeTimeController.getPoints(v)) {
             var inst = point.getIndex().getSourceInst();
             int id = AsmInstructions.getInstRegID(inst, v);
@@ -308,7 +309,7 @@ public class GraphColoringRegisterControl extends RegisterControl {
      * 寄存器合并过程，若成功合并寄存器，则重新进行着色检查
      * @return 是否成功合并寄存器
      */
-    private boolean coalesce() {
+    private boolean coalesce(List<Register> registers) {
         List<Pair<Register, Register>> coalescePair = new ArrayList<>();
         for (var u : coalescentReg) {
             for (var v : coalescentEdges.get(u)) {
@@ -317,11 +318,11 @@ public class GraphColoringRegisterControl extends RegisterControl {
         }
         boolean coalesced = false;
         for (var p : coalescePair) {
-            if (checkCoalesce(p.a, p.b)) {
-                practiseCoalesce(p.a, p.b);
+            if (checkCoalesce(p.a, p.b, registers)) {
+                practiseCoalesce(p.a, p.b, registers);
                 coalesced = true;
-            } else if (checkCoalesce(p.b, p.a)) {
-                practiseCoalesce(p.b, p.a);
+            } else if (checkCoalesce(p.b, p.a, registers)) {
+                practiseCoalesce(p.b, p.a, registers);
                 coalesced = true;
             }
         }
@@ -376,7 +377,7 @@ public class GraphColoringRegisterControl extends RegisterControl {
      * 执行spill操作的过程，包含重建指令列表和添加生存点两个部分
      * @param spilledRegs 被spill的寄存器存储的栈空间位置
      */
-    private void practiseSpill(Map<Register, StackVar> spilledRegs) {
+    private void practiseSpill(Map<Register, StackVar> spilledRegs, List<Register> registers) {
         for (var reg : spilledRegs.keySet()) {
             if (!reg.isVirtual()) {
                 throw new RuntimeException("spilled physical register");
@@ -426,7 +427,7 @@ public class GraphColoringRegisterControl extends RegisterControl {
     /**
      * 执行spill操作，从未着色寄存器中找出代价最小的寄存器进行spill
      */
-    private void spill() {
+    private void spill(List<Register> registers) {
         Register goal = null;
         for (var reg : uncoloredReg) {
             if (goal == null || costFunction(reg) < costFunction(goal)) {
@@ -439,7 +440,7 @@ public class GraphColoringRegisterControl extends RegisterControl {
         //System.out.println("spilled register " + goal + ", cost = " + costFunction(goal));
         Map<Register, StackVar> spilledRegSaved = new HashMap<>();
         spilledRegSaved.put(goal, stackPool.pop());
-        practiseSpill(spilledRegSaved);
+        practiseSpill(spilledRegSaved, registers);
     }
 
     /**
@@ -447,19 +448,20 @@ public class GraphColoringRegisterControl extends RegisterControl {
      * @param instructionList 分配前的指令列表
      * @return 分配后的指令列表
      */
-    public List<AsmInstruction> allocatePhysicalRegisters(List<AsmInstruction> instructionList) {
+    public List<AsmInstruction> allocatePhysicalRegisters(List<AsmInstruction> instructionList, List<Register> registers) {
         instList = instructionList;
         stack.clear();
-        getRegisterCost();
-        buildGraph(false);
+        getRegisterCost(registers);
+        buildGraph(false, registers);
         while (!color()) {
-            if (!coalesce()) {
+            if (!coalesce(registers)) {
                 if (!freeze()) {
-                    spill();
-                    buildGraph(false);
+                    spill(registers);
+                    buildGraph(false, registers);
                 }
             }
         }
+        colorToRegisterMap(registers);
         return instList;
     }
 
@@ -543,12 +545,10 @@ public class GraphColoringRegisterControl extends RegisterControl {
         //update : 保留了寄存器x5(t0)作为地址加载寄存器
         intPRegList.remove(addressReg);
 
-        registers = intRegList;
         physicRegisters = intPRegList;
-        instructionList = allocatePhysicalRegisters(instructionList);
-        registers = floatRegList;
+        instructionList = allocatePhysicalRegisters(instructionList, intRegList);
         physicRegisters = floatPRegList;
-        instructionList = allocatePhysicalRegisters(instructionList);
+        instructionList = allocatePhysicalRegisters(instructionList, floatRegList);
         instructionList = replacePhysicRegisters(instructionList);
         return instructionList;
     }
