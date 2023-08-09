@@ -1,5 +1,7 @@
 package cn.edu.bit.newnewcc.backend.asm.instruction;
 
+import cn.edu.bit.newnewcc.backend.asm.operand.FloatRegister;
+import cn.edu.bit.newnewcc.backend.asm.operand.IntRegister;
 import cn.edu.bit.newnewcc.backend.asm.operand.Register;
 
 import java.util.Set;
@@ -21,7 +23,7 @@ public class AsmReturn extends AsmInstruction {
 
     @Override
     public Set<Register> getDef() {
-        return Set.of();
+        return Set.of(IntRegister.getPhysical(10), FloatRegister.getPhysical(10));
     }
 
     @Override
@@ -36,6 +38,6 @@ public class AsmReturn extends AsmInstruction {
 
     @Override
     public boolean mayHaveSideEffects() {
-        throw new UnsupportedOperationException();
+        return false;
     }
 }

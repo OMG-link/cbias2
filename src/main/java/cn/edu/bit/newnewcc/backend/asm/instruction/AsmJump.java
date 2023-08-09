@@ -114,7 +114,7 @@ public class AsmJump extends AsmInstruction {
 
     @Override
     public boolean mayHaveSideEffects() {
-        throw new UnsupportedOperationException();
+        return false;
     }
 
     public static AsmJump createUnconditional(Label targetLabel) {
