@@ -424,7 +424,7 @@ public class GraphColoringRegisterControl extends RegisterControl {
         if (goal == null) {
             throw new RuntimeException("no uncolored register to spill");
         }
-        System.out.println("spilled register " + goal + ", cost = " + costFunction(goal));
+        //System.out.println("spilled register " + goal + ", cost = " + costFunction(goal));
         practiseSpill(goal);
     }
 
@@ -463,7 +463,7 @@ public class GraphColoringRegisterControl extends RegisterControl {
         Set<LifeTimeInterval> activeSet = new HashSet<>();
         for (var inst : instructionList) {
             LifeTimeIndex inIndex = LifeTimeIndex.getInstIn(lifeTimeController, inst);
-            activeSet.removeIf((interval) -> interval.range.b.compareTo(inIndex) < 0);
+            activeSet.removeIf((interval) -> interval.range.b.compareTo(inIndex) <= 0);
 
             for (int i = 1; i <= 3; i++) {
                 if (inst.getOperand(i) instanceof RegisterReplaceable rp && rp.getRegister().isVirtual()) {
@@ -493,7 +493,7 @@ public class GraphColoringRegisterControl extends RegisterControl {
             }
 
 
-            LifeTimeIndex outIndex = LifeTimeIndex.getInstIn(lifeTimeController, inst);
+            LifeTimeIndex outIndex = LifeTimeIndex.getInstOut(lifeTimeController, inst);
             while (intervalId < intervals.size() && intervals.get(intervalId).range.a.compareTo(outIndex) <= 0) {
                 activeSet.add(intervals.get(intervalId));
                 intervalId += 1;
