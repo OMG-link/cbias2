@@ -10,7 +10,7 @@ import java.util.*;
 
 public class DeadInstructionEliminationOptimizer implements Optimizer {
     @Override
-    public void runOn(AsmFunction function) {
+    public boolean runOn(AsmFunction function) {
         List<AsmInstruction> instrList = function.getInstrList();
 
         Map<Register, Integer> useCount = new HashMap<>();
@@ -23,6 +23,8 @@ public class DeadInstructionEliminationOptimizer implements Optimizer {
                 }
             }
         }
+
+        int count = 0;
 
         boolean madeChange;
         do {
@@ -47,9 +49,12 @@ public class DeadInstructionEliminationOptimizer implements Optimizer {
                         }
                         iterator.remove();
                         madeChange = true;
+                        ++count;
                     }
                 }
             }
         } while (madeChange);
+
+        return count > 0;
     }
 }

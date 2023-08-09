@@ -11,7 +11,8 @@ import java.util.List;
 
 public class AddX0ToMvOptimizer implements Optimizer {
     @Override
-    public void runOn(AsmFunction function) {
+    public boolean runOn(AsmFunction function) {
+        int count = 0;
         List<AsmInstruction> instrList = function.getInstrList();
 
         for (int i = 0; i < instrList.size(); ++i) {
@@ -20,13 +21,16 @@ public class AddX0ToMvOptimizer implements Optimizer {
                 if (opcode == AsmAdd.Opcode.ADD || opcode == AsmAdd.Opcode.ADDW) {
                     if (addInstr.getOperand(2).equals(IntRegister.ZERO)) {
                         instrList.set(i, new AsmMove((Register) addInstr.getOperand(1), (Register) addInstr.getOperand(3)));
+                        ++count;
                     }
                     if (addInstr.getOperand(3).equals(IntRegister.ZERO)) {
                         instrList.set(i, new AsmMove((Register) addInstr.getOperand(1), (Register) addInstr.getOperand(2)));
+                        ++count;
                     }
                 }
             }
         }
 
+        return count > 0;
     }
 }

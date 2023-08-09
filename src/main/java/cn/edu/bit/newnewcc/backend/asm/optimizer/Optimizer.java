@@ -6,5 +6,5 @@ import cn.edu.bit.newnewcc.backend.asm.instruction.AsmInstruction;
 import java.util.List;
 
 public interface Optimizer {
-    void runOn(AsmFunction function);
+    boolean runOn(AsmFunction function);
 }

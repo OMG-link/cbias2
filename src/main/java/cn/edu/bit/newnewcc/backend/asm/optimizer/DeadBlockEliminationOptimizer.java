@@ -8,7 +8,7 @@ import java.util.*;
 
 public class DeadBlockEliminationOptimizer implements Optimizer {
     @Override
-    public void runOn(AsmFunction function) {
+    public boolean runOn(AsmFunction function) {
         List<AsmInstruction> instrList = function.getInstrList();
 
         Map<Label, Set<Label>> graph = new HashMap<>();
@@ -67,10 +67,13 @@ public class DeadBlockEliminationOptimizer implements Optimizer {
             }
         }
 
+        int count = 0;
+
         List<AsmInstruction> newInstrList = new ArrayList<>();
         for (int i = 0; i < instrList.size(); ++i) {
             if (instrList.get(i) instanceof AsmLabel labelInstr && !visited.contains(labelInstr.getLabel())) {
                 while (i + 1 < instrList.size() && !(instrList.get(i + 1) instanceof AsmLabel)) ++i;
+                ++count;
             } else {
                 newInstrList.add(instrList.get(i));
             }
@@ -78,5 +81,7 @@ public class DeadBlockEliminationOptimizer implements Optimizer {
 
         instrList.clear();
         instrList.addAll(newInstrList);
+
+        return count > 0;
     }
 }

@@ -17,8 +17,10 @@ public class BlockInlineOptimizer implements Optimizer {
     }
 
     @Override
-    public void runOn(AsmFunction function) {
+    public boolean runOn(AsmFunction function) {
         List<AsmInstruction> instrList = function.getInstrList();
+
+        int count = 0;
 
         boolean madeChange;
         do {
@@ -41,6 +43,7 @@ public class BlockInlineOptimizer implements Optimizer {
                         }
                         inline = true;
                         madeChange = true;
+                        ++count;
                     }
                 }
                 if (!inline) {
@@ -51,6 +54,8 @@ public class BlockInlineOptimizer implements Optimizer {
             instrList.clear();
             instrList.addAll(newInstrList);
         } while (madeChange);
+
+        return count > 0;
     }
 
     private static Map<Label, List<AsmInstruction>> computeBlocks(List<AsmInstruction> instrList) {

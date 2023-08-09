@@ -13,8 +13,10 @@ import java.util.Map;
 
 public class StrengthReductionOptimizer implements Optimizer {
     @Override
-    public void runOn(AsmFunction function) {
+    public boolean runOn(AsmFunction function) {
         List<AsmInstruction> instrList = function.getInstrList();
+
+        int count = 0;
 
         Map<Register, Integer> values = new HashMap<>();
 
@@ -40,11 +42,13 @@ public class StrengthReductionOptimizer implements Optimizer {
                             int value = values.get(source1);
                             if (Utility.isPowerOf2(value)) {
                                 instrList.set(i, new AsmShiftLeft(dest, source2, new Immediate(Utility.log2(value)), bitLength));
+                                ++count;
                             }
                         } else if (values.containsKey(source2)) {
                             int value = values.get(source2);
                             if (Utility.isPowerOf2(value)) {
                                 instrList.set(i, new AsmShiftLeft(dest, source1, new Immediate(Utility.log2(value)), bitLength));
+                                ++count;
                             }
                         }
                     }
@@ -56,5 +60,6 @@ public class StrengthReductionOptimizer implements Optimizer {
             }
         }
 
+        return count > 0;
     }
 }

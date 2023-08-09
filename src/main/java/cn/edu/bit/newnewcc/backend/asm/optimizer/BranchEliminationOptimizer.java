@@ -10,7 +10,7 @@ import java.util.*;
 
 public class BranchEliminationOptimizer implements Optimizer {
     @Override
-    public void runOn(AsmFunction function) {
+    public boolean runOn(AsmFunction function) {
         List<AsmInstruction> instrList = function.getInstrList();
 
         Map<Label, Label> labelMap = new HashMap<>();
@@ -23,6 +23,8 @@ public class BranchEliminationOptimizer implements Optimizer {
                 labelMap.put(((AsmLabel) curInstr).getLabel(), (Label) nextInstr.getOperand(1));
             }
         }
+
+        int count = 0;
 
         for (AsmInstruction instr : instrList) {
             if (instr instanceof AsmJump) {
@@ -38,10 +40,13 @@ public class BranchEliminationOptimizer implements Optimizer {
 
                         if (!newLabel.equals(label)) {
                             instr.setOperand(i, newLabel);
+                            ++count;
                         }
                     }
                 }
             }
         }
+
+        return count > 0;
     }
 }
