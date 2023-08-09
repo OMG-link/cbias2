@@ -12,8 +12,7 @@ import java.util.Set;
 
 public class LI0ToX0Optimizer implements Optimizer {
     private boolean isLI0(AsmInstruction instr) {
-        return (instr instanceof AsmLoad loadInstr && loadInstr.getOpcode() == AsmLoad.Opcode.LI && ((Immediate) instr.getOperand(2)).getValue() == 0)
-            || (instr instanceof AsmMove && instr.getOperand(2).equals(IntRegister.ZERO));
+        return (instr instanceof AsmLoad loadInstr && loadInstr.getOpcode() == AsmLoad.Opcode.LI && ((Immediate) instr.getOperand(2)).getValue() == 0);
     }
 
     public boolean runOn(AsmFunction function) {
