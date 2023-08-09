@@ -2,6 +2,7 @@ package cn.edu.bit.newnewcc.pass.ir;
 
 import cn.edu.bit.newnewcc.ir.Module;
 import cn.edu.bit.newnewcc.ir.Operand;
+import cn.edu.bit.newnewcc.ir.exception.CompilationProcessCheckFailedException;
 import cn.edu.bit.newnewcc.ir.value.BasicBlock;
 import cn.edu.bit.newnewcc.ir.value.Function;
 import cn.edu.bit.newnewcc.ir.value.Instruction;
@@ -314,6 +315,11 @@ public class GlobalCodeMotionPass {
                             insertPoint = puttingInstruction;
                             onInstructionPlaced.accept(puttingInstruction);
                         }
+                    }
+                }
+                for (Instruction instruction : placeConfig.get(basicBlock)) {
+                    if (instruction.getBasicBlock() == null) {
+                        throw new CompilationProcessCheckFailedException("Failed to place instruction back to block.");
                     }
                 }
             }
