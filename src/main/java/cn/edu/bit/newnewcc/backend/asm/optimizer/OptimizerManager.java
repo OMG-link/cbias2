@@ -18,5 +18,6 @@ public class OptimizerManager {
             new BlockInlineOptimizer(20).runOn(function);
         }
         new DeadBlockEliminationOptimizer().runOn(function);
+        new RedundantLabelEliminationOptimizer().runOn(function);
     }
 }
