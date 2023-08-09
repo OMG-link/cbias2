@@ -143,6 +143,8 @@ public class GlobalCodeMotionPass {
             for (Instruction instruction : basicBlock.getInstructions()) {
                 if (!isFixedInstruction(instruction) && successors.get(instruction).size() == 0) {
                     // 没用的指令，直接扔了
+                    // 即便使用了DCE，此代码依然可能被触发
+                    // 例如 LoopForest 构建的过程中会涉及指令的标准化，可能导致旧指令不再被使用
                     instruction.waste();
                 }
             }
