@@ -185,7 +185,9 @@ public class ConstLoopUnrollPass {
                 changed |= result;
             } while (result);
         }
-        changed |= DeadCodeEliminationPass.runOnModule(module);
+        if (changed) {
+            DeadCodeEliminationPass.runOnModule(module);
+        }
         return changed;
     }
 
