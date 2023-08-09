@@ -1,10 +1,7 @@
 package cn.edu.bit.newnewcc.backend.asm.optimizer;
 
 import cn.edu.bit.newnewcc.backend.asm.AsmFunction;
-import cn.edu.bit.newnewcc.backend.asm.instruction.AsmBlockEnd;
-import cn.edu.bit.newnewcc.backend.asm.instruction.AsmInstruction;
-import cn.edu.bit.newnewcc.backend.asm.instruction.AsmLabel;
-import cn.edu.bit.newnewcc.backend.asm.instruction.AsmLoad;
+import cn.edu.bit.newnewcc.backend.asm.instruction.*;
 import cn.edu.bit.newnewcc.backend.asm.operand.Immediate;
 import cn.edu.bit.newnewcc.backend.asm.operand.IntRegister;
 import cn.edu.bit.newnewcc.backend.asm.operand.Register;
@@ -15,7 +12,8 @@ import java.util.Set;
 
 public class LI0ToX0Optimizer implements Optimizer {
     private boolean isLI0(AsmInstruction instr) {
-        return instr instanceof AsmLoad loadInstr && loadInstr.getOpcode() == AsmLoad.Opcode.LI && ((Immediate) instr.getOperand(2)).getValue() == 0;
+        return (instr instanceof AsmLoad loadInstr && loadInstr.getOpcode() == AsmLoad.Opcode.LI && ((Immediate) instr.getOperand(2)).getValue() == 0)
+            || (instr instanceof AsmMove && instr.getOperand(2).equals(IntRegister.ZERO));
     }
 
     public void runOn(AsmFunction function) {
