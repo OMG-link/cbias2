@@ -330,6 +330,22 @@ public class GraphColoringRegisterControl extends RegisterControl {
         return spillCost.get(reg) / degree;
     }
 
+    /*
+      计算地址加载过程中使用的临时寄存器的生存点
+      @param addressLoadInst 地址加载指令列表
+     */
+    /*
+    void workOnAddressLoading(List<AsmInstruction> addressLoadInst) {
+        LifeTimeIndex liOut = LifeTimeIndex.getInstOut(lifeTimeController, addressLoadInst.get(0));
+        LifeTimeIndex addIn = LifeTimeIndex.getInstIn(lifeTimeController, addressLoadInst.get(1));
+        LifeTimeIndex addOut = LifeTimeIndex.getInstOut(lifeTimeController, addressLoadInst.get(1));
+        LifeTimeIndex stkIn = LifeTimeIndex.getInstIn(lifeTimeController, addressLoadInst.get(2));
+        lifeTimeController.insertLifeTimePoint(addressReg, LifeTimePoint.getDef(liOut));
+        lifeTimeController.insertLifeTimePoint(addressReg, LifeTimePoint.getUse(addIn));
+        lifeTimeController.insertLifeTimePoint(addressReg, LifeTimePoint.getDef(addOut));
+        lifeTimeController.insertLifeTimePoint(addressReg, LifeTimePoint.getUse(stkIn));
+    }*/
+
     /**
      * 计算寄存器加载或存储到栈空间时的生存点
      * @param tmpReg 需要构建生存点的寄存器
@@ -345,52 +361,53 @@ public class GraphColoringRegisterControl extends RegisterControl {
 
     /**
      * 执行spill操作的过程，包含重建指令列表和添加生存点两个部分
-     * @param spilledRegs 被spill的寄存器存储的栈空间位置
+     * @param reg 被spill的寄存器
      */
-    private void practiseSpill(Map<Register, StackVar> spilledRegs) {
-        for (var reg : spilledRegs.keySet()) {
-            if (!reg.isVirtual()) {
-                throw new RuntimeException("spilled physical register");
-            }
+    private void practiseSpill(Register reg) {
+        if (!reg.isVirtual()) {
+            throw new RuntimeException("spilled physic register");
         }
-        registers.removeAll(spilledRegs.keySet());
+        registers.remove(reg);
+        StackVar regSaved = stackPool.pop();
         List<AsmInstruction> spilledInstrList = new ArrayList<>();
         //IntRegister addressReg = function.getRegisterAllocator().allocateInt();
         for (var inst : instList) {
-            for (var reg : AsmInstructions.getReadRegSet((inst))) {
-                if (spilledRegs.containsKey(reg)) {
-                    var rLoad = function.getRegisterAllocator().allocate(reg);
-                    var tmpl = loadFromStackVar(rLoad, spilledRegs.get(reg), addressReg);
-                    workOnRegisterValue(rLoad, tmpl.get(tmpl.size() - 1), inst);
-                    for (int i : AsmInstructions.getReadVRegId(inst)) {
-                        if (inst.getOperand(i) instanceof RegisterReplaceable rp && rp.getRegister().equals(reg)) {
-                            inst.setOperand(i, rp.replaceRegister(rLoad));
-                        }
+            if (AsmInstructions.getReadRegSet(inst).contains(reg)) {
+                var rLoad = function.getRegisterAllocator().allocate(reg);
+                var tmpl = loadFromStackVar(rLoad, regSaved, addressReg);
+                //if (tmpl.size() > 1) {
+                    //workOnAddressLoading(tmpl);
+                    //addressReg = function.getRegisterAllocator().allocateInt();
+                //}
+                workOnRegisterValue(rLoad, tmpl.get(tmpl.size() - 1), inst);
+                for (int i : AsmInstructions.getReadVRegId(inst)) {
+                    if (inst.getOperand(i) instanceof RegisterReplaceable rp && rp.getRegister().equals(reg)) {
+                        inst.setOperand(i, rp.replaceRegister(rLoad));
                     }
-                    spilledInstrList.addAll(tmpl);
-                    registers.add(rLoad);
                 }
+                spilledInstrList.addAll(tmpl);
+                registers.add(rLoad);
             }
             spilledInstrList.add(inst);
-            for (var reg : AsmInstructions.getWriteRegSet(inst)) {
-                if (spilledRegs.containsKey(reg)) {
-                    var rStore = function.getRegisterAllocator().allocate(reg);
-                    var tmpl = saveToStackVar(rStore, spilledRegs.get(reg), addressReg);
-                    workOnRegisterValue(rStore, inst, tmpl.get(tmpl.size() - 1));
-                    for (int i : AsmInstructions.getWriteVRegId(inst)) {
-                        if (inst.getOperand(i) instanceof RegisterReplaceable rp && rp.getRegister().equals(reg)) {
-                            inst.setOperand(i, rp.replaceRegister(rStore));
-                        }
+            if (AsmInstructions.getWriteRegSet(inst).contains(reg)) {
+                var rStore = function.getRegisterAllocator().allocate(reg);
+                var tmpl = saveToStackVar(rStore, regSaved, addressReg);
+                //if (tmpl.size() > 1) {
+                //    workOnAddressLoading(tmpl);
+                //    addressReg = function.getRegisterAllocator().allocateInt();
+                //}
+                workOnRegisterValue(rStore, inst, tmpl.get(tmpl.size() - 1));
+                for (int i : AsmInstructions.getWriteVRegId(inst)) {
+                    if (inst.getOperand(i) instanceof RegisterReplaceable rp && rp.getRegister().equals(reg)) {
+                        inst.setOperand(i, rp.replaceRegister(rStore));
                     }
-                    spilledInstrList.addAll(tmpl);
-                    registers.add(rStore);
                 }
+                spilledInstrList.addAll(tmpl);
+                registers.add(rStore);
             }
         }
         instList = spilledInstrList;
-        for (var reg : spilledRegs.keySet()) {
-            lifeTimeController.removeReg(reg);
-        }
+        lifeTimeController.removeReg(reg);
         lifeTimeController.rebuildLifeTimeInterval(instList);
     }
 
@@ -408,9 +425,7 @@ public class GraphColoringRegisterControl extends RegisterControl {
             throw new RuntimeException("no uncolored register to spill");
         }
         //System.out.println("spilled register " + goal + ", cost = " + costFunction(goal));
-        Map<Register, StackVar> spilledRegSaved = new HashMap<>();
-        spilledRegSaved.put(goal, stackPool.pop());
-        practiseSpill(spilledRegSaved);
+        practiseSpill(goal);
     }
 
     /**
