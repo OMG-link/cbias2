@@ -102,6 +102,15 @@ public class ConstantFoldingPass {
                                 1
                         );
                     }
+                    // x*y/y = x
+                    if (op1 instanceof IntegerMultiplyInst integerMultiplyInst) {
+                        if (integerMultiplyInst.getOperand1() == integerArithmeticInst.getOperand2()) {
+                            return integerMultiplyInst.getOperand2();
+                        }
+                        if (integerMultiplyInst.getOperand2() == integerArithmeticInst.getOperand2()) {
+                            return integerMultiplyInst.getOperand1();
+                        }
+                    }
                 } else if (arithmeticInst instanceof IntegerSignedRemainderInst) {
                     // 6%2 = 0
                     if (op1 instanceof ConstInteger constInt1 && op2 instanceof ConstInteger constInt2) {
