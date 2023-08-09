@@ -82,6 +82,8 @@ public class FunctionInline {
             if (callInst.getType() != VoidType.getInstance()) {
                 blockBeta.addInstruction(clonedFunction.getReturnValue());
                 callInst.replaceAllUsageTo(clonedFunction.getReturnValue());
+            } else {
+                clonedFunction.getReturnValue().waste();
             }
             callInst.waste();
             for (AllocateInst allocateInstruction : clonedFunction.getAllocateInstructions()) {
