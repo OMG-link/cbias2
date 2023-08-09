@@ -430,29 +430,12 @@ public class GraphColoringRegisterControl extends RegisterControl {
                 }
             }
         }
-        buildGraph(true, spilledList);
-        Set<StackVar> savedSet = new HashSet<>();
         Map<Register, StackVar> spilledRegSaved = new HashMap<>();
-        for (var u : spilledList) {
-            Set<StackVar> occupied = new HashSet<>();
-            for (var v : interferenceEdges.get(u)) {
-                if (spilledRegSaved.containsKey(v)) {
-                    occupied.add(spilledRegSaved.get(v));
-                }
-            }
-            for (var stk : savedSet) {
-                if (!occupied.contains(stk)) {
-                    spilledRegSaved.put(u, stk);
-                    break;
-                }
-            }
-            if (!spilledRegSaved.containsKey(u)) {
-                var save = stackPool.pop();
-                spilledRegSaved.put(u, save);
-                savedSet.add(save);
-            }
+        for (var reg : spilledList) {
+            spilledRegSaved.put(reg, stackPool.pop());
         }
-        //System.out.println("spilled size = " + spilledRegSaved.size());
+        //spilledRegSaved.put(getSpillDest(), stackPool.pop());
+        System.out.println("spilled size = " + spilledRegSaved.size());
         practiseSpill(spilledRegSaved, registers);
     }
 
