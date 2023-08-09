@@ -217,7 +217,7 @@ public class GraphColoringRegisterControl extends RegisterControl {
      * @param v 被合并的寄存器
      * @return 是否能够合并
      */
-    private boolean checkCoalesce(Register u, Register v) {
+    private boolean checkCoalesce(Register u, Register v, List<Register> registers) {
         if (!v.isVirtual() || !coalescentEdges.containsKey(u) || !coalescentEdges.get(u).contains(v)) {
             return false;
         }
@@ -228,7 +228,7 @@ public class GraphColoringRegisterControl extends RegisterControl {
         }
         int degree = interferenceEdges.get(u).size();
         for (var x : interferenceEdges.get(v)) {
-            if (degree >= physicRegisters.size()) {
+            if (degree >= registers.size()) {
                 break;
             }
             if (x.equals(u)) {
@@ -236,7 +236,7 @@ public class GraphColoringRegisterControl extends RegisterControl {
             }
             degree += interferenceEdges.get(u).contains(x) ? 0 : 1;
         }
-        return degree < physicRegisters.size();
+        return degree < registers.size();
     }
 
     void mergeEdges(Register u, Register v) {
@@ -291,10 +291,10 @@ public class GraphColoringRegisterControl extends RegisterControl {
         }
         boolean coalesced = false;
         for (var p : coalescePair) {
-            if (checkCoalesce(p.a, p.b)) {
+            if (checkCoalesce(p.a, p.b, registers)) {
                 practiseCoalesce(p.a, p.b, registers);
                 coalesced = true;
-            } else if (checkCoalesce(p.b, p.a)) {
+            } else if (checkCoalesce(p.b, p.a, registers)) {
                 practiseCoalesce(p.b, p.a, registers);
                 coalesced = true;
             }
@@ -395,47 +395,22 @@ public class GraphColoringRegisterControl extends RegisterControl {
         lifeTimeController.rebuildLifeTimeInterval(instList);
     }
 
-    private Register getSpillDest() {
-        Register dest = null;
-        for (var reg : uncoloredReg) {
-            if (dest == null || costFunction(reg) < costFunction(dest)) {
-                dest = reg;
-            }
-        }
-        if (dest == null) {
-            throw new RuntimeException("no uncolored register to spill");
-        }
-        return dest;
-    }
-
     /**
      * 执行spill操作，从未着色寄存器中找出代价最小的寄存器进行spill
      */
     private void spill(List<Register> registers) {
-        List<Register> spilledList = new ArrayList<>();
-        while (uncoloredReg.size() > 0) {
-            Queue<Register> queue = new ArrayDeque<>();
-            var dest = getSpillDest();
-            spilledList.add(dest);
-            queue.add(dest);
-            uncoloredReg.remove(dest);
-            while (!queue.isEmpty()) {
-                var u = queue.remove();
-                for (var v : Set.copyOf(interferenceEdges.get(u))) {
-                    removeEdge(u, v);
-                    if (interferenceEdges.get(v).size() < physicRegisters.size() && uncoloredReg.contains(v)) {
-                        queue.add(v);
-                        uncoloredReg.remove(v);
-                    }
-                }
+        Register goal = null;
+        for (var reg : uncoloredReg) {
+            if (goal == null || costFunction(reg) < costFunction(goal)) {
+                goal = reg;
             }
         }
-        Map<Register, StackVar> spilledRegSaved = new HashMap<>();
-        for (var reg : spilledList) {
-            spilledRegSaved.put(reg, stackPool.pop());
+        if (goal == null) {
+            throw new RuntimeException("no uncolored register to spill");
         }
-        //spilledRegSaved.put(getSpillDest(), stackPool.pop());
-        System.out.println("spilled size = " + spilledRegSaved.size());
+        //System.out.println("spilled register " + goal + ", cost = " + costFunction(goal));
+        Map<Register, StackVar> spilledRegSaved = new HashMap<>();
+        spilledRegSaved.put(goal, stackPool.pop());
         practiseSpill(spilledRegSaved, registers);
     }
 
@@ -446,15 +421,14 @@ public class GraphColoringRegisterControl extends RegisterControl {
      */
     public List<AsmInstruction> allocatePhysicalRegisters(List<AsmInstruction> instructionList, List<Register> registers) {
         instList = instructionList;
+        stack.clear();
         getRegisterCost(registers);
         buildGraph(false, registers);
-        stack.clear();
         while (!color()) {
             if (!coalesce(registers)) {
                 if (!freeze()) {
                     spill(registers);
                     buildGraph(false, registers);
-                    stack.clear();
                 }
             }
         }
