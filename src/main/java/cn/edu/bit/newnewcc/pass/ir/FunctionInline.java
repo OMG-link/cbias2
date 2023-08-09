@@ -2,6 +2,7 @@ package cn.edu.bit.newnewcc.pass.ir;
 
 import cn.edu.bit.newnewcc.ir.Module;
 import cn.edu.bit.newnewcc.ir.Operand;
+import cn.edu.bit.newnewcc.ir.type.VoidType;
 import cn.edu.bit.newnewcc.ir.value.BasicBlock;
 import cn.edu.bit.newnewcc.ir.value.Function;
 import cn.edu.bit.newnewcc.ir.value.Instruction;
@@ -78,8 +79,10 @@ public class FunctionInline {
             for (BasicBlock clonedBlock : clonedFunction.getBasicBlocks()) {
                 function.addBasicBlock(clonedBlock);
             }
-            blockBeta.addInstruction(clonedFunction.getReturnValue());
-            callInst.replaceAllUsageTo(clonedFunction.getReturnValue());
+            if (callInst.getType() != VoidType.getInstance()) {
+                blockBeta.addInstruction(clonedFunction.getReturnValue());
+                callInst.replaceAllUsageTo(clonedFunction.getReturnValue());
+            }
             callInst.waste();
             for (AllocateInst allocateInstruction : clonedFunction.getAllocateInstructions()) {
                 function.getEntryBasicBlock().addInstruction(allocateInstruction);
