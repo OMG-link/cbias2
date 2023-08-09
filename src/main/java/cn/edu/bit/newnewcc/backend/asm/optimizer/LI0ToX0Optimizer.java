@@ -1,5 +1,6 @@
 package cn.edu.bit.newnewcc.backend.asm.optimizer;
 
+import cn.edu.bit.newnewcc.backend.asm.AsmFunction;
 import cn.edu.bit.newnewcc.backend.asm.instruction.AsmBlockEnd;
 import cn.edu.bit.newnewcc.backend.asm.instruction.AsmInstruction;
 import cn.edu.bit.newnewcc.backend.asm.instruction.AsmLabel;
@@ -17,7 +18,9 @@ public class LI0ToX0Optimizer implements Optimizer {
         return instr instanceof AsmLoad loadInstr && loadInstr.getOpcode() == AsmLoad.Opcode.LI && ((Immediate) instr.getOperand(2)).getValue() == 0;
     }
 
-    public void runOn(List<AsmInstruction> instrList) {
+    public void runOn(AsmFunction function) {
+        List<AsmInstruction> instrList = function.getInstrList();
+
         Set<Register> zeroRegs = new HashSet<>();
 
         for (AsmInstruction instr : instrList) {

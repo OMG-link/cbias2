@@ -39,6 +39,10 @@ public class AsmFunction {
     private final BaseFunction baseFunction;
     private final Register returnRegister;
 
+    public List<AsmInstruction> getInstrList() {
+        return instrList;
+    }
+
     public boolean isExternal() {
         return basicBlocks.isEmpty();
     }
@@ -159,14 +163,14 @@ public class AsmFunction {
             }
 
             OptimizerManager optimizerManager = new OptimizerManager();
-            optimizerManager.runBeforeRegisterAllocation(instrList);
+            optimizerManager.runBeforeRegisterAllocation(this);
 
             lifeTimeController.getAllRegLifeTime(instrList);
             asmOptimizerBeforeRegisterAllocate(lifeTimeController);
             reAllocateRegister();
             asmOptimizerAfterRegisterAllocate();
 
-            optimizerManager.runAfterRegisterAllocation(instrList);
+            optimizerManager.runAfterRegisterAllocation(this);
         }
     }
 

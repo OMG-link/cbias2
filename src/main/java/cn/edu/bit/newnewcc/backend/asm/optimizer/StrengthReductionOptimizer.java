@@ -1,5 +1,6 @@
 package cn.edu.bit.newnewcc.backend.asm.optimizer;
 
+import cn.edu.bit.newnewcc.backend.asm.AsmFunction;
 import cn.edu.bit.newnewcc.backend.asm.instruction.*;
 import cn.edu.bit.newnewcc.backend.asm.operand.Immediate;
 import cn.edu.bit.newnewcc.backend.asm.operand.IntRegister;
@@ -12,7 +13,9 @@ import java.util.Map;
 
 public class StrengthReductionOptimizer implements Optimizer {
     @Override
-    public void runOn(List<AsmInstruction> instrList) {
+    public void runOn(AsmFunction function) {
+        List<AsmInstruction> instrList = function.getInstrList();
+
         Map<Register, Integer> values = new HashMap<>();
 
         for (int i = 0; i < instrList.size(); ++i) {

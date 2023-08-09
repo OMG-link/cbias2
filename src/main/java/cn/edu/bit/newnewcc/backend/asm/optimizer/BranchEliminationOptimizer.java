@@ -1,5 +1,6 @@
 package cn.edu.bit.newnewcc.backend.asm.optimizer;
 
+import cn.edu.bit.newnewcc.backend.asm.AsmFunction;
 import cn.edu.bit.newnewcc.backend.asm.instruction.AsmInstruction;
 import cn.edu.bit.newnewcc.backend.asm.instruction.AsmJump;
 import cn.edu.bit.newnewcc.backend.asm.instruction.AsmLabel;
@@ -9,7 +10,9 @@ import java.util.*;
 
 public class BranchEliminationOptimizer implements Optimizer {
     @Override
-    public void runOn(List<AsmInstruction> instrList) {
+    public void runOn(AsmFunction function) {
+        List<AsmInstruction> instrList = function.getInstrList();
+
         Map<Label, Label> labelMap = new HashMap<>();
 
         for (int i = 0; i < instrList.size() - 1; ++i) {
