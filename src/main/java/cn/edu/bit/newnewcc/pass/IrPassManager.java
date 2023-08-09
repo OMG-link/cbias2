@@ -6,42 +6,25 @@ import cn.edu.bit.newnewcc.pass.ir.*;
 public class IrPassManager {
 
     public static void optimize(Module module, int optimizeLevel) {
-        DeadCodeEliminationPass.runOnModule(module);
-        LocalArrayInitializePass.runOnModule(module);
+        runFrontendCodeFixPass(module);
         switch (optimizeLevel) {
             case 0 -> {
             }
             case 1 -> {
-                // 基本的结构为：运行一个无法确定优化优劣性的Pass，而后反复运行所有可以确定优化优劣性的Pass
-
-                // 特别地，mem2reg只需要运行一次，因此也被放在了外面
                 MemoryToRegisterPass.runOnModule(module);
-                runOptimizePasses(module);
+                runSimplifyPasses(module);
 
-                // 加法合并无法确定是否产生了优化
-                AddToMulPass.runOnModule(module);
-                GlobalCodeMotionPass.runOnModule(module);
-                runOptimizePasses(module);
+                runFunctionPasses(module);
+                runSimplifyPasses(module);
 
-                // AddToMul效果好，但是不能循环做，只能多写几次了
-                AddToMulPass.runOnModule(module);
-                GlobalCodeMotionPass.runOnModule(module);
-                runOptimizePasses(module);
+                runLoopPasses(module);
+                runSimplifyPasses(module);
 
-                // 循环展开并执行GCM
-                LoopUnrollPass.runOnModule(module);
-                AddToMulPass.runOnModule(module);
-                GlobalCodeMotionPass.runOnModule(module);
-                runOptimizePasses(module);
+                runArrayPasses(module);
+                runSimplifyPasses(module);
 
-                // AddToMul A.A
-                AddToMulPass.runOnModule(module);
-                GlobalCodeMotionPass.runOnModule(module);
-                runOptimizePasses(module);
-
-                // 内存访问优化运行单次即可
-                MemoryAccessOptimizePass.runOnModule(module);
-                runOptimizePasses(module);
+                runTrickyPasses(module);
+                runSimplifyPasses(module);
 
                 // 调整指令顺序，以得到更好的寄存器分配结果
                 InstructionSchedulePass.runOnModule(module);
@@ -52,24 +35,68 @@ public class IrPassManager {
         IrNamingPass.runOnModule(module);
     }
 
-    private static void runOptimizePasses(Module module) {
+    /**
+     * 修复前端产生的代码中的一些缺陷，包括： <br>
+     * <ol>
+     *   <li>前端使用store整个数组的方式初始化数组，对其进行展开</li>
+     *   <li>前端为跳转语句生成了过多不必要的指令，将其简化</li>
+     *   <li>前端可能产生无效代码，导致编译性能下降，将其删除</li>
+     * </ol>
+     *
+     * @param module 被优化的模块
+     */
+    private static void runFrontendCodeFixPass(Module module) {
+        LocalArrayInitializePass.runOnModule(module);
+        BranchInstructionSimplifyPass.runOnModule(module);
+        DeadCodeEliminationPass.runOnModule(module);
+    }
+
+    private static void runFunctionPasses(Module module) {
+        TailRecursionEliminationPass.runOnModule(module);
+        FunctionInline.runOnModule(module);
+        GvToLvPass.runOnModule(module);
+    }
+
+    private static void runTrickyPasses(Module module) {
+        PatternReplacementPass.runOnModule(module);
+        IntegerSumModuleCombinePass.runOnModule(module);
+    }
+
+    private static void runLoopPasses(Module module) {
         while (true) {
-            boolean changed;
-            changed = InstructionCombinePass.runOnModule(module);
-            changed |= PatternReplacementPass.runOnModule(module);
-            changed |= TailRecursionEliminationPass.runOnModule(module);
-            changed |= IntegerSumModuleCombinePass.runOnModule(module);
-            changed |= FunctionInline.runOnModule(module);
-            changed |= GvToLvPass.runOnModule(module);
-            changed |= ConstLoopUnrollPass.runOnModule(module);
-            changed |= ConstantFoldingPass.runOnModule(module);
-            changed |= LocalArrayPromotionPass.runOnModule(module);
-            changed |= ConstArrayInlinePass.runOnModule(module);
-            changed |= ArrayOffsetCompressPass.runOnModule(module);
-            changed |= BranchSimplifyPass.runOnModule(module);
-            changed |= BasicBlockMergePass.runOnModule(module);
-            changed |= DeadCodeEliminationPass.runOnModule(module);
+            boolean changed = false;
+            while (ConstLoopUnrollPass.runOnModule(module)) {
+                changed = true;
+                runSimplifyPasses(module);
+            }
+            while (LoopUnrollPass.runOnModule(module)) {
+                changed = true;
+                runSimplifyPasses(module);
+            }
             if (!changed) break;
+        }
+    }
+
+    private static void runArrayPasses(Module module) {
+        LocalArrayPromotionPass.runOnModule(module);
+        ConstArrayInlinePass.runOnModule(module);
+        ArrayOffsetCompressPass.runOnModule(module);
+    }
+
+    private static void runSimplifyPasses(Module module) {
+        for (int t = 0; t < 2; t++) {
+            AddToMulPass.runOnModule(module);
+            GlobalCodeMotionPass.runOnModule(module);
+            MemoryAccessOptimizePass.runOnModule(module);
+            while (true) {
+                boolean changed;
+                changed = InstructionCombinePass.runOnModule(module);
+                changed |= ConstantFoldingPass.runOnModule(module);
+                changed |= BranchSimplifyPass.runOnModule(module);
+                changed |= BasicBlockMergePass.runOnModule(module);
+                changed |= DeadCodeEliminationPass.runOnModule(module);
+                if (!changed) break;
+            }
         }
     }
 
