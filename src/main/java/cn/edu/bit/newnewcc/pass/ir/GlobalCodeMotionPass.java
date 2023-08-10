@@ -180,12 +180,9 @@ public class GlobalCodeMotionPass {
                     // 如果是fixed指令，则立即安放该指令
                     if (isFixedInstruction(instruction)) {
                         onInstructionPlaced.accept(instruction, basicBlock);
-                    }
-                    // 非leading指令前可以安插其他指令
-                    if (!BasicBlock.isLeadingInstruction(instruction)) {
                         while (!readyInstructions.isEmpty()) {
                             var puttingInstruction = readyInstructions.pop();
-                            onInstructionPlaced.accept(puttingInstruction, basicBlock);
+                            onInstructionPlaced.accept(puttingInstruction, latePlacement.get(puttingInstruction));
                         }
                     }
                 }
