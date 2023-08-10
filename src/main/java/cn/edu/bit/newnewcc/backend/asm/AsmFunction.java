@@ -9,13 +9,17 @@ import cn.edu.bit.newnewcc.backend.asm.operand.*;
 import cn.edu.bit.newnewcc.backend.asm.optimizer.OptimizerManager;
 import cn.edu.bit.newnewcc.backend.asm.util.AsmInstructions;
 import cn.edu.bit.newnewcc.backend.asm.util.BackendOptimizer;
+import cn.edu.bit.newnewcc.backend.asm.util.ImmediateValues;
+import cn.edu.bit.newnewcc.ir.Type;
 import cn.edu.bit.newnewcc.ir.Value;
 import cn.edu.bit.newnewcc.ir.type.FloatType;
 import cn.edu.bit.newnewcc.ir.type.IntegerType;
 import cn.edu.bit.newnewcc.ir.type.PointerType;
-import cn.edu.bit.newnewcc.ir.value.BaseFunction;
-import cn.edu.bit.newnewcc.ir.value.BasicBlock;
-import cn.edu.bit.newnewcc.ir.value.Function;
+import cn.edu.bit.newnewcc.ir.value.*;
+import cn.edu.bit.newnewcc.ir.value.constant.ConstBool;
+import cn.edu.bit.newnewcc.ir.value.constant.ConstFloat;
+import cn.edu.bit.newnewcc.ir.value.constant.ConstInt;
+import cn.edu.bit.newnewcc.ir.value.constant.ConstLong;
 
 import java.util.*;
 import java.util.function.Consumer;
@@ -38,6 +42,177 @@ public class AsmFunction {
     private final Label retBlockLabel;
     private final BaseFunction baseFunction;
     private final Register returnRegister;
+
+    MemoryAddress getAddress(AsmOperand address) {
+        java.util.function.Function<Integer, MemoryAddress> getAddress = (Integer tmpInt) -> {
+            if (address instanceof MemoryAddress addressTmp) {
+                return addressTmp;
+            } else if (address instanceof StackVar stackVar) {
+                return transformStackVarToAddress(stackVar);
+            } else {
+                throw new IllegalArgumentException();
+            }
+        };
+        return getAddress.apply(1);
+    }
+
+    MemoryAddress getOperandToAddress(AsmOperand operand) {
+        if (operand instanceof MemoryAddress address) {
+            var offset = address.getOffset();
+            if (ImmediateValues.bitLengthNotInLimit(offset)) {
+                var tmp = getAddressToIntRegister(address);
+                return new MemoryAddress(0, tmp);
+            } else {
+                return address.getAddress();
+            }
+        } else if (operand instanceof StackVar stackVar) {
+            if (stackVar instanceof ExStackVarContent) {
+                return stackVar.getAddress().getAddress();
+            }
+            return transformStackVarToAddress(stackVar);
+        } else if (operand instanceof IntRegister intRegister) {
+            return new MemoryAddress(0, intRegister);
+        } else {
+            throw new NoSuchElementException();
+        }
+    }
+
+    MemoryAddress transformStackVarToAddress(StackVar stackVar) {
+        IntRegister tmp = getRegisterAllocator().allocateInt();
+        MemoryAddress now = stackVar.getAddress();
+        IntRegister t2 = getRegisterAllocator().allocateInt();
+        appendInstruction(new AsmLoad(t2, ExStackVarOffset.transform(now.getOffset())));
+        appendInstruction(new AsmAdd(tmp, t2, now.getRegister(), 64));
+        return now.withBaseRegister(tmp).setOffset(0).getAddress();
+    }
+
+    Label getJumpLabel(BasicBlock jumpBlock) {
+        AsmBasicBlock block = getBasicBlock(jumpBlock);
+        return block.getBlockLabel();
+    }
+
+    Register getValueToRegister(Value value) {
+        var op = getValueByType(value, value.getType());
+        Register result;
+        if (op instanceof Register reg) {
+            result = getRegisterAllocator().allocate(reg);
+            appendInstruction(new AsmMove(result, reg));
+        } else {
+            if (value.getType() instanceof FloatType) {
+                var tmp = getRegisterAllocator().allocateFloat();
+                appendInstruction(new AsmLoad(tmp, op));
+                result = tmp;
+            } else {
+                var tmp = getRegisterAllocator().allocateInt();
+                appendInstruction(new AsmLoad(tmp, op));
+                result = tmp;
+            }
+        }
+        return result;
+    }
+
+    AsmOperand getValueByType(Value value, Type type) {
+        var result = getValue(value);
+        if (type instanceof PointerType && result instanceof MemoryAddress address) {
+            return getAddressToIntRegister(address.getAddress());
+        } else {
+            return result;
+        }
+    }
+
+    FloatRegister getOperandToFloatRegister(AsmOperand operand) {
+        if (operand instanceof FloatRegister floatRegister) {
+            return floatRegister;
+        } else {
+            FloatRegister tmp = getRegisterAllocator().allocateFloat();
+            appendInstruction(new AsmLoad(tmp, operand));
+            return tmp;
+        }
+    }
+
+    IntRegister getOperandToIntRegister(AsmOperand operand) {
+        if (operand instanceof IntRegister intRegister) {
+            return intRegister;
+        } else if (operand instanceof MemoryAddress addressDirective) {
+            return getAddressToIntRegister(addressDirective);
+        }
+        IntRegister result = getRegisterAllocator().allocateInt();
+        appendInstruction(new AsmLoad(result, operand));
+        return result;
+    }
+
+    IntRegister getAddressToIntRegister(MemoryAddress address) {
+        if (address.getOffset() == 0) {
+            return address.getRegister();
+        } else {
+            int offset = Math.toIntExact(address.getOffset());
+            var tmp = getRegisterAllocator().allocateInt();
+            if (ImmediateValues.bitLengthNotInLimit(offset)) {
+                var reg = getRegisterAllocator().allocateInt();
+                appendInstruction(new AsmLoad(reg, new Immediate(offset)));
+                appendInstruction(new AsmAdd(tmp, reg, address.getRegister(), 64));
+            } else {
+                appendInstruction(new AsmAdd(tmp, address.getRegister(), new Immediate(offset), 64));
+            }
+            return tmp;
+        }
+    }
+
+    /**
+     * 获取一个ir value在汇编中对应的值（函数参数、寄存器、栈上变量、全局变量、地址）
+     *
+     * @param value ir中的value
+     * @return 对应的汇编操作数
+     */
+    AsmOperand getValue(Value value) {
+        if (value instanceof GlobalVariable globalVariable) {
+            AsmGlobalVariable asmGlobalVariable = getGlobalCode().getGlobalVariable(globalVariable);
+            IntRegister reg = getRegisterAllocator().allocateInt();
+            appendInstruction(new AsmLoad(reg, asmGlobalVariable.emitNoSegmentLabel()));
+            return new MemoryAddress(0, reg);
+        } else if (value instanceof Function.FormalParameter formalParameter) {
+            return getParameterValue(formalParameter);
+        } else if (value instanceof Instruction instruction) {
+            if (getRegisterAllocator().contain(instruction)) {
+                return getRegisterAllocator().get(instruction);
+            } else if (getStackAllocator().contain(instruction)) {
+                return transformStackVar(getStackAllocator().get(instruction));
+            } else if (getAddressAllocator().contain(instruction)) {
+                return getAddressAllocator().get(instruction);
+            } else {
+                throw new RuntimeException("Value not found : " + value.getValueNameIR());
+            }
+        } else if (value instanceof Constant constant) {
+            return getConstantVar(constant, this::appendInstruction);
+        }
+        throw new RuntimeException("Value type not found : " + value.getValueNameIR());
+    }
+
+    AsmOperand getConstantVar(Constant constant, Consumer<AsmInstruction> appendInstruction) {
+        if (constant instanceof ConstInt constInt) {
+            var intValue = constInt.getValue();
+            return getConstInt(intValue, appendInstruction);
+        } else if (constant instanceof ConstFloat constFloat) {
+            return transConstFloat(constFloat.getValue(), appendInstruction);
+        } else if (constant instanceof ConstBool constBool) {
+            return new Immediate(constBool.getValue() ? 1 : 0);
+        } else if (constant instanceof ConstLong constLong) {
+            if (ImmediateValues.isIntValue(constLong.getValue())) {
+                return getConstInt(Math.toIntExact(constLong.getValue()), appendInstruction);
+            }
+            return transConstLong(constLong.getValue(), appendInstruction);
+        }
+        throw new RuntimeException("Constant value error");
+    }
+
+    AsmOperand getConstInt(int intValue, Consumer<AsmInstruction> appendInstruction) {
+        if (ImmediateValues.bitLengthNotInLimit(intValue)) {
+            IntRegister tmp = getRegisterAllocator().allocateInt();
+            appendInstruction.accept(new AsmLoad(tmp, new Immediate(intValue)));
+            return tmp;
+        }
+        return new Immediate(intValue);
+    }
 
     public List<AsmInstruction> getInstrList() {
         return instrList;
