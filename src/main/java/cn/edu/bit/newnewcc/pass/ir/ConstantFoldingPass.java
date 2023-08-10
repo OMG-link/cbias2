@@ -13,6 +13,8 @@ import cn.edu.bit.newnewcc.ir.value.instruction.*;
 import java.util.HashSet;
 import java.util.Set;
 
+import static java.lang.Math.abs;
+
 /**
  * 常量折叠 <br>
  * 若指令的运算结果可以在编译期推导得出，则折叠该语句 <br>
@@ -83,6 +85,17 @@ public class ConstantFoldingPass {
                     if (op2 instanceof ConstInteger constInt2 && ConstInteger.valueOf(constInt2) == 1) {
                         return op1;
                     }
+                    // x*(-1) = -x
+                    if (op2 instanceof ConstInteger constInt2 && ConstInteger.valueOf(constInt2) == -1) {
+                        var type = ((IntegerArithmeticInst) arithmeticInst).getType();
+                        var subInst = new IntegerSubInst(
+                                type,
+                                ConstInteger.getInstance(type.getBitWidth(), 0),
+                                arithmeticInst.getOperand1()
+                        );
+                        subInst.insertBefore(arithmeticInst);
+                        return subInst;
+                    }
                 } else if (arithmeticInst instanceof IntegerSignedDivideInst) {
                     // 6/2 = 3
                     if (op1 instanceof ConstInteger constInt1 && op2 instanceof ConstInteger constInt2) {
@@ -94,6 +107,17 @@ public class ConstantFoldingPass {
                     // x/1 = x
                     if (op2 instanceof ConstInteger constInt2 && ConstInteger.valueOf(constInt2) == 1) {
                         return op1;
+                    }
+                    // x/(-1) = -x
+                    if (op2 instanceof ConstInteger constInt2 && ConstInteger.valueOf(constInt2) == -1) {
+                        var type = ((IntegerArithmeticInst) arithmeticInst).getType();
+                        var subInst = new IntegerSubInst(
+                                type,
+                                ConstInteger.getInstance(type.getBitWidth(), 0),
+                                arithmeticInst.getOperand1()
+                        );
+                        subInst.insertBefore(arithmeticInst);
+                        return subInst;
                     }
                     // x/x = 1
                     if (op1 == op2) {
@@ -119,8 +143,8 @@ public class ConstantFoldingPass {
                                 ConstInteger.valueOf(constInt1) % ConstInteger.valueOf(constInt2)
                         );
                     }
-                    // x%1 = 0
-                    if (op2 instanceof ConstInteger constInt2 && ConstInteger.valueOf(constInt2) == 1) {
+                    // x%1 = 0, x%(-1) = 0
+                    if (op2 instanceof ConstInteger constInt2 && abs(ConstInteger.valueOf(constInt2)) == 1) {
                         return ConstInteger.getInstance(
                                 integerArithmeticInst.getType().getBitWidth(),
                                 0
@@ -176,6 +200,16 @@ public class ConstantFoldingPass {
                     if (op2 instanceof ConstFloat constFloat2 && constFloat2.getValue() == 1) {
                         return op1;
                     }
+                    // x*(-1) = -x
+                    if (op2 instanceof ConstFloat constFloat2 && constFloat2.getValue() == -1) {
+                        var type = ((FloatArithmeticInst) arithmeticInst).getType();
+                        var subInst = new FloatNegateInst(
+                                type,
+                                arithmeticInst.getOperand1()
+                        );
+                        subInst.insertBefore(arithmeticInst);
+                        return subInst;
+                    }
                 } else if (arithmeticInst instanceof FloatDivideInst) {
                     // 6/2 = 3
                     if (op1 instanceof ConstFloat constFloat1 && op2 instanceof ConstFloat constFloat2) {
@@ -184,6 +218,16 @@ public class ConstantFoldingPass {
                     // x/1 = x
                     if (op2 instanceof ConstFloat constFloat2 && constFloat2.getValue() == 1) {
                         return op1;
+                    }
+                    // x/(-1) = -x
+                    if (op2 instanceof ConstFloat constFloat2 && constFloat2.getValue() == -1) {
+                        var type = ((FloatArithmeticInst) arithmeticInst).getType();
+                        var subInst = new FloatNegateInst(
+                                type,
+                                arithmeticInst.getOperand1()
+                        );
+                        subInst.insertBefore(arithmeticInst);
+                        return subInst;
                     }
                     // x/x = 1
                     if (op1 == op2) {
