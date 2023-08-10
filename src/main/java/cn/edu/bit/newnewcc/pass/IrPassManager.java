@@ -58,7 +58,7 @@ public class IrPassManager {
     }
 
     private static void runTrickyPasses(Module module) {
-        PatternReplacementPass.runOnModule(module);
+//        PatternReplacementPass.runOnModule(module);
         IntegerSumModuleCombinePass.runOnModule(module);
     }
 
