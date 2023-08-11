@@ -159,25 +159,41 @@ public class GraphColoringRegisterControl extends RegisterControl {
     /*private final boolean debug = true;
     private List<Register> debug_registers;
     void outputDebugInfo(String name) {
-        System.out.println(name);
-        System.out.println("stack size = " + stack.size());
-        System.out.println("registers size = " + debug_registers.size());
-        System.out.println("uncolored:");
-        for (var reg : uncoloredReg) {
-            if (!debug_registers.contains(reg)) {
-                System.out.println(reg);
+        if (debug) {
+            System.out.println(name);
+            System.out.println("stack size = " + stack.size());
+            System.out.println("registers size = " + debug_registers.size());
+            System.out.println("uncolored:");
+            for (var reg : uncoloredReg) {
+                if (!debug_registers.contains(reg)) {
+                    System.out.println(reg);
+                }
+            }
+            System.out.println("coalesce:");
+            for (var reg : coalescentReg) {
+                if (!debug_registers.contains(reg)) {
+                    System.out.println(reg);
+                }
+            }
+            System.out.println("stack:");
+            for (var reg : stack) {
+                if (!debug_registers.contains(reg)) {
+                    System.out.println(reg);
+                }
             }
         }
-        System.out.println("coalesce:");
-        for (var reg : coalescentReg) {
-            if (!debug_registers.contains(reg)) {
-                System.out.println(reg);
+    }
+
+    void debug_check(Register register) {
+        if (debug) {
+            if (debug_registers.contains(register)) {
+                System.out.println("have register");
             }
-        }
-        System.out.println("stack:");
-        for (var reg : stack) {
-            if (!debug_registers.contains(reg)) {
-                System.out.println(reg);
+            for (int i = 0; i < instList.size(); i++) {
+                var inst = instList.get(i);
+                if (!AsmInstructions.getInstRegID(inst, register).isEmpty()) {
+                    System.out.println(i + ": " + inst);
+                }
             }
         }
     }*/
@@ -287,9 +303,11 @@ public class GraphColoringRegisterControl extends RegisterControl {
      */
     private void practiseCoalesce(Register u, Register v, List<Register> registers) {
         for (var point : lifeTimeController.getPoints(v)) {
+            /*if (debug) {
+                System.out.println(v + ": " + point);
+            }*/
             var inst = point.getIndex().getSourceInst();
-            int id = AsmInstructions.getInstRegID(inst, v);
-            if (id != -1) {
+            for (var id : AsmInstructions.getInstRegID(inst, v)) {
                 inst.setOperand(id, ((RegisterReplaceable)inst.getOperand(id)).replaceRegister(u));
             }
         }
@@ -303,6 +321,10 @@ public class GraphColoringRegisterControl extends RegisterControl {
         coalescentReg.remove(v);
         registers.remove(v);
         spillCost.remove(v);
+        /*if (debug) {
+            System.out.println(u + ", " + v);
+            debug_check(v);
+        }*/
     }
 
     /**
@@ -491,6 +513,9 @@ public class GraphColoringRegisterControl extends RegisterControl {
      * @return 分配后的指令列表
      */
     public List<AsmInstruction> allocatePhysicalRegisters(List<AsmInstruction> instructionList, List<Register> registers) {
+        /*if (debug) {
+            debug_registers = registers;
+        }*/
         instList = instructionList;
         getRegisterCost(registers);
         buildGraph(false, registers);
@@ -527,6 +552,9 @@ public class GraphColoringRegisterControl extends RegisterControl {
             for (int i = 1; i <= 3; i++) {
                 if (inst.getOperand(i) instanceof RegisterReplaceable rp && rp.getRegister().isVirtual()) {
                     Register physicRegister = physicRegisterMap.get(rp.getRegister());
+                    /*if (physicRegister == null) {
+                        debug_check(rp.getRegister());
+                    }*/
                     inst.setOperand(i, rp.replaceRegister(physicRegister));
                 }
             }

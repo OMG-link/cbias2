@@ -134,13 +134,14 @@ public class AsmInstructions {
         return new Pair<>((Register) writeSet.toArray()[0], (Register) readSet.toArray()[0]);
     }
 
-    public static int getInstRegID(AsmInstruction instr, Register reg) {
+    public static Set<Integer> getInstRegID(AsmInstruction instr, Register reg) {
+        Set<Integer> res = new HashSet<>();
         for (int i = 1; i <= 3; i++) {
             if (instr.getOperand(i) instanceof RegisterReplaceable rp && rp.getRegister().equals(reg)) {
-                return i;
+                res.add(i);
             }
         }
-        return -1;
+        return res;
     }
 
     public static boolean instContainsReg(AsmInstruction instr, Register reg) {
