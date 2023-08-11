@@ -12,6 +12,7 @@ public class OptimizerManager {
     }
 
     public void runAfterRegisterAllocation(AsmFunction function) {
+//        new SLLIAddToShNAddOptimizer().runOn(function);
         new MoveEliminationOptimizer().runOn(function);
         new BranchEliminationOptimizer().runOn(function);
         new DeadBlockEliminationOptimizer().runOn(function);
