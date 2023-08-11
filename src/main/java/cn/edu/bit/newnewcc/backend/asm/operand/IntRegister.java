@@ -7,7 +7,7 @@ import java.util.Map;
  * riscv的普通寄存器为x0~x31
  */
 public class IntRegister extends Register {
-    private int index;
+    private final int index;
 
     /**
      * 生成指定下标的寄存器
@@ -26,12 +26,6 @@ public class IntRegister extends Register {
     @Override
     public int getIndex() {
         return index;
-    }
-
-    @Override
-    public void setIndex(int index) {
-        if (!isVirtual()) throw new UnsupportedOperationException();
-        this.index = index;
     }
 
     @Override

@@ -6,12 +6,6 @@ public abstract class Register extends AsmOperand implements RegisterReplaceable
     public abstract int getIndex();
 
     /**
-     * 仅在虚拟寄存器复制合并时使用！！！
-     * @param index 下标
-     */
-    public abstract void setIndex(int index);
-
-    /**
      * 获取寄存器下标的**绝对值**
      */
     public int getAbsoluteIndex() {

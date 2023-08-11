@@ -5,7 +5,7 @@ import java.util.Map;
 
 //riscv的浮点寄存器为f0~f31
 public class FloatRegister extends Register {
-    private int index;
+    private final int index;
 
     /**
      * 生成指定下标的浮点寄存器
@@ -22,12 +22,6 @@ public class FloatRegister extends Register {
     @Override
     public int getIndex() {
         return index;
-    }
-
-    @Override
-    public void setIndex(int index) {
-        if (!isVirtual()) throw new UnsupportedOperationException();
-        this.index = index;
     }
 
     @Override
