@@ -90,11 +90,15 @@ public class CopyCoalescer {
         }
     }
 
+    public Register getVReg(Integer x) {
+        return lifeTimeController.getVReg(x);
+    }
+
     private final List<Integer> constructList = new ArrayList<>();
     private void coalesce() {
-        Map<Integer, Integer> trueValue = new HashMap<>();
+        Map<Register, Register> trueValue = new HashMap<>();
         for (var x : lifeTimeController.getVRegKeySet()) {
-            trueValue.put(x, x);
+            trueValue.put(getVReg(x), getVReg(x));
         }
         for (var x : clique.keySet()) {
             var points = clique.get(x);
@@ -122,15 +126,16 @@ public class CopyCoalescer {
             int v = (Integer)array[0];
             for (int i = 1; i < array.length; i++) {
                 int u = (Integer)array[i];
-                trueValue.put(u, v);
+                trueValue.put(getVReg(u), getVReg(v));
                 lifeTimeController.mergePoints(v, u);
             }
             constructList.add(v);
         }
         for (var inst : instructions) {
             for (int i : AsmInstructions.getVRegId(inst)) {
-                Register reg = ((RegisterReplaceable) inst.getOperand(i)).getRegister();
-                reg.setIndex(-trueValue.get(reg.getAbsoluteIndex()));
+                var rp = (RegisterReplaceable) inst.getOperand(i);
+                Register reg = rp.getRegister();
+                inst.setOperand(i, rp.replaceRegister(trueValue.get(getVReg(reg.getAbsoluteIndex()))));
             }
         }
     }
