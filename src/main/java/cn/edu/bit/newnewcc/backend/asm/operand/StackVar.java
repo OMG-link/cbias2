@@ -52,8 +52,8 @@ public class StackVar extends AsmOperand implements RegisterReplaceable {
     }
 
     @Override
-    public StackVar replaceRegister(Register register) {
-        return new StackVar(address.replaceRegister(register), size, isS0);
+    public StackVar withRegister(Register register) {
+        return new StackVar(address.withRegister(register), size, isS0);
     }
 
     @Override

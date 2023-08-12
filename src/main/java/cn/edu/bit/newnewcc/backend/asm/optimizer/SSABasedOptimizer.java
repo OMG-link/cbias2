@@ -139,7 +139,7 @@ public abstract class SSABasedOptimizer implements Optimizer {
                     var sourceReg = registerReplaceable.getRegister();
                     if (registerReplacementMap.containsKey(sourceReg)) {
                         var targetReg = registerReplacementMap.get(sourceReg);
-                        instruction.setOperand(id, registerReplaceable.replaceRegister(targetReg));
+                        instruction.setOperand(id, registerReplaceable.withRegister(targetReg));
                     }
                 }
             }

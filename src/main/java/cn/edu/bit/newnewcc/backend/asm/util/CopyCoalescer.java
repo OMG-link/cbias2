@@ -135,7 +135,7 @@ public class CopyCoalescer {
             for (int i : AsmInstructions.getVRegId(inst)) {
                 var rp = (RegisterReplaceable) inst.getOperand(i);
                 Register reg = rp.getRegister();
-                inst.setOperand(i, rp.replaceRegister(trueValue.get(getVReg(reg.getAbsoluteIndex()))));
+                inst.setOperand(i, rp.withRegister(trueValue.get(getVReg(reg.getAbsoluteIndex()))));
             }
         }
     }

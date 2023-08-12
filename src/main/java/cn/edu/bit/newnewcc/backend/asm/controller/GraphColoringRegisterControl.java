@@ -326,7 +326,7 @@ public class GraphColoringRegisterControl extends RegisterControl {
             }*/
             var inst = point.getIndex().getSourceInst();
             for (var id : AsmInstructions.getInstRegID(inst, v)) {
-                inst.setOperand(id, ((RegisterReplaceable)inst.getOperand(id)).replaceRegister(u));
+                inst.setOperand(id, ((RegisterReplaceable)inst.getOperand(id)).withRegister(u));
             }
         }
         lifeTimeController.mergePoints(u, v);
@@ -434,7 +434,7 @@ public class GraphColoringRegisterControl extends RegisterControl {
                     workOnRegisterValue(rLoad, tmpl.get(tmpl.size() - 1), inst);
                     for (int i : AsmInstructions.getReadVRegId(inst)) {
                         if (inst.getOperand(i) instanceof RegisterReplaceable rp && rp.getRegister().equals(reg)) {
-                            inst.setOperand(i, rp.replaceRegister(rLoad));
+                            inst.setOperand(i, rp.withRegister(rLoad));
                         }
                     }
                     spilledInstrList.addAll(tmpl);
@@ -449,7 +449,7 @@ public class GraphColoringRegisterControl extends RegisterControl {
                     workOnRegisterValue(rStore, inst, tmpl.get(tmpl.size() - 1));
                     for (int i : AsmInstructions.getWriteVRegId(inst)) {
                         if (inst.getOperand(i) instanceof RegisterReplaceable rp && rp.getRegister().equals(reg)) {
-                            inst.setOperand(i, rp.replaceRegister(rStore));
+                            inst.setOperand(i, rp.withRegister(rStore));
                         }
                     }
                     spilledInstrList.addAll(tmpl);
@@ -576,7 +576,7 @@ public class GraphColoringRegisterControl extends RegisterControl {
                     /*if (physicRegister == null) {
                         debug_check(rp.getRegister());
                     }*/
-                    inst.setOperand(i, rp.replaceRegister(physicRegister));
+                    inst.setOperand(i, rp.withRegister(physicRegister));
                 }
             }
 

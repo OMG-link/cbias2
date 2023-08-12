@@ -167,9 +167,9 @@ public class LinearScanRegisterControlR1 extends RegisterControl{
                     if (!load.containsKey(vReg)) {
                         newInstList.addAll(getLoad(load, vReg, stackVar));
                     }
-                    inst.setOperand(j, registerReplaceable.replaceRegister(load.get(vReg)));
+                    inst.setOperand(j, registerReplaceable.withRegister(load.get(vReg)));
                 } else {
-                    inst.setOperand(j, registerReplaceable.replaceRegister((Register) vRegLocation.get(vReg.getAbsoluteIndex())));
+                    inst.setOperand(j, registerReplaceable.withRegister((Register) vRegLocation.get(vReg.getAbsoluteIndex())));
                 }
             }
 
@@ -184,7 +184,7 @@ public class LinearScanRegisterControlR1 extends RegisterControl{
                 } else {
                     writeReg = (Register) vRegLocation.get(vReg.getAbsoluteIndex());
                 }
-                inst.setOperand(j, registerReplaceable.replaceRegister(writeReg));
+                inst.setOperand(j, registerReplaceable.withRegister(writeReg));
             }
 
             if (inst instanceof AsmCall) {

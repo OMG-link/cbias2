@@ -24,7 +24,7 @@ public class ExStackVarContent extends StackVar implements ExStackVarAdd {
     }
 
     @Override
-    public ExStackVarContent replaceRegister(Register register) {
-        return new ExStackVarContent(address.replaceRegister(register), size, isS0);
+    public ExStackVarContent withRegister(Register register) {
+        return new ExStackVarContent(address.withRegister(register), size, isS0);
     }
 }

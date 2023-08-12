@@ -22,7 +22,7 @@ public abstract class Register extends AsmOperand implements RegisterReplaceable
     }
 
     @Override
-    public Register replaceRegister(Register register) {
+    public Register withRegister(Register register) {
         return register;
     }
 }

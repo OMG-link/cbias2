@@ -190,7 +190,7 @@ public class LinearScanRegisterControl extends RegisterControl{
                         newInstList.addAll(tmpl);
                     }
                 }
-                inst.setOperand(j, registerReplaceable.replaceRegister(physicRegister));
+                inst.setOperand(j, registerReplaceable.withRegister(physicRegister));
             }
 
             if (inst instanceof AsmCall) {

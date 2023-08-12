@@ -39,7 +39,7 @@ public class MemoryAddress extends AsmOperand implements RegisterReplaceable {
     }
 
     @Override
-    public MemoryAddress replaceRegister(Register register) {
+    public MemoryAddress withRegister(Register register) {
         if (!(register instanceof IntRegister))
             throw new IllegalArgumentException();
 

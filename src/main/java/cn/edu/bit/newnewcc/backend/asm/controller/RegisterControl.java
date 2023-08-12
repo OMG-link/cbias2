@@ -59,7 +59,7 @@ public abstract class RegisterControl {
             instList.add(new AsmLoad(tmpReg, new Immediate(Math.toIntExact(stackVar.getAddress().getOffset()))));
             instList.add(new AsmAdd(tmpReg, tmpReg, stackVar.getAddress().getRegister(), 64));
             stackVar = new StackVar(0, stackVar.getSize(), true);
-            stackVar = stackVar.replaceRegister(tmpReg);
+            stackVar = stackVar.withRegister(tmpReg);
         }
         instList.add(new AsmLoad(register, stackVar));
         return instList;
@@ -71,7 +71,7 @@ public abstract class RegisterControl {
             instList.add(new AsmLoad(tmpReg, new Immediate(Math.toIntExact(stackVar.getAddress().getOffset()))));
             instList.add(new AsmAdd(tmpReg, tmpReg, stackVar.getAddress().getRegister(), 64));
             stackVar = new StackVar(0, stackVar.getSize(), true);
-            stackVar = stackVar.replaceRegister(tmpReg);
+            stackVar = stackVar.withRegister(tmpReg);
         }
         instList.add(new AsmStore(register, stackVar));
         return instList;
