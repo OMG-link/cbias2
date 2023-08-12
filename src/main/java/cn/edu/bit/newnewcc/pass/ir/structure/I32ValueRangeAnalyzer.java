@@ -231,6 +231,9 @@ public class I32ValueRangeAnalyzer {
     }
 
     public I32ValueRange getValueRange(Value value) {
+        if (value instanceof Constant) {
+            return I32ValueRange.of(value);
+        }
         return rangeBuffer.get(value);
     }
 
