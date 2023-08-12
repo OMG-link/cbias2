@@ -8,11 +8,11 @@ public class OptimizerManager {
             || new LI0ToX0Optimizer().runOn(function)
             || new AddX0ToMvOptimizer().runOn(function));
         new StrengthReductionOptimizer().runOn(function);
+        new SLLIAddToShNAddOptimizer().runOn(function);
         new DeadInstructionEliminationOptimizer().runOn(function);
     }
 
     public void runAfterRegisterAllocation(AsmFunction function) {
-//        new SLLIAddToShNAddOptimizer().runOn(function);
         new MoveEliminationOptimizer().runOn(function);
         new BranchEliminationOptimizer().runOn(function);
         new DeadBlockEliminationOptimizer().runOn(function);
