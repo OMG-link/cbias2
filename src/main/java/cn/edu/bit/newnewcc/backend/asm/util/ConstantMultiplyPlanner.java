@@ -111,6 +111,20 @@ public class ConstantMultiplyPlanner {
         for (int ld = 1; ld <= OPERATION_LIMIT; ld++) {
             var levelLdOperations = new ArrayList<Pair<Long, Operand>>();
             for (int l1 = 0; l1 < ld; l1++) {
+                // SHL
+                for (var pair1 : operations.get(l1)) {
+                    var i1 = pair1.a;
+                    var o1 = pair1.b;
+                    if (i1 == 0) continue;
+                    for (int i = 0; ; i++) {
+                        var idShl = i1 << i;
+                        if (i != 0) {
+                            var odShl = new Operation(Operation.Type.SHL, o1, new ConstantOperand(i));
+                            addOperationIfPossible(levelLdOperations, idShl, odShl);
+                        }
+                        if ((idShl & (1L << 63)) != 0) break;
+                    }
+                }
                 for (int l2 = 0; l1 + l2 < ld; l2++) {
                     // ADD, SUB
                     for (var pair1 : operations.get(l1)) {
@@ -126,20 +140,6 @@ public class ConstantMultiplyPlanner {
                             var odSub = new Operation(Operation.Type.SUB, o1, o2);
                             addOperationIfPossible(levelLdOperations, idSub, odSub);
                         }
-                    }
-                }
-                // SHL
-                for (var pair1 : operations.get(l1)) {
-                    var i1 = pair1.a;
-                    var o1 = pair1.b;
-                    if (i1 == 0) continue;
-                    for (int i = 0; ; i++) {
-                        var idShl = i1 << i;
-                        if (i != 0) {
-                            var odShl = new Operation(Operation.Type.SHL, o1, new ConstantOperand(i));
-                            addOperationIfPossible(levelLdOperations, idShl, odShl);
-                        }
-                        if ((idShl & (1L << 63)) != 0) break;
                     }
                 }
             }
