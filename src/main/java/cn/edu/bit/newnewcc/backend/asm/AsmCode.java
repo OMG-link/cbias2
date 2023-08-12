@@ -52,7 +52,7 @@ public class AsmCode {
     }
 
     public String emit() {
-        StringBuilder builder = new StringBuilder(".option nopic\n.attribute arch, \"rv64i2p0_m2p0_a2p0_f2p0_d2p0_c2p0\"\n");
+        StringBuilder builder = new StringBuilder(".option nopic\n.attribute arch, \"rv64i2p1_m2p0_a2p1_f2p2_d2p2_c2p0_zicsr2p0_zifencei2p0_zba1p0_zbb1p0\"\n");
         builder.append(".attribute unaligned_access, 0\n");
         builder.append(".attribute stack_align, 16\n");
         for (var gvar : globalVariableMap.values()) {
