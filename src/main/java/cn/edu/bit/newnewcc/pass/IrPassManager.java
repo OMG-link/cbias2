@@ -83,20 +83,35 @@ public class IrPassManager {
         ArrayOffsetCompressPass.runOnModule(module);
     }
 
+    private static void runUnevaluableSimplifyPasses(Module module) {
+        AddToMulPass.runOnModule(module);
+        GlobalCodeMotionPass.runOnModule(module);
+        MemoryAccessOptimizePass.runOnModule(module);
+    }
+
+    private static boolean runQuickEvaluablePasses(Module module) {
+        boolean changed;
+        changed = InstructionCombinePass.runOnModule(module);
+        changed |= ConstantFoldingPass.runOnModule(module);
+        changed |= BranchSimplifyPass.runOnModule(module);
+        changed |= BasicBlockMergePass.runOnModule(module);
+        changed |= DeadCodeEliminationPass.runOnModule(module);
+        return changed;
+    }
+
+    private static boolean runEvaluablePasses(Module module) {
+        boolean changed = false;
+        while (runQuickEvaluablePasses(module)) {
+            changed = true;
+        }
+        changed |= RangeRelatedConstantFoldingPass.runOnModule(module);
+        return changed;
+    }
+
     private static void runSimplifyPasses(Module module) {
         for (int t = 0; t < 2; t++) {
-            AddToMulPass.runOnModule(module);
-            GlobalCodeMotionPass.runOnModule(module);
-            MemoryAccessOptimizePass.runOnModule(module);
-            while (true) {
-                boolean changed;
-                changed = InstructionCombinePass.runOnModule(module);
-                changed |= ConstantFoldingPass.runOnModule(module);
-                changed |= BranchSimplifyPass.runOnModule(module);
-                changed |= BasicBlockMergePass.runOnModule(module);
-                changed |= DeadCodeEliminationPass.runOnModule(module);
-                if (!changed) break;
-            }
+            runUnevaluableSimplifyPasses(module);
+            while (runEvaluablePasses(module)) ;
         }
     }
 
