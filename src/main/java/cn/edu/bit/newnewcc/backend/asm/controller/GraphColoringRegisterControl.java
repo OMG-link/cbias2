@@ -132,7 +132,9 @@ public class GraphColoringRegisterControl extends RegisterControl {
         for (var inst : instList) {
             if (inst instanceof AsmMove asmMove && !freezeAll) {
                 var regPair = AsmInstructions.getMoveReg(asmMove);
-                addCoalesceEdge(regPair.a, regPair.b);
+                if (registers.contains(regPair.a) && registers.contains(regPair.b)) {
+                    addCoalesceEdge(regPair.a, regPair.b);
+                }
             }
         }
         for (var now : intervals) {
