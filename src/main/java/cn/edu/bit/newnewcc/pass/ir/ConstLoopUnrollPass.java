@@ -24,7 +24,7 @@ public class ConstLoopUnrollPass {
     /**
      * 单次循环展开后，展开部分语句数量总和的限制
      */
-    private static final int MAXIMUM_EXTRACTED_SIZE = 10000;
+    private static final int MAXIMUM_EXTRACTED_SIZE = 500;
 
     private final Function function;
     private final LoopForest loopForest;
