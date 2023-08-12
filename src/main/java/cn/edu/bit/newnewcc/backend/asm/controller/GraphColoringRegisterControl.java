@@ -129,6 +129,12 @@ public class GraphColoringRegisterControl extends RegisterControl {
         }
         Collections.sort(intervals);
         Set<LifeTimeInterval> activeSet = new HashSet<>();
+        for (var inst : instList) {
+            if (inst instanceof AsmMove asmMove && !freezeAll) {
+                var regPair = AsmInstructions.getMoveReg(asmMove);
+                addCoalesceEdge(regPair.a, regPair.b);
+            }
+        }
         for (var now : intervals) {
             activeSet.removeIf((r) -> r.range.b.compareTo(now.range.a) < 0);
             for (var last : activeSet) {
@@ -254,16 +260,7 @@ public class GraphColoringRegisterControl extends RegisterControl {
         }
     }
 
-    /**
-     * 检查是否能将寄存器v合并入寄存器u
-     * @param u 并入的寄存器
-     * @param v 被合并的寄存器
-     * @return 是否能够合并
-     */
-    private boolean checkCoalesce(Register u, Register v) {
-        if (!v.isVirtual() || !coalescentEdges.containsKey(u) || !coalescentEdges.get(u).contains(v)) {
-            return false;
-        }
+    private boolean BriggsCheck(Register u, Register v) {
         if (interferenceEdges.get(u).size() < interferenceEdges.get(v).size()) {
             var tmp = u;
             u = v;
@@ -274,12 +271,31 @@ public class GraphColoringRegisterControl extends RegisterControl {
             if (degree >= physicRegisters.size()) {
                 break;
             }
-            if (x.equals(u)) {
-                continue;
-            }
             degree += interferenceEdges.get(u).contains(x) ? 0 : 1;
         }
         return degree < physicRegisters.size();
+    }
+
+    private boolean GeorgeCheck(Register u, Register v) {
+        for (var x : interferenceEdges.get(v)) {
+            if (!interferenceEdges.get(u).contains(x)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * 检查是否能将寄存器v合并入寄存器u
+     * @param u 并入的寄存器
+     * @param v 被合并的寄存器
+     * @return 是否能够合并
+     */
+    private boolean checkCoalesce(Register u, Register v) {
+        if (!v.isVirtual() || !coalescentEdges.containsKey(u) || !coalescentEdges.get(u).contains(v)) {
+            return false;
+        }
+        return BriggsCheck(u, v) || GeorgeCheck(u, v);
     }
 
     void mergeEdges(Register u, Register v) {
@@ -520,6 +536,8 @@ public class GraphColoringRegisterControl extends RegisterControl {
         getRegisterCost(registers);
         buildGraph(false, registers);
         stack.clear();
+
+        coalesce(registers);
         while (!color()) {
             if (!coalesce(registers)) {
                 if (!freeze()) {
@@ -529,6 +547,7 @@ public class GraphColoringRegisterControl extends RegisterControl {
                 }
             }
         }
+
         colorToRegisterMap(registers);
         return instList;
     }
