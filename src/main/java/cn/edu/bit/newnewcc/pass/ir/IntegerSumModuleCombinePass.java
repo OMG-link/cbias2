@@ -21,16 +21,17 @@ public class IntegerSumModuleCombinePass {
     }
 
     private boolean tryEliminateExtraModules(IntegerSignedRemainderInst remainderInst) {
+        var instBlock = remainderInst.getBasicBlock();
         if (remainderInst.getType() != IntegerType.getI32()) return false;
         if (!(remainderInst.getOperand2() instanceof ConstInt constMod)) return false;
         if (!(remainderInst.getOperand1() instanceof IntegerAddInst addInst)) return false;
-        if (analyzer.getValueRange(addInst).minValue < 0) return false;
+        if (analyzer.getValueRangeAtBlock(addInst, instBlock).minValue() < 0) return false;
         if (addInst.getOperand1() instanceof IntegerSignedRemainderInst subRemainder) {
             if (subRemainder.getOperand2() == constMod) {
                 var subAddendBeforeMod = subRemainder.getOperand1();
                 try {
-                    Math.addExact(analyzer.getValueRange(subAddendBeforeMod).maxValue,
-                            analyzer.getValueRange(addInst.getOperand2()).maxValue);
+                    Math.addExact(analyzer.getValueRangeAtBlock(subAddendBeforeMod, instBlock).maxValue(),
+                            analyzer.getValueRangeAtBlock(addInst.getOperand2(), instBlock).maxValue());
                     addInst.setOperand1(subAddendBeforeMod);
                     analyzer.onInstructionUpdated(addInst);
                     return true;
@@ -42,8 +43,8 @@ public class IntegerSumModuleCombinePass {
             if (subRemainder.getOperand2() == constMod) {
                 var subAddendBeforeMod = subRemainder.getOperand1();
                 try {
-                    Math.addExact(analyzer.getValueRange(subAddendBeforeMod).maxValue,
-                            analyzer.getValueRange(addInst.getOperand1()).maxValue);
+                    Math.addExact(analyzer.getValueRangeAtBlock(subAddendBeforeMod, instBlock).maxValue(),
+                            analyzer.getValueRangeAtBlock(addInst.getOperand1(), instBlock).maxValue());
                     addInst.setOperand2(subAddendBeforeMod);
                     analyzer.onInstructionUpdated(addInst);
                     return true;

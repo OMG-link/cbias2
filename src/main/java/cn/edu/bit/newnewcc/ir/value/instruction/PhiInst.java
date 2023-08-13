@@ -95,6 +95,12 @@ public class PhiInst extends Instruction {
         }
     }
 
+    public void forWithOperand(BiConsumer<BasicBlock, Operand> consumer) {
+        for (var entry : entryMap.entrySet()) {
+            consumer.accept(entry.getKey().getValue(), entry.getValue());
+        }
+    }
+
     public Value getValue(BasicBlock basicBlock) {
         if (!hasEntry(basicBlock)) {
             throw new IllegalArgumentException("Basic block given is not an entry of this phi.");

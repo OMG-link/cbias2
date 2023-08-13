@@ -59,20 +59,20 @@ public class IrPassManager {
 
     private static void runTrickyPasses(Module module) {
 //        PatternReplacementPass.runOnModule(module);
-        IntegerSumModuleCombinePass.runOnModule(module);
+//        IntegerSumModuleCombinePass.runOnModule(module);
     }
 
     private static void runLoopPasses(Module module) {
         while (true) {
             boolean changed = false;
-            while (ConstLoopUnrollPass.runOnModule(module)) {
-                changed = true;
-                runSimplifyPasses(module);
-            }
-            while (LoopUnrollPass.runOnModule(module)) {
-                changed = true;
-                runSimplifyPasses(module);
-            }
+//            while (ConstLoopUnrollPass.runOnModule(module)) {
+//                changed = true;
+//                runSimplifyPasses(module);
+//            }
+//            while (LoopUnrollPass.runOnModule(module)) {
+//                changed = true;
+//                runSimplifyPasses(module);
+//            }
             if (!changed) break;
         }
     }
@@ -110,8 +110,8 @@ public class IrPassManager {
 
     private static void runSimplifyPasses(Module module) {
         for (int t = 0; t < 2; t++) {
-            runUnevaluableSimplifyPasses(module);
             while (runEvaluablePasses(module)) ;
+            runUnevaluableSimplifyPasses(module);
         }
     }
 

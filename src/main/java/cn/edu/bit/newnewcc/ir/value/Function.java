@@ -13,11 +13,17 @@ import java.util.*;
 public class Function extends BaseFunction {
 
     public static class FormalParameter extends Value {
-        public FormalParameter(Type type) {
+        private FormalParameter(Type type, Function function) {
             super(type);
+            this.function = function;
         }
 
         private String valueName;
+        private final Function function;
+
+        public Function getFunction() {
+            return function;
+        }
 
         @Override
         public String getValueName() {
@@ -51,7 +57,7 @@ public class Function extends BaseFunction {
         super(functionType);
         this.formalParameters = new ArrayList<>();
         for (Type parameterType : functionType.getParameterTypes()) {
-            this.formalParameters.add(new FormalParameter(parameterType));
+            this.formalParameters.add(new FormalParameter(parameterType, this));
         }
         this.basicBlocks = new LinkedHashSet<>();
         this.entryBasicBlock = new BasicBlock();

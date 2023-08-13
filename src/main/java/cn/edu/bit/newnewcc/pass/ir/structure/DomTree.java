@@ -92,6 +92,11 @@ public class DomTree {
         return Collections.unmodifiableList(node.domSons);
     }
 
+    public BasicBlock getDomFather(BasicBlock basicBlock) {
+        if (basicBlock == domRoot) return null;
+        return nodeMap.get(basicBlock).bexpParents.get(0);
+    }
+
     /**
      * 检查A在支配树上是否为B的祖先
      *
