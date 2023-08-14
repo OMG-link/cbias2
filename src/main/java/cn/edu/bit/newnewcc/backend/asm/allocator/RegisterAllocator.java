@@ -20,23 +20,27 @@ public class RegisterAllocator {
     private final Map<Integer, Register> vregMap = new HashMap<>();
     private int counter = 0;
 
+    private int getNextCounter() {
+        return ++counter;
+    }
+
     public IntRegister allocateInt() {
-        var reg = intRegisterAllocator.allocate(++counter);
+        var reg = intRegisterAllocator.allocate(getNextCounter());
         vregMap.put(reg.getAbsoluteIndex(), reg);
         return reg;
     }
     public FloatRegister allocateFloat() {
-        var reg = floatRegisterAllocator.allocate(++counter);
+        var reg = floatRegisterAllocator.allocate(getNextCounter());
         vregMap.put(reg.getAbsoluteIndex(), reg);
         return reg;
     }
     public IntRegister allocateInt(Instruction instruction) {
-        var reg = intRegisterAllocator.allocate(instruction, ++counter);
+        var reg = intRegisterAllocator.allocate(instruction, getNextCounter());
         vregMap.put(reg.getAbsoluteIndex(), reg);
         return reg;
     }
     public FloatRegister allocateFloat(Instruction instruction) {
-        var reg = floatRegisterAllocator.allocate(instruction, ++counter);
+        var reg = floatRegisterAllocator.allocate(instruction, getNextCounter());
         vregMap.put(reg.getAbsoluteIndex(), reg);
         return reg;
     }
