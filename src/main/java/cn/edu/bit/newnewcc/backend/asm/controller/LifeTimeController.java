@@ -53,6 +53,16 @@ public class LifeTimeController {
         return instIDMap.get(inst);
     }
 
+    public boolean containsInst(AsmInstruction inst) {
+        return instIDMap.containsKey(inst);
+    }
+
+    public void replaceInst(AsmInstruction replacedInst, AsmInstruction valueInst) {
+        var id = instIDMap.get(replacedInst);
+        instIDMap.remove(replacedInst);
+        instIDMap.put(valueInst, id);
+    }
+
     public Set<Integer> getVRegKeySet() {
         Set<Integer> res = new HashSet<>();
         for (var x : lifeTimePoints.keySet()) {
@@ -102,6 +112,10 @@ public class LifeTimeController {
             lifeTimePoints.put(reg, new ArrayList<>());
         }
         lifeTimePoints.get(reg).add(p);
+    }
+
+    public void removeLifeTimePoint(Register reg, LifeTimePoint p) {
+        lifeTimePoints.get(reg).remove(p);
     }
 
     public void removeReg(Register reg) {
