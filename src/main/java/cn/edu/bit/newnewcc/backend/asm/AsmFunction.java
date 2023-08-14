@@ -340,6 +340,7 @@ public class AsmFunction {
             OptimizerManager optimizerManager = new OptimizerManager();
             optimizerManager.runBeforeRegisterAllocation(this);
 
+            instrList.add(new AsmLabel(retBlockLabel));
             lifeTimeController.getAllRegLifeTime(instrList);
             //asmOptimizerBeforeRegisterAllocate(lifeTimeController);
             reAllocateRegister();
@@ -551,7 +552,6 @@ public class AsmFunction {
         instrList = new ArrayList<>();
         instrList.addAll(registerController.emitPrologue());
         instrList.addAll(newInstructionList);
-        instrList.add(new AsmLabel(retBlockLabel));
         instrList.addAll(registerController.emitEpilogue());
     }
 

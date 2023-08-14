@@ -225,11 +225,15 @@ public class LifeTimeController {
             now.def.addAll(AsmInstructions.getWriteRegSet(inst));
             blocks.get(blocks.size() - 1).r = i;
         }
+        if (function.getReturnRegister() != null) {
+            blocks.get(blocks.size() - 1).in.add(function.getReturnRegister());
+        }
     }
     private void iterateActiveReg() {
         while (true) {
             boolean changeLabel = false;
-            for (var b : blocks) {
+            for (int i = 0; i < blocks.size() - 1; i++) {
+                var b = blocks.get(i);
                 for (var nextName : b.nextBlockName) {
                     var next = blockMap.get(nextName);
                     if (next != null) {
