@@ -341,7 +341,7 @@ public class AsmFunction {
             optimizerManager.runBeforeRegisterAllocation(this);
 
             lifeTimeController.getAllRegLifeTime(instrList);
-            asmOptimizerBeforeRegisterAllocate(lifeTimeController);
+            //asmOptimizerBeforeRegisterAllocate(lifeTimeController);
             reAllocateRegister();
             asmOptimizerAfterRegisterAllocate();
 
