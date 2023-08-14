@@ -556,6 +556,7 @@ public class GraphColoringRegisterControl extends RegisterControl {
 
     List<AsmInstruction> replacePhysicRegisters(List<AsmInstruction> instructionList) {
         List<AsmInstruction> instList = new ArrayList<>();
+        Map<Register, StackVar> regSavedLoc = new HashMap<>();
         intervals.clear();
         for (var reg : physicRegisterMap.keySet()) {
             intervals.addAll(lifeTimeController.getInterval(reg));
@@ -585,9 +586,12 @@ public class GraphColoringRegisterControl extends RegisterControl {
                 for (var interval : activeSet) {
                     var physicReg = physicRegisterMap.get(interval.reg);
                     if (!Registers.isPreservedAcrossCalls(physicReg)) {
-                        StackVar stk = stackPool.pop();
-                        saved.put(physicReg, stk);
-                        var tmpl = saveToStackVar(physicReg, stk, addressReg);
+                        if (!regSavedLoc.containsKey(physicReg)) {
+                            StackVar stk = stackPool.pop();
+                            regSavedLoc.put(physicReg, stk);
+                        }
+                        saved.put(physicReg, regSavedLoc.get(physicReg));
+                        var tmpl = saveToStackVar(physicReg, regSavedLoc.get(physicReg), addressReg);
                         instList.addAll(tmpl);
                     }
                 }
