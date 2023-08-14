@@ -44,9 +44,6 @@ public class RangeRelatedConstantFoldingPass {
                             entryBlock,
                             entryValueOperand.getValue()
                     );
-                    if (range == null) {
-                        throw new NullPointerException();
-                    }
                     if (range.minValue() == range.maxValue()) {
                         entryValueOperand.setValue(ConstInt.getInstance(range.minValue()));
                     }
