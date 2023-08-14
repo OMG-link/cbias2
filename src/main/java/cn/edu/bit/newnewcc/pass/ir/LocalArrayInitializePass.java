@@ -30,6 +30,7 @@ public class LocalArrayInitializePass {
         for (int i = 0; i < constArray.getInitializedLength(); i++) {
             var value = constArray.getValueAt(i);
             if (value instanceof ConstInt constInt) {
+                if (constInt.isFilledWithZero()) continue;
                 var indices = new ArrayList<Value>();
                 indices.add(ConstInt.getInstance(0));
                 indices.add(ConstInt.getInstance(offset + i));
