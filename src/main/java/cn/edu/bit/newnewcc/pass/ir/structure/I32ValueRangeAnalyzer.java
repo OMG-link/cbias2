@@ -486,10 +486,10 @@ public class I32ValueRangeAnalyzer {
                 if (updateCount < NEARLY_HURRY_THRESHOLD_INITIAL + (int) (Math.random() * (HURRY_UP_THRESHOLD_INITIAL - NEARLY_HURRY_THRESHOLD_INITIAL))) {
                     newRange = I32ValueRange.calculateI32ValueRange(instruction, analyzer);
                 } else {
-                    newRange = getHurryUpRange(instruction, oldRange);
+                    newRange = getHurryUpRange(instruction, analyzer);
                 }
             } else {
-                newRange = getHurryUpRange(instruction, oldRange);
+                newRange = getHurryUpRange(instruction, analyzer);
             }
             if (!Objects.equals(oldRange, newRange)) {
                 analyzer.setValueRange(instruction, newRange);
@@ -628,10 +628,10 @@ public class I32ValueRangeAnalyzer {
                 if (updateCount < NEARLY_HURRY_THRESHOLD_INITIAL + (int) (Math.random() * (HURRY_UP_THRESHOLD_INITIAL - NEARLY_HURRY_THRESHOLD_INITIAL))) {
                     newRange = I32ValueRange.calculateI32ValueRange(instruction, analyzer);
                 } else {
-                    newRange = getHurryUpRange(instruction, oldRange);
+                    newRange = getHurryUpRange(instruction, analyzer);
                 }
             } else {
-                newRange = getHurryUpRange(instruction, oldRange);
+                newRange = getHurryUpRange(instruction, analyzer);
             }
             if (!Objects.equals(oldRange, newRange)) {
                 analyzer.setValueRange(instruction, newRange);
@@ -672,11 +672,11 @@ public class I32ValueRangeAnalyzer {
 //        }
     }
 
-    private static I32ValueRange getHurryUpRange(Instruction instruction, I32ValueRange oldRange) {
-        I32ValueRange newRange;
+    private static I32ValueRange getHurryUpRange(Instruction instruction, I32ValueRangeAnalyzer analyzer) {
+        I32ValueRange newRange = I32ValueRange.calculateI32ValueRange(instruction, analyzer);
         newRange = new I32ValueRange(
-                oldRange.minValue == 0 ? 0 : (oldRange.minValue > 0 ? 1 : Integer.MIN_VALUE),
-                oldRange.maxValue == 0 ? 0 : (oldRange.maxValue > 0 ? Integer.MAX_VALUE : -1)
+                newRange.minValue == 0 ? 0 : (newRange.minValue > 0 ? 1 : Integer.MIN_VALUE),
+                newRange.maxValue == 0 ? 0 : (newRange.maxValue > 0 ? Integer.MAX_VALUE : -1)
         );
         //instruction.setComment(String.format("(Hurry Up)[%d, %d]", newRange.minValue, newRange.maxValue));
         return newRange;
