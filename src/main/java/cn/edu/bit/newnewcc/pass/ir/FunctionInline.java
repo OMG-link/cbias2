@@ -16,7 +16,16 @@ import java.util.*;
 
 public class FunctionInline {
 
-    private record FunctionProperty(int size, Set<Function> callees) {
+    private static final int INLINE_SIZE_THRESHOLD = 100;
+
+    private static class FunctionProperty {
+        public int size;
+        public final Set<Function> callees;
+
+        public FunctionProperty(int size, Set<Function> callees) {
+            this.size = size;
+            this.callees = callees;
+        }
 
     }
 
@@ -52,7 +61,7 @@ public class FunctionInline {
         for (Operand usage : inlinedFunction.getUsages()) {
             if (!(usage.getInstruction() instanceof CallInst callInst && callInst.getCallee() == inlinedFunction))
                 continue;
-            var function = callInst.getBasicBlock().getFunction();
+            var callerFunction = callInst.getBasicBlock().getFunction();
             // 将原有基本块按照 call 指令的位置拆分为两个
             var blockAlpha = callInst.getBasicBlock();
             var blockBeta = new BasicBlock();
@@ -75,9 +84,9 @@ public class FunctionInline {
             // 插入内联后的函数
             var clonedFunction = new FunctionClone(inlinedFunction, callInst.getArgumentList(), blockBeta);
             blockAlpha.setTerminateInstruction(new JumpInst(clonedFunction.getEntryBlock()));
-            function.addBasicBlock(blockBeta);
+            callerFunction.addBasicBlock(blockBeta);
             for (BasicBlock clonedBlock : clonedFunction.getBasicBlocks()) {
-                function.addBasicBlock(clonedBlock);
+                callerFunction.addBasicBlock(clonedBlock);
             }
             if (callInst.getType() != VoidType.getInstance()) {
                 blockBeta.addInstruction(clonedFunction.getReturnValue());
@@ -87,8 +96,9 @@ public class FunctionInline {
             }
             callInst.waste();
             for (AllocateInst allocateInstruction : clonedFunction.getAllocateInstructions()) {
-                function.getEntryBasicBlock().addInstruction(allocateInstruction);
+                callerFunction.getEntryBasicBlock().addInstruction(allocateInstruction);
             }
+            propertyMap.get(callerFunction).size += propertyMap.get(inlinedFunction).size;
         }
     }
 
@@ -98,8 +108,9 @@ public class FunctionInline {
         List<Function> functions = new ArrayList<>(module.getFunctions());
         functions.sort((function1, function2) -> Integer.compare(propertyMap.get(function1).size, propertyMap.get(function2).size));
         for (Function inlinedFunction : functions) {
-            if (propertyMap.get(inlinedFunction).callees.contains(inlinedFunction) || inlinedFunction.getValueName().equals("main"))
-                continue;
+            if (inlinedFunction.getValueName().equals("main")) continue;
+            if (propertyMap.get(inlinedFunction).callees.contains(inlinedFunction)) continue;
+            if (propertyMap.get(inlinedFunction).size > INLINE_SIZE_THRESHOLD) continue;
             inlineFunction(inlinedFunction);
             changed = true;
         }
