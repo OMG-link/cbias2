@@ -65,14 +65,14 @@ public class IrPassManager {
     private static void runLoopPasses(Module module) {
         while (true) {
             boolean changed = false;
-            while (ConstLoopUnrollPass.runOnModule(module)) {
-                changed = true;
-                runSimplifyPasses(module);
-            }
-            while (LoopUnrollPass.runOnModule(module)) {
-                changed = true;
-                runSimplifyPasses(module);
-            }
+//            while (ConstLoopUnrollPass.runOnModule(module)) {
+//                changed = true;
+//                runSimplifyPasses(module);
+//            }
+//            while (LoopUnrollPass.runOnModule(module)) {
+//                changed = true;
+//                runSimplifyPasses(module);
+//            }
             if (!changed) break;
         }
     }
@@ -93,6 +93,7 @@ public class IrPassManager {
         boolean changed;
         changed = InstructionCombinePass.runOnModule(module);
         changed |= ConstantFoldingPass.runOnModule(module);
+        changed |= JumpInstMergePass.runOnModule(module);
         changed |= BranchSimplifyPass.runOnModule(module);
         changed |= BasicBlockMergePass.runOnModule(module);
         changed |= DeadCodeEliminationPass.runOnModule(module);
@@ -113,6 +114,7 @@ public class IrPassManager {
             while (runEvaluablePasses(module)) ;
             runUnevaluableSimplifyPasses(module);
         }
+        while (runEvaluablePasses(module)) ;
     }
 
 }
