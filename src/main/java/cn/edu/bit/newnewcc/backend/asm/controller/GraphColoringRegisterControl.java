@@ -53,10 +53,13 @@ public class GraphColoringRegisterControl extends RegisterControl {
                 indexBlockMap.put(index, function.getBasicBlockByLabel(label));
             }
         }
-        int nowBlockId = 0;
         for (var reg : registers) {
+            int nowBlockId = 0;
             spillCost.put(reg, 0);
             for (var point : lifeTimeController.getPoints(reg)) {
+                if (AsmInstructions.getInstRegID(point.getIndex().getSourceInst(), reg).isEmpty()) {
+                    continue;
+                }
                 while (nowBlockId + 1 < blockIndexList.size() && blockIndexList.get(nowBlockId + 1).compareTo(point.getIndex()) < 0) {
                     nowBlockId += 1;
                 }
