@@ -333,6 +333,16 @@ public class GraphColoringRegisterControl extends RegisterControl {
             }
         }
         lifeTimeController.mergePoints(u, v);
+        for (var point : lifeTimeController.getPoints(u)) {
+            var inst = point.getIndex().getSourceInst();
+            if (inst instanceof AsmMove iMove) {
+                var regs = AsmInstructions.getMoveReg(iMove);
+                if (regs.a.equals(regs.b)) {
+                    inst.setOperand(1, IntRegister.ZERO);
+                    inst.setOperand(2, IntRegister.ZERO);
+                }
+            }
+        }
         lifeTimeController.constructInterval(u);
         mergeEdges(u, v);
         if (coalescentEdges.get(u).size() == 0 && u.isVirtual()) {
@@ -542,7 +552,7 @@ public class GraphColoringRegisterControl extends RegisterControl {
         buildGraph(false, registers);
         stack.clear();
 
-        coalesce(registers);
+        //coalesce(registers);
         while (!color()) {
             if (!coalesce(registers)) {
                 if (!freeze()) {
