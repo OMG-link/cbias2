@@ -65,14 +65,14 @@ public class IrPassManager {
     private static void runLoopPasses(Module module) {
         while (true) {
             boolean changed = false;
-//            while (ConstLoopUnrollPass.runOnModule(module)) {
-//                changed = true;
-//                runSimplifyPasses(module);
-//            }
-//            while (LoopUnrollPass.runOnModule(module)) {
-//                changed = true;
-//                runSimplifyPasses(module);
-//            }
+            while (ConstLoopUnrollPass.runOnModule(module)) {
+                changed = true;
+                runSimplifyPasses(module);
+            }
+            while (LoopUnrollPass.runOnModule(module)) {
+                changed = true;
+                runSimplifyPasses(module);
+            }
             if (!changed) break;
         }
     }
