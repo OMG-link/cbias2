@@ -2,10 +2,7 @@ package cn.edu.bit.newnewcc.backend.asm.controller;
 
 import cn.edu.bit.newnewcc.backend.asm.AsmFunction;
 import cn.edu.bit.newnewcc.backend.asm.allocator.StackAllocator;
-import cn.edu.bit.newnewcc.backend.asm.instruction.AsmCall;
-import cn.edu.bit.newnewcc.backend.asm.instruction.AsmInstruction;
-import cn.edu.bit.newnewcc.backend.asm.instruction.AsmLabel;
-import cn.edu.bit.newnewcc.backend.asm.instruction.AsmMove;
+import cn.edu.bit.newnewcc.backend.asm.instruction.*;
 import cn.edu.bit.newnewcc.backend.asm.operand.*;
 import cn.edu.bit.newnewcc.backend.asm.util.AsmInstructions;
 import cn.edu.bit.newnewcc.backend.asm.util.Pair;
@@ -333,13 +330,18 @@ public class GraphColoringRegisterControl extends RegisterControl {
             }
         }
         lifeTimeController.mergePoints(u, v);
-        for (var point : lifeTimeController.getPoints(u)) {
+        for (var point : Set.copyOf(lifeTimeController.getPoints(u))) {
             var inst = point.getIndex().getSourceInst();
             if (inst instanceof AsmMove iMove) {
                 var regs = AsmInstructions.getMoveReg(iMove);
                 if (regs.a.equals(regs.b)) {
-                    inst.setOperand(1, IntRegister.ZERO);
-                    inst.setOperand(2, IntRegister.ZERO);
+                    lifeTimeController.removeLifeTimePoint(u, point);
+                    if (lifeTimeController.containsInst(inst)) {
+                        int idx = lifeTimeController.getInstID(inst);
+                        var nop = new AsmNop();
+                        lifeTimeController.replaceInst(inst, nop);
+                        instList.set(idx, nop);
+                    }
                 }
             }
         }
