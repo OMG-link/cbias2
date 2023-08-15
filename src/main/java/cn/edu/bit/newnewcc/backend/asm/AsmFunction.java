@@ -3,7 +3,9 @@ package cn.edu.bit.newnewcc.backend.asm;
 import cn.edu.bit.newnewcc.backend.asm.allocator.AddressAllocator;
 import cn.edu.bit.newnewcc.backend.asm.allocator.RegisterAllocator;
 import cn.edu.bit.newnewcc.backend.asm.allocator.StackAllocator;
-import cn.edu.bit.newnewcc.backend.asm.controller.*;
+import cn.edu.bit.newnewcc.backend.asm.controller.GraphColoringRegisterControl;
+import cn.edu.bit.newnewcc.backend.asm.controller.LifeTimeController;
+import cn.edu.bit.newnewcc.backend.asm.controller.RegisterControl;
 import cn.edu.bit.newnewcc.backend.asm.instruction.*;
 import cn.edu.bit.newnewcc.backend.asm.operand.*;
 import cn.edu.bit.newnewcc.backend.asm.optimizer.OptimizerManager;
@@ -20,6 +22,7 @@ import cn.edu.bit.newnewcc.ir.value.constant.ConstBool;
 import cn.edu.bit.newnewcc.ir.value.constant.ConstFloat;
 import cn.edu.bit.newnewcc.ir.value.constant.ConstInt;
 import cn.edu.bit.newnewcc.ir.value.constant.ConstLong;
+import cn.edu.bit.newnewcc.pass.ir.structure.I32ValueRangeAnalyzer;
 
 import java.util.*;
 import java.util.function.Consumer;
@@ -267,6 +270,7 @@ public class AsmFunction {
         appendInstruction.accept(new AsmLoad(tmp, new MemoryAddress(0, rAddress), 32));
         return tmp;
     }
+
     public IntRegister transConstLong(long value, Consumer<AsmInstruction> appendInstruction) {
         var constantLong = globalCode.getConstLong(value);
         IntRegister rAddress = registerAllocator.allocateInt();
@@ -294,6 +298,8 @@ public class AsmFunction {
     public void emitCode() {
         //生成具体函数的汇编代码
         if (baseFunction instanceof Function function) {
+            var rangeAnalyzer = I32ValueRangeAnalyzer.analysis(function);
+
             var functionParameterList = function.getFormalParameters();
             for (var i = 0; i < functionParameterList.size(); i++) {
                 formalParameterMap.put(functionParameterList.get(i), formalParameters.get(i));
@@ -307,7 +313,7 @@ public class AsmFunction {
             queue.add(startBlock);
             while (!queue.isEmpty()) {
                 BasicBlock nowBlock = queue.remove();
-                AsmBasicBlock asmBasicBlock = new AsmBasicBlock(this, nowBlock);
+                AsmBasicBlock asmBasicBlock = new AsmBasicBlock(this, nowBlock, rangeAnalyzer);
                 basicBlocks.add(asmBasicBlock);
                 basicBlockMap.put(nowBlock, asmBasicBlock);
                 asmLabelToBasicBlockMap.put(asmBasicBlock.getInstBlockLabel(), nowBlock);
@@ -477,7 +483,7 @@ public class AsmFunction {
                 if (!(formalParam instanceof ExStackVarContent)) {
                     throw new RuntimeException("formal parameter in wrong place");
                 }
-                stackAllocator.pushBack((StackVar)formalParam);
+                stackAllocator.pushBack((StackVar) formalParam);
             }
 
             //将参数存储到形参对应位置

@@ -10,12 +10,22 @@ import cn.edu.bit.newnewcc.ir.exception.IllegalArgumentException;
 import cn.edu.bit.newnewcc.ir.type.FloatType;
 import cn.edu.bit.newnewcc.ir.type.IntegerType;
 import cn.edu.bit.newnewcc.ir.type.PointerType;
-import cn.edu.bit.newnewcc.ir.value.*;
-import cn.edu.bit.newnewcc.ir.value.constant.*;
+import cn.edu.bit.newnewcc.ir.value.BaseFunction;
+import cn.edu.bit.newnewcc.ir.value.BasicBlock;
+import cn.edu.bit.newnewcc.ir.value.Constant;
+import cn.edu.bit.newnewcc.ir.value.Instruction;
+import cn.edu.bit.newnewcc.ir.value.constant.ConstArray;
+import cn.edu.bit.newnewcc.ir.value.constant.ConstInt;
+import cn.edu.bit.newnewcc.ir.value.constant.ConstInteger;
+import cn.edu.bit.newnewcc.ir.value.constant.ConstLong;
 import cn.edu.bit.newnewcc.ir.value.instruction.*;
+import cn.edu.bit.newnewcc.pass.ir.structure.I32ValueRangeAnalyzer;
 
 import java.math.BigInteger;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import static java.lang.Math.abs;
 
@@ -27,12 +37,14 @@ public class AsmBasicBlock {
     private final Label blockLabel;
     private final AsmLabel instBlockLabel;
     private final AsmFunction function;
+    private final I32ValueRangeAnalyzer rangeAnalyzer;
     private final BasicBlock irBlock;
     private final Map<BasicBlock, List<AsmInstruction>> phiOperation = new HashMap<>();
     private final Map<BasicBlock, Map<Value, List<Register>>> phiValueMap = new HashMap<>();
 
-    public AsmBasicBlock(AsmFunction function, BasicBlock block) {
+    public AsmBasicBlock(AsmFunction function, BasicBlock block, I32ValueRangeAnalyzer rangeAnalyzer) {
         this.function = function;
+        this.rangeAnalyzer = rangeAnalyzer;
         this.blockLabel = new Label(function.getFunctionName() + "_" + block.getValueName(), false);
         this.irBlock = block;
         this.instBlockLabel = new AsmLabel(blockLabel);
@@ -168,18 +180,31 @@ public class AsmBasicBlock {
     }
 
     private void translateIntegerSignedRemainderInst(IntegerSignedRemainderInst integerSignedRemainderInst) {
-        if (integerSignedRemainderInst.getOperand2() instanceof ConstInt) {
-            var a = integerSignedRemainderInst.getOperand1();
-            var b = integerSignedRemainderInst.getOperand2();
-            var inst1 = new IntegerSignedDivideInst(integerSignedRemainderInst.getType(), a, b);
-            var inst2 = new IntegerMultiplyInst(integerSignedRemainderInst.getType(), inst1, b);
-            var inst3 = new IntegerSubInst(integerSignedRemainderInst.getType(), a, inst2);
-            translate(inst1);
-            translate(inst2);
-            translate(inst3);
-            var inst3Reg = function.getRegisterAllocator().get(inst3);
-            var finalReg = function.getRegisterAllocator().allocate(integerSignedRemainderInst);
-            function.appendInstruction(new AsmMove(finalReg, inst3Reg));
+        if (integerSignedRemainderInst.getOperand2() instanceof ConstInt constInt) {
+            if (rangeAnalyzer.getValueRangeAtBlock(
+                    integerSignedRemainderInst.getOperand1(), integerSignedRemainderInst.getBasicBlock()
+            ).minValue() >= 0 && Utility.isPowerOf2(constInt.getValue())) {
+                var mask = constInt.getValue() - 1;
+                var reg1 = (IntRegister) function.getValueToRegister(integerSignedRemainderInst.getOperand1());
+                var finalReg = (IntRegister) function.getRegisterAllocator().allocate(integerSignedRemainderInst);
+                var immMask = function.getValue(ConstInt.getInstance(mask));
+                function.appendInstruction(new AsmAnd(finalReg, reg1, immMask));
+            } else {
+                var a = integerSignedRemainderInst.getOperand1();
+                var b = integerSignedRemainderInst.getOperand2();
+                var inst1 = new IntegerSignedDivideInst(integerSignedRemainderInst.getType(), a, b);
+                var inst2 = new IntegerMultiplyInst(integerSignedRemainderInst.getType(), inst1, b);
+                var inst3 = new IntegerSubInst(integerSignedRemainderInst.getType(), a, inst2);
+                inst1.insertBefore(integerSignedRemainderInst);
+                inst2.insertBefore(integerSignedRemainderInst);
+                inst3.insertBefore(integerSignedRemainderInst);
+                translate(inst1);
+                translate(inst2);
+                translate(inst3);
+                var inst3Reg = function.getRegisterAllocator().get(inst3);
+                var finalReg = function.getRegisterAllocator().allocate(integerSignedRemainderInst);
+                function.appendInstruction(new AsmMove(finalReg, inst3Reg));
+            }
         } else {
             int bitLength = integerSignedRemainderInst.getType().getBitWidth();
             var divx = function.getOperandToIntRegister(function.getValue(integerSignedRemainderInst.getOperand1()));
@@ -243,90 +268,12 @@ public class AsmBasicBlock {
 
     private void translateIntegerSignedDivideInst(IntegerSignedDivideInst integerSignedDivideInst) {
         if (integerSignedDivideInst.getOperand2() instanceof ConstInt constI32Divisor) {
-            int divisor = abs(constI32Divisor.getValue());
-            IntRegister regAns;
-            // 除数小于0时，regAns得到的不是真正的答案，不能用instruction去allocate
-            if (constI32Divisor.getValue() < 0) {
-                regAns = function.getRegisterAllocator().allocateInt();
+            if (rangeAnalyzer.getValueRangeAtBlock(
+                    integerSignedDivideInst.getOperand1(), integerSignedDivideInst.getBasicBlock()
+            ).minValue() >= 0 && constI32Divisor.getValue() >= 0) {
+                translateUnsignedConstIntDivideInst(integerSignedDivideInst, constI32Divisor);
             } else {
-                regAns = (IntRegister) function.getRegisterAllocator().allocate(integerSignedDivideInst);
-            }
-            if (Utility.isPowerOf2(divisor)) {
-                int x = Utility.log2(divisor);
-                if (x == 0) {
-                    var tmp = function.getValueToRegister(integerSignedDivideInst.getOperand1());
-                    var result = function.getRegisterAllocator().allocateInt(integerSignedDivideInst);
-                    function.appendInstruction(new AsmLoad(result, tmp));
-                } else if (x >= 1 && x <= 30) {
-                    var src = (IntRegister) function.getValueToRegister(integerSignedDivideInst.getOperand1());
-                    var reg1 = function.getRegisterAllocator().allocateInt();
-                    var reg2 = function.getRegisterAllocator().allocateInt();
-                    var imm64SubX = function.getValue(ConstInt.getInstance(64 - x));
-                    var immX = function.getValue(ConstInt.getInstance(x));
-                    // %1 = srli %src, #(64-x)
-                    // %2 = addw %src, %1
-                    // %ans = sraiw %2, #x
-                    function.appendInstruction(new AsmShiftRightLogical(reg1, src, imm64SubX, 64));
-                    function.appendInstruction(new AsmAdd(reg2, src, reg1, 32));
-                    function.appendInstruction(new AsmShiftRightArithmetic(regAns, reg2, immX, 32));
-                }
-            } else {
-                int l = Utility.log2(divisor);
-                int sh = l;
-                var temp = new BigInteger("1");
-                long low = temp.shiftLeft(32 + l).divide(BigInteger.valueOf(divisor)).longValue();
-                long high = temp.shiftLeft(32 + l).add(temp.shiftLeft(l + 1)).divide(BigInteger.valueOf(divisor)).longValue();
-                while (((low / 2) < (high / 2)) && sh > 0) {
-                    low /= 2;
-                    high /= 2;
-                    sh--;
-                }
-                if (high < (1L << 31)) {
-                    var src = (IntRegister) function.getValueToRegister(integerSignedDivideInst.getOperand1());
-                    var reg1 = function.getRegisterAllocator().allocateInt();
-                    var reg2 = function.getRegisterAllocator().allocateInt();
-                    var reg3 = function.getRegisterAllocator().allocateInt();
-                    var immHigh = function.getValue(ConstLong.getInstance(high));
-                    var imm32PlusSh = function.getValue(ConstInt.getInstance(32 + sh));
-                    var imm31 = function.getValue(ConstInt.getInstance(31));
-                    // %1 = mul %src, #high
-                    // %2 = srai %1, #(32+sh)
-                    // %3 = sraiw %src, #31
-                    // %ans = subw %2, %3
-                    function.appendInstruction(new AsmMul(reg1, src, function.getOperandToIntRegister(immHigh), 64));
-                    function.appendInstruction(new AsmShiftRightArithmetic(reg2, reg1, imm32PlusSh, 64));
-                    function.appendInstruction(new AsmShiftRightArithmetic(reg3, src, imm31, 32));
-                    function.appendInstruction(new AsmSub(regAns, reg2, reg3, 32));
-                } else {
-                    high = high - (1L << 32);
-                    var src = (IntRegister) function.getValueToRegister(integerSignedDivideInst.getOperand1());
-                    var reg1 = function.getRegisterAllocator().allocateInt();
-                    var reg2 = function.getRegisterAllocator().allocateInt();
-                    var reg3 = function.getRegisterAllocator().allocateInt();
-                    var reg4 = function.getRegisterAllocator().allocateInt();
-                    var reg5 = function.getRegisterAllocator().allocateInt();
-                    var immHigh = function.getValue(ConstLong.getInstance(high));
-                    var imm32 = function.getValue(ConstInt.getInstance(32));
-                    var immSh = function.getValue(ConstInt.getInstance(sh));
-                    var imm31 = function.getValue(ConstInt.getInstance(31));
-                    // %1 = mul %src, #high
-                    // %2 = srai %1, #32
-                    // %3 = addw %2, %src
-                    // %4 = sariw %3, #sh
-                    // %5 = sariw %src, #31
-                    // %ans = subw %4, %5
-                    function.appendInstruction(new AsmMul(reg1, src, function.getOperandToIntRegister(immHigh), 64));
-                    function.appendInstruction(new AsmShiftRightArithmetic(reg2, reg1, imm32, 64));
-                    function.appendInstruction(new AsmAdd(reg3, reg2, src, 32));
-                    function.appendInstruction(new AsmShiftRightArithmetic(reg4, reg3, immSh, 32));
-                    function.appendInstruction(new AsmShiftRightArithmetic(reg5, src, imm31, 32));
-                    function.appendInstruction(new AsmSub(regAns, reg4, reg5, 32));
-                }
-            }
-            if (constI32Divisor.getValue() < 0) {
-                var regActualAns = (IntRegister) function.getRegisterAllocator().allocate(integerSignedDivideInst);
-                var imm0 = function.getValue(ConstInt.getInstance(0));
-                function.appendInstruction(new AsmSub(regActualAns, function.getOperandToIntRegister(imm0), regAns, 32));
+                translateSignedConstIntDivideInst(integerSignedDivideInst, constI32Divisor);
             }
             return;
         }
@@ -336,6 +283,161 @@ public class AsmBasicBlock {
         var divy = function.getOperandToIntRegister(function.getValue(integerSignedDivideInst.getOperand2()));
         IntRegister register = function.getRegisterAllocator().allocateInt(integerSignedDivideInst);
         function.appendInstruction(new AsmSignedIntegerDivide(register, divx, divy, bitLength));
+    }
+
+    private void translateUnsignedConstIntDivideInst(IntegerSignedDivideInst integerUnsignedDivideInst, ConstInt constI32Divisor) {
+        int divisor = constI32Divisor.getValue();
+        IntRegister regAns = (IntRegister) function.getRegisterAllocator().allocate(integerUnsignedDivideInst);
+        if (Utility.isPowerOf2(divisor)) {
+            int x = Utility.log2(divisor);
+            if (x == 0) {
+                var tmp = function.getValueToRegister(integerUnsignedDivideInst.getOperand1());
+                var result = function.getRegisterAllocator().allocateInt(integerUnsignedDivideInst);
+                function.appendInstruction(new AsmLoad(result, tmp));
+            } else if (x >= 1 && x <= 30) {
+                var src = (IntRegister) function.getValueToRegister(integerUnsignedDivideInst.getOperand1());
+                var immX = function.getValue(ConstInt.getInstance(x));
+                // %ans = srliw %src, #x
+                function.appendInstruction(new AsmShiftRightLogical(regAns, src, immX, 32));
+            }
+        } else {
+            int l = Utility.log2(divisor);
+            int sh = l;
+            var temp = new BigInteger("1");
+            long low = temp.shiftLeft(32 + l).divide(BigInteger.valueOf(divisor)).longValue();
+            long high = temp.shiftLeft(32 + l).add(temp.shiftLeft(l + 1)).divide(BigInteger.valueOf(divisor)).longValue();
+            while (((low / 2) < (high / 2)) && sh > 0) {
+                low /= 2;
+                high /= 2;
+                sh--;
+            }
+            if (high < (1L << 31)) {
+                var src = (IntRegister) function.getValueToRegister(integerUnsignedDivideInst.getOperand1());
+                var reg1 = function.getRegisterAllocator().allocateInt();
+                var reg2 = function.getRegisterAllocator().allocateInt();
+                var immL = function.getValue(ConstInt.getInstance(l));
+                var immHigh = function.getValue(ConstLong.getInstance(high));
+                var imm32PlusSh = function.getValue(ConstInt.getInstance(32 + sh));
+                // %1 = srliw %src, #l
+                // %2 = mul %1, #high
+                // %ans = srli %2 #(32+sh)
+                function.appendInstruction(new AsmShiftRightLogical(reg1, src, immL, 32));
+                function.appendInstruction(new AsmMul(reg2, reg1, function.getOperandToIntRegister(immHigh), 64));
+                function.appendInstruction(new AsmShiftRightLogical(regAns, reg2, imm32PlusSh, 64));
+            } else {
+                high = high - (1L << 32);
+                var src = (IntRegister) function.getValueToRegister(integerUnsignedDivideInst.getOperand1());
+                var reg1 = function.getRegisterAllocator().allocateInt();
+                var reg2 = function.getRegisterAllocator().allocateInt();
+                var reg3 = function.getRegisterAllocator().allocateInt();
+                var reg4 = function.getRegisterAllocator().allocateInt();
+                var reg5 = function.getRegisterAllocator().allocateInt();
+                var immHigh = function.getValue(ConstLong.getInstance(high));
+                var imm32 = function.getValue(ConstInt.getInstance(32));
+                var imm1 = function.getValue(ConstInt.getInstance(1));
+                var immShMinus1 = function.getValue(ConstInt.getInstance(sh - 1));
+                // %1 = mul %src, #high
+                // %2 = srli %1, #32
+                // %3 = subw %src, %2
+                // %4 = srliw %3, #1
+                // %5 = addw %4, %2
+                // %ans = srlw %5, #(sh-1)
+                function.appendInstruction(new AsmMul(reg1, src, function.getOperandToIntRegister(immHigh), 64));
+                function.appendInstruction(new AsmShiftRightLogical(reg2, reg1, imm32, 64));
+                function.appendInstruction(new AsmSub(reg3, src, reg2, 64));
+                function.appendInstruction(new AsmShiftRightLogical(reg4, reg3, imm1, 32));
+                function.appendInstruction(new AsmAdd(reg5, reg4, reg2, 32));
+                function.appendInstruction(new AsmShiftRightLogical(regAns, reg5, immShMinus1, 32));
+            }
+        }
+    }
+
+    private void translateSignedConstIntDivideInst(IntegerSignedDivideInst integerSignedDivideInst, ConstInt constI32Divisor) {
+        int divisor = abs(constI32Divisor.getValue());
+        IntRegister regAns;
+        // 除数小于0时，regAns得到的不是真正的答案，不能用instruction去allocate
+        if (constI32Divisor.getValue() < 0) {
+            regAns = function.getRegisterAllocator().allocateInt();
+        } else {
+            regAns = (IntRegister) function.getRegisterAllocator().allocate(integerSignedDivideInst);
+        }
+        if (Utility.isPowerOf2(divisor)) {
+            int x = Utility.log2(divisor);
+            if (x == 0) {
+                var tmp = function.getValueToRegister(integerSignedDivideInst.getOperand1());
+                var result = function.getRegisterAllocator().allocateInt(integerSignedDivideInst);
+                function.appendInstruction(new AsmLoad(result, tmp));
+            } else if (x >= 1 && x <= 30) {
+                var src = (IntRegister) function.getValueToRegister(integerSignedDivideInst.getOperand1());
+                var reg1 = function.getRegisterAllocator().allocateInt();
+                var reg2 = function.getRegisterAllocator().allocateInt();
+                var imm64SubX = function.getValue(ConstInt.getInstance(64 - x));
+                var immX = function.getValue(ConstInt.getInstance(x));
+                // %1 = srli %src, #(64-x)
+                // %2 = addw %src, %1
+                // %ans = sraiw %2, #x
+                function.appendInstruction(new AsmShiftRightLogical(reg1, src, imm64SubX, 64));
+                function.appendInstruction(new AsmAdd(reg2, src, reg1, 32));
+                function.appendInstruction(new AsmShiftRightArithmetic(regAns, reg2, immX, 32));
+            }
+        } else {
+            int l = Utility.log2(divisor);
+            int sh = l;
+            var temp = new BigInteger("1");
+            long low = temp.shiftLeft(32 + l).divide(BigInteger.valueOf(divisor)).longValue();
+            long high = temp.shiftLeft(32 + l).add(temp.shiftLeft(l + 1)).divide(BigInteger.valueOf(divisor)).longValue();
+            while (((low / 2) < (high / 2)) && sh > 0) {
+                low /= 2;
+                high /= 2;
+                sh--;
+            }
+            if (high < (1L << 31)) {
+                var src = (IntRegister) function.getValueToRegister(integerSignedDivideInst.getOperand1());
+                var reg1 = function.getRegisterAllocator().allocateInt();
+                var reg2 = function.getRegisterAllocator().allocateInt();
+                var reg3 = function.getRegisterAllocator().allocateInt();
+                var immHigh = function.getValue(ConstLong.getInstance(high));
+                var imm32PlusSh = function.getValue(ConstInt.getInstance(32 + sh));
+                var imm31 = function.getValue(ConstInt.getInstance(31));
+                // %1 = mul %src, #high
+                // %2 = srai %1, #(32+sh)
+                // %3 = sraiw %src, #31
+                // %ans = subw %2, %3
+                function.appendInstruction(new AsmMul(reg1, src, function.getOperandToIntRegister(immHigh), 64));
+                function.appendInstruction(new AsmShiftRightArithmetic(reg2, reg1, imm32PlusSh, 64));
+                function.appendInstruction(new AsmShiftRightArithmetic(reg3, src, imm31, 32));
+                function.appendInstruction(new AsmSub(regAns, reg2, reg3, 32));
+            } else {
+                high = high - (1L << 32);
+                var src = (IntRegister) function.getValueToRegister(integerSignedDivideInst.getOperand1());
+                var reg1 = function.getRegisterAllocator().allocateInt();
+                var reg2 = function.getRegisterAllocator().allocateInt();
+                var reg3 = function.getRegisterAllocator().allocateInt();
+                var reg4 = function.getRegisterAllocator().allocateInt();
+                var reg5 = function.getRegisterAllocator().allocateInt();
+                var immHigh = function.getValue(ConstLong.getInstance(high));
+                var imm32 = function.getValue(ConstInt.getInstance(32));
+                var immSh = function.getValue(ConstInt.getInstance(sh));
+                var imm31 = function.getValue(ConstInt.getInstance(31));
+                // %1 = mul %src, #high
+                // %2 = srai %1, #32
+                // %3 = addw %2, %src
+                // %4 = sariw %3, #sh
+                // %5 = sariw %src, #31
+                // %ans = subw %4, %5
+                function.appendInstruction(new AsmMul(reg1, src, function.getOperandToIntRegister(immHigh), 64));
+                function.appendInstruction(new AsmShiftRightArithmetic(reg2, reg1, imm32, 64));
+                function.appendInstruction(new AsmAdd(reg3, reg2, src, 32));
+                function.appendInstruction(new AsmShiftRightArithmetic(reg4, reg3, immSh, 32));
+                function.appendInstruction(new AsmShiftRightArithmetic(reg5, src, imm31, 32));
+                function.appendInstruction(new AsmSub(regAns, reg4, reg5, 32));
+            }
+        }
+        if (constI32Divisor.getValue() < 0) {
+            var regActualAns = (IntRegister) function.getRegisterAllocator().allocate(integerSignedDivideInst);
+            var imm0 = function.getValue(ConstInt.getInstance(0));
+            function.appendInstruction(new AsmSub(regActualAns, function.getOperandToIntRegister(imm0), regAns, 32));
+        }
     }
 
     private void translateCompareInst(CompareInst compareInst) {
