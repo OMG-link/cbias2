@@ -17,6 +17,7 @@ public class OptimizerManager {
         new BranchEliminationOptimizer().runOn(function);
         new DeadBlockEliminationOptimizer().runOn(function);
         new BlockInlineOptimizer(20).runOn(function);
+        new DeadInstructionEliminationOptimizer().runOn(function);
         new DeadBlockEliminationOptimizer().runOn(function);
         new RedundantLabelEliminationOptimizer().runOn(function);
     }
