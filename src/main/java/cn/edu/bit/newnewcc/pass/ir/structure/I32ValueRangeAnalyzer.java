@@ -54,6 +54,20 @@ public class I32ValueRangeAnalyzer {
             return result;
         }
 
+        private static I32ValueRange of(Value value, BasicBlock block, I32ValueRangeAnalyzer helper) {
+            if (!(value.getType() == IntegerType.getI32())) {
+                throw new IllegalArgumentException();
+            }
+            if (helper != null && helper.hasValueRangeSolved(value)) {
+                return helper.getValueRangeAtBlock(value, block);
+            }
+            I32ValueRange result = calculateI32ValueRange(value, helper);
+            if (helper != null) {
+                helper.setValueRange(value, result);
+            }
+            return result;
+        }
+
         private static I32ValueRange calculateI32ValueRange(Value value, I32ValueRangeAnalyzer helper) {
             I32ValueRange result;
             if (value instanceof Constant) {
@@ -63,8 +77,8 @@ public class I32ValueRangeAnalyzer {
                     throw new RuntimeException("Unexpected type of i32 constant.");
                 }
             } else if (value instanceof IntegerArithmeticInst integerArithmeticInst) {
-                I32ValueRange range1 = I32ValueRange.of(integerArithmeticInst.getOperand1(), helper);
-                I32ValueRange range2 = I32ValueRange.of(integerArithmeticInst.getOperand2(), helper);
+                I32ValueRange range1 = I32ValueRange.of(integerArithmeticInst.getOperand1(), integerArithmeticInst.getBasicBlock(), helper);
+                I32ValueRange range2 = I32ValueRange.of(integerArithmeticInst.getOperand2(), integerArithmeticInst.getBasicBlock(), helper);
                 if (integerArithmeticInst instanceof IntegerAddInst) {
                     int minValue;
                     try {
