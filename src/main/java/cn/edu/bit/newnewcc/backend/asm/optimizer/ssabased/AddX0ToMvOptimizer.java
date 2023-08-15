@@ -27,7 +27,12 @@ public class AddX0ToMvOptimizer implements ISSABasedOptimizer {
 
     @Override
     public OptimizeResult getReplacement(SSABasedOptimizer ssaBasedOptimizer, AsmInstruction instruction) {
-        if (instruction instanceof AsmAdd asmAdd) {
+        if (instruction instanceof AsmAdd asmAdd &&
+                (asmAdd.getOpcode() == AsmAdd.Opcode.ADD ||
+                        asmAdd.getOpcode() == AsmAdd.Opcode.ADDI ||
+                        asmAdd.getOpcode() == AsmAdd.Opcode.ADDW ||
+                        asmAdd.getOpcode() == AsmAdd.Opcode.ADDIW
+                )) {
             var tryResult1 = tryOptimize(
                     ssaBasedOptimizer,
                     (IntRegister) asmAdd.getOperand(1),
