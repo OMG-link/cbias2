@@ -1,10 +1,9 @@
 package cn.edu.bit.newnewcc.backend.asm.optimizer;
 
 import cn.edu.bit.newnewcc.backend.asm.AsmFunction;
-import cn.edu.bit.newnewcc.backend.asm.instruction.AsmBlockEnd;
-import cn.edu.bit.newnewcc.backend.asm.instruction.AsmInstruction;
-import cn.edu.bit.newnewcc.backend.asm.instruction.AsmLabel;
-import cn.edu.bit.newnewcc.backend.asm.instruction.AsmMove;
+import cn.edu.bit.newnewcc.backend.asm.instruction.*;
+import cn.edu.bit.newnewcc.backend.asm.operand.AsmOperand;
+import cn.edu.bit.newnewcc.backend.asm.operand.Immediate;
 import cn.edu.bit.newnewcc.backend.asm.operand.Register;
 import cn.edu.bit.newnewcc.backend.asm.operand.RegisterReplaceable;
 import cn.edu.bit.newnewcc.backend.asm.util.AsmInstructions;
@@ -44,6 +43,31 @@ public class SSABasedOptimizer implements Optimizer {
      */
     public AsmInstruction getValueSource(Register register) {
         return valueSourceMap.get(register);
+    }
+
+    public boolean isConstIntOperand(AsmOperand asmOperand) {
+        if (asmOperand instanceof Immediate) return true;
+        if (asmOperand instanceof Register register) {
+            if (getValueSource(register) instanceof AsmLoad asmLoad) {
+                return asmLoad.getOpcode() == AsmLoad.Opcode.LI;
+            }
+        }
+        return false;
+    }
+
+    public Integer getConstIntValueFromOperand(AsmOperand asmOperand) {
+        if (!isConstIntOperand(asmOperand)) return null;
+        if (asmOperand instanceof Immediate immediate) return immediate.getValue();
+        if (asmOperand instanceof Register register) {
+            if (getValueSource(register) instanceof AsmLoad asmLoad) {
+                if (asmLoad.getOpcode() == AsmLoad.Opcode.LI) {
+                    var immediate = (Immediate) asmLoad.getOperand(2);
+                    return immediate.getValue();
+                }
+            }
+        }
+        // 函数开头已经通过了检查，运行到此处说明检查方式和获取方式中至少有一处不对应
+        throw new RuntimeException("Unable to get const value from this operand.");
     }
 
     private AsmInstruction breakThroughMove(AsmMove asmMove) {

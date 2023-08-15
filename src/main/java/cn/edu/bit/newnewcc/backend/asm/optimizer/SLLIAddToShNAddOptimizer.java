@@ -5,7 +5,6 @@ import cn.edu.bit.newnewcc.backend.asm.instruction.AsmInstruction;
 import cn.edu.bit.newnewcc.backend.asm.instruction.AsmShiftLeft;
 import cn.edu.bit.newnewcc.backend.asm.instruction.AsmShiftLeftAdd;
 import cn.edu.bit.newnewcc.backend.asm.operand.AsmOperand;
-import cn.edu.bit.newnewcc.backend.asm.operand.Immediate;
 import cn.edu.bit.newnewcc.backend.asm.operand.IntRegister;
 import cn.edu.bit.newnewcc.backend.asm.operand.Register;
 import org.antlr.v4.runtime.misc.Pair;
@@ -23,26 +22,13 @@ public class SLLIAddToShNAddOptimizer implements ISSABasedOptimizer {
         var valueSource = ssaBasedOptimizer.getValueSource(potentialShiftResultRegister);
         if (valueSource == null) return null;
         if (!(valueSource instanceof AsmShiftLeft asmShiftLeft)) return null;
-        Immediate immediate = null;
-        switch (asmShiftLeft.getOpcode()) {
-            case SLL, SLLW -> {
-                return null;
-            }
-            case SLLI -> {
-                if (bitWidth != 64) return null;
-                immediate = (Immediate) asmShiftLeft.getOperand(3);
-            }
-            case SLLIW -> {
-                if (bitWidth != 32) return null;
-                immediate = (Immediate) asmShiftLeft.getOperand(3);
-            }
-        }
-        assert immediate != null;
-        if (immediate.getValue() < 1 || immediate.getValue() > 3) return null;
-        if (!(addend instanceof IntRegister) || !(asmShiftLeft.getOperand(2) instanceof IntRegister)) return null;
+        var immediateOperand = asmShiftLeft.getOperand(3);
+        if (!ssaBasedOptimizer.isConstIntOperand(immediateOperand)) return null;
+        var immediateValue = ssaBasedOptimizer.getConstIntValueFromOperand(immediateOperand);
+        if (immediateValue < 1 || immediateValue > 3) return null;
         IntRegister finalRegister = ssaBasedOptimizer.functionContext.getRegisterAllocator().allocateInt();
         AsmShiftLeftAdd asmShiftLeftAdd = new AsmShiftLeftAdd(
-                immediate.getValue(),
+                immediateValue,
                 finalRegister,
                 (IntRegister) asmShiftLeft.getOperand(2),
                 (IntRegister) addend
