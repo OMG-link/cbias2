@@ -36,7 +36,7 @@ public class I32ValueRangeAnalyzer {
 
     // 对单个语句的迭代次数限制
     private static final int HURRY_UP_THRESHOLD_INST = 100;
-    private static final int NEARLY_HURRY_THRESHOLD_INST = (int) (HURRY_UP_THRESHOLD_INITIAL * NEARLY_HURRY_PERCENTAGE);
+    private static final int NEARLY_HURRY_THRESHOLD_INST = (int) (HURRY_UP_THRESHOLD_INST * NEARLY_HURRY_PERCENTAGE);
 
     public record I32ValueRange(int minValue, int maxValue) {
 
@@ -203,9 +203,6 @@ public class I32ValueRangeAnalyzer {
                         I32ValueRange entryRange = getEntryRange(helper, phiInst.getBasicBlock(), entryBlock, entryValue);
                         minValue = min(minValue, entryRange.minValue);
                         maxValue = max(maxValue, entryRange.maxValue);
-                    } else {
-                        minValue = Integer.MIN_VALUE;
-                        maxValue = Integer.MAX_VALUE;
                     }
                 }
                 result = new I32ValueRange(minValue, maxValue);
@@ -502,14 +499,11 @@ public class I32ValueRangeAnalyzer {
             instructionUpdateCountMap.put(instruction, currentInstructionUpdateCount);
             I32ValueRange oldRange = analyzer.getValueRange(instruction);
             I32ValueRange newRange;
-            if (totalUpdateCount < HURRY_UP_THRESHOLD_INITIAL && currentInstructionUpdateCount < HURRY_UP_THRESHOLD_INST) {
+            if (totalUpdateCount < HURRY_UP_THRESHOLD_INITIAL &&
+                    currentInstructionUpdateCount < HURRY_UP_THRESHOLD_INST &&
+                    currentInstructionUpdateCount != NEARLY_HURRY_THRESHOLD_INST) {
                 totalUpdateCount++;
-                if (totalUpdateCount < NEARLY_HURRY_THRESHOLD_INITIAL + (int) (Math.random() * (HURRY_UP_THRESHOLD_INITIAL - NEARLY_HURRY_THRESHOLD_INITIAL)) &&
-                        currentInstructionUpdateCount < NEARLY_HURRY_THRESHOLD_INST + (int) (Math.random() * (HURRY_UP_THRESHOLD_INST - NEARLY_HURRY_THRESHOLD_INST))) {
-                    newRange = I32ValueRange.calculateI32ValueRange(instruction, analyzer);
-                } else {
-                    newRange = getHurryUpRange(instruction, analyzer);
-                }
+                newRange = I32ValueRange.calculateI32ValueRange(instruction, analyzer);
             } else {
                 newRange = getHurryUpRange(instruction, analyzer);
             }
