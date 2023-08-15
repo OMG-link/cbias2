@@ -21,6 +21,7 @@ public class SLLIAddToShNAddOptimizer implements ISSABasedOptimizer {
         if (!ssaBasedOptimizer.isConstIntOperand(immediateOperand)) return null;
         var immediateValue = ssaBasedOptimizer.getConstIntValueFromOperand(immediateOperand);
         if (immediateValue < 1 || immediateValue > 3) return null;
+        if (!(addend instanceof IntRegister)) return null; // addi(sll(...),constInt) 无法优化
         IntRegister finalRegister = ssaBasedOptimizer.functionContext.getRegisterAllocator().allocateInt();
         AsmShiftLeftAdd asmShiftLeftAdd = new AsmShiftLeftAdd(
                 immediateValue,
