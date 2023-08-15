@@ -66,7 +66,7 @@ public class SrslMergeOptimizer implements ISSABasedOptimizer {
                 }
                 var shiftRightLength = ((Immediate) shiftRightArithmetic.getOperand(3)).getValue();
                 if (shiftLeftLength == shiftRightLength) {
-                    long mask = (1L << shiftLeftLength) - 1;
+                    long mask = -(1L << shiftLeftLength);
                     var result = OptimizeResult.getNew();
                     var finalReg = helper.functionContext.getRegisterAllocator().allocateInt();
                     var immMask = helper.functionContext.getValue(ConstLong.getInstance(mask));
