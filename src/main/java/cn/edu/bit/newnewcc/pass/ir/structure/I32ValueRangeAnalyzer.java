@@ -541,46 +541,6 @@ public class I32ValueRangeAnalyzer {
         }
     }
 
-    private static I32ValueRange getSonRangeTrue(IntegerCompareInst integerCompareInst, Value value, RangeBuffer currentBuffer) {
-        I32ValueRange sonRangeTrue;
-        if (integerCompareInst.getOperand1() == value) {
-            sonRangeTrue = I32ValueRange.getTrueRange(
-                    integerCompareInst.getCondition(),
-                    currentBuffer.get(integerCompareInst.getOperand1()),
-                    currentBuffer.get(integerCompareInst.getOperand2())
-            );
-        } else if (integerCompareInst.getOperand2() == value) {
-            sonRangeTrue = I32ValueRange.getTrueRange(
-                    integerCompareInst.getCondition().swap(),
-                    currentBuffer.get(integerCompareInst.getOperand2()),
-                    currentBuffer.get(integerCompareInst.getOperand1())
-            );
-        } else {
-            sonRangeTrue = currentBuffer.get(value);
-        }
-        return sonRangeTrue;
-    }
-
-    private static I32ValueRange getSonRangeFalse(IntegerCompareInst integerCompareInst, Value value, RangeBuffer currentBuffer) {
-        I32ValueRange sonRangeFalse;
-        if (integerCompareInst.getOperand1() == value) {
-            sonRangeFalse = I32ValueRange.getFalseRange(
-                    integerCompareInst.getCondition(),
-                    currentBuffer.get(integerCompareInst.getOperand1()),
-                    currentBuffer.get(integerCompareInst.getOperand2())
-            );
-        } else if (integerCompareInst.getOperand2() == value) {
-            sonRangeFalse = I32ValueRange.getFalseRange(
-                    integerCompareInst.getCondition().swap(),
-                    currentBuffer.get(integerCompareInst.getOperand2()),
-                    currentBuffer.get(integerCompareInst.getOperand1())
-            );
-        } else {
-            sonRangeFalse = currentBuffer.get(value);
-        }
-        return sonRangeFalse;
-    }
-
     private static void analysisGlobally(Function function, I32ValueRangeAnalyzer analyzer) {
         Queue<Instruction> updateQueue = new LinkedList<>() {
             private final Set<Instruction> updateQueueElement = new HashSet<>();
