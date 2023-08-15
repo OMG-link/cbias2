@@ -46,7 +46,7 @@ public class AsmFunction {
     private final BaseFunction baseFunction;
     private final Register returnRegister;
 
-    MemoryAddress getAddress(AsmOperand address) {
+    public MemoryAddress getAddress(AsmOperand address) {
         java.util.function.Function<Integer, MemoryAddress> getAddress = (Integer tmpInt) -> {
             if (address instanceof MemoryAddress addressTmp) {
                 return addressTmp;
@@ -59,7 +59,7 @@ public class AsmFunction {
         return getAddress.apply(1);
     }
 
-    MemoryAddress getOperandToAddress(AsmOperand operand) {
+    public MemoryAddress getOperandToAddress(AsmOperand operand) {
         if (operand instanceof MemoryAddress address) {
             var offset = address.getOffset();
             if (ImmediateValues.bitLengthNotInLimit(offset)) {
@@ -80,7 +80,7 @@ public class AsmFunction {
         }
     }
 
-    MemoryAddress transformStackVarToAddress(StackVar stackVar) {
+    public MemoryAddress transformStackVarToAddress(StackVar stackVar) {
         IntRegister tmp = getRegisterAllocator().allocateInt();
         MemoryAddress now = stackVar.getAddress();
         IntRegister t2 = getRegisterAllocator().allocateInt();
@@ -89,12 +89,12 @@ public class AsmFunction {
         return now.withBaseRegister(tmp).setOffset(0).getAddress();
     }
 
-    Label getJumpLabel(BasicBlock jumpBlock) {
+    public Label getJumpLabel(BasicBlock jumpBlock) {
         AsmBasicBlock block = getBasicBlock(jumpBlock);
         return block.getBlockLabel();
     }
 
-    Register getValueToRegister(Value value) {
+    public Register getValueToRegister(Value value) {
         var op = getValueByType(value, value.getType());
         Register result;
         if (op instanceof Register reg) {
@@ -114,7 +114,7 @@ public class AsmFunction {
         return result;
     }
 
-    AsmOperand getValueByType(Value value, Type type) {
+    public AsmOperand getValueByType(Value value, Type type) {
         var result = getValue(value);
         if (type instanceof PointerType && result instanceof MemoryAddress address) {
             return getAddressToIntRegister(address.getAddress());
@@ -123,7 +123,7 @@ public class AsmFunction {
         }
     }
 
-    FloatRegister getOperandToFloatRegister(AsmOperand operand) {
+    public FloatRegister getOperandToFloatRegister(AsmOperand operand) {
         if (operand instanceof FloatRegister floatRegister) {
             return floatRegister;
         } else {
@@ -133,7 +133,7 @@ public class AsmFunction {
         }
     }
 
-    IntRegister getOperandToIntRegister(AsmOperand operand) {
+    public IntRegister getOperandToIntRegister(AsmOperand operand) {
         if (operand instanceof IntRegister intRegister) {
             return intRegister;
         } else if (operand instanceof MemoryAddress addressDirective) {
@@ -144,7 +144,7 @@ public class AsmFunction {
         return result;
     }
 
-    IntRegister getAddressToIntRegister(MemoryAddress address) {
+    public IntRegister getAddressToIntRegister(MemoryAddress address) {
         if (address.getOffset() == 0) {
             return address.getRegister();
         } else {
@@ -167,7 +167,7 @@ public class AsmFunction {
      * @param value ir中的value
      * @return 对应的汇编操作数
      */
-    AsmOperand getValue(Value value) {
+    public AsmOperand getValue(Value value) {
         if (value instanceof GlobalVariable globalVariable) {
             AsmGlobalVariable asmGlobalVariable = getGlobalCode().getGlobalVariable(globalVariable);
             IntRegister reg = getRegisterAllocator().allocateInt();
@@ -191,7 +191,7 @@ public class AsmFunction {
         throw new RuntimeException("Value type not found : " + value.getValueNameIR());
     }
 
-    AsmOperand getConstantVar(Constant constant, Consumer<AsmInstruction> appendInstruction) {
+    public AsmOperand getConstantVar(Constant constant, Consumer<AsmInstruction> appendInstruction) {
         if (constant instanceof ConstInt constInt) {
             var intValue = constInt.getValue();
             return getConstInt(intValue, appendInstruction);
@@ -208,7 +208,7 @@ public class AsmFunction {
         throw new RuntimeException("Constant value error");
     }
 
-    AsmOperand getConstInt(int intValue, Consumer<AsmInstruction> appendInstruction) {
+    public AsmOperand getConstInt(int intValue, Consumer<AsmInstruction> appendInstruction) {
         if (ImmediateValues.bitLengthNotInLimit(intValue)) {
             IntRegister tmp = getRegisterAllocator().allocateInt();
             appendInstruction.accept(new AsmLoad(tmp, new Immediate(intValue)));
