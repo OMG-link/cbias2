@@ -8,7 +8,7 @@ public class OptimizerManager {
             || new LI0ToX0Optimizer().runOn(function)
             || new AddX0ToMvOptimizer().runOn(function));
         new StrengthReductionOptimizer().runOn(function);
-        new SLLIAddToShNAddOptimizer().runOn(function);
+        new SSABasedOptimizer().runOn(function);
         new DeadInstructionEliminationOptimizer().runOn(function);
     }
 

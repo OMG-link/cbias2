@@ -15,12 +15,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class SLLIAddToShNAddOptimizer extends SSABasedOptimizer {
+public class SLLIAddToShNAddOptimizer implements ISSABasedOptimizer {
 
-    private Pair<List<AsmInstruction>, Map<Register, Register>> tryOptimize(
-            int bitWidth, IntRegister prevFinalRegister, AsmOperand potentialShiftOperand, AsmOperand addend) {
+    public Pair<List<AsmInstruction>, Map<Register, Register>> tryOptimize(
+            SSABasedOptimizer ssaBasedOptimizer, int bitWidth, IntRegister prevFinalRegister, AsmOperand potentialShiftOperand, AsmOperand addend) {
         if (!(potentialShiftOperand instanceof Register potentialShiftResultRegister)) return null;
-        var valueSource = getValueSource(potentialShiftResultRegister);
+        var valueSource = ssaBasedOptimizer.getValueSource(potentialShiftResultRegister);
         if (valueSource == null) return null;
         if (!(valueSource instanceof AsmShiftLeft asmShiftLeft)) return null;
         Immediate immediate = null;
@@ -40,7 +40,7 @@ public class SLLIAddToShNAddOptimizer extends SSABasedOptimizer {
         assert immediate != null;
         if (immediate.getValue() < 1 || immediate.getValue() > 3) return null;
         if (!(addend instanceof IntRegister) || !(asmShiftLeft.getOperand(2) instanceof IntRegister)) return null;
-        IntRegister finalRegister = functionContext.getRegisterAllocator().allocateInt();
+        IntRegister finalRegister = ssaBasedOptimizer.functionContext.getRegisterAllocator().allocateInt();
         AsmShiftLeftAdd asmShiftLeftAdd = new AsmShiftLeftAdd(
                 immediate.getValue(),
                 finalRegister,
@@ -55,7 +55,8 @@ public class SLLIAddToShNAddOptimizer extends SSABasedOptimizer {
     }
 
     @Override
-    protected Pair<List<AsmInstruction>, Map<Register, Register>> getReplacement(AsmInstruction instruction) {
+    public Pair<List<AsmInstruction>, Map<Register, Register>> getReplacement(
+            SSABasedOptimizer ssaBasedOptimizer, AsmInstruction instruction) {
         if (instruction instanceof AsmAdd asmAdd) {
             int bitWidth = switch (asmAdd.getOpcode()) {
                 case ADD, ADDI -> 64;
@@ -66,11 +67,12 @@ public class SLLIAddToShNAddOptimizer extends SSABasedOptimizer {
             // 检查每个加法操作数是否是由位移指令得来
             var prevFinalRegister = asmAdd.getOperand(1);
             if (!(prevFinalRegister instanceof IntRegister)) return null;
-            var tryResult1 = tryOptimize(bitWidth, (IntRegister) prevFinalRegister, asmAdd.getOperand(2), asmAdd.getOperand(3));
+            var tryResult1 = tryOptimize(ssaBasedOptimizer, bitWidth, (IntRegister) prevFinalRegister, asmAdd.getOperand(2), asmAdd.getOperand(3));
             if (tryResult1 != null) return tryResult1;
-            var tryResult2 = tryOptimize(bitWidth, (IntRegister) prevFinalRegister, asmAdd.getOperand(3), asmAdd.getOperand(2));
+            var tryResult2 = tryOptimize(ssaBasedOptimizer, bitWidth, (IntRegister) prevFinalRegister, asmAdd.getOperand(3), asmAdd.getOperand(2));
             if (tryResult2 != null) return tryResult2;
         }
         return null;
     }
+
 }

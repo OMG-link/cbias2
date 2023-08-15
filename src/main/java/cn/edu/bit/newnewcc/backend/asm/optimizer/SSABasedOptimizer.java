@@ -8,29 +8,18 @@ import cn.edu.bit.newnewcc.backend.asm.instruction.AsmMove;
 import cn.edu.bit.newnewcc.backend.asm.operand.Register;
 import cn.edu.bit.newnewcc.backend.asm.operand.RegisterReplaceable;
 import cn.edu.bit.newnewcc.backend.asm.util.AsmInstructions;
-import org.antlr.v4.runtime.misc.Pair;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public abstract class SSABasedOptimizer implements Optimizer {
+public class SSABasedOptimizer implements Optimizer {
 
     /**
      * 正在优化的函数
      */
     protected AsmFunction functionContext;
-
-    /**
-     * 获取一条指令优化后的结果(instList, finalRegisterMap) <br>
-     * instList：计算该结果所需要的新指令 <br>
-     * finalRegisterMap(regA, regB) 表示优化后，需要将regA的使用替换为regB，Map的两侧必须都是虚拟寄存器  <br>
-     *
-     * @param instruction 待优化的指令
-     * @return 若成功优化，返回二元组(instList, finalRegisterMap)；若无法优化，返回null
-     */
-    protected abstract Pair<List<AsmInstruction>, Map<Register, Register>> getReplacement(AsmInstruction instruction);
 
     private final Map<Register, Register> registerReplacementMap = new HashMap<>();
     private final Map<Register, AsmInstruction> valueSourceMap = new HashMap<>();
@@ -108,9 +97,22 @@ public abstract class SSABasedOptimizer implements Optimizer {
         }
     }
 
+    private static List<ISSABasedOptimizer> optimizerList;
+
+    private static List<ISSABasedOptimizer> getOptimizerList() {
+        if (optimizerList == null) {
+            var list = new ArrayList<ISSABasedOptimizer>();
+            list.add(new SLLIAddToShNAddOptimizer());
+            optimizerList = list;
+        }
+        return optimizerList;
+    }
+
     @Override
     public final boolean runOn(AsmFunction function) {
         functionContext = function;
+
+        var optimizerList = getOptimizerList();
 
         preprocessValueSourceMap();
 
@@ -118,16 +120,28 @@ public abstract class SSABasedOptimizer implements Optimizer {
         List<AsmInstruction> newInstrList = new ArrayList<>();
         int count = 0;
 
+        for (ISSABasedOptimizer optimizer : optimizerList) {
+            optimizer.setFunctionBegins();
+        }
         for (AsmInstruction instruction : instrList) {
-            if (!(instruction instanceof AsmLabel || instruction instanceof AsmBlockEnd)) {
-                var pair = getReplacement(instruction);
-                if (pair != null) {
-                    newInstrList.addAll(pair.a);
-                    registerReplacementMap.putAll(pair.b);
-                    count++;
+            for (ISSABasedOptimizer optimizer : optimizerList) {
+                if (instruction instanceof AsmLabel) {
+                    optimizer.setBlockBegins();
+                } else if (instruction instanceof AsmBlockEnd) {
+                    optimizer.setBlockEnds();
+                } else {
+                    var pair = optimizer.getReplacement(this, instruction);
+                    if (pair != null) {
+                        newInstrList.addAll(pair.a);
+                        registerReplacementMap.putAll(pair.b);
+                        count++;
+                    }
                 }
             }
             newInstrList.add(instruction);
+        }
+        for (ISSABasedOptimizer optimizer : optimizerList) {
+            optimizer.setFunctionEnds();
         }
 
         checkRegisterReplacementMap();
@@ -158,7 +172,7 @@ public abstract class SSABasedOptimizer implements Optimizer {
      * @param instruction 指令
      * @return 若使用了物理寄存器，返回true；否则返回false。
      */
-    protected static boolean usesPhysicalRegister(AsmInstruction instruction) {
+    public static boolean usesPhysicalRegister(AsmInstruction instruction) {
         for (int id = 1; id <= 3; id++) {
             if (instruction.getOperand(id) instanceof Register register && !register.isVirtual()) {
                 return true;
