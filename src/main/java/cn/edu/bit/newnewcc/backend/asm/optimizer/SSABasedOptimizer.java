@@ -19,7 +19,7 @@ public class SSABasedOptimizer implements Optimizer {
     /**
      * 正在优化的函数
      */
-    protected AsmFunction functionContext;
+    public AsmFunction functionContext;
 
     private final Map<Register, Register> registerReplacementMap = new HashMap<>();
     private final Map<Register, AsmInstruction> valueSourceMap = new HashMap<>();
@@ -42,7 +42,7 @@ public class SSABasedOptimizer implements Optimizer {
      * @param register 寄存器
      * @return 如果值有唯一确定的来源指令，返回来源指令；否则返回null。
      */
-    protected AsmInstruction getValueSource(Register register) {
+    public AsmInstruction getValueSource(Register register) {
         return valueSourceMap.get(register);
     }
 
@@ -158,7 +158,7 @@ public class SSABasedOptimizer implements Optimizer {
                 if (instruction.getOperand(id) instanceof RegisterReplaceable registerReplaceable) {
                     var sourceReg = registerReplaceable.getRegister();
                     if (registerReplacementMap.containsKey(sourceReg)) {
-                        var targetReg = registerReplacementMap.get(sourceReg);
+                        var targetReg = getReplacedRegister(sourceReg);
                         instruction.setOperand(id, registerReplaceable.withRegister(targetReg));
                     }
                 }
