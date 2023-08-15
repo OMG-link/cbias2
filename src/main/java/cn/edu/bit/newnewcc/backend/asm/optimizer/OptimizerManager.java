@@ -5,10 +5,9 @@ import cn.edu.bit.newnewcc.backend.asm.AsmFunction;
 public class OptimizerManager {
     public void runBeforeRegisterAllocation(AsmFunction function) {
         while (new MvX0ToLI0Optimizer().runOn(function)
-            || new LI0ToX0Optimizer().runOn(function)
-            || new AddX0ToMvOptimizer().runOn(function));
+                || new LI0ToX0Optimizer().runOn(function)
+                || new SSABasedOptimizer().runOn(function)) ;
         new StrengthReductionOptimizer().runOn(function);
-        new SSABasedOptimizer().runOn(function);
         new DeadInstructionEliminationOptimizer().runOn(function);
     }
 

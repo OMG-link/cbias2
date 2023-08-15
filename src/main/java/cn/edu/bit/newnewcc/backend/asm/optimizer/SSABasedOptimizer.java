@@ -76,6 +76,9 @@ public class SSABasedOptimizer implements Optimizer {
             if (getValueSource(register) instanceof AsmLoad asmLoad) {
                 return asmLoad.getOpcode() == AsmLoad.Opcode.LI;
             }
+            if (register.getIndex() == 0) {
+                return true;
+            }
         }
         return false;
     }
@@ -89,6 +92,9 @@ public class SSABasedOptimizer implements Optimizer {
                     var immediate = (Immediate) asmLoad.getOperand(2);
                     return immediate.getValue();
                 }
+            }
+            if (register.getIndex() == 0) {
+                return 0;
             }
         }
         // 函数开头已经通过了检查，运行到此处说明检查方式和获取方式中至少有一处不对应
@@ -152,6 +158,7 @@ public class SSABasedOptimizer implements Optimizer {
         if (optimizerList == null) {
             var list = new ArrayList<ISSABasedOptimizer>();
             list.add(new SLLIAddToShNAddOptimizer());
+            list.add(new AddX0ToMvOptimizer());
             optimizerList = list;
         }
         return optimizerList;
@@ -216,6 +223,8 @@ public class SSABasedOptimizer implements Optimizer {
 
         instrList.clear();
         instrList.addAll(newInstrList);
+
+        new DeadInstructionEliminationOptimizer().runOn(function);
 
         return count > 0;
     }
