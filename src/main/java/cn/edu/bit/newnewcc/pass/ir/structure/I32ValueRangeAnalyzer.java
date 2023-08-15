@@ -543,7 +543,6 @@ public class I32ValueRangeAnalyzer {
                 recalculateValueRange.accept(instruction.getBasicBlock());
             }
         }
-        System.out.printf("tot = %d\n", totalUpdateCount);
     }
 
     private static void analysisGlobally(Function function, I32ValueRangeAnalyzer analyzer) {
