@@ -8,12 +8,37 @@ import cn.edu.bit.newnewcc.backend.asm.operand.Register;
 import cn.edu.bit.newnewcc.backend.asm.operand.RegisterReplaceable;
 import cn.edu.bit.newnewcc.backend.asm.util.AsmInstructions;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class SSABasedOptimizer implements Optimizer {
+
+    public static class Result {
+        private final List<AsmInstruction> instructions = new ArrayList<>();
+        private final Map<Register, Register> registerMap = new HashMap<>();
+
+        private Result() {
+        }
+
+        public void addInstruction(AsmInstruction asmInstruction) {
+            instructions.add(asmInstruction);
+        }
+
+        public void addInstructions(Collection<AsmInstruction> asmInstructions) {
+            instructions.addAll(asmInstructions);
+        }
+
+        public void addRegisterMapping(Register source, Register destination) {
+            registerMap.put(source, destination);
+        }
+
+        public void addRegisterMappings(Map<Register, Register> mappings) {
+            registerMap.putAll(mappings);
+        }
+
+        public static Result getNew() {
+            return new Result();
+        }
+    }
 
     /**
      * 正在优化的函数
@@ -160,10 +185,10 @@ public class SSABasedOptimizer implements Optimizer {
                 newInstrList.add(instruction);
             } else {
                 for (ISSABasedOptimizer optimizer : optimizerList) {
-                    var pair = optimizer.getReplacement(this, instruction);
-                    if (pair != null) {
-                        newInstrList.addAll(pair.a);
-                        registerReplacementMap.putAll(pair.b);
+                    var result = optimizer.getReplacement(this, instruction);
+                    if (result != null) {
+                        newInstrList.addAll(result.instructions);
+                        registerReplacementMap.putAll(result.registerMap);
                         count++;
                     }
                 }

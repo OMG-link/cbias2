@@ -7,16 +7,10 @@ import cn.edu.bit.newnewcc.backend.asm.instruction.AsmShiftLeftAdd;
 import cn.edu.bit.newnewcc.backend.asm.operand.AsmOperand;
 import cn.edu.bit.newnewcc.backend.asm.operand.IntRegister;
 import cn.edu.bit.newnewcc.backend.asm.operand.Register;
-import org.antlr.v4.runtime.misc.Pair;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 public class SLLIAddToShNAddOptimizer implements ISSABasedOptimizer {
 
-    public Pair<List<AsmInstruction>, Map<Register, Register>> tryOptimize(
+    public SSABasedOptimizer.Result tryOptimize(
             SSABasedOptimizer ssaBasedOptimizer, IntRegister prevFinalRegister, AsmOperand potentialShiftOperand, AsmOperand addend) {
         if (!(potentialShiftOperand instanceof Register potentialShiftResultRegister)) return null;
         var valueSource = ssaBasedOptimizer.getValueSource(potentialShiftResultRegister);
@@ -33,15 +27,14 @@ public class SLLIAddToShNAddOptimizer implements ISSABasedOptimizer {
                 (IntRegister) asmShiftLeft.getOperand(2),
                 (IntRegister) addend
         );
-        var list = new ArrayList<AsmInstruction>();
-        list.add(asmShiftLeftAdd);
-        var mapping = new HashMap<Register, Register>();
-        mapping.put(prevFinalRegister, finalRegister);
-        return new Pair<>(list, mapping);
+        SSABasedOptimizer.Result result = SSABasedOptimizer.Result.getNew();
+        result.addInstruction(asmShiftLeftAdd);
+        result.addRegisterMapping(prevFinalRegister, finalRegister);
+        return result;
     }
 
     @Override
-    public Pair<List<AsmInstruction>, Map<Register, Register>> getReplacement(
+    public SSABasedOptimizer.Result getReplacement(
             SSABasedOptimizer ssaBasedOptimizer, AsmInstruction instruction) {
         if (instruction instanceof AsmAdd asmAdd) {
             int bitWidth = switch (asmAdd.getOpcode()) {

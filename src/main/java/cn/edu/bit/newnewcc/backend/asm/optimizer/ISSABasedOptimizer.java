@@ -1,11 +1,6 @@
 package cn.edu.bit.newnewcc.backend.asm.optimizer;
 
 import cn.edu.bit.newnewcc.backend.asm.instruction.AsmInstruction;
-import cn.edu.bit.newnewcc.backend.asm.operand.Register;
-import org.antlr.v4.runtime.misc.Pair;
-
-import java.util.List;
-import java.util.Map;
 
 public interface ISSABasedOptimizer {
 
@@ -17,8 +12,7 @@ public interface ISSABasedOptimizer {
      * @param instruction 待优化的指令
      * @return 若成功优化，返回二元组(instList, finalRegisterMap)；若无法优化，返回null
      */
-    Pair<List<AsmInstruction>, Map<Register, Register>> getReplacement(
-            SSABasedOptimizer ssaBasedOptimizer, AsmInstruction instruction);
+    SSABasedOptimizer.Result getReplacement(SSABasedOptimizer ssaBasedOptimizer, AsmInstruction instruction);
 
     /**
      * 告知优化器函数开始
