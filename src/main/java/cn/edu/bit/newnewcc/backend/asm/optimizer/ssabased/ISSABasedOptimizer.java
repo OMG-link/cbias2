@@ -13,7 +13,7 @@ public interface ISSABasedOptimizer {
      * @param instruction 待优化的指令
      * @return 若成功优化，返回二元组(instList, finalRegisterMap)；若无法优化，返回null
      */
-    SSABasedOptimizer.Result getReplacement(SSABasedOptimizer ssaBasedOptimizer, AsmInstruction instruction);
+    OptimizeResult getReplacement(SSABasedOptimizer ssaBasedOptimizer, AsmInstruction instruction);
 
     /**
      * 告知优化器函数开始

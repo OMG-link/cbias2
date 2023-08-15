@@ -10,12 +10,12 @@ import cn.edu.bit.newnewcc.backend.asm.optimizer.SSABasedOptimizer;
 
 public class AddX0ToMvOptimizer implements ISSABasedOptimizer {
 
-    private SSABasedOptimizer.Result tryOptimize(SSABasedOptimizer ssaBasedOptimizer, IntRegister prevFinalRegister,
-                                                 AsmOperand addend1, AsmOperand addend2) {
+    private OptimizeResult tryOptimize(SSABasedOptimizer ssaBasedOptimizer, IntRegister prevFinalRegister,
+                                       AsmOperand addend1, AsmOperand addend2) {
         if (ssaBasedOptimizer.isConstIntOperand(addend2)) {
             var immediateValue = ssaBasedOptimizer.getConstIntValueFromOperand(addend2);
             if (immediateValue == 0) {
-                var result = SSABasedOptimizer.Result.getNew();
+                var result = OptimizeResult.getNew();
                 var newFinalRegister = ssaBasedOptimizer.functionContext.getRegisterAllocator().allocateInt();
                 result.addInstruction(new AsmMove(newFinalRegister, (Register) addend1));
                 result.addRegisterMapping(prevFinalRegister, newFinalRegister);
@@ -26,7 +26,7 @@ public class AddX0ToMvOptimizer implements ISSABasedOptimizer {
     }
 
     @Override
-    public SSABasedOptimizer.Result getReplacement(SSABasedOptimizer ssaBasedOptimizer, AsmInstruction instruction) {
+    public OptimizeResult getReplacement(SSABasedOptimizer ssaBasedOptimizer, AsmInstruction instruction) {
         if (instruction instanceof AsmAdd asmAdd) {
             var tryResult1 = tryOptimize(
                     ssaBasedOptimizer,

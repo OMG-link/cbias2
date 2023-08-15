@@ -11,7 +11,7 @@ import cn.edu.bit.newnewcc.backend.asm.optimizer.SSABasedOptimizer;
 
 public class SLLIAddToShNAddOptimizer implements ISSABasedOptimizer {
 
-    public SSABasedOptimizer.Result tryOptimize(
+    public OptimizeResult tryOptimize(
             SSABasedOptimizer ssaBasedOptimizer, IntRegister prevFinalRegister, AsmOperand potentialShiftOperand, AsmOperand addend) {
         if (!(potentialShiftOperand instanceof Register potentialShiftResultRegister)) return null;
         var valueSource = ssaBasedOptimizer.getValueSource(potentialShiftResultRegister);
@@ -28,14 +28,14 @@ public class SLLIAddToShNAddOptimizer implements ISSABasedOptimizer {
                 (IntRegister) asmShiftLeft.getOperand(2),
                 (IntRegister) addend
         );
-        SSABasedOptimizer.Result result = SSABasedOptimizer.Result.getNew();
+        OptimizeResult result = OptimizeResult.getNew();
         result.addInstruction(asmShiftLeftAdd);
         result.addRegisterMapping(prevFinalRegister, finalRegister);
         return result;
     }
 
     @Override
-    public SSABasedOptimizer.Result getReplacement(
+    public OptimizeResult getReplacement(
             SSABasedOptimizer ssaBasedOptimizer, AsmInstruction instruction) {
         if (instruction instanceof AsmAdd asmAdd) {
             int bitWidth = switch (asmAdd.getOpcode()) {
