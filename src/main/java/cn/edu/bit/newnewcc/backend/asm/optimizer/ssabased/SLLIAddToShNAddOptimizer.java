@@ -1,4 +1,4 @@
-package cn.edu.bit.newnewcc.backend.asm.optimizer;
+package cn.edu.bit.newnewcc.backend.asm.optimizer.ssabased;
 
 import cn.edu.bit.newnewcc.backend.asm.instruction.AsmAdd;
 import cn.edu.bit.newnewcc.backend.asm.instruction.AsmInstruction;
@@ -7,6 +7,7 @@ import cn.edu.bit.newnewcc.backend.asm.instruction.AsmShiftLeftAdd;
 import cn.edu.bit.newnewcc.backend.asm.operand.AsmOperand;
 import cn.edu.bit.newnewcc.backend.asm.operand.IntRegister;
 import cn.edu.bit.newnewcc.backend.asm.operand.Register;
+import cn.edu.bit.newnewcc.backend.asm.optimizer.SSABasedOptimizer;
 
 public class SLLIAddToShNAddOptimizer implements ISSABasedOptimizer {
 

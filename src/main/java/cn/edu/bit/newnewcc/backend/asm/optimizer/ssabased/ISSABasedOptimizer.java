@@ -1,6 +1,7 @@
-package cn.edu.bit.newnewcc.backend.asm.optimizer;
+package cn.edu.bit.newnewcc.backend.asm.optimizer.ssabased;
 
 import cn.edu.bit.newnewcc.backend.asm.instruction.AsmInstruction;
+import cn.edu.bit.newnewcc.backend.asm.optimizer.SSABasedOptimizer;
 
 public interface ISSABasedOptimizer {
 
