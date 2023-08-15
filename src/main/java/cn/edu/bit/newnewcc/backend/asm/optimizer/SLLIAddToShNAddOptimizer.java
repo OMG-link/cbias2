@@ -17,7 +17,7 @@ import java.util.Map;
 public class SLLIAddToShNAddOptimizer implements ISSABasedOptimizer {
 
     public Pair<List<AsmInstruction>, Map<Register, Register>> tryOptimize(
-            SSABasedOptimizer ssaBasedOptimizer, int bitWidth, IntRegister prevFinalRegister, AsmOperand potentialShiftOperand, AsmOperand addend) {
+            SSABasedOptimizer ssaBasedOptimizer, IntRegister prevFinalRegister, AsmOperand potentialShiftOperand, AsmOperand addend) {
         if (!(potentialShiftOperand instanceof Register potentialShiftResultRegister)) return null;
         var valueSource = ssaBasedOptimizer.getValueSource(potentialShiftResultRegister);
         if (valueSource == null) return null;
@@ -53,9 +53,9 @@ public class SLLIAddToShNAddOptimizer implements ISSABasedOptimizer {
             // 检查每个加法操作数是否是由位移指令得来
             var prevFinalRegister = asmAdd.getOperand(1);
             if (!(prevFinalRegister instanceof IntRegister)) return null;
-            var tryResult1 = tryOptimize(ssaBasedOptimizer, bitWidth, (IntRegister) prevFinalRegister, asmAdd.getOperand(2), asmAdd.getOperand(3));
+            var tryResult1 = tryOptimize(ssaBasedOptimizer, (IntRegister) prevFinalRegister, asmAdd.getOperand(2), asmAdd.getOperand(3));
             if (tryResult1 != null) return tryResult1;
-            var tryResult2 = tryOptimize(ssaBasedOptimizer, bitWidth, (IntRegister) prevFinalRegister, asmAdd.getOperand(3), asmAdd.getOperand(2));
+            var tryResult2 = tryOptimize(ssaBasedOptimizer, (IntRegister) prevFinalRegister, asmAdd.getOperand(3), asmAdd.getOperand(2));
             if (tryResult2 != null) return tryResult2;
         }
         return null;
