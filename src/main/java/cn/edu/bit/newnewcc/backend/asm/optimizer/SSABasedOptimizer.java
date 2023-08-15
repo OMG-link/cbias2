@@ -124,12 +124,18 @@ public class SSABasedOptimizer implements Optimizer {
             optimizer.setFunctionBegins();
         }
         for (AsmInstruction instruction : instrList) {
-            for (ISSABasedOptimizer optimizer : optimizerList) {
-                if (instruction instanceof AsmLabel) {
+            if (instruction instanceof AsmLabel) {
+                newInstrList.add(instruction);
+                for (ISSABasedOptimizer optimizer : optimizerList) {
                     optimizer.setBlockBegins();
-                } else if (instruction instanceof AsmBlockEnd) {
+                }
+            } else if (instruction instanceof AsmBlockEnd) {
+                for (ISSABasedOptimizer optimizer : optimizerList) {
                     optimizer.setBlockEnds();
-                } else {
+                }
+                newInstrList.add(instruction);
+            } else {
+                for (ISSABasedOptimizer optimizer : optimizerList) {
                     var pair = optimizer.getReplacement(this, instruction);
                     if (pair != null) {
                         newInstrList.addAll(pair.a);
@@ -137,8 +143,8 @@ public class SSABasedOptimizer implements Optimizer {
                         count++;
                     }
                 }
+                newInstrList.add(instruction);
             }
-            newInstrList.add(instruction);
         }
         for (ISSABasedOptimizer optimizer : optimizerList) {
             optimizer.setFunctionEnds();
