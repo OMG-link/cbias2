@@ -148,12 +148,12 @@ public class MemoryAccessEliminationOptimizer implements Optimizer {
                 if (records.contains(newRecord)) {
                     iterator.remove();
                     ++count;
+                } else {
+                    records.removeIf(record ->
+                        !record.getMemoryAddress().getBaseAddress().equals(newRecord.getMemoryAddress().getBaseAddress())
+                            || overlap(record.getMemoryAddress().getOffset(), record.getBitLength() / 8, newRecord.getMemoryAddress().getOffset(), newRecord.getBitLength() / 8)
+                    );
                 }
-
-                records.removeIf(record ->
-                    !record.getRegister().equals(newRecord.getRegister())
-                        || overlap(record.getMemoryAddress().getOffset(), record.getBitLength(), newRecord.getMemoryAddress().getOffset(), newRecord.getBitLength())
-                );
             }
         }
 
