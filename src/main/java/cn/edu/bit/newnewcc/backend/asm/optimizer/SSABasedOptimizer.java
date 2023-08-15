@@ -9,6 +9,7 @@ import cn.edu.bit.newnewcc.backend.asm.operand.RegisterReplaceable;
 import cn.edu.bit.newnewcc.backend.asm.optimizer.ssabased.AddX0ToMvOptimizer;
 import cn.edu.bit.newnewcc.backend.asm.optimizer.ssabased.ISSABasedOptimizer;
 import cn.edu.bit.newnewcc.backend.asm.optimizer.ssabased.SLLIAddToShNAddOptimizer;
+import cn.edu.bit.newnewcc.backend.asm.optimizer.ssabased.SrslMergeOptimizer;
 import cn.edu.bit.newnewcc.backend.asm.util.AsmInstructions;
 
 import java.util.ArrayList;
@@ -137,6 +138,7 @@ public class SSABasedOptimizer implements Optimizer {
             var list = new ArrayList<ISSABasedOptimizer>();
             list.add(new SLLIAddToShNAddOptimizer());
             list.add(new AddX0ToMvOptimizer());
+            list.add(new SrslMergeOptimizer());
             optimizerList = list;
         }
         return optimizerList;
@@ -150,14 +152,15 @@ public class SSABasedOptimizer implements Optimizer {
 
         preprocessValueSourceMap();
 
-        List<AsmInstruction> instrList = function.getInstrList();
-        List<AsmInstruction> newInstrList = new ArrayList<>();
+        List<AsmInstruction> oldInstrList = new ArrayList<>(function.getInstrList());
+        List<AsmInstruction> newInstrList = function.getInstrList();
+        newInstrList.clear();
         int count = 0;
 
         for (ISSABasedOptimizer optimizer : optimizerList) {
             optimizer.setFunctionBegins();
         }
-        for (AsmInstruction instruction : instrList) {
+        for (AsmInstruction instruction : oldInstrList) {
             if (instruction instanceof AsmLabel) {
                 newInstrList.add(instruction);
                 for (ISSABasedOptimizer optimizer : optimizerList) {
@@ -198,9 +201,6 @@ public class SSABasedOptimizer implements Optimizer {
                 }
             }
         }
-
-        instrList.clear();
-        instrList.addAll(newInstrList);
 
         new DeadInstructionEliminationOptimizer().runOn(function);
 
