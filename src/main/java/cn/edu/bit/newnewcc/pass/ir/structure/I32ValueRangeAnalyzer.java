@@ -34,6 +34,10 @@ public class I32ValueRangeAnalyzer {
     private static final int HURRY_UP_THRESHOLD_UPDATE = 1000;
     private static final int NEARLY_HURRY_THRESHOLD_UPDATE = (int) (HURRY_UP_THRESHOLD_UPDATE * NEARLY_HURRY_PERCENTAGE);
 
+    // 对单个语句的迭代次数限制
+    private static final int HURRY_UP_THRESHOLD_INST = 100;
+    private static final int NEARLY_HURRY_THRESHOLD_INST = (int) (HURRY_UP_THRESHOLD_INITIAL * NEARLY_HURRY_PERCENTAGE);
+
     public record I32ValueRange(int minValue, int maxValue) {
 
         private static I32ValueRange of(Value value) {
@@ -490,14 +494,18 @@ public class I32ValueRangeAnalyzer {
         }
         dfsDomTree.accept(domTree.getDomRoot());
         // 手动迭代更新未收敛的值
-        int updateCount = 0;
+        int totalUpdateCount = 0;
+        Map<Instruction, Integer> instructionUpdateCountMap = new HashMap<>();
         while (!updateQueue.isEmpty()) {
             var instruction = updateQueue.remove();
+            var currentInstructionUpdateCount = instructionUpdateCountMap.getOrDefault(instruction, 0) + 1;
+            instructionUpdateCountMap.put(instruction, currentInstructionUpdateCount);
             I32ValueRange oldRange = analyzer.getValueRange(instruction);
             I32ValueRange newRange;
-            if (updateCount < HURRY_UP_THRESHOLD_INITIAL) {
-                updateCount++;
-                if (updateCount < NEARLY_HURRY_THRESHOLD_INITIAL + (int) (Math.random() * (HURRY_UP_THRESHOLD_INITIAL - NEARLY_HURRY_THRESHOLD_INITIAL))) {
+            if (totalUpdateCount < HURRY_UP_THRESHOLD_INITIAL && currentInstructionUpdateCount < HURRY_UP_THRESHOLD_INST) {
+                totalUpdateCount++;
+                if (totalUpdateCount < NEARLY_HURRY_THRESHOLD_INITIAL + (int) (Math.random() * (HURRY_UP_THRESHOLD_INITIAL - NEARLY_HURRY_THRESHOLD_INITIAL)) &&
+                        currentInstructionUpdateCount < NEARLY_HURRY_THRESHOLD_INST + (int) (Math.random() * (HURRY_UP_THRESHOLD_INST - NEARLY_HURRY_THRESHOLD_INST))) {
                     newRange = I32ValueRange.calculateI32ValueRange(instruction, analyzer);
                 } else {
                     newRange = getHurryUpRange(instruction, analyzer);
@@ -524,12 +532,8 @@ public class I32ValueRangeAnalyzer {
                         }
                         var currentBuffer = analyzer.blockBufferMap.get(basicBlock);
                         var range = currentBuffer.get(instruction);
-                        if (basicBlock.getTerminateInstruction() instanceof BranchInst branchInst &&
-                                branchInst.getCondition() instanceof IntegerCompareInst integerCompareInst) {
-                        } else {
-                            for (BasicBlock domSon : domTree.getDomSons(basicBlock)) {
-                                analyzer.blockBufferMap.get(domSon).put(instruction, range);
-                            }
+                        for (BasicBlock domSon : domTree.getDomSons(basicBlock)) {
+                            analyzer.blockBufferMap.get(domSon).put(instruction, range);
                         }
                         for (BasicBlock domSon : domTree.getDomSons(basicBlock)) {
                             accept(domSon);
@@ -539,6 +543,7 @@ public class I32ValueRangeAnalyzer {
                 recalculateValueRange.accept(instruction.getBasicBlock());
             }
         }
+        System.out.printf("tot = %d\n", totalUpdateCount);
     }
 
     private static void analysisGlobally(Function function, I32ValueRangeAnalyzer analyzer) {
