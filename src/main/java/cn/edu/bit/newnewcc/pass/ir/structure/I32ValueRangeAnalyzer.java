@@ -422,17 +422,17 @@ public class I32ValueRangeAnalyzer {
             analyzer.blockBufferMap.put(basicBlock, new RangeBuffer());
         }
         // 使用队列维护待更新范围的指令
-        Queue<Instruction> updateQueue = new LinkedList<>() {
-            private final Set<Instruction> updateQueueElement = new HashSet<>();
+        Queue<Value> updateQueue = new LinkedList<>() {
+            private final Set<Value> updateQueueElement = new HashSet<>();
 
             @Override
-            public boolean add(Instruction instruction) {
-                if (updateQueueElement.contains(instruction)) return false;
-                return super.add(instruction);
+            public boolean add(Value value) {
+                if (updateQueueElement.contains(value)) return false;
+                return super.add(value);
             }
 
             @Override
-            public Instruction remove() {
+            public Value remove() {
                 var result = super.remove();
                 updateQueueElement.remove(result);
                 return result;
@@ -440,18 +440,20 @@ public class I32ValueRangeAnalyzer {
 
         };
         // 某条指令的范围被更新时，触发的事件
-        var onValueUpdated = new Consumer<Instruction>() {
+        var onValueUpdated = new Consumer<Value>() {
             @Override
-            public void accept(Instruction instruction) {
-                for (Operand usage : instruction.getUsages()) {
+            public void accept(Value value) {
+                for (Operand usage : value.getUsages()) {
                     if (usage.getInstruction().getType() == IntegerType.getI32()) {
                         updateQueue.add(usage.getInstruction());
                     } else if (usage.getInstruction() instanceof IntegerCompareInst integerCompareInst) {
-                        if (integerCompareInst.getOperand1() instanceof Instruction instruction1 && instruction1 != instruction) {
-                            updateQueue.add(instruction1);
+                        var op1 = integerCompareInst.getOperand1();
+                        var op2 = integerCompareInst.getOperand2();
+                        if ((op1 instanceof Instruction || op1 instanceof Function.FormalParameter) && op1 != value) {
+                            updateQueue.add(op1);
                         }
-                        if (integerCompareInst.getOperand2() instanceof Instruction instruction2 && instruction2 != instruction) {
-                            updateQueue.add(instruction2);
+                        if ((op2 instanceof Instruction || op2 instanceof Function.FormalParameter) && op2 != value) {
+                            updateQueue.add(op2);
                         }
                     }
                 }
@@ -495,47 +497,48 @@ public class I32ValueRangeAnalyzer {
         dfsDomTree.accept(domTree.getDomRoot());
         // 手动迭代更新未收敛的值
         int totalUpdateCount = 0;
-        Map<Instruction, Integer> instructionUpdateCountMap = new HashMap<>();
+        Map<Value, Integer> instructionUpdateCountMap = new HashMap<>();
         while (!updateQueue.isEmpty()) {
-            var instruction = updateQueue.remove();
-            var currentInstructionUpdateCount = instructionUpdateCountMap.getOrDefault(instruction, 0) + 1;
-            instructionUpdateCountMap.put(instruction, currentInstructionUpdateCount);
-            I32ValueRange oldRange = analyzer.getValueRange(instruction);
+            var value = updateQueue.remove();
+            var currentValueUpdateCount = instructionUpdateCountMap.getOrDefault(value, 0) + 1;
+            instructionUpdateCountMap.put(value, currentValueUpdateCount);
+            I32ValueRange oldRange = analyzer.getValueRange(value);
             I32ValueRange newRange;
             if (totalUpdateCount < HURRY_UP_THRESHOLD_INITIAL &&
-                    currentInstructionUpdateCount < HURRY_UP_THRESHOLD_INST &&
-                    currentInstructionUpdateCount != NEARLY_HURRY_THRESHOLD_INST) {
+                    currentValueUpdateCount < HURRY_UP_THRESHOLD_INST &&
+                    currentValueUpdateCount != NEARLY_HURRY_THRESHOLD_INST) {
                 totalUpdateCount++;
-                newRange = I32ValueRange.calculateI32ValueRange(instruction, analyzer);
+                newRange = I32ValueRange.calculateI32ValueRange(value, analyzer);
             } else {
-                newRange = getHurryUpRange(instruction, analyzer);
+                newRange = getHurryUpRange(value, analyzer);
             }
-            analyzer.setValueRange(instruction, newRange);
+            analyzer.setValueRange(value, newRange);
             AtomicBoolean isRangeUpdated = new AtomicBoolean(!Objects.equals(oldRange, newRange));
             // 更新所有块中该值的新范围，只要有一个块的值发生了改变，则认为该值的范围得到了更新
+            BasicBlock valueBasicBlock = getBlockOfValue(value);
             var recalculateValueRange = new Consumer<BasicBlock>() {
 
                 private final Map<BasicBlock, I32ValueRange> oldRangeMap = new HashMap<>();
 
                 private void spread(BasicBlock basicBlock) {
-                    if (basicBlock != instruction.getBasicBlock()) {
+                    if (basicBlock != valueBasicBlock) {
                         var minValue = Integer.MAX_VALUE;
                         var maxValue = Integer.MIN_VALUE;
                         for (BasicBlock entryBlock : basicBlock.getEntryBlocks()) {
-                            var range = I32ValueRange.getEntryRange(analyzer, basicBlock, entryBlock, instruction);
+                            var range = I32ValueRange.getEntryRange(analyzer, basicBlock, entryBlock, value);
                             minValue = min(minValue, range.minValue);
                             maxValue = max(maxValue, range.maxValue);
                         }
                         I32ValueRange newRange = new I32ValueRange(minValue, maxValue);
-                        analyzer.blockBufferMap.get(basicBlock).put(instruction, newRange);
+                        analyzer.blockBufferMap.get(basicBlock).put(value, newRange);
                         if (!Objects.equals(newRange, oldRangeMap.get(basicBlock))) {
                             isRangeUpdated.set(true);
                         }
                     }
                     var currentBuffer = analyzer.blockBufferMap.get(basicBlock);
-                    var range = currentBuffer.get(instruction);
+                    var range = currentBuffer.get(value);
                     for (BasicBlock domSon : domTree.getDomSons(basicBlock)) {
-                        analyzer.blockBufferMap.get(domSon).put(instruction, range);
+                        analyzer.blockBufferMap.get(domSon).put(value, range);
                     }
                     for (BasicBlock domSon : domTree.getDomSons(basicBlock)) {
                         spread(domSon);
@@ -543,10 +546,10 @@ public class I32ValueRangeAnalyzer {
                 }
 
                 private void clear(BasicBlock basicBlock) {
-                    if (basicBlock != instruction.getBasicBlock()) {
+                    if (basicBlock != valueBasicBlock) {
                         var buffer = analyzer.blockBufferMap.get(basicBlock);
-                        oldRangeMap.put(basicBlock, buffer.get(instruction));
-                        buffer.remove(instruction);
+                        oldRangeMap.put(basicBlock, buffer.get(value));
+                        buffer.remove(value);
                     }
                     for (BasicBlock domSon : domTree.getDomSons(basicBlock)) {
                         clear(domSon);
@@ -560,11 +563,23 @@ public class I32ValueRangeAnalyzer {
                 }
 
             };
-            recalculateValueRange.accept(instruction.getBasicBlock());
+            recalculateValueRange.accept(valueBasicBlock);
             if (isRangeUpdated.get()) {
-                onValueUpdated.accept(instruction);
+                onValueUpdated.accept(value);
             }
         }
+    }
+
+    private static BasicBlock getBlockOfValue(Value value) {
+        BasicBlock valueBasicBlock;
+        if (value instanceof Instruction instruction) {
+            valueBasicBlock = instruction.getBasicBlock();
+        } else if (value instanceof Function.FormalParameter formalParameter) {
+            valueBasicBlock = formalParameter.getFunction().getEntryBasicBlock();
+        } else {
+            throw new CompilationProcessCheckFailedException("Unknown value type: " + value.getClass());
+        }
+        return valueBasicBlock;
     }
 
     private static void analysisGlobally(Function function, I32ValueRangeAnalyzer analyzer) {
@@ -672,13 +687,15 @@ public class I32ValueRangeAnalyzer {
 //        }
     }
 
-    private static I32ValueRange getHurryUpRange(Instruction instruction, I32ValueRangeAnalyzer analyzer) {
-        I32ValueRange newRange = I32ValueRange.calculateI32ValueRange(instruction, analyzer);
+    private static I32ValueRange getHurryUpRange(Value value, I32ValueRangeAnalyzer analyzer) {
+        I32ValueRange newRange = I32ValueRange.calculateI32ValueRange(value, analyzer);
         newRange = new I32ValueRange(
                 newRange.minValue == 0 ? 0 : (newRange.minValue > 0 ? 1 : Integer.MIN_VALUE),
                 newRange.maxValue == 0 ? 0 : (newRange.maxValue > 0 ? Integer.MAX_VALUE : -1)
         );
-        instruction.setComment(String.format("(Hurry Up)[%d, %d]", newRange.minValue, newRange.maxValue));
+        if (value instanceof Instruction instruction) {
+            instruction.setComment(String.format("(Hurry Up)[%d, %d]", newRange.minValue, newRange.maxValue));
+        }
         return newRange;
     }
 
