@@ -13,6 +13,7 @@ public class OptimizerManager {
 
     public void runAfterRegisterAllocation(AsmFunction function) {
         new MemoryAccessEliminationOptimizer().runOn(function);
+        new LAEliminationOptimizer().runOn(function);
         new MoveEliminationOptimizer().runOn(function);
         new BranchEliminationOptimizer().runOn(function);
         new DeadBlockEliminationOptimizer().runOn(function);
