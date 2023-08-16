@@ -627,7 +627,7 @@ public class AsmBasicBlock {
     }
 
     private void translateLoadInst(LoadInst loadInst) {
-        MemoryAddress address = (MemoryAddress) function.getValue(loadInst.getAddressOperand());
+        MemoryAddress address = function.getOperandToAddress(function.getValue(loadInst.getAddressOperand()));
         Register register = function.getRegisterAllocator().allocate(loadInst);
         if (loadInst.getType() instanceof IntegerType integerType) {
             function.appendInstruction(new AsmLoad(register, address, integerType.getBitWidth()));
