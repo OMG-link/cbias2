@@ -199,10 +199,15 @@ public class I32ValueRangeAnalyzer {
                 int maxValue = Integer.MIN_VALUE;
                 for (BasicBlock entryBlock : phiInst.getEntrySet()) {
                     var entryValue = phiInst.getValue(entryBlock);
+                    // 在入口值未知时，首先试图寻找定义值，此行为在 getEntryRange->getValueRangeAtBlock 中实现
+                    // 如果定义值也不存在，则进入 panic 模式，直接取 INT_MIN~INT_MAX ，以最大程度防止出错
                     if (helper != null && helper.hasValueRangeSolved(entryValue)) {
                         I32ValueRange entryRange = getEntryRange(helper, phiInst.getBasicBlock(), entryBlock, entryValue);
                         minValue = min(minValue, entryRange.minValue);
                         maxValue = max(maxValue, entryRange.maxValue);
+                    } else {
+                        minValue = Integer.MIN_VALUE;
+                        maxValue = Integer.MAX_VALUE;
                     }
                 }
                 result = new I32ValueRange(minValue, maxValue);
@@ -514,6 +519,7 @@ public class I32ValueRangeAnalyzer {
                 var recalculateValueRange = new Consumer<BasicBlock>() {
                     @Override
                     public void accept(BasicBlock basicBlock) {
+                        //fixme: 此种更新方式可能导致某个基本块使用旧的值进行更新，需要调整更新顺序
                         if (basicBlock != instruction.getBasicBlock()) {
                             var minValue = Integer.MAX_VALUE;
                             var maxValue = Integer.MIN_VALUE;
@@ -650,7 +656,7 @@ public class I32ValueRangeAnalyzer {
                 newRange.minValue == 0 ? 0 : (newRange.minValue > 0 ? 1 : Integer.MIN_VALUE),
                 newRange.maxValue == 0 ? 0 : (newRange.maxValue > 0 ? Integer.MAX_VALUE : -1)
         );
-        //instruction.setComment(String.format("(Hurry Up)[%d, %d]", newRange.minValue, newRange.maxValue));
+        instruction.setComment(String.format("(Hurry Up)[%d, %d]", newRange.minValue, newRange.maxValue));
         return newRange;
     }
 
