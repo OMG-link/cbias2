@@ -13,6 +13,7 @@ import cn.edu.bit.newnewcc.ir.value.constant.ConstInt;
 import cn.edu.bit.newnewcc.ir.value.instruction.*;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 
 import static java.lang.Math.*;
@@ -509,50 +510,59 @@ public class I32ValueRangeAnalyzer {
             } else {
                 newRange = getHurryUpRange(instruction, analyzer);
             }
-            if (!Objects.equals(oldRange, newRange)) {
-                analyzer.setValueRange(instruction, newRange);
+            analyzer.setValueRange(instruction, newRange);
+            AtomicBoolean isRangeUpdated = new AtomicBoolean(!Objects.equals(oldRange, newRange));
+            // 更新所有块中该值的新范围，只要有一个块的值发生了改变，则认为该值的范围得到了更新
+            var recalculateValueRange = new Consumer<BasicBlock>() {
+
+                private final Map<BasicBlock, I32ValueRange> oldRangeMap = new HashMap<>();
+
+                private void spread(BasicBlock basicBlock) {
+                    if (basicBlock != instruction.getBasicBlock()) {
+                        var minValue = Integer.MAX_VALUE;
+                        var maxValue = Integer.MIN_VALUE;
+                        for (BasicBlock entryBlock : basicBlock.getEntryBlocks()) {
+                            var range = I32ValueRange.getEntryRange(analyzer, basicBlock, entryBlock, instruction);
+                            minValue = min(minValue, range.minValue);
+                            maxValue = max(maxValue, range.maxValue);
+                        }
+                        I32ValueRange newRange = new I32ValueRange(minValue, maxValue);
+                        analyzer.blockBufferMap.get(basicBlock).put(instruction, newRange);
+                        if (!Objects.equals(newRange, oldRangeMap.get(basicBlock))) {
+                            isRangeUpdated.set(true);
+                        }
+                    }
+                    var currentBuffer = analyzer.blockBufferMap.get(basicBlock);
+                    var range = currentBuffer.get(instruction);
+                    for (BasicBlock domSon : domTree.getDomSons(basicBlock)) {
+                        analyzer.blockBufferMap.get(domSon).put(instruction, range);
+                    }
+                    for (BasicBlock domSon : domTree.getDomSons(basicBlock)) {
+                        spread(domSon);
+                    }
+                }
+
+                private void clear(BasicBlock basicBlock) {
+                    if (basicBlock != instruction.getBasicBlock()) {
+                        var buffer = analyzer.blockBufferMap.get(basicBlock);
+                        oldRangeMap.put(basicBlock, buffer.get(instruction));
+                        buffer.remove(instruction);
+                    }
+                    for (BasicBlock domSon : domTree.getDomSons(basicBlock)) {
+                        clear(domSon);
+                    }
+                }
+
+                @Override
+                public void accept(BasicBlock basicBlock) {
+                    clear(basicBlock);
+                    spread(basicBlock);
+                }
+
+            };
+            recalculateValueRange.accept(instruction.getBasicBlock());
+            if (isRangeUpdated.get()) {
                 onValueUpdated.accept(instruction);
-                // 此处只需要更新 block value range ，相关的值在 onValueUpdated 中已经被加入队列
-                var recalculateValueRange = new Consumer<BasicBlock>() {
-
-                    private void spread(BasicBlock basicBlock) {
-                        if (basicBlock != instruction.getBasicBlock()) {
-                            var minValue = Integer.MAX_VALUE;
-                            var maxValue = Integer.MIN_VALUE;
-                            for (BasicBlock entryBlock : basicBlock.getEntryBlocks()) {
-                                var range = I32ValueRange.getEntryRange(analyzer, basicBlock, entryBlock, instruction);
-                                minValue = min(minValue, range.minValue);
-                                maxValue = max(maxValue, range.maxValue);
-                            }
-                            analyzer.blockBufferMap.get(basicBlock).put(instruction, new I32ValueRange(minValue, maxValue));
-                        }
-                        var currentBuffer = analyzer.blockBufferMap.get(basicBlock);
-                        var range = currentBuffer.get(instruction);
-                        for (BasicBlock domSon : domTree.getDomSons(basicBlock)) {
-                            analyzer.blockBufferMap.get(domSon).put(instruction, range);
-                        }
-                        for (BasicBlock domSon : domTree.getDomSons(basicBlock)) {
-                            spread(domSon);
-                        }
-                    }
-
-                    private void clear(BasicBlock basicBlock) {
-                        if (basicBlock != instruction.getBasicBlock()) {
-                            analyzer.blockBufferMap.get(basicBlock).remove(instruction);
-                        }
-                        for (BasicBlock domSon : domTree.getDomSons(basicBlock)) {
-                            clear(domSon);
-                        }
-                    }
-
-                    @Override
-                    public void accept(BasicBlock basicBlock) {
-                        clear(basicBlock);
-                        spread(basicBlock);
-                    }
-
-                };
-                recalculateValueRange.accept(instruction.getBasicBlock());
             }
         }
     }
