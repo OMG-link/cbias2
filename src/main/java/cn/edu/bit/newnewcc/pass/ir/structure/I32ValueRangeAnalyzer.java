@@ -517,9 +517,8 @@ public class I32ValueRangeAnalyzer {
                 onValueUpdated.accept(instruction);
                 // 此处只需要更新 block value range ，相关的值在 onValueUpdated 中已经被加入队列
                 var recalculateValueRange = new Consumer<BasicBlock>() {
-                    @Override
-                    public void accept(BasicBlock basicBlock) {
-                        //fixme: 此种更新方式可能导致某个基本块使用旧的值进行更新，需要调整更新顺序
+
+                    private void spread(BasicBlock basicBlock) {
                         if (basicBlock != instruction.getBasicBlock()) {
                             var minValue = Integer.MAX_VALUE;
                             var maxValue = Integer.MIN_VALUE;
@@ -536,9 +535,25 @@ public class I32ValueRangeAnalyzer {
                             analyzer.blockBufferMap.get(domSon).put(instruction, range);
                         }
                         for (BasicBlock domSon : domTree.getDomSons(basicBlock)) {
-                            accept(domSon);
+                            spread(domSon);
                         }
                     }
+
+                    private void clear(BasicBlock basicBlock) {
+                        if (basicBlock != instruction.getBasicBlock()) {
+                            analyzer.blockBufferMap.get(basicBlock).remove(instruction);
+                        }
+                        for (BasicBlock domSon : domTree.getDomSons(basicBlock)) {
+                            clear(domSon);
+                        }
+                    }
+
+                    @Override
+                    public void accept(BasicBlock basicBlock) {
+                        clear(basicBlock);
+                        spread(basicBlock);
+                    }
+
                 };
                 recalculateValueRange.accept(instruction.getBasicBlock());
             }
