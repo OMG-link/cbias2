@@ -199,15 +199,12 @@ public class I32ValueRangeAnalyzer {
                 int maxValue = Integer.MIN_VALUE;
                 for (BasicBlock entryBlock : phiInst.getEntrySet()) {
                     var entryValue = phiInst.getValue(entryBlock);
-                    // 在入口值未知时，首先试图寻找定义值，此行为在 getEntryRange->getValueRangeAtBlock 中实现
-                    // 如果定义值也不存在，则进入 panic 模式，直接取 INT_MIN~INT_MAX ，以最大程度防止出错
+                    // 在入口值未知时，首先试图寻找定义值，此行为在 getEntryRange->getValueRangeAtBlock 中实现。
+                    // 如果定义值也不存在，则认为这是第一次进行搜索，可以暂时忽略，以提升算法效果。此后定义值应当总是存在。
                     if (helper != null && helper.hasValueRangeSolved(entryValue)) {
                         I32ValueRange entryRange = getEntryRange(helper, phiInst.getBasicBlock(), entryBlock, entryValue);
                         minValue = min(minValue, entryRange.minValue);
                         maxValue = max(maxValue, entryRange.maxValue);
-                    } else {
-                        minValue = Integer.MIN_VALUE;
-                        maxValue = Integer.MAX_VALUE;
                     }
                 }
                 result = new I32ValueRange(minValue, maxValue);
