@@ -219,8 +219,11 @@ public class DomTreeBuilder<T> {
         if (!hasTreeBuilt) {
             throw new UnsupportedOperationException();
         }
-        Collection<T> result = new ArrayList<>();
+        List<T> result = new ArrayList<>();
         tToNode(t).domSons.forEach(node -> result.add(node.t));
+        // 将儿子按照dfs序排序，保证每个节点被访问时，至少有一个已经访问过的父节点
+        // 此性质有利于加快值域分析的收敛
+        result.sort((o1, o2) -> Integer.compare(nodeMap.get(o1).dfn, nodeMap.get(o2).dfn));
         return result;
     }
 
