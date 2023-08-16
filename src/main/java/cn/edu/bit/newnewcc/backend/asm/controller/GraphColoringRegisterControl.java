@@ -21,6 +21,7 @@ public class GraphColoringRegisterControl extends RegisterControl {
     private List<Register> physicRegisters;
     private final LifeTimeController lifeTimeController;
     private final List<LifeTimeInterval> intervals = new ArrayList<>();
+    private final Set<Register> registerAcrossCall = new HashSet<>();
 
     private final Map<Register, Set<Register>> interferenceEdges = new HashMap<>();
     private final Map<Register, Set<Register>> coalescentEdges = new HashMap<>();
@@ -164,6 +165,31 @@ public class GraphColoringRegisterControl extends RegisterControl {
         }
     }
 
+    /**
+     * 获取生命周期跨过call指令的虚拟寄存器，并将其保存
+     */
+    void getRegisterAcrossCall() {
+        registerAcrossCall.clear();
+        int intervalId = 0;
+        Set<LifeTimeInterval> activeSet = new HashSet<>();
+        for (var inst : instList) {
+            LifeTimeIndex inIndex = LifeTimeIndex.getInstIn(lifeTimeController, inst);
+            activeSet.removeIf((interval) -> interval.range.b.compareTo(inIndex) <= 0);
+
+            if (inst instanceof AsmCall) {
+                for (var interval : activeSet) {
+                    registerAcrossCall.add(interval.reg);
+                }
+            }
+
+            LifeTimeIndex outIndex = LifeTimeIndex.getInstOut(lifeTimeController, inst);
+            while (intervalId < intervals.size() && intervals.get(intervalId).range.a.compareTo(outIndex) <= 0) {
+                activeSet.add(intervals.get(intervalId));
+                intervalId += 1;
+            }
+        }
+    }
+
     /*private final boolean debug = true;
     private List<Register> debug_registers;
     void outputDebugInfo(String name) {
@@ -240,6 +266,7 @@ public class GraphColoringRegisterControl extends RegisterControl {
 
     void colorToRegisterMap(List<Register> registers) {
         buildGraph(true, registers);
+        getRegisterAcrossCall();
         for (var reg : registers) {
             if (!reg.isVirtual()) {
                 physicRegisterMap.put(reg, reg);
@@ -252,6 +279,18 @@ public class GraphColoringRegisterControl extends RegisterControl {
                 if (physicRegisterMap.containsKey(u)) {
                     occupied.add(physicRegisterMap.get(u));
                 }
+            }
+            for (var pReg : physicRegisters) {
+                if (!occupied.contains(pReg)) {
+                    if ((registerAcrossCall.contains(v) && Registers.isPreservedAcrossCalls(pReg)) ||
+                            (!registerAcrossCall.contains(v) && !Registers.isPreservedAcrossCalls(pReg))) {
+                        physicRegisterMap.put(v, pReg);
+                        break;
+                    }
+                }
+            }
+            if (physicRegisterMap.containsKey(v)) {
+                continue;
             }
             for (var pReg : physicRegisters) {
                 if (!occupied.contains(pReg)) {
