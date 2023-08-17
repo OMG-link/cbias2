@@ -19,6 +19,7 @@ public class MvX0ToLI0Optimizer implements ISSABasedOptimizer {
                 var newInst = new AsmLoad(newFinalReg, new Immediate(0));
                 result.addInstruction(newInst);
                 result.addRegisterMapping((Register) asmMove.getOperand(1), newFinalReg);
+                return result;
             }
         }
         return null;
