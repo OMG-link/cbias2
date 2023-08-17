@@ -10,13 +10,15 @@ public class LI0ToX0Optimizer implements ISSABasedOptimizer {
 
     @Override
     public OptimizeResult getReplacement(SSABasedOptimizer helper, AsmInstruction instruction) {
+        boolean hasResult = false;
         for (int id : AsmInstructions.getReadRegId(instruction)) {
             var operand = instruction.getOperand(id);
             if (!(operand instanceof Register)) continue;
             if (helper.isConstIntOperand(operand) && helper.getConstIntValueFromOperand(operand) == 0) {
                 instruction.setOperand(id, IntRegister.ZERO);
+                hasResult = true;
             }
         }
-        return null;
+        return hasResult ? OptimizeResult.getNew() : null;
     }
 }
