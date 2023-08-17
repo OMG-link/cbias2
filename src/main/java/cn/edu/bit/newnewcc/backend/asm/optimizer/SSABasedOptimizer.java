@@ -6,10 +6,7 @@ import cn.edu.bit.newnewcc.backend.asm.operand.AsmOperand;
 import cn.edu.bit.newnewcc.backend.asm.operand.Immediate;
 import cn.edu.bit.newnewcc.backend.asm.operand.Register;
 import cn.edu.bit.newnewcc.backend.asm.operand.RegisterReplaceable;
-import cn.edu.bit.newnewcc.backend.asm.optimizer.ssabased.AddX0ToMvOptimizer;
-import cn.edu.bit.newnewcc.backend.asm.optimizer.ssabased.ISSABasedOptimizer;
-import cn.edu.bit.newnewcc.backend.asm.optimizer.ssabased.SLLIAddToShNAddOptimizer;
-import cn.edu.bit.newnewcc.backend.asm.optimizer.ssabased.SrslMergeOptimizer;
+import cn.edu.bit.newnewcc.backend.asm.optimizer.ssabased.*;
 import cn.edu.bit.newnewcc.backend.asm.util.AsmInstructions;
 
 import java.util.ArrayList;
