@@ -136,10 +136,11 @@ public class SSABasedOptimizer implements Optimizer {
     private static List<ISSABasedOptimizer> getOptimizerList() {
         if (optimizerList == null) {
             var list = new ArrayList<ISSABasedOptimizer>();
+            list.add(new LI0ToX0Optimizer());
+            list.add(new MvX0ToLI0Optimizer());
             list.add(new SLLIAddToShNAddOptimizer());
             list.add(new AddX0ToMvOptimizer());
             list.add(new SrslMergeOptimizer());
-            list.add(new MvX0ToLI0Optimizer());
             optimizerList = list;
         }
         return optimizerList;
