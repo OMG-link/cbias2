@@ -28,6 +28,11 @@ public class SignedMinInst extends Instruction {
     }
 
     @Override
+    public IntegerType getType() {
+        return (IntegerType) super.getType();
+    }
+
+    @Override
     public void emitIr(StringBuilder builder) {
         builder.append(String.format(
                 "%s = call %s @llvm.smin.%s(%s %s, %s %s)",

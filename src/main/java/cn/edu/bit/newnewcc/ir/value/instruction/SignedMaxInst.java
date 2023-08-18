@@ -28,6 +28,11 @@ public class SignedMaxInst extends Instruction {
     }
 
     @Override
+    public IntegerType getType() {
+        return (IntegerType) super.getType();
+    }
+
+    @Override
     public void emitIr(StringBuilder builder) {
         builder.append(String.format(
                 "%s = call %s @llvm.smax.%s(%s %s, %s %s)",
