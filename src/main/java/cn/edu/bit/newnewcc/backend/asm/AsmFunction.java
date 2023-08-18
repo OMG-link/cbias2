@@ -348,7 +348,7 @@ public class AsmFunction {
 
             instrList.add(new AsmLabel(retBlockLabel));
             lifeTimeController.getAllRegLifeTime(instrList);
-            //asmOptimizerBeforeRegisterAllocate(lifeTimeController);
+            asmOptimizerBeforeRegisterAllocate(lifeTimeController);
             reAllocateRegister();
             asmOptimizerAfterRegisterAllocate();
 
