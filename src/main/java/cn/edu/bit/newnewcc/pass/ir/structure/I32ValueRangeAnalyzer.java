@@ -178,6 +178,17 @@ public class I32ValueRangeAnalyzer {
                 } else {
                     throw new RuntimeException("Unexpected type of integer arithmetic instruction.");
                 }
+            } else if (value instanceof SignedMinInst || value instanceof SignedMaxInst) {
+                if (value instanceof SignedMinInst minInst) {
+                    I32ValueRange range1 = I32ValueRange.of(minInst.getOperand1(), minInst.getBasicBlock(), helper);
+                    I32ValueRange range2 = I32ValueRange.of(minInst.getOperand2(), minInst.getBasicBlock(), helper);
+                    result = new I32ValueRange(min(range1.minValue, range2.minValue), min(range1.maxValue, range2.maxValue));
+                } else {
+                    var maxInst = (SignedMaxInst) value;
+                    I32ValueRange range1 = I32ValueRange.of(maxInst.getOperand1(), maxInst.getBasicBlock(), helper);
+                    I32ValueRange range2 = I32ValueRange.of(maxInst.getOperand2(), maxInst.getBasicBlock(), helper);
+                    result = new I32ValueRange(max(range1.minValue, range2.minValue), max(range1.maxValue, range2.maxValue));
+                }
             } else if (value instanceof SignedExtensionInst || value instanceof ZeroExtensionInst) {
                 if (value instanceof SignedExtensionInst signedExtensionInst) {
                     var sourceType = signedExtensionInst.getSourceType();
