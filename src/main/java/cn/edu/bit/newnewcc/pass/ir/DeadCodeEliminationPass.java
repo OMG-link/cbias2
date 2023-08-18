@@ -198,7 +198,9 @@ public class DeadCodeEliminationPass {
                         if (instruction instanceof TerminateInst) {
                             if (instruction instanceof ReturnInst returnInst && reachableInstructions.contains(returnInst)) {
                                 // 无效但可达的返回指令，其只有返回的作用，返回值不重要
-                                if (returnInst.getReturnValueType() != VoidType.getInstance()) {
+                                if (returnInst.getReturnValueType() != VoidType.getInstance() &&
+                                        !(returnInst.getReturnValue() instanceof Instruction rvInst &&
+                                                validInstructions.contains(rvInst))) {
                                     var zeroValue = returnInst.getReturnValueType().getZeroInitialization();
                                     if (!returnInst.getReturnValue().equals(zeroValue)) {
                                         returnInst.setReturnValue(zeroValue);
