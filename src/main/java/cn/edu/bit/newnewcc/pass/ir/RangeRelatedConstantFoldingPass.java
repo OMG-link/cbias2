@@ -11,6 +11,8 @@ import cn.edu.bit.newnewcc.ir.value.constant.ConstBool;
 import cn.edu.bit.newnewcc.ir.value.constant.ConstInt;
 import cn.edu.bit.newnewcc.ir.value.instruction.IntegerCompareInst;
 import cn.edu.bit.newnewcc.ir.value.instruction.PhiInst;
+import cn.edu.bit.newnewcc.ir.value.instruction.SignedMaxInst;
+import cn.edu.bit.newnewcc.ir.value.instruction.SignedMinInst;
 import cn.edu.bit.newnewcc.pass.ir.structure.I32ValueRangeAnalyzer;
 
 /**
@@ -109,6 +111,32 @@ public class RangeRelatedConstantFoldingPass {
                     if (range1.maxValue() < range2.minValue()) {
                         return ConstBool.getInstance(false);
                     }
+                }
+            }
+        }
+        if (instruction instanceof SignedMaxInst || instruction instanceof SignedMinInst) {
+            if (instruction instanceof SignedMaxInst maxInst) {
+                var op1 = maxInst.getOperand1();
+                var op2 = maxInst.getOperand2();
+                var range1 = analyzer.getValueRangeAtBlock(op1, maxInst.getBasicBlock());
+                var range2 = analyzer.getValueRangeAtBlock(op2, maxInst.getBasicBlock());
+                if (range1.maxValue() <= range2.minValue()) {
+                    return op2;
+                }
+                if (range1.minValue() >= range2.maxValue()) {
+                    return op1;
+                }
+            } else {
+                var minInst = (SignedMinInst) instruction;
+                var op1 = minInst.getOperand1();
+                var op2 = minInst.getOperand2();
+                var range1 = analyzer.getValueRangeAtBlock(op1, minInst.getBasicBlock());
+                var range2 = analyzer.getValueRangeAtBlock(op2, minInst.getBasicBlock());
+                if (range1.maxValue() <= range2.minValue()) {
+                    return op1;
+                }
+                if (range1.minValue() >= range2.maxValue()) {
+                    return op2;
                 }
             }
         }
