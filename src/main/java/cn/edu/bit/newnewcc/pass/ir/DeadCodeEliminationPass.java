@@ -3,11 +3,9 @@ package cn.edu.bit.newnewcc.pass.ir;
 import cn.edu.bit.newnewcc.ir.Module;
 import cn.edu.bit.newnewcc.ir.Operand;
 import cn.edu.bit.newnewcc.ir.exception.ValueBeingUsedException;
+import cn.edu.bit.newnewcc.ir.type.VoidType;
 import cn.edu.bit.newnewcc.ir.value.*;
-import cn.edu.bit.newnewcc.ir.value.instruction.CallInst;
-import cn.edu.bit.newnewcc.ir.value.instruction.StoreInst;
-import cn.edu.bit.newnewcc.ir.value.instruction.TerminateInst;
-import cn.edu.bit.newnewcc.ir.value.instruction.UnreachableInst;
+import cn.edu.bit.newnewcc.ir.value.instruction.*;
 import cn.edu.bit.newnewcc.pass.ir.util.CallMap;
 import cn.edu.bit.newnewcc.pass.ir.util.GlobalAddressDetector;
 
@@ -58,6 +56,10 @@ public class DeadCodeEliminationPass {
     private final Set<Function> seFunctions = new HashSet<>();
     Queue<Function> seFunctionQueue = new ArrayDeque<>();
 
+    /// 返回值优化
+    private final Map<Function, Set<ReturnInst>> returnInstMap = new HashMap<>();
+    private final Set<Function> rvUsedFunctions = new HashSet<>();
+
     private boolean isBasicSeInstruction(Instruction instruction) {
         // 1. 从函数入口块可达的存储地址为全局变量的store指令
         if (instruction instanceof StoreInst storeInst) {
@@ -90,6 +92,9 @@ public class DeadCodeEliminationPass {
             if (isBasicSeInstruction(instruction)) {
                 addSeInstruction(instruction);
             }
+            if (instruction instanceof ReturnInst returnInst) {
+                returnInstMap.get(basicBlock.getFunction()).add(returnInst);
+            }
             reachableInstructions.add(instruction);
         }
         for (BasicBlock exitBlock : basicBlock.getExitBlocks()) {
@@ -99,6 +104,7 @@ public class DeadCodeEliminationPass {
 
     private void findSeInstructions(Module module) {
         for (Function function : module.getFunctions()) {
+            returnInstMap.put(function, new HashSet<>());
             dfsForReachableInstructions(function.getEntryBasicBlock());
         }
         while (!seFunctionQueue.isEmpty()) {
@@ -133,15 +139,31 @@ public class DeadCodeEliminationPass {
         }
         // 3. 从函数入口块可达的控制流指令
         if (instruction instanceof TerminateInst) {
-            return true;
+            if (instruction instanceof ReturnInst returnInst) {
+                return returnInst.getBasicBlock().getFunction().getValueName().equals("main");
+            } else {
+                return true;
+            }
         }
         return false;
     }
 
-    private void addValidInstruction(Instruction instruction) {
+    private void addValidInstructionBySe(Instruction instruction) {
         if (!validInstructions.contains(instruction)) {
             validInstructions.add(instruction);
             validInstructionQueue.add(instruction);
+        }
+    }
+
+    private void addValidInstructionByOperand(Instruction instruction) {
+        addValidInstructionBySe(instruction);
+        if (instruction instanceof CallInst callInst &&
+                callInst.getCallee() instanceof Function callee &&
+                !rvUsedFunctions.contains(callee)) {
+            rvUsedFunctions.add(callee);
+            for (ReturnInst returnInst : returnInstMap.get(callee)) {
+                addValidInstructionByOperand(returnInst);
+            }
         }
     }
 
@@ -149,7 +171,7 @@ public class DeadCodeEliminationPass {
         for (BasicBlock reachableBlock : reachableBlocks) {
             for (Instruction instruction : reachableBlock.getInstructions()) {
                 if (isBasicValidInstruction(instruction)) {
-                    addValidInstruction(instruction);
+                    addValidInstructionBySe(instruction);
                 }
             }
         }
@@ -158,7 +180,7 @@ public class DeadCodeEliminationPass {
             for (Operand operand : validInstruction.getOperandList()) {
                 // sValidInstruction = spread valid instruction
                 if (operand.getValue() instanceof Instruction sValidInstruction && reachableInstructions.contains(sValidInstruction)) {
-                    addValidInstruction(sValidInstruction);
+                    addValidInstructionByOperand(sValidInstruction);
                 }
             }
         }
@@ -167,15 +189,29 @@ public class DeadCodeEliminationPass {
     private boolean removeInvalidInstruction(Module module) {
         var invalidInstructions = new ArrayList<Instruction>();
         var invalidBasicBlocks = new ArrayList<BasicBlock>();
+        boolean changed = false;
         // 获取以上两个数组
         for (Function function : module.getFunctions()) {
             for (BasicBlock basicBlock : function.getBasicBlocks()) {
                 for (Instruction instruction : basicBlock.getInstructions()) {
                     if (!validInstructions.contains(instruction)) {
-                        invalidInstructions.add(instruction);
-                        // 若控制流指令无效，说明这个基本块不可达
                         if (instruction instanceof TerminateInst) {
-                            invalidBasicBlocks.add(instruction.getBasicBlock());
+                            if (instruction instanceof ReturnInst returnInst && reachableInstructions.contains(returnInst)) {
+                                // 无效但可达的返回指令，其只有返回的作用，返回值不重要
+                                if (returnInst.getReturnValueType() != VoidType.getInstance()) {
+                                    var zeroValue = returnInst.getReturnValueType().getZeroInitialization();
+                                    if (!returnInst.getReturnValue().equals(zeroValue)) {
+                                        returnInst.setReturnValue(zeroValue);
+                                        changed = true;
+                                    }
+                                }
+                            } else {
+                                // 若控制流指令无效，说明这个基本块不可达
+                                invalidInstructions.add(instruction);
+                                invalidBasicBlocks.add(instruction.getBasicBlock());
+                            }
+                        } else {
+                            invalidInstructions.add(instruction);
                         }
                     }
                 }
@@ -211,7 +247,8 @@ public class DeadCodeEliminationPass {
         for (Instruction invalidInstruction : invalidInstructions) {
             invalidInstruction.waste();
         }
-        return invalidInstructions.size() > 0 || invalidBasicBlocks.size() > 0;
+        changed |= (!invalidInstructions.isEmpty() || !invalidBasicBlocks.isEmpty());
+        return changed;
     }
 
     private boolean runOnModule_(Module module) {
