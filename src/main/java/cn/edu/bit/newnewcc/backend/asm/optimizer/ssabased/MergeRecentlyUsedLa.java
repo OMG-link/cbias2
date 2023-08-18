@@ -26,6 +26,7 @@ public class MergeRecentlyUsedLa implements ISSABasedOptimizer {
 
     @Override
     public OptimizeResult getReplacement(SSABasedOptimizer ssaBasedOptimizer, AsmInstruction instruction) {
+        OptimizeResult result = null;
         instCounter++;
         if (instruction instanceof AsmLoad asmLoad && asmLoad.getOpcode().equals(AsmLoad.Opcode.LA)) {
             IntRegister resultReg = (IntRegister) instruction.getOperand(1);
@@ -33,16 +34,13 @@ public class MergeRecentlyUsedLa implements ISSABasedOptimizer {
             if (addressTimeStamp.containsKey(addressLabel) && instCounter <= addressTimeStamp.get(addressLabel) + TimeLimit) {
                 IntRegister previousReg = addressSavedMap.get(addressLabel);
                 if (!previousReg.equals(resultReg)) {
-                    OptimizeResult result = OptimizeResult.getNew();
+                    result = OptimizeResult.getNew();
                     result.addRegisterMapping(resultReg, previousReg);
-                    return result;
                 }
             } else {
                 addressSavedMap.put(addressLabel, resultReg);
             }
-            addressTimeStamp.put(addressLabel, instCounter);
-            return null;
         }
-        return null;
+        return result;
     }
 }
