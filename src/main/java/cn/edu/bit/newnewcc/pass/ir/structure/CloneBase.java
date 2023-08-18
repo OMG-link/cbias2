@@ -149,6 +149,18 @@ public class CloneBase {
                     getReplacedValue(integerSubInst.getOperand1()),
                     getReplacedValue(integerSubInst.getOperand2())
             );
+        } else if (instruction instanceof SignedMinInst signedMinInst) {
+            return new SignedMinInst(
+                    signedMinInst.getType(),
+                    getReplacedValue(signedMinInst.getOperand1()),
+                    getReplacedValue(signedMinInst.getOperand2())
+            );
+        } else if (instruction instanceof SignedMaxInst signedMaxInst) {
+            return new SignedMaxInst(
+                    signedMaxInst.getType(),
+                    getReplacedValue(signedMaxInst.getOperand1()),
+                    getReplacedValue(signedMaxInst.getOperand2())
+            );
         } else if (instruction instanceof JumpInst jumpInst) {
             return new JumpInst((BasicBlock) getReplacedValue(jumpInst.getExit()));
         } else if (instruction instanceof LoadInst loadInst) {
