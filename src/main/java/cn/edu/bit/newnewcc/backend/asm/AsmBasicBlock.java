@@ -715,6 +715,20 @@ public class AsmBasicBlock {
         function.getAddressAllocator().allocate(bitCastInst, address);
     }
 
+    private void translateSignedMaxInst(SignedMaxInst signedMaxInst) {
+        var op1 = (IntRegister) function.getValueToRegister(signedMaxInst.getOperand1());
+        var op2 = (IntRegister) function.getValueToRegister(signedMaxInst.getOperand2());
+        var regFinal = (IntRegister) function.getRegisterAllocator().allocate(signedMaxInst);
+        function.appendInstruction(new AsmMax(regFinal, op1, op2));
+    }
+
+    private void translateSignedMinInst(SignedMinInst signedMinInst) {
+        var op1 = (IntRegister) function.getValueToRegister(signedMinInst.getOperand1());
+        var op2 = (IntRegister) function.getValueToRegister(signedMinInst.getOperand2());
+        var regFinal = (IntRegister) function.getRegisterAllocator().allocate(signedMinInst);
+        function.appendInstruction(new AsmMin(regFinal, op1, op2));
+    }
+
     private void translate(Instruction instruction) {
         if (instruction instanceof ReturnInst returnInst) {
             translateReturnInst(returnInst);
@@ -748,6 +762,10 @@ public class AsmBasicBlock {
             translateBitCastInst(bitCastInst);
         } else if (instruction instanceof PhiInst phiInst) {
             translatePhiInst(phiInst);
+        } else if (instruction instanceof SignedMinInst signedMinInst) {
+            translateSignedMinInst(signedMinInst);
+        } else if (instruction instanceof SignedMaxInst signedMaxInst) {
+            translateSignedMaxInst(signedMaxInst);
         } else {
             throw new IllegalArgumentException();
         }
