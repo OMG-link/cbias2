@@ -35,6 +35,14 @@ public final class SysYExternalFunctions {
             new ExternalFunction(
                     FunctionType.getInstance(VoidType.getInstance(), List.of(IntegerType.getI32())), "_sysy_stoptime"),
             new ExternalFunction(
-                    FunctionType.getInstance(VoidType.getInstance(), List.of(PointerType.getInstance(IntegerType.getI32()), IntegerType.getI32(), IntegerType.getI32())), "memset")
+                    FunctionType.getInstance(VoidType.getInstance(), List.of(PointerType.getInstance(IntegerType.getI32()), IntegerType.getI32(), IntegerType.getI32())), "memset"),
+            new ExternalFunction(
+                    FunctionType.getInstance(IntegerType.getI32(), List.of(IntegerType.getI32(), IntegerType.getI32())), "llvm.smax.i32"),
+            new ExternalFunction(
+                    FunctionType.getInstance(IntegerType.getI32(), List.of(IntegerType.getI32(), IntegerType.getI32())), "llvm.smin.i32"),
+            new ExternalFunction(
+                    FunctionType.getInstance(IntegerType.getI64(), List.of(IntegerType.getI64(), IntegerType.getI64())), "llvm.smax.i64"),
+            new ExternalFunction(
+                    FunctionType.getInstance(IntegerType.getI64(), List.of(IntegerType.getI64(), IntegerType.getI64())), "llvm.smin.i64")
     );
 }
