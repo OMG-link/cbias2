@@ -14,6 +14,9 @@ public class IrPassManager {
                 MemoryToRegisterPass.runOnModule(module);
                 runSimplifyPasses(module);
 
+                runInstructionMatchPass(module);
+                runSimplifyPasses(module);
+
                 runFunctionPasses(module);
                 runSimplifyPasses(module);
 
@@ -49,6 +52,10 @@ public class IrPassManager {
         LocalArrayInitializePass.runOnModule(module);
         BranchInstructionSimplifyPass.runOnModule(module);
         DeadCodeEliminationPass.runOnModule(module);
+    }
+
+    private static void runInstructionMatchPass(Module module) {
+        BranchToMinMaxPass.runOnModule(module);
     }
 
     private static void runFunctionPasses(Module module) {
