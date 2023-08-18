@@ -74,6 +74,18 @@ public class InstructionSet {
             opSet.add(binaryInstruction.getOperand1());
             opSet.add(binaryInstruction.getOperand2());
             result.add(opSet);
+        } else if (instruction instanceof SignedMinInst ||
+                instruction instanceof SignedMaxInst) {
+            var opSet = new HashSet<>();
+            if (instruction instanceof SignedMinInst signedMinInst) {
+                opSet.add(signedMinInst.getOperand1());
+                opSet.add(signedMinInst.getOperand2());
+            } else {
+                SignedMaxInst signedMaxInst = (SignedMaxInst) instruction;
+                opSet.add(signedMaxInst.getOperand1());
+                opSet.add(signedMaxInst.getOperand2());
+            }
+            result.add(opSet);
         }
         // 不可交换二元算数指令
         else if (instruction instanceof FloatDivideInst ||
