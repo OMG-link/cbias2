@@ -308,6 +308,18 @@ public class ConstantFoldingPass {
             if (op instanceof ConstFloat constFloat) {
                 return ConstFloat.getInstance(-constFloat.getValue());
             }
+        } else if (instruction instanceof SignedMaxInst signedMaxInst) {
+            var op1 = signedMaxInst.getOperand1();
+            var op2 = signedMaxInst.getOperand2();
+            if (op1 instanceof ConstInteger constInteger1 && op2 instanceof ConstInteger constInteger2) {
+                return ConstInteger.valueOf(constInteger1) > ConstInteger.valueOf(constInteger2) ? constInteger1 : constInteger2;
+            }
+        } else if (instruction instanceof SignedMinInst signedMinInst) {
+            var op1 = signedMinInst.getOperand1();
+            var op2 = signedMinInst.getOperand2();
+            if (op1 instanceof ConstInteger constInteger1 && op2 instanceof ConstInteger constInteger2) {
+                return ConstInteger.valueOf(constInteger1) < ConstInteger.valueOf(constInteger2) ? constInteger1 : constInteger2;
+            }
         } else if (instruction instanceof FloatToSignedIntegerInst floatToSignedIntegerInst) {
             var op = floatToSignedIntegerInst.getSourceOperand();
             if (op instanceof ConstFloat constFloat) {
