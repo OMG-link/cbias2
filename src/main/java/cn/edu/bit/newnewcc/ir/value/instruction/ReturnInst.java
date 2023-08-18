@@ -13,7 +13,7 @@ import java.util.List;
 /**
  * 返回语句
  */
-public class ReturnInst extends TerminateInst{
+public class ReturnInst extends TerminateInst {
     private final Operand returnValueOperand;
 
     /**
@@ -24,7 +24,7 @@ public class ReturnInst extends TerminateInst{
      * @param returnType 返回值类型
      */
     public ReturnInst(Type returnType) {
-        this.returnValueOperand = new Operand(this,returnType,null);
+        this.returnValueOperand = new Operand(this, returnType, null);
     }
 
     /**
@@ -36,6 +36,10 @@ public class ReturnInst extends TerminateInst{
      */
     public ReturnInst(Value returnValue) {
         this.returnValueOperand = new Operand(this, returnValue.getType(), returnValue);
+    }
+
+    public Type getReturnValueType() {
+        return returnValueOperand.getType();
     }
 
     public Value getReturnValue() {
