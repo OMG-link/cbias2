@@ -652,13 +652,22 @@ public class GraphColoringRegisterControl extends RegisterControl {
             pointsOnIndex.put(instOut.get(inst), new ArrayList<>());
         }
 
+        Map<Register, LifeTimeIndex> defOnce = new HashMap<>();
         for (var reg : physicRegisterMap.keySet()) {
             for (var p : lifeTimeController.getPoints(reg)) {
                 var inst = p.getIndex().getSourceInst();
+                var pReg = physicRegisterMap.get(reg);
                 if (p.getIndex().isIn()) {
-                    pointsOnIndex.get(instIn.get(inst)).add(new Pair<>(physicRegisterMap.get(reg), p));
+                    pointsOnIndex.get(instIn.get(inst)).add(new Pair<>(pReg, p));
                 } else {
-                    pointsOnIndex.get(instOut.get(inst)).add(new Pair<>(physicRegisterMap.get(reg), p));
+                    pointsOnIndex.get(instOut.get(inst)).add(new Pair<>(pReg, p));
+                }
+                if (p.isTruePoint()) {
+                    if (defOnce.containsKey(pReg)) {
+                        defOnce.put(pReg, null);
+                    } else {
+                        defOnce.put(pReg, p.getIndex());
+                    }
                 }
             }
         }
@@ -716,7 +725,7 @@ public class GraphColoringRegisterControl extends RegisterControl {
             for (var p : pointsOnIndex.get(instOut.get(inst))) {
                 var reg = p.a;
                 var point = p.b;
-                if (point.isDef()) {
+                if (point.isDef() && (defOnce.get(reg) == null || point.isTruePoint())) {
                     lastDef.put(reg, instOut.get(inst));
                     preserved.remove(reg);
                 }
