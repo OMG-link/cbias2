@@ -628,53 +628,78 @@ public class GraphColoringRegisterControl extends RegisterControl {
     }
 
     List<AsmInstruction> replacePhysicRegisters(List<AsmInstruction> instructionList) {
-        List<AsmInstruction> instList = new ArrayList<>();
         Map<Register, StackVar> regSavedLoc = new HashMap<>();
         intervals.clear();
-        for (var reg : physicRegisterMap.keySet()) {
-            intervals.addAll(lifeTimeController.getInterval(reg));
-        }
         for (var reg : physicRegisterMap.values()) {
             updateRegisterPreserve(reg);
+        }
+        for (var reg : physicRegisterMap.keySet()) {
+            intervals.addAll(lifeTimeController.getInterval(reg));
         }
         Collections.sort(intervals);
         int intervalId = 0;
         Set<LifeTimeInterval> activeSet = new HashSet<>();
+
+        Map<LifeTimeIndex, List<AsmInstruction>> newInstList = new HashMap<>();
+        Map<LifeTimeIndex, List<Pair<Register, LifeTimePoint>>> pointsOnIndex = new HashMap<>();
+        Map<AsmInstruction, LifeTimeIndex> instIn = new HashMap<>(), instOut = new HashMap<>();
+        for (var inst : instructionList) {
+            instIn.put(inst, LifeTimeIndex.getInstIn(lifeTimeController, inst));
+            instOut.put(inst, LifeTimeIndex.getInstOut(lifeTimeController, inst));
+            newInstList.put(instIn.get(inst), new ArrayList<>());
+            newInstList.put(instOut.get(inst), new ArrayList<>());
+            pointsOnIndex.put(instIn.get(inst), new ArrayList<>());
+            pointsOnIndex.put(instOut.get(inst), new ArrayList<>());
+        }
+
+        for (var reg : physicRegisterMap.keySet()) {
+            for (var p : lifeTimeController.getPoints(reg)) {
+                var inst = p.getIndex().getSourceInst();
+                if (p.getIndex().isIn()) {
+                    pointsOnIndex.get(instIn.get(inst)).add(new Pair<>(physicRegisterMap.get(reg), p));
+                } else {
+                    pointsOnIndex.get(instOut.get(inst)).add(new Pair<>(physicRegisterMap.get(reg), p));
+                }
+            }
+        }
+
+        Map<Register, LifeTimeIndex> lastDef = new HashMap<>();
+        Map<Register, StackVar> preserved = new HashMap<>();
+
         for (var inst : instructionList) {
             LifeTimeIndex inIndex = LifeTimeIndex.getInstIn(lifeTimeController, inst);
             activeSet.removeIf((interval) -> interval.range.b.compareTo(inIndex) <= 0);
 
+            for (var p : pointsOnIndex.get(instIn.get(inst))) {
+                var pReg = p.a;
+                var point = p.b;
+                if (point.isUse() && preserved.containsKey(pReg)) {
+                    var tmpl = loadFromStackVar(pReg, preserved.get(pReg), addressReg);
+                    newInstList.get(instIn.get(inst)).addAll(tmpl);
+                    preserved.remove(pReg);
+                }
+            }
+
             for (int i = 1; i <= 3; i++) {
                 if (inst.getOperand(i) instanceof RegisterReplaceable rp && rp.getRegister().isVirtual()) {
                     Register physicRegister = physicRegisterMap.get(rp.getRegister());
-                    /*if (physicRegister == null) {
-                        debug_check(rp.getRegister());
-                    }*/
                     inst.setOperand(i, rp.withRegister(physicRegister));
                 }
             }
 
             if (inst instanceof AsmCall) {
-                Map<Register, StackVar> saved = new HashMap<>();
                 for (var interval : activeSet) {
                     var physicReg = physicRegisterMap.get(interval.reg);
-                    if (!Registers.isPreservedAcrossCalls(physicReg)) {
+                    if (!Registers.isPreservedAcrossCalls(physicReg) && !preserved.containsKey(physicReg)) {
                         if (!regSavedLoc.containsKey(physicReg)) {
                             StackVar stk = stackPool.pop();
                             regSavedLoc.put(physicReg, stk);
                         }
-                        saved.put(physicReg, regSavedLoc.get(physicReg));
+                        preserved.put(physicReg, regSavedLoc.get(physicReg));
                         var tmpl = saveToStackVar(physicReg, regSavedLoc.get(physicReg), addressReg);
-                        instList.addAll(tmpl);
+                        newInstList.get(lastDef.get(physicReg)).addAll(tmpl);
                     }
                 }
-                instList.add(inst);
-                for (var reg : saved.keySet()) {
-                    var tmpl = loadFromStackVar(reg, saved.get(reg), addressReg);
-                    instList.addAll(tmpl);
-                }
-            } else {
-                instList.add(inst);
             }
 
 
@@ -683,6 +708,22 @@ public class GraphColoringRegisterControl extends RegisterControl {
                 activeSet.add(intervals.get(intervalId));
                 intervalId += 1;
             }
+
+            for (var p : pointsOnIndex.get(instOut.get(inst))) {
+                var reg = p.a;
+                var point = p.b;
+                if (point.isDef()) {
+                    lastDef.put(reg, instOut.get(inst));
+                    preserved.remove(reg);
+                }
+            }
+        }
+
+        List<AsmInstruction> instList = new ArrayList<>();
+        for (var inst : instructionList) {
+            instList.addAll(newInstList.get(instIn.get(inst)));
+            instList.add(inst);
+            instList.addAll(newInstList.get(instOut.get(inst)));
         }
         return instList;
     }
