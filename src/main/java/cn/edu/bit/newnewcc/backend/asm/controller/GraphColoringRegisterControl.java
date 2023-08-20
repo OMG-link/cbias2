@@ -665,7 +665,7 @@ public class GraphColoringRegisterControl extends RegisterControl {
                 } else {
                     pointsOnIndex.get(instOut.get(inst)).add(new Pair<>(pReg, p));
                 }
-                if (p.isTruePoint()) {
+                if (p.isDef() && p.isTruePoint()) {
                     if (defOnce.containsKey(pReg)) {
                         defOnce.put(pReg, null);
                     } else {
