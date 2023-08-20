@@ -58,7 +58,7 @@ public class ConstLoopUnrollPass {
         int loopSize = collectLoopInfo(loop, loopBlocks);
         // 判断展开后循环的大小，实际展开次数为循环次数+1
         var loopCount = loop.getSimpleLoopInfo().getLoopCount();
-        if (loopCount <= MAXIMUM_LOOP_COUNT && (long) (loopCount + 1) * loopSize > MAXIMUM_EXTRACTED_SIZE) return false;
+        if (loopCount > MAXIMUM_LOOP_COUNT || (long) (loopCount + 1) * loopSize > MAXIMUM_EXTRACTED_SIZE) return false;
         // 将headBlock中的值引入到出口块中
         var loopExitBlock = loop.getSimpleLoopInfo().exitBlock();
         var exitValueMapping = new HashMap<Instruction, PhiInst>();
