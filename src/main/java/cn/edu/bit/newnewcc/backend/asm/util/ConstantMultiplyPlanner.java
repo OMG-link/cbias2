@@ -85,7 +85,7 @@ public class ConstantMultiplyPlanner {
 
     }
 
-    private static final int OPERATION_LIMIT = 5;
+    private static final int OPERATION_LIMIT = 1;
 
     private static final Map<Long, Operand> operandMap = new HashMap<>();
 
