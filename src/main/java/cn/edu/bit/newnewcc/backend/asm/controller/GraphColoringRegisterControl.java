@@ -5,6 +5,7 @@ import cn.edu.bit.newnewcc.backend.asm.allocator.StackAllocator;
 import cn.edu.bit.newnewcc.backend.asm.instruction.*;
 import cn.edu.bit.newnewcc.backend.asm.operand.*;
 import cn.edu.bit.newnewcc.backend.asm.util.AsmInstructions;
+import cn.edu.bit.newnewcc.backend.asm.util.ComparablePair;
 import cn.edu.bit.newnewcc.backend.asm.util.Pair;
 import cn.edu.bit.newnewcc.backend.asm.util.Registers;
 import cn.edu.bit.newnewcc.ir.value.BasicBlock;
@@ -21,6 +22,7 @@ public class GraphColoringRegisterControl extends RegisterControl {
     private List<Register> physicRegisters;
     private final LifeTimeController lifeTimeController;
     private final List<LifeTimeInterval> intervals = new ArrayList<>();
+    private final Map<LifeTimeInterval, LifeTimeInterval> intervalValues = new HashMap<>();
     private final Set<Register> registerAcrossCall = new HashSet<>();
 
     private final Map<Register, Set<Register>> interferenceEdges = new HashMap<>();
@@ -116,6 +118,13 @@ public class GraphColoringRegisterControl extends RegisterControl {
         }
     }
 
+    private LifeTimeInterval getIntervalValue(LifeTimeInterval interval) {
+        if (!intervalValues.containsKey(interval)) {
+            intervalValues.put(interval, interval);
+        }
+        return intervalValues.get(interval);
+    }
+
     /**
      * 为虚拟寄存器和代码中含有的可变物理寄存器建立干涉图
      */
@@ -130,6 +139,7 @@ public class GraphColoringRegisterControl extends RegisterControl {
         }
         Collections.sort(intervals);
         Set<LifeTimeInterval> activeSet = new HashSet<>();
+        Map<Register, LifeTimeInterval> lastActive = new HashMap<>();
         for (var inst : instList) {
             if (inst instanceof AsmMove asmMove && !freezeAll) {
                 var regPair = AsmInstructions.getMoveReg(asmMove);
@@ -138,19 +148,28 @@ public class GraphColoringRegisterControl extends RegisterControl {
                 }
             }
         }
+        intervalValues.clear();
+        for (var reg : Registers.CONSTANT_REGISTERS) {
+            lastActive.put(reg, new LifeTimeInterval(reg, new ComparablePair<>(null, null)));
+        }
         for (var now : intervals) {
             activeSet.removeIf((r) -> r.range.b.compareTo(now.range.a) < 0);
+            var defInst = now.range.a.getSourceInst();
+            if (defInst instanceof AsmMove asmMove && !freezeAll) {
+                var sourceReg = AsmInstructions.getMoveReg(asmMove).b;
+                intervalValues.put(now, getIntervalValue(lastActive.get(sourceReg)));
+            }
             for (var last : activeSet) {
                 var ru = now.reg;
                 var rv = last.reg;
-                var defInst = now.range.a.getSourceInst();
-                if (defInst instanceof AsmMove asmMove && AsmInstructions.getMoveReg(asmMove).b.equals(rv) && !freezeAll) {
+                if (getIntervalValue(last).equals(getIntervalValue(now))) {
                     addCoalesceEdge(ru, rv);
                 } else {
                     addInterferenceEdge(ru, rv);
                 }
             }
             activeSet.add(now);
+            lastActive.put(now.reg, now);
         }
         uncoloredReg.clear();
         coalescentReg.clear();
