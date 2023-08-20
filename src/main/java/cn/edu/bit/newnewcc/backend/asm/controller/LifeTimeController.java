@@ -1,5 +1,6 @@
 package cn.edu.bit.newnewcc.backend.asm.controller;
 
+import cn.edu.bit.newnewcc.backend.asm.AsmBasicBlock;
 import cn.edu.bit.newnewcc.backend.asm.AsmFunction;
 import cn.edu.bit.newnewcc.backend.asm.instruction.*;
 import cn.edu.bit.newnewcc.backend.asm.instruction.AsmInstruction;
@@ -87,13 +88,14 @@ public class LifeTimeController {
 
     private static class Block {
         String blockName;
-        int l, r;
+        int l, r, startBranch;
         Set<Register> in = new HashSet<>();
         Set<Register> out = new HashSet<>();
         Set<Register> def = new HashSet<>();
         Set<String> nextBlockName = new HashSet<>();
         Block(AsmLabel label) {
             blockName = label.getLabel().getLabelName();
+            startBranch = -1;
         }
     }
 
@@ -156,7 +158,7 @@ public class LifeTimeController {
                 return true;
             }
             var instr = point.getIndex().getSourceInst();
-            if (instr instanceof AsmLabel || instr instanceof AsmBlockEnd) {
+            if (instr instanceof AsmLabel || instr instanceof AsmJump) {
                 return false;
             }
             return !AsmInstructions.instContainsReg(instr, x);
@@ -211,6 +213,9 @@ public class LifeTimeController {
             }
             Objects.requireNonNull(now);
             if (inst instanceof AsmJump) {
+                if (now.startBranch == -1) {
+                    now.startBranch = i;
+                }
                 for (int j = 1; j <= 3; j++) {
                     if (inst.getOperand(j) instanceof Label label) {
                         now.nextBlockName.add(label.getLabelName());
@@ -269,7 +274,7 @@ public class LifeTimeController {
                 }
             }
             for (var x : b.out) {
-                LifeTimeIndex index = LifeTimeIndex.getInstIn(this, instructionList.get(b.r));
+                LifeTimeIndex index = LifeTimeIndex.getInstIn(this, instructionList.get(b.startBranch));
                 insertLifeTimePoint(x, LifeTimePoint.getUse(index));
             }
         }
