@@ -1,6 +1,6 @@
 package cn.edu.bit.newnewcc.backend.asm.controller;
 
-public class LifeTimePoint {
+public class LifeTimePoint implements Comparable<LifeTimePoint> {
     public enum Type {
         USE, DEF
     }
@@ -39,4 +39,10 @@ public class LifeTimePoint {
     public String toString() {
         return getIndex() + ":" + getType();
     }
+
+    @Override
+    public int compareTo(LifeTimePoint o) {
+        return index.compareTo(o.getIndex());
+    }
+
 }
