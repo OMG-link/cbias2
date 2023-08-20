@@ -665,6 +665,7 @@ public class GraphColoringRegisterControl extends RegisterControl {
 
         Map<Register, LifeTimeIndex> lastDef = new HashMap<>();
         Map<Register, StackVar> preserved = new HashMap<>();
+        Map<Register, LifeTimeIndex> lastPreservedIn = new HashMap<>();
 
         for (var inst : instructionList) {
             LifeTimeIndex inIndex = LifeTimeIndex.getInstIn(lifeTimeController, inst);
@@ -696,8 +697,11 @@ public class GraphColoringRegisterControl extends RegisterControl {
                             regSavedLoc.put(physicReg, stk);
                         }
                         preserved.put(physicReg, regSavedLoc.get(physicReg));
-                        var tmpl = saveToStackVar(physicReg, regSavedLoc.get(physicReg), addressReg);
-                        newInstList.get(lastDef.get(physicReg)).addAll(tmpl);
+                        if (!lastDef.get(physicReg).equals(lastPreservedIn.get(physicReg))) {
+                            var tmpl = saveToStackVar(physicReg, regSavedLoc.get(physicReg), addressReg);
+                            newInstList.get(lastDef.get(physicReg)).addAll(tmpl);
+                            lastPreservedIn.put(physicReg, lastDef.get(physicReg));
+                        }
                     }
                 }
             }
