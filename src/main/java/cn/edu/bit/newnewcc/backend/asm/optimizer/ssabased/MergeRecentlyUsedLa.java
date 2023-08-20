@@ -12,7 +12,7 @@ import java.util.Map;
 public class MergeRecentlyUsedLa implements ISSABasedOptimizer {
     Map<Label, IntRegister> addressSavedMap = new HashMap<>();
     Map<Label, Integer> addressTimeStamp = new HashMap<>();
-    final int TimeLimit = 10;
+    final int TimeLimit = 16;
     int instCounter;
 
     @Override
