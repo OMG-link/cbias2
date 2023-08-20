@@ -291,32 +291,35 @@ public class GraphColoringRegisterControl extends RegisterControl {
                 physicRegisterMap.put(reg, reg);
             }
         }
+        Set<Register> usedRegister = new HashSet<>();
         while (!stack.empty()) {
             var v = stack.pop();
-            Set<Register> occupied = new HashSet<>();
+            Map<Register, Integer> selectScore = new HashMap<>();
+            for (var reg : physicRegisters) {
+                selectScore.put(reg, 0);
+            }
             for (var u : interferenceEdges.get(v)) {
                 if (physicRegisterMap.containsKey(u)) {
-                    occupied.add(physicRegisterMap.get(u));
+                    selectScore.put(physicRegisterMap.get(u), -4);
                 }
             }
             for (var pReg : physicRegisters) {
-                if (!occupied.contains(pReg)) {
-                    if ((registerAcrossCall.contains(v) && Registers.isPreservedAcrossCalls(pReg)) ||
-                            (!registerAcrossCall.contains(v) && !Registers.isPreservedAcrossCalls(pReg))) {
-                        physicRegisterMap.put(v, pReg);
-                        break;
-                    }
+                if ((registerAcrossCall.contains(v) && Registers.isPreservedAcrossCalls(pReg)) ||
+                        (!registerAcrossCall.contains(v) && !Registers.isPreservedAcrossCalls(pReg))) {
+                    selectScore.put(pReg, selectScore.get(pReg) + 2);
+                }
+                if (usedRegister.contains(pReg)) {
+                    selectScore.put(pReg, selectScore.get(pReg) + 1);
                 }
             }
-            if (physicRegisterMap.containsKey(v)) {
-                continue;
-            }
+            Register result = null;
             for (var pReg : physicRegisters) {
-                if (!occupied.contains(pReg)) {
-                    physicRegisterMap.put(v, pReg);
-                    break;
+                if (result == null || selectScore.get(result) < selectScore.get(pReg)) {
+                    result = pReg;
                 }
             }
+            physicRegisterMap.put(v, result);
+            usedRegister.add(result);
         }
     }
 
