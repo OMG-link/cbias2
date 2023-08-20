@@ -140,13 +140,13 @@ public class SSABasedOptimizer implements Optimizer {
             list.add(new SrslMergeOptimizer());
             list.add(new StrengthReductionOptimizer());
             list.add(new MergeRecentlyUsedLa());
+            list.add(new MergeRecentlyUsedLi());
             optimizerList = list;
         }
         return optimizerList;
     }
 
-    @Override
-    public final boolean runOn(AsmFunction function) {
+    private boolean runOn(AsmFunction function, ISSABasedOptimizer optimizer) {
         functionContext = function;
 
         var optimizerList = getOptimizerList();
@@ -158,35 +158,25 @@ public class SSABasedOptimizer implements Optimizer {
         newInstrList.clear();
         int count = 0;
 
-        for (ISSABasedOptimizer optimizer : optimizerList) {
-            optimizer.setFunctionBegins();
-        }
+        optimizer.setFunctionBegins();
         for (AsmInstruction instruction : oldInstrList) {
             if (instruction instanceof AsmLabel) {
                 newInstrList.add(instruction);
-                for (ISSABasedOptimizer optimizer : optimizerList) {
-                    optimizer.setBlockBegins();
-                }
+                optimizer.setBlockBegins();
             } else if (instruction instanceof AsmBlockEnd) {
-                for (ISSABasedOptimizer optimizer : optimizerList) {
-                    optimizer.setBlockEnds();
-                }
+                optimizer.setBlockEnds();
                 newInstrList.add(instruction);
             } else {
-                for (ISSABasedOptimizer optimizer : optimizerList) {
-                    var result = optimizer.getReplacement(this, instruction);
-                    if (result != null) {
-                        newInstrList.addAll(result.getInstructions());
-                        registerReplacementMap.putAll(result.getRegisterMap());
-                        count++;
-                    }
+                var result = optimizer.getReplacement(this, instruction);
+                if (result != null) {
+                    newInstrList.addAll(result.getInstructions());
+                    registerReplacementMap.putAll(result.getRegisterMap());
+                    count++;
                 }
                 newInstrList.add(instruction);
             }
         }
-        for (ISSABasedOptimizer optimizer : optimizerList) {
-            optimizer.setFunctionEnds();
-        }
+        optimizer.setFunctionEnds();
 
         checkRegisterReplacementMap();
 
@@ -206,6 +196,14 @@ public class SSABasedOptimizer implements Optimizer {
         new DeadInstructionEliminationOptimizer().runOn(function);
 
         return count > 0;
+    }
+
+    public boolean runOn(AsmFunction function) {
+        boolean changed = false;
+        for (ISSABasedOptimizer optimizer : getOptimizerList()) {
+            changed |= new SSABasedOptimizer().runOn(function, optimizer);
+        }
+        return changed;
     }
 
 
