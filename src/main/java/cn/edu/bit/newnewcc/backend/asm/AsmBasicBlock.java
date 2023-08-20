@@ -506,21 +506,41 @@ public class AsmBasicBlock {
         }
     }
 
+    private void translateBranchWithZero(Value value, IntegerCompareInst.Condition condition, Label trueLabel) {
+        var operand = (IntRegister) function.getValueToRegister(value);
+        function.appendInstruction(AsmJump.createUnary(switch (condition) {
+            case EQ -> AsmJump.Condition.EQZ;
+            case NE -> AsmJump.Condition.NEZ;
+            case SLT -> AsmJump.Condition.LTZ;
+            case SLE -> AsmJump.Condition.LEZ;
+            case SGT -> AsmJump.Condition.GTZ;
+            case SGE -> AsmJump.Condition.GEZ;
+        }, trueLabel, operand));
+    }
+
     private void translateBranchInst(BranchInst branchInst) {
         sufTranslatePhiInstructions();
         var trueLabel = function.getJumpLabel(branchInst.getTrueExit());
         var falseLabel = function.getJumpLabel(branchInst.getFalseExit());
         if (branchInst.getCondition() instanceof IntegerCompareInst integerCompareInst) {
-            var operand1 = (IntRegister) function.getValueToRegister(integerCompareInst.getOperand1());
-            var operand2 = (IntRegister) function.getValueToRegister(integerCompareInst.getOperand2());
-            function.appendInstruction(AsmJump.createBinary(switch (integerCompareInst.getCondition()) {
-                case EQ -> AsmJump.Condition.EQ;
-                case NE -> AsmJump.Condition.NE;
-                case SLT -> AsmJump.Condition.LT;
-                case SLE -> AsmJump.Condition.LE;
-                case SGT -> AsmJump.Condition.GT;
-                case SGE -> AsmJump.Condition.GE;
-            }, trueLabel, operand1, operand2));
+            if (integerCompareInst.getOperand1() instanceof ConstInteger constInteger &&
+                    ConstInteger.valueOf(constInteger) == 0) {
+                translateBranchWithZero(integerCompareInst.getOperand2(), integerCompareInst.getCondition().swap(), trueLabel);
+            } else if (integerCompareInst.getOperand2() instanceof ConstInteger constInteger &&
+                    ConstInteger.valueOf(constInteger) == 0) {
+                translateBranchWithZero(integerCompareInst.getOperand1(), integerCompareInst.getCondition(), trueLabel);
+            } else {
+                var operand1 = (IntRegister) function.getValueToRegister(integerCompareInst.getOperand1());
+                var operand2 = (IntRegister) function.getValueToRegister(integerCompareInst.getOperand2());
+                function.appendInstruction(AsmJump.createBinary(switch (integerCompareInst.getCondition()) {
+                    case EQ -> AsmJump.Condition.EQ;
+                    case NE -> AsmJump.Condition.NE;
+                    case SLT -> AsmJump.Condition.LT;
+                    case SLE -> AsmJump.Condition.LE;
+                    case SGT -> AsmJump.Condition.GT;
+                    case SGE -> AsmJump.Condition.GE;
+                }, trueLabel, operand1, operand2));
+            }
         } else {
             var condition = function.getOperandToIntRegister(function.getValue(branchInst.getCondition()));
             function.appendInstruction(AsmJump.createNEZ(trueLabel, condition));
