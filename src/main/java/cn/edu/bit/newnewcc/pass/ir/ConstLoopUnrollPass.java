@@ -24,7 +24,8 @@ public class ConstLoopUnrollPass {
     /**
      * 单次循环展开后，展开部分语句数量总和的限制
      */
-    private static final int MAXIMUM_EXTRACTED_SIZE = 500;
+    private static final int MAXIMUM_EXTRACTED_SIZE = 5000;
+    private static final int MAXIMUM_LOOP_COUNT = 32;
 
     private final Function function;
     private final LoopForest loopForest;
@@ -56,7 +57,8 @@ public class ConstLoopUnrollPass {
         var loopBlocks = new HashSet<BasicBlock>();
         int loopSize = collectLoopInfo(loop, loopBlocks);
         // 判断展开后循环的大小，实际展开次数为循环次数+1
-        if ((long) (loop.getSimpleLoopInfo().getLoopCount() + 1) * loopSize > MAXIMUM_EXTRACTED_SIZE) return false;
+        var loopCount = loop.getSimpleLoopInfo().getLoopCount();
+        if (loopCount <= MAXIMUM_LOOP_COUNT && (long) (loopCount + 1) * loopSize > MAXIMUM_EXTRACTED_SIZE) return false;
         // 将headBlock中的值引入到出口块中
         var loopExitBlock = loop.getSimpleLoopInfo().exitBlock();
         var exitValueMapping = new HashMap<Instruction, PhiInst>();
@@ -116,7 +118,7 @@ public class ConstLoopUnrollPass {
         });
         // 处理剩下的复制的块
         LoopClone lastClonedLoop = firstClonedLoop;
-        for (int i = 0, loopCount = loop.getSimpleLoopInfo().getLoopCount(); i < loopCount; i++) {
+        for (int i = 0; i < loopCount; i++) {
             LoopClone clonedLoop = new LoopClone(loop.getHeaderBasicBlock(), loopBlocks);
             lastClonedLoop.setNextLoopHead(clonedLoop.getClonedLoopHead());
             LoopClone finalLastClonedLoop = lastClonedLoop;
