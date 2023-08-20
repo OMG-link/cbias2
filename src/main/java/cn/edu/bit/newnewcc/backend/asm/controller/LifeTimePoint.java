@@ -1,5 +1,8 @@
 package cn.edu.bit.newnewcc.backend.asm.controller;
 
+import cn.edu.bit.newnewcc.backend.asm.instruction.AsmJump;
+import cn.edu.bit.newnewcc.backend.asm.instruction.AsmLabel;
+
 public class LifeTimePoint implements Comparable<LifeTimePoint> {
     public enum Type {
         USE, DEF
@@ -33,6 +36,11 @@ public class LifeTimePoint implements Comparable<LifeTimePoint> {
 
     public boolean isUse() {
         return type == Type.USE;
+    }
+
+    public boolean isTruePoint() {
+        var inst = getIndex().getSourceInst();
+        return !(inst instanceof AsmLabel || inst instanceof AsmJump);
     }
 
     @Override
