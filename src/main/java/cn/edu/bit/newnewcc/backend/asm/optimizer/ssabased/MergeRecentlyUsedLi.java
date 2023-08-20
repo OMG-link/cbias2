@@ -29,17 +29,19 @@ public class MergeRecentlyUsedLi implements ISSABasedOptimizer {
         instCounter++;
         if (instruction instanceof AsmLoad asmLoad && asmLoad.getOpcode().equals(AsmLoad.Opcode.LI)) {
             IntRegister resultReg = (IntRegister) instruction.getOperand(1);
-            var imm = ((Immediate) asmLoad.getOperand(2)).getValue();
-            if (immTimeStamp.containsKey(imm) && instCounter <= immTimeStamp.get(imm) + TIME_LIMIT) {
-                IntRegister previousReg = immSavedMap.get(imm);
-                if (!previousReg.equals(resultReg)) {
-                    result = OptimizeResult.getNew();
-                    result.addRegisterMapping(resultReg, previousReg);
+            if (resultReg.isVirtual()) {
+                var imm = ((Immediate) asmLoad.getOperand(2)).getValue();
+                if (immTimeStamp.containsKey(imm) && instCounter <= immTimeStamp.get(imm) + TIME_LIMIT) {
+                    IntRegister previousReg = immSavedMap.get(imm);
+                    if (!previousReg.equals(resultReg)) {
+                        result = OptimizeResult.getNew();
+                        result.addRegisterMapping(resultReg, previousReg);
+                    }
+                } else {
+                    immSavedMap.put(imm, resultReg);
                 }
-            } else {
-                immSavedMap.put(imm, resultReg);
+                immTimeStamp.put(imm, instCounter);
             }
-            immTimeStamp.put(imm, instCounter);
         }
         return result;
     }
