@@ -627,12 +627,47 @@ public class AsmBasicBlock {
     }
 
     private void translateLoadInst(LoadInst loadInst) {
-        MemoryAddress address = function.getOperandToAddress(function.getValue(loadInst.getAddressOperand()));
+        var source = function.getValue(loadInst.getAddressOperand());
         Register register = function.getRegisterAllocator().allocate(loadInst);
         if (loadInst.getType() instanceof IntegerType integerType) {
-            function.appendInstruction(new AsmLoad(register, address, integerType.getBitWidth()));
+            if (source instanceof Immediate immediate) {
+                function.appendInstruction(new AsmLoad(register, immediate));
+            } else if (source instanceof Register reg) {
+                function.appendInstruction(new AsmMove(register, reg));
+            } else if (source instanceof MemoryAddress memoryAddress) {
+                function.appendInstruction(new AsmLoad(register, memoryAddress, integerType.getBitWidth()));
+            } else if (source instanceof ExStackVarContent) {
+                var stackAddress = function.getOperandToAddress(source);
+                function.appendInstruction(new AsmLoad(register, stackAddress, integerType.getBitWidth()));
+            } else {
+                throw new RuntimeException();
+            }
+        } else if (loadInst.getType() instanceof PointerType) {
+            if (source instanceof Immediate immediate) {
+                function.appendInstruction(new AsmLoad(register, immediate));
+            } else if (source instanceof Register reg) {
+                function.appendInstruction(new AsmMove(register, reg));
+            } else if (source instanceof MemoryAddress memoryAddress) {
+                function.appendInstruction(new AsmLoad(register, memoryAddress, 64));
+            } else if (source instanceof ExStackVarContent) {
+                var stackAddress = function.getOperandToAddress(source);
+                function.appendInstruction(new AsmLoad(register, stackAddress, 64));
+            } else {
+                throw new RuntimeException();
+            }
         } else {
-            function.appendInstruction(new AsmLoad(register, address, 32));
+            if (source instanceof Immediate immediate) {
+                function.appendInstruction(new AsmLoad(register, immediate));
+            } else if (source instanceof Register reg) {
+                function.appendInstruction(new AsmMove(register, reg));
+            } else if (source instanceof MemoryAddress memoryAddress) {
+                function.appendInstruction(new AsmLoad(register, memoryAddress, 32));
+            } else if (source instanceof ExStackVarContent) {
+                var stackAddress = function.getOperandToAddress(source);
+                function.appendInstruction(new AsmLoad(register, stackAddress, 32));
+            } else {
+                throw new RuntimeException();
+            }
         }
     }
 
