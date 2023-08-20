@@ -1,7 +1,6 @@
 package cn.edu.bit.newnewcc.backend.asm.optimizer.ssabased;
 
 import cn.edu.bit.newnewcc.backend.asm.instruction.AsmInstruction;
-import cn.edu.bit.newnewcc.backend.asm.instruction.AsmLabel;
 import cn.edu.bit.newnewcc.backend.asm.instruction.AsmLoad;
 import cn.edu.bit.newnewcc.backend.asm.operand.IntRegister;
 import cn.edu.bit.newnewcc.backend.asm.operand.Label;
@@ -40,6 +39,7 @@ public class MergeRecentlyUsedLa implements ISSABasedOptimizer {
             } else {
                 addressSavedMap.put(addressLabel, resultReg);
             }
+            addressTimeStamp.put(addressLabel, instCounter);
         }
         return result;
     }
