@@ -9,6 +9,7 @@ public class OptimizerManager {
     }
 
     public void runAfterRegisterAllocation(AsmFunction function) {
+        new LIAddToAddIOptimizer().runOn(function);
         new MemoryAccessEliminationOptimizer().runOn(function);
         new LAEliminationOptimizer().runOn(function);
         new MoveEliminationOptimizer().runOn(function);
