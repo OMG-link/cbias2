@@ -657,6 +657,9 @@ public class GraphColoringRegisterControl extends RegisterControl {
 
         Map<Register, LifeTimeIndex> defOnce = new HashMap<>();
         for (var reg : physicRegisterMap.keySet()) {
+            if (!reg.isVirtual()) {
+                defOnce.put(reg, null);
+            }
             for (var p : lifeTimeController.getPoints(reg)) {
                 var inst = p.getIndex().getSourceInst();
                 var pReg = physicRegisterMap.get(reg);
