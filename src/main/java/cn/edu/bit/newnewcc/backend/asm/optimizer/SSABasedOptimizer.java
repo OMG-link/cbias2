@@ -119,12 +119,19 @@ public class SSABasedOptimizer implements Optimizer {
 
     private void checkRegisterReplacementMap() {
         for (Register register : registerReplacementMap.keySet()) {
-            if (!register.isVirtual()) {
-                throw new RuntimeException("Replacing usage of physical register is dangerous, it is NOT ALLOWED.");
-            }
-            if (!registerReplacementMap.get(register).isVirtual()) {
-                throw new RuntimeException("Replacing usage with physical register is dangerous, it is NOT ALLOWED.");
-            }
+            var sourceRegister = register;
+            var targetRegister = registerReplacementMap.get(register);
+            checkRegister(sourceRegister);
+            checkRegister(targetRegister);
+        }
+    }
+
+    private void checkRegister(Register register) {
+        if (!register.isVirtual()) {
+            throw new RuntimeException("Replacing usage of physical register is dangerous, it is NOT ALLOWED.");
+        }
+        if (!registerReplacementMap.get(register).isVirtual()) {
+            throw new RuntimeException("Replacing usage with physical register is dangerous, it is NOT ALLOWED.");
         }
     }
 
