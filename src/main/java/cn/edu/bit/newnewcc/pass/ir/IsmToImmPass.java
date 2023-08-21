@@ -97,7 +97,8 @@ public class IsmToImmPass {
             if (loopExitBr.getFalseExit() != exitBlock) return false;
             // sum_added
             if (sumAdded.getBasicBlock() != bodyBlock) return false;
-            if (sumAdded.getOperand1() != sumBefore) return false;
+            if (!((sumAdded.getOperand1() == sumBefore && sumAdded.getOperand2() == stepValue) ||
+                    (sumAdded.getOperand2() == sumBefore && sumAdded.getOperand1() == stepValue))) return false;
             if (isInternalValue(stepValue)) return false;
             // sum_after
             if (sumAfter.getBasicBlock() != bodyBlock) return false;
@@ -170,16 +171,24 @@ public class IsmToImmPass {
                 if (instruction != iAfter && !(instruction instanceof TerminateInst)) {
                     if (instruction instanceof IntegerAddInst sumAdded_) {
                         sumAdded = sumAdded_;
-                        stepValue = sumAdded.getOperand2();
+                        if (isInternalValue(sumAdded.getOperand1())) {
+                            if (!(sumAdded.getOperand1() instanceof PhiInst sumBefore_)) return false;
+                            sumBefore = sumBefore_;
+                            stepValue = sumAdded.getOperand2();
+                        } else if (isInternalValue(sumAdded.getOperand2())) {
+                            if (!(sumAdded.getOperand2() instanceof PhiInst sumBefore_)) return false;
+                            sumBefore = sumBefore_;
+                            stepValue = sumAdded.getOperand1();
+                        } else {
+                            return false;
+                        }
                     } else if (instruction instanceof IntegerSignedRemainderInst sumAfter_) {
                         sumAfter = sumAfter_;
                         externalModulo = sumAfter.getOperand2();
                     }
                 }
             }
-            if (sumAdded == null || sumAfter == null ||
-                    !(sumAdded.getOperand1() instanceof PhiInst sumBefore_)) return false;
-            sumBefore = sumBefore_;
+            if (sumAdded == null || sumAfter == null) return false;
             for (BasicBlock entry : sumBefore.getEntrySet()) {
                 if (entry != bodyBlock) {
                     initialSum = sumBefore.getValue(entry);
