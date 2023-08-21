@@ -10,12 +10,12 @@ import cn.edu.bit.newnewcc.ir.value.instruction.IntegerAddInst;
 import cn.edu.bit.newnewcc.ir.value.instruction.IntegerSignedRemainderInst;
 import cn.edu.bit.newnewcc.pass.ir.structure.I32ValueRangeAnalyzer;
 
-public class IntegerSumModuleCombinePass {
+public class IntegerSumModuloCombinePass {
 
     private final Function function;
     private final I32ValueRangeAnalyzer analyzer;
 
-    private IntegerSumModuleCombinePass(Function function) {
+    private IntegerSumModuloCombinePass(Function function) {
         this.function = function;
         this.analyzer = I32ValueRangeAnalyzer.analysis(function);
     }
@@ -72,7 +72,7 @@ public class IntegerSumModuleCombinePass {
     }
 
     public static boolean runOnFunction(Function function) {
-        return new IntegerSumModuleCombinePass(function).run();
+        return new IntegerSumModuloCombinePass(function).run();
     }
 
     public static boolean runOnModule(Module module) {
