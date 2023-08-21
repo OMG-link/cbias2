@@ -163,6 +163,8 @@ public class IsmToImmPass {
                     iAfter = iAfter_;
                 }
             }
+            if (initialI == null) return false;
+            if (iAfter == null) return false;
             // sum
             for (Instruction instruction : bodyBlock.getInstructions()) {
                 if (instruction != iAfter && !(instruction instanceof TerminateInst)) {
@@ -175,13 +177,15 @@ public class IsmToImmPass {
                     }
                 }
             }
-            if (!(sumAdded.getOperand1() instanceof PhiInst sumBefore_)) return false;
+            if (sumAdded == null || sumAfter == null ||
+                    !(sumAdded.getOperand1() instanceof PhiInst sumBefore_)) return false;
             sumBefore = sumBefore_;
             for (BasicBlock entry : sumBefore.getEntrySet()) {
                 if (entry != bodyBlock) {
                     initialSum = sumBefore.getValue(entry);
                 }
             }
+            if (initialSum == null) return false;
             if (!checkFormat()) return false;
             reconstruct();
             return true;
