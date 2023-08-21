@@ -189,6 +189,10 @@ public class CloneBase {
                     getReplacedValue(zeroExtensionInst.getSourceOperand()),
                     zeroExtensionInst.getTargetType()
             );
+        } else if (instruction instanceof SignedExtensionInst signedExtensionInst) {
+            return new SignedExtensionInst(getReplacedValue(signedExtensionInst.getSourceOperand()), signedExtensionInst.getTargetType());
+        } else if (instruction instanceof TruncInst truncInst) {
+            return new TruncInst(getReplacedValue(truncInst.getSourceOperand()), truncInst.getTargetType());
         } else {
             throw new IllegalArgumentException("Cannot clone instruction of type " + instruction.getClass());
         }
