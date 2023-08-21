@@ -32,7 +32,6 @@ public class LIAddToAddIOptimizer implements Optimizer {
                     && !ImmediateValues.bitLengthNotInLimit(((Immediate) curInstr.getOperand(2)).getValue())
                     && nextInstr instanceof AsmAdd
                     && ((AsmAdd) nextInstr).getOpcode() == AsmAdd.Opcode.ADD
-                    && nextInstr.getOperand(1).equals(curInstr.getOperand(1))
                     && (
                         nextInstr.getOperand(2).equals(curInstr.getOperand(1))
                         || nextInstr.getOperand(3).equals(curInstr.getOperand(1))
@@ -54,6 +53,7 @@ public class LIAddToAddIOptimizer implements Optimizer {
                             64
                         );
                     }
+                    newInstrList.add(curInstr);
                     newInstrList.add(newInstr);
                     replaced = true;
                     ++count;
