@@ -76,7 +76,7 @@ public class MergeRecentlySameValue implements ISSABasedOptimizer {
         @Override
         public int hashCode() {
             if (AsmInstructions.isExchangableCalculateInst(opcode)) {
-                return Objects.hash(opcode, Set.of(v1, v2));
+                return Objects.hash(opcode, Set.copyOf(List.of(v1, v2)));
             } else {
                 return Objects.hash(opcode, v1, v2);
             }
