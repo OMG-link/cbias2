@@ -141,6 +141,7 @@ public class SSABasedOptimizer implements Optimizer {
             list.add(new StrengthReductionOptimizer());
             list.add(new MergeRecentlyUsedLa());
             list.add(new MergeRecentlyUsedLi());
+            list.add(new MergeRecentlySameValue());
             optimizerList = list;
         }
         return optimizerList;
