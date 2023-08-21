@@ -6,6 +6,7 @@ import cn.edu.bit.newnewcc.backend.asm.operand.RegisterReplaceable;
 
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 public class AsmInstructions {
@@ -146,5 +147,31 @@ public class AsmInstructions {
 
     public static boolean instContainsReg(AsmInstruction instr, Register reg) {
         return getReadRegSet(instr).contains(reg) || getWriteRegSet(instr).contains(reg);
+    }
+
+    private static final Map<Object, Integer> CalculateInstClassID;
+    static {
+        CalculateInstClassID = Map.ofEntries(
+                Map.entry(AsmAdd.class, 0),
+                Map.entry(AsmAnd.class, 1),
+                Map.entry(AsmFloatCompare.class, 2),
+                Map.entry(AsmFloatDivide.class, 3),
+                Map.entry(AsmIntegerCompare.class, 4),
+                Map.entry(AsmMax.class, 5),
+                Map.entry(AsmMin.class, 6),
+                Map.entry(AsmMul.class, 7),
+                Map.entry(AsmShiftLeft.class, 8),
+                Map.entry(AsmShiftRightArithmetic.class, 9),
+                Map.entry(AsmShiftRightLogical.class, 10),
+                Map.entry(AsmSignedIntegerDivide.class, 11),
+                Map.entry(AsmSignedIntegerRemainder.class, 12));
+    }
+    public static int getCalculateInstCode(AsmInstruction instruction) {
+        if (CalculateInstClassID.containsKey(instruction.getClass())) {
+            return CalculateInstClassID.get(instruction.getClass());
+        } else if (instruction instanceof AsmShiftLeftAdd shiftLeftAdd) {
+            return 12 + shiftLeftAdd.getShiftLength();
+        }
+        return -1;
     }
 }

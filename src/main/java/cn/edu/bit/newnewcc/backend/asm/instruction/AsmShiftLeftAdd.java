@@ -16,6 +16,10 @@ public class AsmShiftLeftAdd extends AsmInstruction {
         this.n = n;
     }
 
+    public int getShiftLength() {
+        return n;
+    }
+
     @Override
     public String toString() {
         return String.format("AsmShiftLeftAdd(%d, %s, %s, %s)", n, getOperand(1), getOperand(2), getOperand(3));

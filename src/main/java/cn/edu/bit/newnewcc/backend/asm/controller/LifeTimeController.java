@@ -211,7 +211,9 @@ public class LifeTimeController {
                 blocks.add(now);
                 blockMap.put(now.blockName, now);
             }
-            Objects.requireNonNull(now);
+            if (now == null) {
+                continue;
+            }
             if (inst instanceof AsmJump) {
                 if (now.startBranch == -1) {
                     now.startBranch = i;
@@ -257,7 +259,8 @@ public class LifeTimeController {
         for (var reg : function.getParamRegs()) {
             insertLifeTimePoint(reg, LifeTimePoint.getDef(functionStartIndex));
         }
-        for (var b : blocks) {
+        for (int c = 0; c < blocks.size() - 1; c++) {
+            var b = blocks.get(c);
             for (var x : b.in) {
                 LifeTimeIndex index = LifeTimeIndex.getInstOut(this, instructionList.get(b.l));
                 insertLifeTimePoint(x, LifeTimePoint.getDef(index));
