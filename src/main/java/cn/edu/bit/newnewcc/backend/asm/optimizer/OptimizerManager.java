@@ -15,6 +15,7 @@ public class OptimizerManager {
         new MoveEliminationOptimizer().runOn(function);
         new BranchEliminationOptimizer().runOn(function);
         new DeadBlockEliminationOptimizer().runOn(function);
+        new AddiToOffset().runOn(function);
         new DeadInstEliminationWithLifeTimeOptimizer().runOn(function);
         new BlockInlineOptimizer(20).runOn(function);
         new DeadInstructionEliminationOptimizer().runOn(function);
