@@ -5,10 +5,7 @@ import cn.edu.bit.newnewcc.ir.Value;
 import cn.edu.bit.newnewcc.ir.exception.CompilationProcessCheckFailedException;
 import cn.edu.bit.newnewcc.ir.exception.IllegalArgumentException;
 import cn.edu.bit.newnewcc.ir.type.IntegerType;
-import cn.edu.bit.newnewcc.ir.value.BasicBlock;
-import cn.edu.bit.newnewcc.ir.value.Constant;
-import cn.edu.bit.newnewcc.ir.value.Function;
-import cn.edu.bit.newnewcc.ir.value.Instruction;
+import cn.edu.bit.newnewcc.ir.value.*;
 import cn.edu.bit.newnewcc.ir.value.constant.ConstInt;
 import cn.edu.bit.newnewcc.ir.value.instruction.*;
 
@@ -202,9 +199,18 @@ public class I32ValueRangeAnalyzer {
                     result = new I32ValueRange(0, (1 << sourceBitWidth) - 1);
                 }
             } else if (value instanceof BitCastInst || value instanceof LoadInst ||
-                    value instanceof CallInst || value instanceof Function.FormalParameter ||
-                    value instanceof FloatToSignedIntegerInst) {
+                    value instanceof Function.FormalParameter || value instanceof FloatToSignedIntegerInst) {
                 result = new I32ValueRange(Integer.MIN_VALUE, Integer.MAX_VALUE);
+            } else if (value instanceof CallInst callInst) {
+                if (callInst.getCallee() instanceof ExternalFunction externalFunction) {
+                    result = switch (externalFunction.getFunctionName()) {
+                        case "getch" -> new I32ValueRange(-128, 127);
+                        case "getarray", "getfarray" -> new I32ValueRange(0, Integer.MAX_VALUE);
+                        default -> new I32ValueRange(Integer.MIN_VALUE, Integer.MAX_VALUE);
+                    };
+                } else {
+                    result = new I32ValueRange(Integer.MIN_VALUE, Integer.MAX_VALUE);
+                }
             } else if (value instanceof PhiInst phiInst) {
                 // 为了避免循环求值，phi指令不会递归求解，当入口值未知时，暂时忽略它
                 int minValue = Integer.MAX_VALUE;
