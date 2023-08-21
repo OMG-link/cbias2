@@ -44,6 +44,10 @@ public class AsmSub extends AsmInstruction {
         opcode = Opcode.FSUBS;
     }
 
+    public Opcode getOpcode() {
+        return opcode;
+    }
+
     @Override
     public String toString() {
         return String.format("AsmSub(%s, %s, %s, %s)", opcode.getName(), getOperand(1), getOperand(2), getOperand(3));
