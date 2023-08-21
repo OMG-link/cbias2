@@ -3,7 +3,6 @@ package cn.edu.bit.newnewcc.backend.asm.optimizer.ssabased;
 import cn.edu.bit.newnewcc.backend.asm.instruction.*;
 import cn.edu.bit.newnewcc.backend.asm.operand.ExStackVarOffset;
 import cn.edu.bit.newnewcc.backend.asm.operand.Immediate;
-import cn.edu.bit.newnewcc.backend.asm.operand.IntRegister;
 import cn.edu.bit.newnewcc.backend.asm.operand.Register;
 import cn.edu.bit.newnewcc.backend.asm.optimizer.SSABasedOptimizer;
 import cn.edu.bit.newnewcc.backend.asm.util.AsmInstructions;
@@ -75,7 +74,7 @@ public class MergeRecentlySameValue implements ISSABasedOptimizer {
 
         @Override
         public int hashCode() {
-            if (AsmInstructions.isExchangableCalculateInst(opcode)) {
+            if (AsmInstructions.isExchangeableCalculateInst(opcode)) {
                 return Objects.hash(opcode, Set.copyOf(List.of(v1, v2)));
             } else {
                 return Objects.hash(opcode, v1, v2);

@@ -154,17 +154,15 @@ public class AsmInstructions {
         CalculateInstClassID = Map.ofEntries(
                 Map.entry(AsmAdd.class, 0),
                 Map.entry(AsmAnd.class, 1),
-                Map.entry(AsmFloatCompare.class, 2),
-                Map.entry(AsmFloatDivide.class, 3),
-                Map.entry(AsmIntegerCompare.class, 4),
-                Map.entry(AsmMax.class, 5),
-                Map.entry(AsmMin.class, 6),
-                Map.entry(AsmMul.class, 7),
-                Map.entry(AsmShiftLeft.class, 8),
-                Map.entry(AsmShiftRightArithmetic.class, 9),
-                Map.entry(AsmShiftRightLogical.class, 10),
-                Map.entry(AsmSignedIntegerDivide.class, 11),
-                Map.entry(AsmSignedIntegerRemainder.class, 12));
+                Map.entry(AsmFloatDivide.class, 2),
+                Map.entry(AsmMax.class, 3),
+                Map.entry(AsmMin.class, 4),
+                Map.entry(AsmMul.class, 5),
+                Map.entry(AsmShiftLeft.class, 6),
+                Map.entry(AsmShiftRightArithmetic.class, 7),
+                Map.entry(AsmShiftRightLogical.class, 8),
+                Map.entry(AsmSignedIntegerDivide.class, 9),
+                Map.entry(AsmSignedIntegerRemainder.class, 10));
     }
     public static int getCalculateInstCode(AsmInstruction instruction) {
         if (CalculateInstClassID.containsKey(instruction.getClass())) {
@@ -174,7 +172,7 @@ public class AsmInstructions {
         }
         return -1;
     }
-    public static boolean isExchangableCalculateInst(int opcode) {
-        return (Set.of(0, 1, 5, 6, 7).contains(opcode));
+    public static boolean isExchangeableCalculateInst(int opcode) {
+        return (Set.of(0, 1, 3, 4, 5).contains(opcode));
     }
 }
