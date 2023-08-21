@@ -784,6 +784,13 @@ public class AsmBasicBlock {
         function.appendInstruction(new AsmMin(regFinal, op1, op2));
     }
 
+    private void translateTruncInst(TruncInst truncInst) {
+        var reg = function.getRegisterAllocator().allocateInt(truncInst);
+        var source = function.getValue(truncInst.getSourceOperand());
+        var rs = function.getOperandToIntRegister(source);
+        function.appendInstruction(new AsmMove(reg, rs));
+    }
+
     private void translate(Instruction instruction) {
         if (instruction instanceof ReturnInst returnInst) {
             translateReturnInst(returnInst);
@@ -821,6 +828,8 @@ public class AsmBasicBlock {
             translateSignedMinInst(signedMinInst);
         } else if (instruction instanceof SignedMaxInst signedMaxInst) {
             translateSignedMaxInst(signedMaxInst);
+        } else if (instruction instanceof TruncInst truncInst) {
+            translateTruncInst(truncInst);
         } else {
             throw new IllegalArgumentException();
         }
