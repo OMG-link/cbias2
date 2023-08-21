@@ -21,5 +21,6 @@ public class OptimizerManager {
         new DeadInstructionEliminationOptimizer().runOn(function);
         new DeadBlockEliminationOptimizer().runOn(function);
         new RedundantLabelEliminationOptimizer().runOn(function);
+        new SLWithSameAddress().runOn(function);
     }
 }
