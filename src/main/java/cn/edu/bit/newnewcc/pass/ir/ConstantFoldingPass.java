@@ -366,6 +366,10 @@ public class ConstantFoldingPass {
             if (bitCastInst.getSourceType() == bitCastInst.getTargetType()) {
                 return bitCastInst.getSourceOperand();
             }
+        } else if (instruction instanceof TruncInst truncInst) {
+            if (truncInst.getSourceType() == truncInst.getTargetType()) {
+                return truncInst.getSourceOperand();
+            }
         } else if (instruction instanceof CallInst || instruction instanceof GetElementPtrInst ||
                 instruction instanceof MemoryInst || instruction instanceof TerminateInst) {
             return null;

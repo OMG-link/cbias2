@@ -199,7 +199,8 @@ public class I32ValueRangeAnalyzer {
                     result = new I32ValueRange(0, (1 << sourceBitWidth) - 1);
                 }
             } else if (value instanceof BitCastInst || value instanceof LoadInst ||
-                    value instanceof Function.FormalParameter || value instanceof FloatToSignedIntegerInst) {
+                    value instanceof Function.FormalParameter || value instanceof FloatToSignedIntegerInst ||
+                    value instanceof TruncInst) {
                 result = new I32ValueRange(Integer.MIN_VALUE, Integer.MAX_VALUE);
             } else if (value instanceof CallInst callInst) {
                 if (callInst.getCallee() instanceof ExternalFunction externalFunction) {
