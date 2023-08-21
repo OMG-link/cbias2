@@ -350,7 +350,7 @@ public class AsmFunction {
             lifeTimeController.getAllRegLifeTime(instrList);
             //asmOptimizerBeforeRegisterAllocate(lifeTimeController);
             reAllocateRegister();
-            asmOptimizerAfterRegisterAllocate();
+            //asmOptimizerAfterRegisterAllocate();
 
             List<AsmInstruction> newInstrList = new ArrayList<>();
             newInstrList.addAll(stackAllocator.emitPrologue());
