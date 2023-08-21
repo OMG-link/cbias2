@@ -26,6 +26,9 @@ public class IrPassManager {
                 runArrayPasses(module);
                 runSimplifyPasses(module);
 
+                runFunctionPasses(module);
+                runSimplifyPasses(module);
+
                 runTrickyPasses(module);
                 runSimplifyPasses(module);
 
@@ -65,8 +68,7 @@ public class IrPassManager {
     }
 
     private static void runTrickyPasses(Module module) {
-//        PatternReplacementPass.runOnModule(module);
-//        IntegerSumModuleCombinePass.runOnModule(module);
+        IsmToImmPass.runOnModule(module);
     }
 
     private static void runLoopPasses(Module module) {
