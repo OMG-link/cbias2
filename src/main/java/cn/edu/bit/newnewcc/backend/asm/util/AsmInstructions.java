@@ -174,4 +174,7 @@ public class AsmInstructions {
         }
         return -1;
     }
+    public static boolean isExchangableCalculateInst(int opcode) {
+        return (Set.of(0, 1, 5, 6, 7).contains(opcode));
+    }
 }
